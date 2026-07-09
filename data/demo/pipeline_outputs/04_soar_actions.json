@@ -1,0 +1,26 @@
+[
+  {
+    "action": "Disable or step-up verify compromised account",
+    "target": "U748@GOV",
+    "mode": "human approval required",
+    "reason": "Valid account activity appears in multiple attack stages."
+  },
+  {
+    "action": "Isolate critical asset session and preserve forensic snapshot",
+    "target": "DB-CITIZEN-01, EXT-185.77.21.9",
+    "mode": "simulated containment",
+    "reason": "Critical asset access and possible exfiltration detected."
+  },
+  {
+    "action": "Block suspicious external destination",
+    "target": "EXT-185.77.21.9",
+    "mode": "simulated firewall block",
+    "reason": "Large outbound transfer mapped to Exfiltration."
+  },
+  {
+    "action": "Open incident ticket and notify SOC lead",
+    "target": "INC-PS7-DEMO-001",
+    "mode": "automatic",
+    "reason": "Critical severity incident requires response coordination."
+  }
+]

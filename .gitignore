@@ -1,0 +1,40 @@
+# ─── Data ─────────────────────────────────────────────
+# Raw datasets are large (~11 GB) and publicly downloadable — never commit.
+# Teammates fetch them via data/README.md instructions.
+# (data/demo/ is tiny and stays tracked — needed for the demo.)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/raw/**/.gitkeep
+
+# ─── Models & artifacts ───────────────────────────────
+models/
+*.pkl
+*.pt
+*.pth
+*.joblib
+*.h5
+*.onnx
+
+# ─── Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+*.egg-info/
+.pytest_cache/
+
+# ─── Reports output (regenerated) ─────────────────────
+reports/*.html
+
+# ─── Editor / OS ──────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ─── Claude Code local (personal, not shared) ─────────
+.claude/settings.local.json

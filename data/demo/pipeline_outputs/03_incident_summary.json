@@ -1,0 +1,20 @@
+{
+  "incident_id": "INC-PS7-DEMO-001",
+  "title": "Compromised account with lateral movement and possible exfiltration",
+  "severity": "critical",
+  "users_involved": [
+    "U748@GOV"
+  ],
+  "hosts_involved": [
+    "AUTH-SRV",
+    "C17693",
+    "C305",
+    "C728",
+    "DB-CITIZEN-01",
+    "EXT-185.77.21.9"
+  ],
+  "alert_count": 6,
+  "start_time": 200,
+  "end_time": 420,
+  "max_anomaly_score": 100
+}

@@ -1,0 +1,9 @@
+timestamp,user,source_host,destination_host,event_type,status,bytes_out,command,asset_criticality
+100,U104@GOV,C101,AUTH-SRV,normal_login,success,1200,,medium
+140,U217@GOV,C233,AUTH-SRV,normal_login,success,900,,medium
+200,U748@GOV,C17693,AUTH-SRV,failed_login_burst,failure,0,,medium
+214,U748@GOV,C17693,AUTH-SRV,unusual_successful_login,success,1000,,medium
+260,U748@GOV,C17693,C305,discovery_command,success,500,whoami /all && net view,medium
+310,U748@GOV,C17693,C728,lateral_movement,success,2200,psexec-like remote session,high
+360,U748@GOV,C728,DB-CITIZEN-01,critical_asset_access,success,8700,database enumeration,critical
+420,U748@GOV,DB-CITIZEN-01,EXT-185.77.21.9,large_outbound_transfer,success,850000000,archive upload,critical

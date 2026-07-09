@@ -1,0 +1,7 @@
+from,to,user,event_type,mitre_tactic,score
+C17693,AUTH-SRV,U748@GOV,failed_login_burst,Credential Access,55
+C17693,AUTH-SRV,U748@GOV,unusual_successful_login,Initial Access,65
+C17693,C305,U748@GOV,discovery_command,Discovery,50
+C17693,C728,U748@GOV,lateral_movement,Lateral Movement,78
+C728,DB-CITIZEN-01,U748@GOV,critical_asset_access,Collection,90
+DB-CITIZEN-01,EXT-185.77.21.9,U748@GOV,large_outbound_transfer,Exfiltration,100

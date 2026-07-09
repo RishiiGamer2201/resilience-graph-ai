@@ -1,0 +1,9 @@
+timestamp,user,source_host,destination_host,event_type,status,bytes_out,command,asset_criticality,anomaly_score,mitre_tactic,mitre_technique,mitre_technique_id,is_alert
+100,U104@GOV,C101,AUTH-SRV,normal_login,success,1200,,medium,5,Normal,Expected Activity,-,False
+140,U217@GOV,C233,AUTH-SRV,normal_login,success,900,,medium,5,Normal,Expected Activity,-,False
+200,U748@GOV,C17693,AUTH-SRV,failed_login_burst,failure,0,,medium,55,Credential Access,Brute Force,T1110,True
+214,U748@GOV,C17693,AUTH-SRV,unusual_successful_login,success,1000,,medium,65,Initial Access,Valid Accounts,T1078,True
+260,U748@GOV,C17693,C305,discovery_command,success,500,whoami /all && net view,medium,50,Discovery,System Network Configuration Discovery,T1016,True
+310,U748@GOV,C17693,C728,lateral_movement,success,2200,psexec-like remote session,high,78,Lateral Movement,Remote Services,T1021,True
+360,U748@GOV,C728,DB-CITIZEN-01,critical_asset_access,success,8700,database enumeration,critical,90,Collection,Data from Information Repositories,T1213,True
+420,U748@GOV,DB-CITIZEN-01,EXT-185.77.21.9,large_outbound_transfer,success,850000000,archive upload,critical,100,Exfiltration,Exfiltration Over Web Service,T1567,True
