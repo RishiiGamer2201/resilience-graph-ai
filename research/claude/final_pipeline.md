@@ -62,9 +62,14 @@
 ### E1.1 CICIDS preprocess
 Clean 9 daily CSVs → unified labeled table. Feature set = flow stats; keep `Label`. Train/test split by day (avoid leakage).
 
+**⚠️ CICIDS-2017 known pitfalls — handle explicitly (judges reward this):**
+- **A. Extreme class imbalance** (>80% BENIGN). *Accuracy is a trap* — a "always benign" guess scores ~80% and catches zero attacks. **We sidestep it by design:** Engine 1 is unsupervised anomaly detection trained on **benign-only**, so imbalance doesn't bias training and **SMOTE is N/A**. Report **PR-AUC / F1 / recall**, never accuracy. *(Only if we add a supervised classifier baseline do class-weighting/SMOTE apply.)*
+- **B. NaN / Infinity** in `Flow Bytes/s`, `Flow Packets/s` (CICFlowMeter quirk) → clip/drop; log how many rows affected.
+- **C. Leakage / duplicates** → drop identifier columns (esp. `Destination Port`) so the model can't memorize them; dedupe repeated flows; be aware of CICIDS-2017's known label errors (Engelen et al. 2021, "Improved CICIDS2017"). Split by day, not random row shuffle.
+
 ### E1.2 Anomaly model + baselines *(the verifiable claim)*
 - **Model:** IsolationForest (primary) + Autoencoder (comparison), trained on **normal traffic only**.
-- **CICIDS eval (supervised):** precision / recall / F1 / ROC-AUC using labels.
+- **CICIDS eval:** **PR-AUC (primary, robust to imbalance)** + precision / recall / F1; ROC-AUC secondary. *Never headline accuracy.*
 - **⚠️ MUST report lift vs baselines:** (a) random, (b) rule threshold (e.g. failed-login count). *Lift over baseline = the actual Technical-Excellence point; a lone accuracy number is not.*
 - **Output:** per-event anomaly score + `evaluation_report.md`.
 

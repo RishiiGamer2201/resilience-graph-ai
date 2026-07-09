@@ -23,8 +23,9 @@
 ## Milestone 1 — PHASE 0: Data Foundation 🔴 *(Days 1–2 · owner M4, +M2)*
 *Everyone is blocked until this is done. Do it first, together if needed.*
 
-- [ ] 🔴 **0.1 CICIDS preprocess** — unzip `MachineLearningCSV.zip`; strip column-name whitespace; drop/clip `Inf`/`NaN` in flow-rate cols; dedupe; concat 9 daily CSVs; keep `Label`
-  - **Acceptance:** loads as one dataframe, no `Inf`/`NaN`, label distribution printed, split by day (no leakage).
+- [ ] 🔴 **0.1 CICIDS preprocess** — unzip `MachineLearningCSV.zip`; strip column-name whitespace; drop/clip `Inf`/`NaN` in flow-rate cols; dedupe; **drop leakage cols (esp. `Destination Port`/IPs)**; concat 9 daily CSVs; keep `Label`
+  - **Handle the 3 known CICIDS pitfalls (from team research):** (A) extreme imbalance >80% benign → never report accuracy, use PR-AUC/F1/recall [Engine 1 unsupervised sidesteps it; SMOTE only for a supervised baseline]; (B) NaN/Inf in `Flow Bytes/s` & `Flow Packets/s` → clip/drop + log row count; (C) leakage/duplicates → drop identifier cols, dedupe, split by day.
+  - **Acceptance:** loads as one dataframe, no `Inf`/`NaN`, label distribution printed (show the ~80% benign split), identifier cols dropped, split by day (no leakage).
   - **Deliverable:** `data/processed/cicids2017/flows.parquet` + `src/engine1/prep_cicids.py`
 - [ ] 🔴 **0.2 LANL red-team window** — **stream** `auth.txt.gz` (never fully unzip); keep events on days 1–29 within ±N sec of the 749 red-team events + a matched normal-auth sample; join red-team labels
   - **Acceptance:** parquet has both classes; red-team rows labeled 1; row count sane (<few M rows); memory stays bounded (streamed).
