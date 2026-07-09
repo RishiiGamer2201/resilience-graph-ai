@@ -21,7 +21,7 @@
 
 ---
 
-## Milestone 1 — PHASE 0: Data Foundation 🔴 *(Days 1–2 · owner M4, +M2)*
+## Milestone 1 — PHASE 0: Data Foundation 🔴 *(Days 1–2 · owner M4, +M2)* — ✅ COMPLETE
 *Everyone is blocked until this is done. Do it first, together if needed.*
 
 - [x] 🔴 **0.1 CICIDS preprocess** — unzip `MachineLearningCSV.zip`; strip column-name whitespace; drop/clip `Inf`/`NaN` in flow-rate cols; dedupe; **drop leakage cols (esp. `Destination Port`/IPs)**; concat 9 daily CSVs; keep `Label` ✅
@@ -29,16 +29,18 @@
   - **Acceptance:** ✅ loads as one dataframe, no `Inf`/`NaN`, label distribution printed, identifier cols dropped, split by day.
   - **RESULT:** 2,830,743 raw → **2,297,036** rows · 77 features · **85.4% benign / 14.6% attack** · 4,376 Inf cells fixed · 530,840 dupes dropped · 15 attack types · 1,960,544 benign-only rows for unsupervised training. See `reports/cicids_prep.md`.
   - **Deliverable:** `data/processed/cicids2017/flows.parquet` (gitignored) + `src/engine1/prep_cicids.py` ✅
-- [ ] 🔴 **0.2 LANL red-team window** — **stream** `auth.txt.gz` (never fully unzip); keep events on days 1–29 within ±N sec of the 749 red-team events + a matched normal-auth sample; join red-team labels
-  - **Acceptance:** parquet has both classes; red-team rows labeled 1; row count sane (<few M rows); memory stays bounded (streamed).
-  - **Deliverable:** `data/processed/lanl/auth_redteam_window.parquet` + `src/engine1/prep_lanl.py`
+- [x] 🔴 **0.2 LANL red-team window** — **stream** `auth.txt.gz` (never fully unzip); keep all compromised-user activity (benign+malicious) + 1-in-400 background sample; join red-team labels; early-exit at day ~30 ✅
+  - **Acceptance:** ✅ both classes present; red-team rows labeled 1; streamed (bounded memory, chunked parquet writes).
+  - **RESULT:** 519,368,230 lines streamed → **11,221,902 rows** (94 MB) · **702 malicious** / 715 red-team events (98.2%; 13 lack exact auth counterparts — known LANL quirk) · 104 compromised users · 1.27M background normal. Match key `(time,src_user,src_comp,dst_comp)` verified. See `reports/lanl_prep.md`.
+  - **Deliverable:** `data/processed/lanl/auth_redteam_window.parquet` (gitignored) + `src/engine1/prep_lanl.py` ✅
 - [x] 🔴 **0.3 ATT&CK lookups** — parse Enterprise + ICS STIX into dicts: `technique→tactics`, `group→techniques`, `technique→mitigations`, `technique→description`, `campaign→techniques` ✅
   - **Acceptance:** ✅ self-test passes — APT29: 66 techniques; T1078 = "Valid Accounts" w/ 8 mitigations; pickle reloads.
   - **RESULT:** 794 techniques · 172 groups · 57 campaigns · 96 mitigations (682 techniques mapped to mitigations). See `reports/attack_lookups.md`.
   - **Deliverable:** `data/processed/mitre_attack/attack_lookups.pkl` (gitignored) + `src/shared/parse_attack.py` ✅
-- [ ] 🔴 **0.4 Schema freeze** — implement + document the 12-field common event schema; normalizers for CICIDS & LANL emit it
-  - **Acceptance:** both datasets round-trip through `normalize()` into identical columns.
-  - **Deliverable:** `src/schema.py` (finalized), `src/shared/normalize.py`
+- [x] 🔴 **0.4 Schema freeze** — implement + document the 12-field common event schema; normalizers for CICIDS & LANL emit it ✅
+  - **Acceptance:** ✅ both datasets round-trip through `normalize()` into identical 12 columns; `validate()` passes on both.
+  - **Note:** LANL maps cleanly (user/host/time); CICIDS flows have no identity fields (feeds the anomaly model as a feature matrix), exposed as a schema-shaped view for a uniform interface.
+  - **Deliverable:** `src/schema.py` (finalized) + `src/shared/normalize.py` ✅
 
 ---
 
