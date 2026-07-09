@@ -8,16 +8,16 @@
 
 ---
 
-## Milestone 0 — Repo & environment setup *(Day 0 · owner M4)* — 🟢 IN PROGRESS
+## Milestone 0 — Repo & environment setup *(Day 0 · owner M4)* — ✅ COMPLETE
 
-- [x] 🔴 Create Python env + `requirements.txt` (`pandas pyarrow numpy scikit-learn torch sentence-transformers networkx streamlit stix2 mitreattack-python matplotlib`) — **venv on Python 3.10.11**; deps installing
+- [x] 🔴 Create Python env + `requirements.txt` (`pandas pyarrow numpy scikit-learn torch sentence-transformers networkx streamlit stix2 mitreattack-python matplotlib`) — **venv on Python 3.10.11**, all deps installed
 - [x] 🔴 Add repo structure: `src/{engine1,engine2,shared,app}/`, `configs/`, `models/`, `reports/`
 - [x] 🔴 `src/schema.py` — freeze the common event schema (single source of truth) — **smoke test passed**
 - [x] 🟡 `.gitignore` for `data/raw/`, `models/*.pkl`, `__pycache__` (don't commit 11GB) — also excludes `.venv/`, models, processed
 - [x] 🟡 One-line "who owns what / branch naming" note in `README.md` to avoid Codex/Claude/human edit collisions
-- [ ] 🔴 **Acceptance:** `python -c "import torch, sklearn, sentence_transformers, networkx, streamlit"` runs clean — *pending dep install completing on 3.10*
+- [x] 🔴 **Acceptance:** imports clean — torch 2.13.0+cpu · sklearn 1.7.2 · sentence-transformers 5.6.0 · networkx 3.4.2 · streamlit 1.59.1
 - **Deliverable:** `requirements.txt`, `src/schema.py`, folder skeleton. ✅ committed (`e8d2137`)
-- **Note:** Python pinned to **3.10** (was 3.13) per team decision for library compatibility.
+- **Note:** Python pinned to **3.10.11** (was 3.13) per team decision for library compatibility.
 
 ---
 
