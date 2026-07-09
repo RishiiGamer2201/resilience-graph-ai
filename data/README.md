@@ -2,6 +2,11 @@
 
 Use this folder for PS7 datasets.
 
+> **📦 Fastest way to get all data:** download the team bundle from Kaggle —
+> **[ET HACK DATASET](https://kaggle.com/datasets/c3c7d72d2098d35857c2136a6d1c35785b7ba94e0f48ed6de68d0ab1ed021945)**
+> (all four datasets in one place; requires a free Kaggle login). Unzip and place the contents into `data/raw/`
+> following the folder layout below. The per-source instructions further down are the fallback / attribution.
+
 ## Where to put downloads
 
 Put original downloaded files in `data/raw/...`.

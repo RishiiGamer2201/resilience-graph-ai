@@ -49,7 +49,12 @@ python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\act
 pip install -r requirements.txt        # (added in Milestone 0)
 ```
 
-**Then download the datasets** — they're not in git. Follow [data/README.md](data/README.md); it lists every source, what to download, and where to put it. All four are free/public.
+**Then download the datasets** — they're not in git (~11 GB). Two options:
+
+- **🚀 Easiest — grab the bundle from Kaggle:** all four datasets in one place →
+  **[ET HACK DATASET (Kaggle)](https://kaggle.com/datasets/c3c7d72d2098d35857c2136a6d1c35785b7ba94e0f48ed6de68d0ab1ed021945)**
+  Download, unzip, and drop the contents into `data/raw/` matching the folder layout in [data/README.md](data/README.md). *(Requires a free Kaggle login.)*
+- **From original sources:** follow [data/README.md](data/README.md) — it lists every source, what to download, and where to put it. All four are free/public.
 
 Run the current demo pipeline (scripted mock, for narrative):
 ```bash
@@ -57,6 +62,10 @@ python src/demo_ps7_pipeline.py
 ```
 
 ## Datasets (all public / free)
+
+> **📦 Team bundle:** all four datasets are mirrored in one Kaggle dataset —
+> **[ET HACK DATASET](https://kaggle.com/datasets/c3c7d72d2098d35857c2136a6d1c35785b7ba94e0f48ed6de68d0ab1ed021945)**
+> — so you don't have to fetch them from four separate sites. Original sources below (for attribution / verification).
 
 | Dataset | Use | Source |
 |---|---|---|
