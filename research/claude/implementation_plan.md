@@ -32,9 +32,10 @@
 - [ ] 🔴 **0.2 LANL red-team window** — **stream** `auth.txt.gz` (never fully unzip); keep events on days 1–29 within ±N sec of the 749 red-team events + a matched normal-auth sample; join red-team labels
   - **Acceptance:** parquet has both classes; red-team rows labeled 1; row count sane (<few M rows); memory stays bounded (streamed).
   - **Deliverable:** `data/processed/lanl/auth_redteam_window.parquet` + `src/engine1/prep_lanl.py`
-- [ ] 🔴 **0.3 ATT&CK lookups** — parse Enterprise + ICS STIX into dicts: `technique→tactics`, `group→techniques`, `technique→mitigations`, `technique→description`, `campaign→techniques`
-  - **Acceptance:** manual queries pass (APT29 techniques listed; mitigations for T1078 non-empty); pickle reloads.
-  - **Deliverable:** `data/processed/mitre_attack/attack_lookups.pkl` + `src/shared/parse_attack.py`
+- [x] 🔴 **0.3 ATT&CK lookups** — parse Enterprise + ICS STIX into dicts: `technique→tactics`, `group→techniques`, `technique→mitigations`, `technique→description`, `campaign→techniques` ✅
+  - **Acceptance:** ✅ self-test passes — APT29: 66 techniques; T1078 = "Valid Accounts" w/ 8 mitigations; pickle reloads.
+  - **RESULT:** 794 techniques · 172 groups · 57 campaigns · 96 mitigations (682 techniques mapped to mitigations). See `reports/attack_lookups.md`.
+  - **Deliverable:** `data/processed/mitre_attack/attack_lookups.pkl` (gitignored) + `src/shared/parse_attack.py` ✅
 - [ ] 🔴 **0.4 Schema freeze** — implement + document the 12-field common event schema; normalizers for CICIDS & LANL emit it
   - **Acceptance:** both datasets round-trip through `normalize()` into identical columns.
   - **Deliverable:** `src/schema.py` (finalized), `src/shared/normalize.py`
