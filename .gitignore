@@ -9,7 +9,8 @@ data/processed/*
 !data/raw/**/.gitkeep
 
 # ─── Models & artifacts ───────────────────────────────
-models/
+models/*
+!models/.gitkeep
 *.pkl
 *.pt
 *.pth

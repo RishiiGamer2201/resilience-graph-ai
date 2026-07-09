@@ -1,0 +1,125 @@
+"""
+Common event schema — the single source of truth for Resilience Graph AI (PS7).
+
+Every dataset (CIC-IDS2017, LANL, UNSW-NB15) is normalized into ONE event schema
+so the rest of the pipeline (anomaly detection, correlation, ATT&CK mapping,
+attack-path graph, SOAR) speaks a single language.
+
+Import from here — do not redefine columns anywhere else.
+
+    from src.schema import COLUMNS, empty_frame, coerce, validate, AssetCriticality
+"""
+from __future__ import annotations
+
+from enum import Enum
+from typing import Dict
+
+import pandas as pd
+
+
+# ---------------------------------------------------------------------------
+# The schema: column -> pandas dtype. Order is canonical.
+# ---------------------------------------------------------------------------
+SCHEMA: Dict[str, str] = {
+    "timestamp": "int64",          # seconds (or epoch) — integer, sortable
+    "user": "string",             # e.g. U748@DOM1
+    "source_host": "string",      # e.g. C17693
+    "destination_host": "string", # e.g. DB-CITIZEN-01
+    "event_type": "string",       # normalized event label (see EventType hints)
+    "status": "string",           # success | failure | unknown
+    "protocol": "string",         # tcp | udp | icmp | ntlm | kerberos | ...
+    "port": "Int64",              # nullable integer
+    "bytes_out": "int64",         # outbound byte volume (0 if n/a)
+    "command": "string",          # process/command text if present, else ""
+    "asset_criticality": "string",# low | medium | high | critical
+    "label": "Int64",             # 1 = known-malicious (ground truth), 0 = benign, <NA> = unlabeled
+}
+
+COLUMNS = list(SCHEMA.keys())
+
+
+class Status(str, Enum):
+    SUCCESS = "success"
+    FAILURE = "failure"
+    UNKNOWN = "unknown"
+
+
+class AssetCriticality(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+# Common normalized event_type values used across datasets + the demo.
+# (Free-form is allowed, but prefer these so the ATT&CK mapper stays consistent.)
+class EventType(str, Enum):
+    NORMAL_LOGIN = "normal_login"
+    FAILED_LOGIN_BURST = "failed_login_burst"
+    UNUSUAL_SUCCESSFUL_LOGIN = "unusual_successful_login"
+    DISCOVERY_COMMAND = "discovery_command"
+    LATERAL_MOVEMENT = "lateral_movement"
+    CRITICAL_ASSET_ACCESS = "critical_asset_access"
+    LARGE_OUTBOUND_TRANSFER = "large_outbound_transfer"
+    NETWORK_FLOW = "network_flow"          # generic CICIDS/UNSW flow
+    AUTH = "auth"                          # generic LANL auth event
+    PROCESS = "process"                    # generic LANL proc event
+    DNS = "dns"                            # generic LANL dns event
+
+
+VALID_CRITICALITY = {c.value for c in AssetCriticality}
+
+
+def empty_frame() -> pd.DataFrame:
+    """Return an empty DataFrame with the canonical columns and dtypes."""
+    return pd.DataFrame({col: pd.Series(dtype=dt) for col, dt in SCHEMA.items()})
+
+
+def coerce(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Coerce an arbitrary frame into the canonical schema:
+    add any missing columns with sensible defaults, drop extras, cast dtypes,
+    and return columns in canonical order. Use at the end of every normalizer.
+    """
+    out = df.copy()
+
+    defaults = {
+        "timestamp": 0, "user": "", "source_host": "", "destination_host": "",
+        "event_type": EventType.NETWORK_FLOW.value, "status": Status.UNKNOWN.value,
+        "protocol": "", "port": pd.NA, "bytes_out": 0, "command": "",
+        "asset_criticality": AssetCriticality.MEDIUM.value, "label": pd.NA,
+    }
+    for col in COLUMNS:
+        if col not in out.columns:
+            out[col] = defaults[col]
+
+    out = out[COLUMNS]  # canonical order, drop extras
+
+    for col, dt in SCHEMA.items():
+        try:
+            out[col] = out[col].astype(dt)
+        except (ValueError, TypeError):
+            # fall back to nullable/string so a bad row never crashes the pipeline
+            out[col] = out[col].astype("string") if dt == "string" else out[col]
+    return out
+
+
+def validate(df: pd.DataFrame, *, require_labels: bool = False) -> None:
+    """
+    Raise AssertionError if `df` violates the schema. Cheap sanity gate to call
+    right after normalization / before writing parquet.
+    """
+    missing = [c for c in COLUMNS if c not in df.columns]
+    assert not missing, f"missing schema columns: {missing}"
+
+    bad_crit = set(df["asset_criticality"].dropna().unique()) - VALID_CRITICALITY
+    assert not bad_crit, f"invalid asset_criticality values: {bad_crit}"
+
+    if require_labels:
+        assert df["label"].notna().any(), "require_labels=True but no labels present"
+
+
+__all__ = [
+    "SCHEMA", "COLUMNS", "Status", "AssetCriticality", "EventType",
+    "empty_frame", "coerce", "validate",
+]
