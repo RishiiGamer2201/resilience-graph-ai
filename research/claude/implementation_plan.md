@@ -24,10 +24,11 @@
 ## Milestone 1 — PHASE 0: Data Foundation 🔴 *(Days 1–2 · owner M4, +M2)*
 *Everyone is blocked until this is done. Do it first, together if needed.*
 
-- [ ] 🔴 **0.1 CICIDS preprocess** — unzip `MachineLearningCSV.zip`; strip column-name whitespace; drop/clip `Inf`/`NaN` in flow-rate cols; dedupe; **drop leakage cols (esp. `Destination Port`/IPs)**; concat 9 daily CSVs; keep `Label`
+- [x] 🔴 **0.1 CICIDS preprocess** — unzip `MachineLearningCSV.zip`; strip column-name whitespace; drop/clip `Inf`/`NaN` in flow-rate cols; dedupe; **drop leakage cols (esp. `Destination Port`/IPs)**; concat 9 daily CSVs; keep `Label` ✅
   - **Handle the 3 known CICIDS pitfalls (from team research):** (A) extreme imbalance >80% benign → never report accuracy, use PR-AUC/F1/recall [Engine 1 unsupervised sidesteps it; SMOTE only for a supervised baseline]; (B) NaN/Inf in `Flow Bytes/s` & `Flow Packets/s` → clip/drop + log row count; (C) leakage/duplicates → drop identifier cols, dedupe, split by day.
-  - **Acceptance:** loads as one dataframe, no `Inf`/`NaN`, label distribution printed (show the ~80% benign split), identifier cols dropped, split by day (no leakage).
-  - **Deliverable:** `data/processed/cicids2017/flows.parquet` + `src/engine1/prep_cicids.py`
+  - **Acceptance:** ✅ loads as one dataframe, no `Inf`/`NaN`, label distribution printed, identifier cols dropped, split by day.
+  - **RESULT:** 2,830,743 raw → **2,297,036** rows · 77 features · **85.4% benign / 14.6% attack** · 4,376 Inf cells fixed · 530,840 dupes dropped · 15 attack types · 1,960,544 benign-only rows for unsupervised training. See `reports/cicids_prep.md`.
+  - **Deliverable:** `data/processed/cicids2017/flows.parquet` (gitignored) + `src/engine1/prep_cicids.py` ✅
 - [ ] 🔴 **0.2 LANL red-team window** — **stream** `auth.txt.gz` (never fully unzip); keep events on days 1–29 within ±N sec of the 749 red-team events + a matched normal-auth sample; join red-team labels
   - **Acceptance:** parquet has both classes; red-team rows labeled 1; row count sane (<few M rows); memory stays bounded (streamed).
   - **Deliverable:** `data/processed/lanl/auth_redteam_window.parquet` + `src/engine1/prep_lanl.py`
