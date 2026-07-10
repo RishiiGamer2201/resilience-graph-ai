@@ -65,9 +65,10 @@
 ## Milestone 3 — ENGINE 2: Prediction & Attribution 🟡 *(Days 3–7 · owner M3)*
 *The Innovation (25%) centerpiece. E2.4 is the highest-risk single task — budget for it.*
 
-- [ ] 🔴 **E2.2 Sequence dataset (~196 + 3–5)** — auto-build: every group + campaign with ≥6 techniques, ordered by kill-chain tactic order; schema `{source, actor, ordered_technique_ids, is_manual}`
-  - **Acceptance:** ≥190 auto sequences generated; sequence-level train/val/test split; counts printed.
-  - **Deliverable:** `data/processed/engine2/sequences.json` + `src/engine2/build_sequences.py`
+- [x] 🔴 **E2.2 Sequence dataset (~196 + 3–5)** — auto-build: every group + campaign with ≥6 techniques, ordered by kill-chain tactic order; schema `{source, actor, ordered_technique_ids, is_manual}` ✅
+  - **Acceptance:** ✅ 199 auto sequences; sequence-level train/val/test split; counts printed.
+  - **RESULT:** **199 sequences** (145 groups + 54 campaigns) · vocab **575 techniques** · len mean 28.6 (6–130) · split 139/30/30. See `reports/sequences.md`.
+  - **Deliverable:** `data/processed/engine2/sequences.json` (gitignored) + `src/engine2/build_sequences.py` ✅
 - [ ] 🟡 **E2.2b Manual CERT-In sequences** — hand-curate 3–5 from CERT-In advisories (optionally TRAM-assisted then corrected); flag `is_manual=true`
   - **Acceptance:** 3–5 sequences added, source-referenced; the honest split is documented.
 - [ ] 🟡 **E2.3 Technique embeddings** — descriptions → all-MiniLM-L6-v2
