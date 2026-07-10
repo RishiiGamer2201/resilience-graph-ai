@@ -47,14 +47,13 @@
 ## Milestone 2 — ENGINE 1: Real Detection 🟡 *(Days 2–5 · owner M2, +M1)*
 *This is the number that earns Technical Excellence (20%). Build before the fancy stuff.*
 
-- [ ] 🔴 **E1.2a Baselines first** — implement (a) random scorer, (b) rule threshold (failed-login count / bytes threshold)
-  - **Acceptance:** baseline precision/recall/F1 printed on CICIDS. *(You cannot claim lift without these.)*
-  - **Deliverable:** `reports/baseline_metrics.md`
-- [ ] 🟡 **E1.2b IsolationForest** — train on normal traffic only; score; tune contamination
-  - **Acceptance:** ROC-AUC + PR curve on CICIDS labels; **beats both baselines** (report the lift number).
-  - **Deliverable:** `models/iforest_cicids.pkl`, `reports/evaluation_report.md`
-- [ ] 🟢 **E1.2c Autoencoder** — comparison model (only if time)
-  - **Acceptance:** side-by-side vs IsolationForest in eval report.
+- [x] 🔴 **E1.2a Baselines first** — random scorer + rule threshold on `Flow Packets/s` ✅ *(delegated to `ai-engineer`, reviewed + bug-fixed by Claude)*
+  - **Acceptance:** ✅ baseline PR-AUC/precision/recall/F1 in eval report. Random PR-AUC 0.155 (≈prevalence floor); rule PR-AUC 0.098 (worse than random — stealthy attacks have low packet rate).
+  - **Deliverable:** folded into `reports/evaluation_report.md`
+- [x] 🟡 **E1.2b IsolationForest** — trained benign-only (unsupervised); day split (Mon–Wed train → Thu–Fri test, 7 unseen attack families) ✅
+  - **Acceptance:** ✅ PR-AUC 0.473 · ROC-AUC 0.826 · **3.1× lift over random, 4.8× over rule**; PR-curve PNG; per-attack recall. No accuracy headline, no SMOTE.
+  - **Deliverable:** `models/iforest_cicids.joblib` (gitignored) + `reports/evaluation_report.md` + `reports/pr_curve_cicids.png` + `src/engine1/anomaly.py`
+- [x] 🟢 **E1.2c Autoencoder** — benign-trained AE comparison ✅ **best model: PR-AUC 0.570 · ROC-AUC 0.836** (edges out IsolationForest); side-by-side in eval report.
 - [ ] 🔴 **E1.3 LANL lateral movement** — features (new-host auth, failed→success burst, rare-dest, auth fan-out); score window; evaluate vs red-team ground truth
   - **Acceptance:** **TPR @ fixed FPR** reported on the 749 red-team events; confusion matrix; cite ~85%@<1% as literature context (not our claim).
   - **Deliverable:** `reports/lanl_redteam_detection.md`, scored events parquet
