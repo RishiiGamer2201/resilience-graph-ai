@@ -14,6 +14,19 @@ timelines (not our auto-generated ones).
 
 ---
 
+## Setup (one-time) — only if you'll RUN the pipeline
+
+The `.venv` is **not** in git (too big), so make your own from the repo root:
+```bash
+py -3.10 -m venv .venv          # or:  python -m venv .venv
+.venv\Scripts\activate           # Windows;  source .venv/bin/activate on Mac/Linux
+pip install -r requirements.txt
+```
+**If you only want to VERIFY technique IDs** (not run the model), you don't need any
+of this — use the browser method in Step 6, Option A. No Python required.
+
+---
+
 ## The big picture (what you're actually doing)
 
 You read a report that says things like *"the attackers sent a phishing email with a
@@ -93,11 +106,22 @@ Edit `data/manual/cert_in_sequences.json` (same folder as this guide). Format:
 - Minimum **2** techniques (aim for 5–9). Comma between items, no trailing comma.
 
 ### Step 6 — Verify your technique IDs are real
-Run this to confirm every ID exists (typos are the #1 mistake):
+Typos are the #1 mistake. Pick whichever option suits you:
+
+**Option A — no tools, just a browser (recommended if you have no Python):**
+Every technique has a page at `https://attack.mitre.org/techniques/<ID>` — for a
+sub-technique, replace the dot with a slash:
+- `T1486` → https://attack.mitre.org/techniques/T1486
+- `T1566.001` → https://attack.mitre.org/techniques/T1566/001
+
+If the page loads **and** its description matches the action you meant, the ID is
+correct. (A 404 = wrong/typo'd ID.)
+
+**Option B — with Python (needs the Setup above):**
 ```bash
-./.venv/Scripts/python.exe -c "import json,pickle; ids=[t for s in json.load(open('data/manual/cert_in_sequences.json')) for t in s['ordered_technique_ids']]; names=pickle.load(open('data/processed/mitre_attack/attack_lookups.pkl','rb'))['technique_to_name']; [print(t, '->', names.get(t,'❌ MISSING')) for t in ids]"
+./.venv/Scripts/python.exe -c "import json,pickle; ids=[t for s in json.load(open('data/manual/cert_in_sequences.json')) for t in s['ordered_technique_ids']]; names=pickle.load(open('data/processed/mitre_attack/attack_lookups.pkl','rb'))['technique_to_name']; [print(t, '->', names.get(t,'MISSING')) for t in ids]"
 ```
-Every line must show a name, not `❌ MISSING`.
+Every line must show a name, not `MISSING`.
 
 ### Step 7 — Rebuild and check
 ```bash

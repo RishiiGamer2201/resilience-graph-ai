@@ -1,42 +1,37 @@
 [
   {
-    "actor": "APT36 (Transparent Tribe) — Indian govt/defense spear-phishing → Crimson RAT",
-    "source": "MITRE ATT&CK G0134; CYFIRMA/Rescana 2024-2025 reporting on APT36 campaigns vs Indian government & defense",
+    "actor": "APT36 (Transparent Tribe) — Indian govt/defense (scaffold, needs specific campaign report)",
+    "source": "MITRE ATT&CK G0134. REVIEW (teammate): group page evidences phishing attachment, malicious-file execution, masquerading, encoded payloads. It does NOT evidence the earlier T1218.005/T1059.001 chain — those were removed. Tie to ONE specific campaign report before verifying.",
     "source_url": "https://attack.mitre.org/groups/G0134/",
     "verified": false,
-    "note": "Ordered by the reported infection chain. VERIFY each mapping against the source before flipping verified=true.",
+    "note": "Trimmed to source-evidenced techniques only (per analyst review). Add campaign-specific techniques in narrative order from a single report, then verify.",
     "ordered_technique_ids": [
       "T1566.001",
       "T1204.002",
-      "T1218.005",
-      "T1059.001",
-      "T1547.001",
-      "T1036",
       "T1027",
-      "T1071.001",
-      "T1041"
+      "T1036"
     ]
   },
   {
-    "actor": "RedEcho — Chinese state-sponsored pre-positioning in Indian power grid (ShadowPad)",
-    "source": "MITRE ATT&CK G1042; Recorded Future Insikt Group reporting on targeting of Indian power sector (RLDCs/SLDCs), ShadowPad + FastReverseProxy",
+    "actor": "RedEcho — Chinese state-sponsored targeting of Indian power grid (C2 infrastructure)",
+    "source": "MITRE ATT&CK G1042. REVIEW (teammate): source-backed core — T1583.001 (Domains), T1568 (Dynamic Resolution), T1071.001 (Web Protocols), T1573.002 (Asymmetric Cryptography), T1571 (Non-Standard Port); the latter three explicitly documented. Ordered as C2 setup → beacon.",
     "source_url": "https://attack.mitre.org/groups/G1042/",
     "verified": false,
-    "note": "Public TTP detail is lighter than APT36; kept short + high-confidence. VERIFY against G1042 / Recorded Future report.",
+    "note": "Replaced earlier unsupported T1133/T1105/T1090 with the G1042-backed core (per analyst review). Confirm ordering against the Recorded Future report before verifying.",
     "ordered_technique_ids": [
-      "T1133",
-      "T1105",
+      "T1583.001",
+      "T1568",
       "T1071.001",
-      "T1090",
+      "T1573.002",
       "T1571"
     ]
   },
   {
-    "actor": "Hospital ransomware (AIIMS-style) — phishing → encryption + recovery inhibition",
-    "source": "Generic ransomware kill-chain modeled on CERT-In ransomware advisories and the 2022 AIIMS Delhi incident (public reporting). NOT a single advisory — replace with a specific CERT-In advisory ID + URL when curating.",
-    "source_url": "https://www.cert-in.org.in/",
+    "actor": "AIIMS Delhi ransomware (2022) — ILLUSTRATIVE placeholder, needs detailed incident report",
+    "source": "CERT-In findings via public reporting (Indian Express). REVIEW (teammate): reporting supports ransomware encryption (T1486) + infected servers, but NOT the full phishing→cred-dump→lateral→recovery-inhibition chain below. Treat the extra steps as illustrative until a detailed incident report is found.",
+    "source_url": "https://indianexpress.com/article/india/aiims-server-attack-cert-in/",
     "verified": false,
-    "note": "Placeholder-sourced: swap in a concrete CERT-In advisory ID/URL and verify mappings.",
+    "note": "Only T1486 is currently source-backed. The rest is a typical ransomware chain kept for illustration — DO NOT verify until a report with the observed sequence is cited.",
     "ordered_technique_ids": [
       "T1566.001",
       "T1204.002",
@@ -48,11 +43,11 @@
     ]
   },
   {
-    "actor": "Public-facing exploit → data theft (India critical-infra web app)",
-    "source": "Generic externally-exploited web-app intrusion modeled on CERT-In vulnerability advisories. Replace with a specific CERT-In advisory when curating.",
+    "actor": "Public-facing exploit → data theft — PLACEHOLDER, replace with a specific CERT-In advisory",
+    "source": "Placeholder. Replace with a concrete CERT-In advisory / incident report and record only the techniques it explicitly describes, in narrative order.",
     "source_url": "https://www.cert-in.org.in/",
     "verified": false,
-    "note": "Placeholder-sourced: swap in a concrete CERT-In advisory ID/URL and verify mappings.",
+    "note": "Entirely placeholder-sourced (per analyst review). Keep verified=false until replaced.",
     "ordered_technique_ids": [
       "T1190",
       "T1059.001",
