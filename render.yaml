@@ -1,0 +1,15 @@
+# Render Blueprint — deploys the SOC Command Center as one Docker web service
+# (FastAPI serves the API + the built React SPA). Free tier.
+# Deploy: render.com → New → Blueprint → connect this repo → Apply.
+services:
+  - type: web
+    name: resilience-graph-ai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8000"
