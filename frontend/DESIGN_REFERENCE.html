@@ -1,0 +1,337 @@
+<title>Resilience Graph AI — SOC Command Center</title>
+<style>
+  :root{
+    --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --border:#DCE2EC;
+    --text:#16202E; --text-dim:#5A6678; --text-faint:#8894A6;
+    --accent:#2F6FED; --accent-soft:#E7EEFD;
+    --sev-critical:#E5484D; --sev-high:#F2760C; --sev-medium:#DFA000;
+    --sev-low:#2F6FED; --sev-normal:#7B8798;
+    --grid:#E4E9F1; --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.05);
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Consolas,Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){ :root{
+    --bg:#0C111B; --surface:#131B29; --surface-2:#0F1622; --border:#233149;
+    --text:#E6ECF5; --text-dim:#8A97AC; --text-faint:#5C6B82;
+    --accent:#4C8DFF; --accent-soft:#16233C;
+    --sev-critical:#FF5A5F; --sev-high:#FF8A3D; --sev-medium:#F5C144;
+    --sev-low:#4C8DFF; --sev-normal:#5B6678;
+    --grid:#1B2536; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }}
+  :root[data-theme="light"]{
+    --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --border:#DCE2EC;
+    --text:#16202E; --text-dim:#5A6678; --text-faint:#8894A6;
+    --accent:#2F6FED; --accent-soft:#E7EEFD;
+    --sev-critical:#E5484D; --sev-high:#F2760C; --sev-medium:#DFA000;
+    --sev-low:#2F6FED; --sev-normal:#7B8798; --grid:#E4E9F1;
+    --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C111B; --surface:#131B29; --surface-2:#0F1622; --border:#233149;
+    --text:#E6ECF5; --text-dim:#8A97AC; --text-faint:#5C6B82;
+    --accent:#4C8DFF; --accent-soft:#16233C;
+    --sev-critical:#FF5A5F; --sev-high:#FF8A3D; --sev-medium:#F5C144;
+    --sev-low:#4C8DFF; --sev-normal:#5B6678; --grid:#1B2536;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0}
+  .app{
+    font-family:var(--sans); background:var(--bg); color:var(--text);
+    min-height:100vh; display:grid; grid-template-columns:232px 1fr;
+    font-size:14px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  /* ---- Sidebar ---- */
+  .rail{
+    background:var(--surface); border-right:1px solid var(--border);
+    padding:18px 14px; display:flex; flex-direction:column; gap:6px; min-height:100vh;
+  }
+  .brand{display:flex; align-items:center; gap:10px; padding:6px 8px 18px}
+  .brand .mark{width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--accent),#7AA7FF);
+    display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+  .brand b{font-size:14.5px;letter-spacing:-.2px;display:block}
+  .brand span{font-size:11px;color:var(--text-faint);letter-spacing:.3px}
+  .nav-label{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--text-faint);padding:14px 8px 6px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;
+    color:var(--text-dim);text-decoration:none;font-weight:500;font-size:13.5px;
+    cursor:pointer;transition:background .12s,color .12s}
+  .nav a:hover{background:var(--surface-2);color:var(--text)}
+  .nav a.active{background:var(--accent-soft);color:var(--accent)}
+  .nav a .ic{width:17px;height:17px;flex:0 0 auto}
+  .nav a .dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--sev-critical)}
+
+  /* ---- Topbar ---- */
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;gap:16px;padding:14px 24px;
+    border-bottom:1px solid var(--border);background:var(--surface)}
+  .topbar h1{font-size:16px;margin:0;letter-spacing:-.3px}
+  .topbar h1 small{color:var(--text-faint);font-weight:500;font-size:12.5px;margin-left:8px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:12.5px;color:var(--text-dim);
+    background:var(--surface-2);border:1px solid var(--border);padding:5px 10px;border-radius:7px}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    padding:4px 9px;border-radius:20px;letter-spacing:.2px}
+  .pill .d{width:7px;height:7px;border-radius:50%}
+  .live{color:#0a7d3f;background:rgba(16,163,74,.12)}
+  :root[data-theme="dark"] .live{color:#4ade80;background:rgba(16,163,74,.16)}
+  .live .d{background:#12b155;box-shadow:0 0 0 0 rgba(18,177,85,.6);animation:pulse 2s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 6px rgba(18,177,85,0)}100%{box-shadow:0 0 0 0 rgba(18,177,85,0)}}
+  .toggle{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:8px;padding:3px;gap:2px}
+  .toggle button{border:0;background:transparent;color:var(--text-dim);cursor:pointer;
+    padding:5px 9px;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:5px;font-family:var(--sans)}
+  .toggle button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+
+  /* ---- Content ---- */
+  .content{padding:22px 24px;display:flex;flex-direction:column;gap:20px;overflow-x:auto}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:16px 17px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .tile .k{font-size:11.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint)}
+  .tile .v{font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:-1px;margin-top:8px}
+  .tile .sub{font-size:12px;color:var(--text-dim);margin-top:4px}
+  .tile .spark{position:absolute;right:0;bottom:0;width:96px;height:40px;opacity:.9}
+  .tile.crit{border-color:color-mix(in srgb,var(--sev-critical) 40%,var(--border))}
+  .tile.crit .v{color:var(--sev-critical)}
+  .up{color:#0a7d3f;font-weight:600}
+  :root[data-theme="dark"] .up{color:#4ade80}
+
+  .grid2{display:grid;grid-template-columns:1.05fr 1fr;gap:20px}
+  @media(max-width:1080px){.grid2{grid-template-columns:1fr}.tiles{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+  .card-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+  .card-h h2{font-size:13.5px;margin:0;letter-spacing:-.1px}
+  .card-h .meta{margin-left:auto;font-size:11.5px;color:var(--text-faint);font-family:var(--mono)}
+  .card-b{padding:6px 8px}
+
+  /* incident timeline */
+  .ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;
+    padding:10px 10px;border-radius:9px;position:relative}
+  .ev:hover{background:var(--surface-2)}
+  .ev + .ev{border-top:1px solid var(--border)}
+  .ev .t{font-family:var(--mono);font-size:12px;color:var(--text-faint)}
+  .ev .stripe{position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px}
+  .ev .who{font-family:var(--mono);font-size:12.5px}
+  .ev .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;
+    background:var(--accent-soft);color:var(--accent);margin-top:5px;font-family:var(--mono)}
+  .ev .tid{color:var(--text-faint);font-weight:500}
+  .ev .score{font-family:var(--mono);font-size:15px;font-weight:600;text-align:right}
+  .ev .lvl{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;text-align:right;margin-top:2px}
+  .s-crit{color:var(--sev-critical)} .bg-crit{background:var(--sev-critical)}
+  .s-high{color:var(--sev-high)} .bg-high{background:var(--sev-high)}
+  .s-med{color:var(--sev-medium)} .bg-med{background:var(--sev-medium)}
+  .s-norm{color:var(--sev-normal)} .bg-norm{background:var(--sev-normal)}
+
+  /* graph */
+  .graphwrap{position:relative}
+  canvas{display:block;width:100%;height:280px}
+  .legend{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--border);
+    font-size:11.5px;color:var(--text-dim);flex-wrap:wrap}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+  /* soar */
+  .soar{display:flex;flex-direction:column;gap:8px;padding:6px}
+  .action{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--border);
+    border-radius:9px;background:var(--surface-2)}
+  .action .ax{font-size:13px;font-weight:500}
+  .action .rx{font-size:11.5px;color:var(--text-dim);margin-top:2px}
+  .action .mode{margin-left:auto;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;white-space:nowrap}
+  .m-approve{color:var(--sev-high);background:color-mix(in srgb,var(--sev-high) 15%,transparent)}
+  .m-auto{color:var(--text-dim);background:var(--surface)}
+  .foot{color:var(--text-faint);font-size:11.5px;text-align:center;padding:4px 0 18px}
+  .foot b{color:var(--text-dim);font-weight:600}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+
+<div class="app" id="app">
+  <aside class="rail">
+    <div class="brand">
+      <div class="mark">R</div>
+      <div><b>Resilience Graph AI</b><span>SOC Command Center</span></div>
+    </div>
+    <div class="nav-label">Operations</div>
+    <nav class="nav">
+      <a class="active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Overview</a>
+      <a><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/><circle cx="12" cy="12" r="3"/></svg>Live Incident<span class="dot"></span></a>
+      <a><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6.5 7.5 11 16m6.5-8.5L13 16"/></svg>Attack Graph</a>
+      <a><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z"/></svg>Threat Intel &amp; Attribution</a>
+    </nav>
+    <div class="nav-label">Evidence</div>
+    <nav class="nav">
+      <a><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Models &amp; Metrics</a>
+      <a><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Data &amp; Methodology</a>
+    </nav>
+    <div style="margin-top:auto;font-size:11px;color:var(--text-faint);padding:8px">PS7 · Critical National Infrastructure</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>Command Center<small>Grid operator · DOM1</small></h1>
+      <span class="pill live"><span class="d"></span>2 detectors live</span>
+      <div class="spacer"></div>
+      <span class="clock" id="clock">2026-07-11 · 20:41:07 IST</span>
+      <div class="toggle" role="group" aria-label="Theme">
+        <button id="tl" class="on" onclick="setTheme('light')">☀ Light</button>
+        <button id="td" onclick="setTheme('dark')">☾ Dark</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="tiles">
+        <div class="tile">
+          <div class="k">Mean time to detect</div>
+          <div class="v">4 min</div>
+          <div class="sub"><span class="up">▼ from weeks</span> · dwell collapsed</div>
+          <canvas class="spark" data-spark="mttd"></canvas>
+        </div>
+        <div class="tile">
+          <div class="k">Detector quality · LANL</div>
+          <div class="v">0.988</div>
+          <div class="sub">ROC-AUC on real red-team labels</div>
+          <canvas class="spark" data-spark="roc"></canvas>
+        </div>
+        <div class="tile crit">
+          <div class="k">Active incident</div>
+          <div class="v">CRITICAL</div>
+          <div class="sub">U66@DOM1 · pass-the-hash spread</div>
+        </div>
+        <div class="tile">
+          <div class="k">Blast radius contained</div>
+          <div class="v">93</div>
+          <div class="sub">hosts cut by isolating 1 node</div>
+          <canvas class="spark" data-spark="blast"></canvas>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h">
+            <span class="pill" style="background:color-mix(in srgb,var(--sev-critical) 14%,transparent);color:var(--sev-critical)">INC-PS7-LANL-001</span>
+            <h2>Correlated attack chain</h2>
+            <span class="meta">131 alerts ← 215 events</span>
+          </div>
+          <div class="card-b" id="timeline"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div class="card">
+            <div class="card-h"><h2>Attack-path graph</h2><span class="meta">94 hosts · pivot C17693</span></div>
+            <div class="graphwrap"><canvas id="graph"></canvas></div>
+            <div class="legend">
+              <span><i style="background:var(--sev-critical)"></i>Critical asset (C2388)</span>
+              <span><i style="background:var(--accent)"></i>Pivot host</span>
+              <span><i style="background:var(--sev-normal)"></i>Reached host</span>
+              <span><i style="background:var(--sev-high)"></i>Highlighted path</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>Recommended response</h2><span class="meta">confidence-gated · simulated</span></div>
+            <div class="soar">
+              <div class="action"><div><div class="ax">Isolate pivot host C17693</div><div class="rx">Cuts blast radius of 93 hosts · Lateral Movement</div></div><span class="mode m-approve">human approval</span></div>
+              <div class="action"><div><div class="ax">Force reset + MFA on U66@DOM1</div><div class="rx">Credential Access · T1110 brute force seen</div></div><span class="mode m-approve">human approval</span></div>
+              <div class="action"><div><div class="ax">Open incident ticket + notify SOC lead</div><div class="rx">Critical severity coordination</div></div><span class="mode m-auto">automatic</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="foot">Mockup · real data from <b>LANL red-team</b> + <b>ATT&amp;CK</b> · light default, dark toggle · <b>2 live moments:</b> event scoring &amp; next-technique prediction</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const root=document.documentElement;
+  function setTheme(t){root.setAttribute('data-theme',t);
+    document.getElementById('tl').classList.toggle('on',t==='light');
+    document.getElementById('td').classList.toggle('on',t==='dark');
+    drawGraph(); drawSparks();}
+  setTheme('light');
+
+  const css=v=>getComputedStyle(root).getPropertyValue(v).trim();
+
+  // ---- incident timeline (real-ish LANL chain) ----
+  const events=[
+    ['20:33:41','U66@DOM1 → C3435','Lateral Movement','T1550.002',88,'high'],
+    ['20:33:52','U66@DOM1 → C61','Lateral Movement','T1021',82,'high'],
+    ['20:34:10','U66@DOM1 → C307 (fail×6)','Credential Access','T1110',74,'high'],
+    ['20:34:44','U66@DOM1 → C3699','Lateral Movement','T1550.002',91,'crit'],
+    ['20:35:19','U66@DOM1 → C2944','Lateral Movement','T1550.002',86,'high'],
+    ['20:36:02','U66@DOM1 → C2388 (DB)','Collection','T1213',100,'crit'],
+  ];
+  const map={crit:'crit',high:'high',med:'med',norm:'norm'};
+  const lvlName={crit:'critical',high:'high',med:'medium',norm:'normal'};
+  document.getElementById('timeline').innerHTML=events.map(e=>`
+    <div class="ev">
+      <div class="stripe bg-${map[e[5]]}"></div>
+      <div class="t">${e[0]}</div>
+      <div><div class="who">${e[1]}</div><span class="tag">${e[2]} · <span class="tid">${e[3]}</span></span></div>
+      <div><div class="score s-${map[e[5]]}">${e[4]}</div><div class="lvl s-${map[e[5]]}">${lvlName[e[5]]}</div></div>
+    </div>`).join('');
+
+  // ---- attack-path graph (canvas) ----
+  const gc=document.getElementById('graph');
+  function drawGraph(){
+    const dpr=Math.min(devicePixelRatio||1,2), w=gc.clientWidth, h=280;
+    gc.width=w*dpr; gc.height=h*dpr; const x=gc.getContext('2d'); x.scale(dpr,dpr);
+    x.clearRect(0,0,w,h);
+    const pivot={x:64,y:h/2}, crit={x:w-60,y:h/2-8};
+    // fan of reached hosts
+    const N=13, hosts=[];
+    for(let i=0;i<N;i++){const a=(-0.85+1.7*i/(N-1)); hosts.push({x:pivot.x+150+Math.cos(a)*8*0, y:0, ax:a});}
+    hosts.forEach((n,i)=>{n.x=pivot.x+120+ (i%2?150:70) + Math.random()*0; n.y=30+ (h-60)*i/(N-1);});
+    // fixed pseudo layout
+    const rng=(s)=>{return (Math.sin(s*99.7)*43758.5)%1;};
+    hosts.forEach((n,i)=>{n.x=pivot.x+110+Math.abs(rng(i+1))*(w-260); n.y=26+(h-52)*i/(N-1)+Math.sin(i)*6;});
+    const line=(a,b,col,wd)=>{x.strokeStyle=col;x.lineWidth=wd;x.beginPath();
+      x.moveTo(a.x,a.y);x.bezierCurveTo((a.x+b.x)/2,a.y,(a.x+b.x)/2,b.y,b.x,b.y);x.stroke();};
+    const node=(n,r,col,glow)=>{if(glow){x.shadowColor=col;x.shadowBlur=16;}else x.shadowBlur=0;
+      x.fillStyle=col;x.beginPath();x.arc(n.x,n.y,r,0,7);x.fill();x.shadowBlur=0;};
+    // edges pivot->hosts
+    hosts.forEach(n=>line(pivot,n,css('--border'),1.4));
+    // highlighted path pivot -> midhost -> crit
+    const mid=hosts[9];
+    line(pivot,mid,css('--sev-high'),2.6); line(mid,crit,css('--sev-high'),2.6);
+    // nodes
+    hosts.forEach(n=>node(n,5,css('--sev-normal'),false));
+    node(mid,6.5,css('--sev-high'),true);
+    node(crit,10,css('--sev-critical'),true);
+    node(pivot,11,css('--accent'),true);
+    // labels
+    x.fillStyle=css('--text-dim');x.font='11px '+css('--mono').split(',')[0]+',monospace';
+    x.textAlign='center';x.fillText('C17693',pivot.x,pivot.y+26);
+    x.fillStyle=css('--sev-critical');x.fillText('C2388 · citizen DB',crit.x,crit.y-16);
+  }
+
+  // ---- sparklines ----
+  function spark(cv,pts,col,fill){
+    const dpr=Math.min(devicePixelRatio||1,2),w=cv.clientWidth||96,h=cv.clientHeight||40;
+    cv.width=w*dpr;cv.height=h*dpr;const x=cv.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,w,h);
+    const mn=Math.min(...pts),mx=Math.max(...pts),px=i=>i/(pts.length-1)*w,py=v=>h-4-(v-mn)/(mx-mn||1)*(h-10);
+    x.beginPath();pts.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));
+    x.lineTo(w,h);x.lineTo(0,h);x.closePath();x.fillStyle=fill;x.fill();
+    x.beginPath();pts.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));
+    x.strokeStyle=col;x.lineWidth=1.8;x.stroke();
+    x.fillStyle=col;x.beginPath();x.arc(px(pts.length-1),py(pts[pts.length-1]),2.4,0,7);x.fill();
+  }
+  function drawSparks(){
+    const soft='color-mix(in srgb,'+css('--accent')+' 14%,transparent)';
+    document.querySelectorAll('[data-spark]').forEach(cv=>{
+      const kind=cv.dataset.spark;
+      const data={mttd:[40,38,33,30,22,14,9,4],roc:[.82,.9,.93,.95,.97,.985,.988],blast:[2,9,25,44,70,88,93]}[kind];
+      spark(cv,data,css('--accent'),soft);
+    });
+  }
+
+  addEventListener('resize',()=>{drawGraph();drawSparks();});
+  drawGraph();drawSparks();
+
+  // live-ish clock
+  setInterval(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');
+    document.getElementById('clock').textContent=`2026-07-11 · ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())} IST`;},1000);
+</script>

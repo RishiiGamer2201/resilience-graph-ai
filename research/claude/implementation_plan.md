@@ -109,10 +109,11 @@
 
 - [x] 🔴 **M5.1 FastAPI + frozen JSON contract** — `build_cache.py` regenerates all cached JSON; 6 cached GETs + 2 live POSTs ✅ *(Claude inline)*
   - **RESULT:** `api/main.py` (FastAPI + CORS), `scripts/build_cache.py`, `api/cache/*.json` committed. Smoke-tested: all 6 cached endpoints + **live score-event** (malicious→100/critical, benign→13/low) + **live predict-next** (Markov). Frozen contract per `M5_build_plan.md §4`. Cache committed so UI runs from a fresh clone; live endpoints need local models + degrade to cache.
-- [ ] 🔴 **M5.2 Design system (light+dark tokens) + screen mockups** *(→ `ui-designer` agent)*
-- [ ] 🔴 **M5.3 React app** — Vite, theme toggle, 6 screens + login splash, consumes API *(→ `frontend-developer` agent)*
-- [ ] 🔴 **M5.4 Hero screens** — Live Incident replay (+ live event-scoring) · Attack Graph viz (+ live predict) — highest polish
-- [ ] 🔴 **M5.5 Integration + fallback** — wire live endpoints; every live call falls back to cached on error; end-to-end dry run *(Claude verifies)*
+- [x] 🔴 **M5.2 Design system (light+dark tokens)** ✅ — `frontend/src/theme.css` (Claude, from approved mockup) + `DESIGN_REFERENCE.html`
+- [x] 🔴 **M5.3 React app** — Vite, theme toggle, 6 screens + login splash, consumes API ✅ *(built by `frontend-developer` agent, verified by Claude)*
+  - **RESULT:** App shell (Sidebar/Topbar/Layout, router, theme toggle+localStorage), 6 screens + login, shared components. `npm run build` clean (initial gzip 83kB, Graph/Metrics lazy-split). Reviewed Graph.jsx (correct force-graph mapping) + live widgets.
+- [x] 🔴 **M5.4 Hero screens** ✅ — Live Incident replay + live event-scorer · Attack Graph (react-force-graph, path highlight, blast-radius panel) + live predict-next widget
+- [x] 🔴 **M5.5 Integration + fallback** ✅ — `api.js` live→cached fallback; **verified full stack runs** (uvicorn :8000 + vite :5173, live score-event over HTTP → 89.9/high). *Visual QA pending user test.*
 - [ ] 🟡 **M5.6 Incident report + MTTD panel** — audit-ready report + weeks→minutes visual (data already in `spine_incident.md`)
 - [ ] 🟢 **India scenarios** — replay styled after AIIMS/CBSE; concrete > generic (needs verified CERT-In sequences, see E2.2b)
 

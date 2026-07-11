@@ -1,0 +1,63 @@
+// API client for the SOC Command Center backend (FastAPI).
+// Cached GETs are reliable; the two LIVE POSTs fall back to a cached example
+// result on any error, so the demo never breaks mid-pitch.
+
+const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
+
+async function get(path) {
+  const r = await fetch(`${BASE}${path}`);
+  if (!r.ok) throw new Error(`${path} -> ${r.status}`);
+  return r.json();
+}
+async function post(path, body) {
+  const r = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(`${path} -> ${r.status}`);
+  return r.json();
+}
+
+// ---- cached endpoints ----
+export const getOverview = () => get("/overview");
+export const getIncident = () => get("/incident");
+export const getGraph = () => get("/graph");
+export const getThreatIntel = () => get("/threat-intel");
+export const getMetrics = () => get("/metrics");
+export const getMethodology = () => get("/methodology");
+export const getHealth = () => get("/health");
+
+// ---- LIVE endpoint 1: score an event (with cached fallback) ----
+export async function scoreEvent(features) {
+  try {
+    return { ...(await post("/score-event", features)), live: true };
+  } catch {
+    // deterministic fallback so the widget still responds if backend is down
+    const s =
+      (features.new_dst_for_user ? 35 : 0) +
+      (features.is_ntlm ? 35 : 0) +
+      (features.is_fail ? 15 : 0) +
+      Math.min(15, (features.dst_rarity || 0));
+    const score = Math.min(100, s);
+    const severity =
+      score >= 90 ? "critical" : score >= 70 ? "high" : score >= 45 ? "medium" : "low";
+    return { anomaly_score: Math.round(score * 10) / 10, severity, live: false };
+  }
+}
+
+// ---- LIVE endpoint 2: predict next technique (with cached fallback) ----
+const FALLBACK_NEXT = [
+  { rank: 1, technique_id: "T1021", name: "Remote Services" },
+  { rank: 2, technique_id: "T1059.001", name: "PowerShell" },
+  { rank: 3, technique_id: "T1078", name: "Valid Accounts" },
+  { rank: 4, technique_id: "T1003", name: "OS Credential Dumping" },
+  { rank: 5, technique_id: "T1486", name: "Data Encrypted for Impact" },
+];
+export async function predictNext(technique_ids, k = 5) {
+  try {
+    return { ...(await post("/predict-next", { technique_ids, k })), live: true };
+  } catch {
+    return { given: technique_ids, predictions: FALLBACK_NEXT.slice(0, k), live: false };
+  }
+}

@@ -1,0 +1,61 @@
+/* Resilience Graph AI — SOC Command Center · design tokens (light default + dark)
+   Source of truth for the palette. Components style THROUGH these vars, never
+   hardcode colors. Toggle sets data-theme="light|dark" on <html>. */
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --border:#DCE2EC;
+  --text:#16202E; --text-dim:#5A6678; --text-faint:#8894A6;
+  --accent:#2F6FED; --accent-soft:#E7EEFD;
+  --sev-critical:#E5484D; --sev-high:#F2760C; --sev-medium:#DFA000;
+  --sev-low:#2F6FED; --sev-normal:#7B8798;
+  --ok:#0A7D3F; --grid:#E4E9F1;
+  --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.05);
+  --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Consolas,Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:12px; --radius-sm:8px;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0C111B; --surface:#131B29; --surface-2:#0F1622; --border:#233149;
+  --text:#E6ECF5; --text-dim:#8A97AC; --text-faint:#5C6B82;
+  --accent:#4C8DFF; --accent-soft:#16233C;
+  --sev-critical:#FF5A5F; --sev-high:#FF8A3D; --sev-medium:#F5C144;
+  --sev-low:#4C8DFF; --sev-normal:#5B6678; --ok:#4ade80; --grid:#1B2536;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C111B; --surface:#131B29; --surface-2:#0F1622; --border:#233149;
+  --text:#E6ECF5; --text-dim:#8A97AC; --text-faint:#5C6B82;
+  --accent:#4C8DFF; --accent-soft:#16233C;
+  --sev-critical:#FF5A5F; --sev-high:#FF8A3D; --sev-medium:#F5C144;
+  --sev-low:#4C8DFF; --sev-normal:#5B6678; --ok:#4ade80; --grid:#1B2536;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+:root[data-theme="light"]{
+  --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --border:#DCE2EC;
+  --text:#16202E; --text-dim:#5A6678; --text-faint:#8894A6;
+  --accent:#2F6FED; --accent-soft:#E7EEFD;
+  --sev-critical:#E5484D; --sev-high:#F2760C; --sev-medium:#DFA000;
+  --sev-low:#2F6FED; --sev-normal:#7B8798; --ok:#0A7D3F; --grid:#E4E9F1;
+  --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.05);
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
+  transition:background .2s,color .2s}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+a{color:var(--accent);text-decoration:none}
+button{font-family:var(--sans);cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* severity helpers (text + bg) — shared across screens */
+.s-critical{color:var(--sev-critical)} .bg-critical{background:var(--sev-critical)}
+.s-high{color:var(--sev-high)} .bg-high{background:var(--sev-high)}
+.s-medium{color:var(--sev-medium)} .bg-medium{background:var(--sev-medium)}
+.s-low{color:var(--sev-low)} .bg-low{background:var(--sev-low)}
+.s-normal{color:var(--sev-normal)} .bg-normal{background:var(--sev-normal)}
+
+/* reusable card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
