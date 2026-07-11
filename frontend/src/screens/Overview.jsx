@@ -2,6 +2,7 @@ import { getOverview } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import Sparkline from '../components/Sparkline.jsx'
+import MttdPanel from '../components/MttdPanel.jsx'
 
 const SPARKS = {
   mttd: [40, 38, 33, 30, 22, 14, 9, 4],
@@ -47,6 +48,8 @@ export default function Overview() {
           <Sparkline points={SPARKS.roc} />
         </div>
       </div>
+
+      <MttdPanel mttd={mttd} />
 
       <Card>
         <CardHeader title="Detector scorecard"

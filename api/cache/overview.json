@@ -2,6 +2,8 @@
   "mttd": {
     "value": "4 min",
     "was": "weeks",
+    "traditional_days": 21,
+    "ours_minutes": 4,
     "note": "dwell time collapsed"
   },
   "active_incident": {

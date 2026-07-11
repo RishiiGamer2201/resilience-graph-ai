@@ -4,6 +4,7 @@ import { getIncident } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveScoreWidget from '../components/LiveScoreWidget.jsx'
+import IncidentReport from '../components/IncidentReport.jsx'
 import { severityFromStep, fmtTime } from '../lib/format.js'
 
 const SEV_LABEL = { critical: 'critical', high: 'high', medium: 'medium', low: 'low', normal: 'normal' }
@@ -116,6 +117,8 @@ export default function Incident() {
           </Card>
         </div>
       </div>
+
+      <IncidentReport />
     </>
   )
 }

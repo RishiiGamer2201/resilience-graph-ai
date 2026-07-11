@@ -114,7 +114,8 @@
   - **RESULT:** App shell (Sidebar/Topbar/Layout, router, theme toggle+localStorage), 6 screens + login, shared components. `npm run build` clean (initial gzip 83kB, Graph/Metrics lazy-split). Reviewed Graph.jsx (correct force-graph mapping) + live widgets.
 - [x] 🔴 **M5.4 Hero screens** ✅ — Live Incident replay + live event-scorer · Attack Graph (react-force-graph, path highlight, blast-radius panel) + live predict-next widget
 - [x] 🔴 **M5.5 Integration + fallback** ✅ — `api.js` live→cached fallback; **verified full stack runs** (uvicorn :8000 + vite :5173, live score-event over HTTP → 89.9/high). *Visual QA pending user test.*
-- [ ] 🟡 **M5.6 Incident report + MTTD panel** — audit-ready report + weeks→minutes visual (data already in `spine_incident.md`)
+- [x] 🟡 **M5.6 Incident report + MTTD panel** — audit-ready report + weeks→minutes visual ✅
+  - **RESULT:** `/api/report` endpoint (structured audit report: summary, ATT&CK chain, path, attribution=Ember Bear, predicted next, gated response, evidence) → `IncidentReport.jsx` on Live Incident screen with **Download .md + Print**. `MttdPanel.jsx` on Overview shows weeks→minutes (21 d → 4 min ≈ 7,560×). Cache rebuilt, `npm run build` clean, endpoints verified over HTTP.
 - [ ] 🟢 **India scenarios** — replay styled after AIIMS/CBSE; concrete > generic (needs verified CERT-In sequences, see E2.2b)
 
 ---

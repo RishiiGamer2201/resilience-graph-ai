@@ -1,0 +1,88 @@
+{
+  "incident_id": "INC-PS7-LANL-001",
+  "generated_at": "2026-07-11 15:14 UTC",
+  "severity": "critical",
+  "max_anomaly_score": 100,
+  "account": "U66@DOM1",
+  "pivot": "C17693",
+  "summary": "A CRITICAL incident on the U66@DOM1 account. From pivot host C17693, the account authenticated to 93 hosts via NTLM (pass-the-hash), reaching the critical asset C2388. 131 anomaly alerts were correlated from 215 events into this single incident.",
+  "attack_chain": [
+    {
+      "tactic": "Lateral Movement",
+      "count": 67
+    },
+    {
+      "tactic": "Credential Access",
+      "count": 30
+    }
+  ],
+  "techniques": [
+    {
+      "technique_id": "T1550.002",
+      "name": "Pass the Hash"
+    },
+    {
+      "technique_id": "T1110",
+      "name": "Brute Force"
+    }
+  ],
+  "attack_path": [
+    "C17693",
+    "C2388"
+  ],
+  "attributed_actor": {
+    "actor": "Ember Bear",
+    "justification": "Ember Bear matches 2/2 observed techniques (profile coverage 100%; semantic similarity 0.66)."
+  },
+  "predicted_next": [
+    {
+      "technique_id": "T1552.001",
+      "name": "Credentials In Files"
+    },
+    {
+      "technique_id": "T1018",
+      "name": "Remote System Discovery"
+    },
+    {
+      "technique_id": "T1083",
+      "name": "File and Directory Discovery"
+    }
+  ],
+  "response_actions": [
+    {
+      "tactic": "Lateral Movement",
+      "action": "Isolate the pivot host, block SMB/NTLM between segments",
+      "mode": "requires human approval"
+    },
+    {
+      "tactic": "Credential Access",
+      "action": "Force password reset + enable MFA",
+      "mode": "requires human approval"
+    },
+    {
+      "tactic": "Containment",
+      "action": "Isolate choke-point host C17693 (cuts blast radius of 93 hosts)",
+      "mode": "requires human approval"
+    },
+    {
+      "tactic": "Coordination",
+      "action": "Open incident ticket INC-PS7-LANL-001 + notify SOC lead",
+      "mode": "automatic"
+    }
+  ],
+  "mitigations": [
+    "Privileged Account Management",
+    "Update Software",
+    "Account Use Policies",
+    "Multi-factor Authentication"
+  ],
+  "mttd": {
+    "traditional_days": 21,
+    "ours_minutes": 4,
+    "note": "Industry APT dwell time is measured in weeks; correlated behavioral detection compresses it to minutes."
+  },
+  "evidence": {
+    "lanl_roc_auc": 0.988,
+    "basis": "real LANL red-team labels"
+  }
+}

@@ -111,6 +111,11 @@ def methodology():
     return _cached("methodology")
 
 
+@app.get("/api/report")
+def report():
+    return _cached("report")
+
+
 # --- LIVE endpoint 1: score an event ---
 class EventFeatures(BaseModel):
     is_fail: int = 0

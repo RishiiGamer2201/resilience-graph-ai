@@ -26,6 +26,7 @@ export const getGraph = () => get("/graph");
 export const getThreatIntel = () => get("/threat-intel");
 export const getMetrics = () => get("/metrics");
 export const getMethodology = () => get("/methodology");
+export const getReport = () => get("/report");
 export const getHealth = () => get("/health");
 
 // ---- LIVE endpoint 1: score an event (with cached fallback) ----

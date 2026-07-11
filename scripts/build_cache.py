@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FULL = ROOT / "data" / "demo" / "spine_incident_full.json"
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
+MARKOV = ROOT / "models" / "next_technique_markov.pkl"
 CACHE = ROOT / "api" / "cache"
 
 # LANL behavioral feature order (matches src.engine1.lanl_detect.FEATURES)
@@ -40,7 +41,8 @@ def _write(name: str, obj: dict) -> None:
 def overview(full: dict) -> dict:
     inc = full["incident"]
     return {
-        "mttd": {"value": "4 min", "was": "weeks", "note": "dwell time collapsed"},
+        "mttd": {"value": "4 min", "was": "weeks", "traditional_days": 21,
+                 "ours_minutes": 4, "note": "dwell time collapsed"},
         "active_incident": {"id": inc["incident_id"], "severity": inc["severity"],
                             "account": full["victim"],
                             "summary": "Pass-the-hash lateral movement across the domain"},
@@ -156,6 +158,52 @@ def methodology() -> dict:
     }
 
 
+def report(full: dict) -> dict:
+    """Audit-ready incident report assembled from the spine + attribution + prediction."""
+    from collections import Counter
+    from datetime import datetime, timezone
+
+    inc, g, soar = full["incident"], full["graph"], full["soar"]
+    with LOOKUPS.open("rb") as f:
+        names = pickle.load(f)["technique_to_name"]
+
+    # attribution (top actor) + predicted next moves (Markov on the observed chain)
+    profiles, emb = load_artifacts()
+    top = rank_actors(inc["technique_ids"], profiles, emb)[0]
+    with MARKOV.open("rb") as f:
+        trans = pickle.load(f)
+    last = inc["technique_ids"][-1] if inc["technique_ids"] else None
+    nxt = (trans.get(last, []) or [])[:3]
+
+    crit = ", ".join(g["critical_assets_at_risk"]) or "—"
+    tac = Counter(inc["attack_chain"])
+    summary = (
+        f"A {inc['severity'].upper()} incident on the {full['victim']} account. "
+        f"From pivot host {full['pivot']}, the account authenticated to "
+        f"{g['blast_radius_size']} hosts via NTLM (pass-the-hash), reaching the "
+        f"critical asset {crit}. {inc['alert_count']} anomaly alerts were correlated "
+        f"from {inc['event_count']} events into this single incident."
+    )
+    return {
+        "incident_id": inc["incident_id"],
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "severity": inc["severity"], "max_anomaly_score": inc["max_anomaly_score"],
+        "account": full["victim"], "pivot": full["pivot"],
+        "summary": summary,
+        "attack_chain": [{"tactic": t, "count": c} for t, c in tac.most_common()],
+        "techniques": [{"technique_id": t, "name": names.get(t, t)} for t in inc["technique_ids"]],
+        "attack_path": next(iter(g["paths_to_critical"].values()), []),
+        "attributed_actor": {"actor": top["actor"], "justification": top["justification"]},
+        "predicted_next": [{"technique_id": t, "name": names.get(t, t)} for t in nxt],
+        "response_actions": soar["actions"],
+        "mitigations": soar.get("mitre_mitigations", []),
+        "mttd": {"traditional_days": 21, "ours_minutes": 4,
+                 "note": "Industry APT dwell time is measured in weeks; correlated "
+                         "behavioral detection compresses it to minutes."},
+        "evidence": {"lanl_roc_auc": 0.988, "basis": "real LANL red-team labels"},
+    }
+
+
 def score_ref() -> dict:
     """Calibration anchors so /score-event maps raw IsolationForest score → 0-100."""
     b = joblib.load(LANL_MODEL)
@@ -175,6 +223,7 @@ def main() -> None:
     _write("threat_intel", threat_intel(full))
     _write("metrics", metrics())
     _write("methodology", methodology())
+    _write("report", report(full))
     _write("score_ref", score_ref())
     print("Cache build complete.")
 
