@@ -28,10 +28,10 @@
   },
   {
     "actor": "AIIMS Delhi ransomware (2022) — ILLUSTRATIVE placeholder, needs detailed incident report",
-    "source": "CERT-In findings via public reporting (Indian Express). REVIEW (teammate): reporting supports ransomware encryption (T1486) + infected servers, but NOT the full phishing→cred-dump→lateral→recovery-inhibition chain below. Treat the extra steps as illustrative until a detailed incident report is found.",
-    "source_url": "https://indianexpress.com/article/india/aiims-server-attack-cert-in/",
+    "source": "AIIMS Delhi 2022 ransomware — CERT-In investigated. REVIEW (teammate): reporting supports ransomware encryption (T1486) + infected servers, but NOT the full phishing→cred-dump→lateral→recovery-inhibition chain below. Treat the extra steps as illustrative until a detailed incident report is cited.",
+    "source_url": "TODO: add the specific verified report URL here (a previously-guessed URL was removed as unverified)",
     "verified": false,
-    "note": "Only T1486 is currently source-backed. The rest is a typical ransomware chain kept for illustration — DO NOT verify until a report with the observed sequence is cited.",
+    "note": "Only T1486 is currently source-backed. The rest is a typical ransomware chain kept for illustration. DO NOT verify until: (1) a real report URL is added above and confirmed to load, and (2) its observed sequence is matched.",
     "ordered_technique_ids": [
       "T1566.001",
       "T1204.002",
