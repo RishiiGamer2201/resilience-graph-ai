@@ -156,3 +156,22 @@ def predict_next(c: Chain):
             "predictions": [{"rank": i + 1, "technique_id": t, "name": names.get(t, t)}
                             for i, t in enumerate(top)],
             "source": "markov" if last in trans else "frequency-fallback"}
+
+
+# --- serve the built React app (single-container deploy) -------------------
+# When frontend/dist exists (production image), FastAPI serves the SPA from the
+# same origin as /api — no CORS, one URL. In local dev the Vite server handles
+# the UI and proxies /api here, so this block is simply inactive.
+from fastapi.responses import FileResponse           # noqa: E402
+from fastapi.staticfiles import StaticFiles           # noqa: E402
+
+DIST = ROOT / "frontend" / "dist"
+if DIST.exists():
+    app.mount("/assets", StaticFiles(directory=str(DIST / "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        candidate = DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(str(candidate))
+        return FileResponse(str(DIST / "index.html"))   # SPA deep links

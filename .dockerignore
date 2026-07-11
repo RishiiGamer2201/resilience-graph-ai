@@ -1,0 +1,11 @@
+.git
+.venv
+**/node_modules
+frontend/dist
+**/__pycache__
+data/raw
+data/processed/**/*.parquet
+data/demo
+reports
+*.pdf
+research

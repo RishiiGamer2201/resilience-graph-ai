@@ -2,7 +2,9 @@
 // Cached GETs are reliable; the two LIVE POSTs fall back to a cached example
 // result on any error, so the demo never breaks mid-pitch.
 
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
+// Same-origin "/api" in production (FastAPI serves the SPA). In local dev the
+// Vite proxy (vite.config.js) forwards /api → http://localhost:8000.
+const BASE = import.meta.env.VITE_API_BASE || "/api";
 
 async function get(path) {
   const r = await fetch(`${BASE}${path}`);

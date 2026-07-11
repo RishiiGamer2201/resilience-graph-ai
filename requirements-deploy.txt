@@ -1,0 +1,7 @@
+# Slim runtime deps for the deployed API (NO torch/pandas/sentence-transformers —
+# those are build-time only; the live endpoints just unpickle sklearn models).
+fastapi>=0.110
+uvicorn>=0.29
+scikit-learn==1.7.2   # must match the version that pickled models/iforest_lanl.joblib
+numpy>=1.26
+joblib>=1.3
