@@ -58,7 +58,8 @@
   - **Acceptance:** ✅ **TPR @ fixed FPR** table on 702 red-team events; ROC-AUC; literature context cited.
   - **RESULT:** **ROC-AUC 0.988** · TPR@1%FPR **51.4%** · TPR@5%FPR **96.9%** (680/702). Feature signals: new-host 14×, dst-rarity 2×, fail-rate 5× vs benign. **Robustness ablation:** behavioral-only (no NTLM) still **ROC 0.929** — not a protocol crutch. See `reports/lanl_redteam_detection.md`.
   - **Deliverable:** `src/engine1/lanl_detect.py` + `reports/lanl_redteam_detection.md` + `models/iforest_lanl.joblib` (gitignored)
-- [ ] 🟢 **E1.x UNSW-NB15** — second benchmark to show generalization (stretch)
+- [x] 🟢 **E1.x UNSW-NB15** — second benchmark to show generalization ✅ *(teammate MAsTeRlssPd; verified by Claude)*
+  - **RESULT:** benign-only IsolationForest on official split → **ROC-AUC 0.829** (PR-AUC 0.867; test is 55% attack so PR-AUC lift is small by construction — ROC is the headline). Rule (`sbytes`) worse-than-random (ROC 0.30), same pattern as CICIDS. `src/engine1/{prep_unsw,eval_unsw}.py`.
 
 ---
 
@@ -80,9 +81,9 @@
   - **Acceptance:** ✅ top-1/3/5 reported; lift over baselines shown. **LSTM 29.0% < Markov 39.6% top-3 → we SHIP MARKOV** (the memo's "honest > fancy" path).
   - **RESULT / anti-circularity ✅:** Markov top-3 **5.1× the kill-chain-order baseline** (39.6% vs 7.8%) → predicting real technique-to-technique transitions, NOT the imposed tactic order. LSTM kept as documented negative result (neural not justified at 139 train seqs). See `reports/prediction_eval.md`.
   - **Deliverable:** `models/next_technique_markov.pkl` (shipped) + `models/next_technique_lstm.pt` (comparison) + `src/engine2/build_predictor.py`
-- [ ] 🟡 **E2.5 Actor attribution** — group technique-usage profiles; similarity vs observed sequence; templated justification string
-  - **Acceptance:** given a partial sequence, returns ranked actors + "matches 4/6 of APT41" style justification.
-  - **Deliverable:** `src/engine2/attribution.py`
+- [x] 🟡 **E2.5 Actor attribution** — group technique-usage profiles; similarity vs observed sequence; templated justification string ✅ *(teammate MAsTeRlssPd; verified by Claude)*
+  - **RESULT:** 172 ATT&CK group profiles; ranks actors by coverage(55%)+Jaccard(20%)+semantic(25%), templated justification. `src/engine2/attribution.py`.
+  - **⚠️ Caveat for pitch:** the built-in eval (60%-observed → 100% top-1) is near-trivial by construction (honestly labeled in-report). Do NOT headline "100% attribution"; for the demo, observe only 3–4 techniques (realistic partial incident) to show a real test. Function itself is demo-ready.
 
 ---
 
