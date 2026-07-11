@@ -61,6 +61,24 @@ Run the current demo pipeline (scripted mock, for narrative):
 python src/demo_ps7_pipeline.py
 ```
 
+## Run the SOC Command Center (demo app)
+
+Two processes — the FastAPI backend and the React frontend.
+
+**1. Backend** (from repo root, venv active):
+```bash
+./.venv/Scripts/python.exe -m scripts.build_cache          # regenerate api/cache (optional; cache is committed)
+./.venv/Scripts/python.exe -m uvicorn api.main:app --port 8000
+```
+
+**2. Frontend** (needs Node 18+; from `frontend/`):
+```bash
+npm install        # first time only
+npm run dev        # → http://localhost:5173
+```
+
+Open **http://localhost:5173** → "Sign in as Analyst" → the 6-screen SOC console (light default, dark toggle top-right). Cached screens work without models; the **two live widgets** (event-scoring on Live Incident, next-technique on Threat Intel) need the local `models/` (regenerate via the pipeline) and otherwise fall back to a cached result.
+
 ## Datasets (all public / free)
 
 > **📦 Team bundle:** all four datasets are mirrored in one Kaggle dataset —
