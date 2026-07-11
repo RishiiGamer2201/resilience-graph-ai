@@ -102,20 +102,18 @@
 
 ---
 
-## Milestone 5 — DEMO APP & INTEGRATION 🔴 *(Days 7–10 · owner M4)*
+## Milestone 5 — DEMO APP & INTEGRATION 🔴 *(Days 7–10 · owner M4 + agents)* — 📋 PLANNED (awaiting "Start building")
 *2nd-biggest risk after E2.4. A broken live demo tanks UX (15%) + the whole impression.*
+**STACK DECISION (2026-07-11):** ~~Streamlit~~ → **FastAPI + React (Vite)** SOC Command Center. Full spec: [`M5_build_plan.md`](M5_build_plan.md). Look-and-feel mockup approved via Artifact (light default + dark toggle).
+**Locked:** 6 screens (Overview · Live Incident · Attack Graph · Threat Intel & Attribution · Models & Metrics · Data & Methodology) · aesthetic login splash (no auth) · pre-cached + **2 live moments** (event-scoring, next-technique prediction) · agents build / Claude verifies.
 
-- [ ] 🔴 **S6a Streamlit replay** — step through LANL-derived event stream timestamped; per event show: anomaly flag → mapped technique → predicted next 2–3 → attributed actor → gated action
-  - **Acceptance:** full replay runs end-to-end on one scenario without manual intervention.
-  - **Deliverable:** `src/app/dashboard.py`
-- [ ] 🔴 **S6b Pre-cache + recorded fallback** — pre-compute all outputs; "recorded" mode that needs no live inference
-  - **Acceptance:** demo runs with network/inference disabled. *(Non-negotiable for the live pitch.)*
-- [ ] 🟡 **S6c Incident report generator** — auto-produce audit-ready report (ID, severity, summary, ATT&CK chain, path, predictions, actor, gated response)
-  - **Deliverable:** `reports/incident_INC-001.md` (generated)
-- [ ] 🟡 **S6d MTTD delta panel** — show weeks→minutes detection-time story visually
-- [ ] 🟡 **2–3 India scenarios** — ransomware pattern echoing AIIMS/CBSE; concrete > generic
-  - **Acceptance:** each scenario replays cleanly + has a one-line stakes framing.
-- [ ] 🟢 **3-agent narrative wrapper** — name components Anomaly/Prediction/Response agents (polish only, not a rebuild)
+- [ ] 🔴 **M5.1 FastAPI + frozen JSON contract** — `build_cache.py` regenerates all cached JSON from reports/models; 6 cached GETs + 2 live POSTs *(Claude inline, FIRST)*
+- [ ] 🔴 **M5.2 Design system (light+dark tokens) + screen mockups** *(→ `ui-designer` agent)*
+- [ ] 🔴 **M5.3 React app** — Vite, theme toggle, 6 screens + login splash, consumes API *(→ `frontend-developer` agent)*
+- [ ] 🔴 **M5.4 Hero screens** — Live Incident replay (+ live event-scoring) · Attack Graph viz (+ live predict) — highest polish
+- [ ] 🔴 **M5.5 Integration + fallback** — wire live endpoints; every live call falls back to cached on error; end-to-end dry run *(Claude verifies)*
+- [ ] 🟡 **M5.6 Incident report + MTTD panel** — audit-ready report + weeks→minutes visual (data already in `spine_incident.md`)
+- [ ] 🟢 **India scenarios** — replay styled after AIIMS/CBSE; concrete > generic (needs verified CERT-In sequences, see E2.2b)
 
 ---
 
