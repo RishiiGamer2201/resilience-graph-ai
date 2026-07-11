@@ -32,6 +32,12 @@ env/
 reports/*.html
 reports/*.log
 
+# ─── Frontend (M5 React app) ──────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
 # ─── Editor / OS ──────────────────────────────────────
 .vscode/
 .idea/

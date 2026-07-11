@@ -19,8 +19,10 @@ networkx>=3.1          # attack-path graph, centrality, shortest path
 mitreattack-python>=3.0  # parse ATT&CK STIX bundles
 stix2>=3.0
 
-# --- App / reporting ---
-streamlit>=1.30        # SOC dashboard / replay demo
+# --- App / API (M5 SOC Command Center) ---
+fastapi>=0.110         # backend serving ML + spine JSON
+uvicorn>=0.29          # ASGI server
+httpx>=0.27            # TestClient + live-endpoint checks
 matplotlib>=3.7        # charts (PR curves, graphs)
 
 # --- Utilities ---

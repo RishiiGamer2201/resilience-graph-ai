@@ -1,0 +1,1146 @@
+{
+  "entry_host": "C17693",
+  "critical_assets_at_risk": [
+    "C2388"
+  ],
+  "paths_to_critical": {
+    "C2388": [
+      "C17693",
+      "C2388"
+    ]
+  },
+  "choke_points": [
+    "C17693",
+    "C3435",
+    "C3755"
+  ],
+  "blast_radius_size": 93,
+  "recommended_isolation": "C17693",
+  "n_nodes": 94,
+  "n_edges": 93,
+  "nodes": [
+    {
+      "id": "C1006",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C102",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1036",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1042",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1085",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1096",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1172",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1191",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1360",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1371",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1482",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1509",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C155",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1760",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C17693",
+      "critical": false,
+      "pivot": true
+    },
+    {
+      "id": "C177",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1936",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1944",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1961",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1964",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C19646",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C1966",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2012",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2013",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2069",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C20741",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C20742",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2079",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2083",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2143",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2196",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C22174",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C22176",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2254",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2379",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2388",
+      "critical": true,
+      "pivot": false
+    },
+    {
+      "id": "C243",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2457",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2508",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2725",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2733",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2762",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C2813",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C285",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3019",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3037",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C313",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3170",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3288",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3305",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3380",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3386",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3435",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3610",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3635",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C368",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C370",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3755",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3758",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3813",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3888",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C3938",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C398",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4106",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C423",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C429",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4403",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4476",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C452",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4610",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4728",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4759",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C4998",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C506",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C5111",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C5264",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C5343",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C5439",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C5489",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C553",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C5653",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C626",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C6699",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C742",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C755",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C765",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C798",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C8209",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C8410",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C849",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C881",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C92",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C976",
+      "critical": false,
+      "pivot": false
+    },
+    {
+      "id": "C977",
+      "critical": false,
+      "pivot": false
+    }
+  ],
+  "edges": [
+    {
+      "from": "C17693",
+      "to": "C3435",
+      "technique": "-",
+      "tactic": "Normal",
+      "score": 68
+    },
+    {
+      "from": "C17693",
+      "to": "C3755",
+      "technique": "-",
+      "tactic": "Normal",
+      "score": 53
+    },
+    {
+      "from": "C17693",
+      "to": "C2196",
+      "technique": "-",
+      "tactic": "Normal",
+      "score": 53
+    },
+    {
+      "from": "C17693",
+      "to": "C1944",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 80
+    },
+    {
+      "from": "C17693",
+      "to": "C3305",
+      "technique": "-",
+      "tactic": "Normal",
+      "score": 53
+    },
+    {
+      "from": "C17693",
+      "to": "C2388",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 80
+    },
+    {
+      "from": "C17693",
+      "to": "C765",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C92",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 69
+    },
+    {
+      "from": "C17693",
+      "to": "C742",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 80
+    },
+    {
+      "from": "C17693",
+      "to": "C3938",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C2069",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C5653",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C2508",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C398",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C1966",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C19646",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C3610",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 73
+    },
+    {
+      "from": "C17693",
+      "to": "C1036",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 100
+    },
+    {
+      "from": "C17693",
+      "to": "C881",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C1482",
+      "technique": "-",
+      "tactic": "Normal",
+      "score": 54
+    },
+    {
+      "from": "C17693",
+      "to": "C4998",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C2762",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C3813",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 85
+    },
+    {
+      "from": "C17693",
+      "to": "C4610",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C626",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C1191",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 76
+    },
+    {
+      "from": "C17693",
+      "to": "C1006",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 75
+    },
+    {
+      "from": "C17693",
+      "to": "C2143",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C6699",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 99
+    },
+    {
+      "from": "C17693",
+      "to": "C8410",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 99
+    },
+    {
+      "from": "C17693",
+      "to": "C1371",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C2457",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C3288",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 79
+    },
+    {
+      "from": "C17693",
+      "to": "C849",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C2012",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C2079",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C4728",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C102",
+      "technique": "-",
+      "tactic": "Normal",
+      "score": 55
+    },
+    {
+      "from": "C17693",
+      "to": "C1042",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C8209",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 96
+    },
+    {
+      "from": "C17693",
+      "to": "C1964",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 80
+    },
+    {
+      "from": "C17693",
+      "to": "C2379",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C1961",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C423",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 71
+    },
+    {
+      "from": "C17693",
+      "to": "C1936",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C976",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C3380",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C3635",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C1172",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 99
+    },
+    {
+      "from": "C17693",
+      "to": "C452",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C22174",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 86
+    },
+    {
+      "from": "C17693",
+      "to": "C5439",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C4106",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C368",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 69
+    },
+    {
+      "from": "C17693",
+      "to": "C5343",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 85
+    },
+    {
+      "from": "C17693",
+      "to": "C20742",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 99
+    },
+    {
+      "from": "C17693",
+      "to": "C20741",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 100
+    },
+    {
+      "from": "C17693",
+      "to": "C2013",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C3019",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C4476",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 87
+    },
+    {
+      "from": "C17693",
+      "to": "C5489",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C5264",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 86
+    },
+    {
+      "from": "C17693",
+      "to": "C1760",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C4759",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C3386",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C2813",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 99
+    },
+    {
+      "from": "C17693",
+      "to": "C22176",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 86
+    },
+    {
+      "from": "C17693",
+      "to": "C553",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 72
+    },
+    {
+      "from": "C17693",
+      "to": "C3888",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 85
+    },
+    {
+      "from": "C17693",
+      "to": "C1085",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 72
+    },
+    {
+      "from": "C17693",
+      "to": "C243",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 88
+    },
+    {
+      "from": "C17693",
+      "to": "C4403",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 85
+    },
+    {
+      "from": "C17693",
+      "to": "C798",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C5111",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 85
+    },
+    {
+      "from": "C17693",
+      "to": "C506",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C429",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 83
+    },
+    {
+      "from": "C17693",
+      "to": "C1360",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 99
+    },
+    {
+      "from": "C17693",
+      "to": "C755",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C1096",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 79
+    },
+    {
+      "from": "C17693",
+      "to": "C3758",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 78
+    },
+    {
+      "from": "C17693",
+      "to": "C2254",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C177",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C285",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C155",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C3170",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 85
+    },
+    {
+      "from": "C17693",
+      "to": "C3037",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 82
+    },
+    {
+      "from": "C17693",
+      "to": "C1509",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C313",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C977",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 97
+    },
+    {
+      "from": "C17693",
+      "to": "C370",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C2725",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    },
+    {
+      "from": "C17693",
+      "to": "C2083",
+      "technique": "T1110",
+      "tactic": "Credential Access",
+      "score": 98
+    },
+    {
+      "from": "C17693",
+      "to": "C2733",
+      "technique": "T1550.002",
+      "tactic": "Lateral Movement",
+      "score": 84
+    }
+  ]
+}

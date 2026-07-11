@@ -107,7 +107,8 @@
 **STACK DECISION (2026-07-11):** ~~Streamlit~~ → **FastAPI + React (Vite)** SOC Command Center. Full spec: [`M5_build_plan.md`](M5_build_plan.md). Look-and-feel mockup approved via Artifact (light default + dark toggle).
 **Locked:** 6 screens (Overview · Live Incident · Attack Graph · Threat Intel & Attribution · Models & Metrics · Data & Methodology) · aesthetic login splash (no auth) · pre-cached + **2 live moments** (event-scoring, next-technique prediction) · agents build / Claude verifies.
 
-- [ ] 🔴 **M5.1 FastAPI + frozen JSON contract** — `build_cache.py` regenerates all cached JSON from reports/models; 6 cached GETs + 2 live POSTs *(Claude inline, FIRST)*
+- [x] 🔴 **M5.1 FastAPI + frozen JSON contract** — `build_cache.py` regenerates all cached JSON; 6 cached GETs + 2 live POSTs ✅ *(Claude inline)*
+  - **RESULT:** `api/main.py` (FastAPI + CORS), `scripts/build_cache.py`, `api/cache/*.json` committed. Smoke-tested: all 6 cached endpoints + **live score-event** (malicious→100/critical, benign→13/low) + **live predict-next** (Markov). Frozen contract per `M5_build_plan.md §4`. Cache committed so UI runs from a fresh clone; live endpoints need local models + degrade to cache.
 - [ ] 🔴 **M5.2 Design system (light+dark tokens) + screen mockups** *(→ `ui-designer` agent)*
 - [ ] 🔴 **M5.3 React app** — Vite, theme toggle, 6 screens + login splash, consumes API *(→ `frontend-developer` agent)*
 - [ ] 🔴 **M5.4 Hero screens** — Live Incident replay (+ live event-scoring) · Attack Graph viz (+ live predict) — highest polish

@@ -1,0 +1,44 @@
+{
+  "mttd": {
+    "value": "4 min",
+    "was": "weeks",
+    "note": "dwell time collapsed"
+  },
+  "active_incident": {
+    "id": "INC-PS7-LANL-001",
+    "severity": "critical",
+    "account": "U66@DOM1",
+    "summary": "Pass-the-hash lateral movement across the domain"
+  },
+  "blast_radius_contained": 93,
+  "alerts_correlated": {
+    "alerts": 131,
+    "events": 215
+  },
+  "scorecard": [
+    {
+      "name": "LANL lateral movement",
+      "metric": "ROC-AUC",
+      "value": 0.988,
+      "kind": "real red-team"
+    },
+    {
+      "name": "CICIDS anomaly (autoencoder)",
+      "metric": "PR-AUC",
+      "value": 0.57,
+      "kind": "real"
+    },
+    {
+      "name": "UNSW-NB15",
+      "metric": "ROC-AUC",
+      "value": 0.829,
+      "kind": "2nd benchmark"
+    },
+    {
+      "name": "Next-technique (Markov)",
+      "metric": "top-3",
+      "value": 0.386,
+      "kind": "honest"
+    }
+  ]
+}

@@ -27,6 +27,7 @@ PARQUET = ROOT / "data" / "processed" / "lanl" / "auth_redteam_window.parquet"
 MODEL = ROOT / "models" / "iforest_lanl.joblib"
 REPORT = ROOT / "reports" / "spine_incident.md"
 OUT_JSON = ROOT / "data" / "demo" / "spine_incident.json"
+FULL_JSON = ROOT / "data" / "demo" / "spine_incident_full.json"   # incl. per-event steps
 
 
 def build_real_incident() -> pd.DataFrame:
@@ -49,12 +50,12 @@ def build_real_incident() -> pd.DataFrame:
     # scale anomaly score to 0-100 for readability
     lo, hi = raw.min(), raw.max()
     sub["anomaly_score"] = (100 * (raw - lo) / (hi - lo + 1e-9)).round().astype(int)
-    return sub, victim
+    return sub, victim, pivot
 
 
 def main() -> None:
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    sub, victim = build_real_incident()
+    sub, victim, pivot = build_real_incident()
 
     # mark a plausible crown-jewel among the hosts the attacker reached
     reached = sub[sub.label == 1]["destination_host"].tolist()
@@ -68,6 +69,11 @@ def main() -> None:
     OUT_JSON.write_text(json.dumps(
         {"incident": {k: v for k, v in incident.items() if k not in ("steps", "alerts")},
          "graph": ga, "soar": soar}, indent=2), encoding="utf-8")
+
+    # full version (with per-event steps) for the Live Incident screen
+    FULL_JSON.write_text(json.dumps(
+        {"victim": victim, "pivot": pivot, "critical_assets": sorted(critical),
+         "incident": incident, "graph": ga, "soar": soar}, indent=2), encoding="utf-8")
 
     # summarize the chain as unique tactics with counts (the full alternating
     # list is long; the incident object keeps it in full)

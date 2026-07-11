@@ -1,0 +1,65 @@
+{
+  "mapping": [
+    {
+      "technique_id": "T1550.002",
+      "name": "Pass the Hash",
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls."
+    },
+    {
+      "technique_id": "T1110",
+      "name": "Brute Force",
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach."
+    }
+  ],
+  "attribution": [
+    {
+      "actor": "Ember Bear",
+      "score": 0.723,
+      "coverage": 1.0,
+      "matched": [
+        "T1110",
+        "T1550.002"
+      ],
+      "justification": "Ember Bear matches 2/2 observed techniques (profile coverage 100%; semantic similarity 0.66)."
+    },
+    {
+      "actor": "APT28",
+      "score": 0.719,
+      "coverage": 1.0,
+      "matched": [
+        "T1110",
+        "T1550.002"
+      ],
+      "justification": "APT28 matches 2/2 observed techniques (profile coverage 100%; semantic similarity 0.66)."
+    },
+    {
+      "actor": "APT41",
+      "score": 0.714,
+      "coverage": 1.0,
+      "matched": [
+        "T1110",
+        "T1550.002"
+      ],
+      "justification": "APT41 matches 2/2 observed techniques (profile coverage 100%; semantic similarity 0.64)."
+    },
+    {
+      "actor": "FIN5",
+      "score": 0.452,
+      "coverage": 0.5,
+      "matched": [
+        "T1110"
+      ],
+      "justification": "FIN5 matches 1/2 observed techniques (profile coverage 50%; semantic similarity 0.64)."
+    },
+    {
+      "actor": "HEXANE",
+      "score": 0.449,
+      "coverage": 0.5,
+      "matched": [
+        "T1110"
+      ],
+      "justification": "HEXANE matches 1/2 observed techniques (profile coverage 50%; semantic similarity 0.67)."
+    }
+  ],
+  "note": "Attribution is transparent profile retrieval over public ATT&CK group usage \u2014 not a trained classifier."
+}

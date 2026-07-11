@@ -1,0 +1,32 @@
+{
+  "datasets": [
+    {
+      "name": "CIC-IDS2017",
+      "rows": "2.3M flows",
+      "feeds": "anomaly detection + metrics"
+    },
+    {
+      "name": "LANL Cyber",
+      "rows": "11.2M auth \u00b7 702 red-team",
+      "feeds": "lateral movement (the moat)"
+    },
+    {
+      "name": "MITRE ATT&CK",
+      "rows": "794 techniques \u00b7 172 groups",
+      "feeds": "mapping, sequences, attribution"
+    },
+    {
+      "name": "UNSW-NB15",
+      "rows": "175k/82k split",
+      "feeds": "second benchmark"
+    }
+  ],
+  "honesty_notes": [
+    "Engine 1 trains benign-only (unsupervised) \u2014 we never report accuracy, only PR-AUC / TPR@FPR.",
+    "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
+    "LANL NTLM signal ablated: behavioral-only still ROC 0.929 \u2014 not a protocol crutch.",
+    "Next-technique: Markov beats the LSTM at this data scale, so we ship Markov (honest > fancy).",
+    "Anti-circularity: Markov beats the kill-chain-order baseline 5.1x \u2192 real transitions.",
+    "CERT-In manual sequences kept unverified until an analyst confirms each mapping."
+  ]
+}
