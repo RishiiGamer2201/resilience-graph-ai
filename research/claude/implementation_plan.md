@@ -70,8 +70,9 @@
   - **Acceptance:** ✅ 199 auto sequences; sequence-level train/val/test split; counts printed.
   - **RESULT:** **199 sequences** (145 groups + 54 campaigns) · vocab **575 techniques** · len mean 28.6 (6–130) · split 139/30/30. See `reports/sequences.md`.
   - **Deliverable:** `data/processed/engine2/sequences.json` (gitignored) + `src/engine2/build_sequences.py` ✅
-- [ ] 🟡 **E2.2b Manual CERT-In sequences** — hand-curate 3–5 from CERT-In advisories (optionally TRAM-assisted then corrected); flag `is_manual=true`
-  - **Acceptance:** 3–5 sequences added, source-referenced; the honest split is documented.
+- [~] 🟡 **E2.2b Manual CERT-In sequences** — 4 India-relevant report-ordered sequences drafted (APT36/G0134, RedEcho/G1042, hospital ransomware, exploit→exfil), ingested into TEST, `is_manual=true` ✅ *scaffold* · ⏳ **TEAM ACTION: verify mappings** (`data/manual/cert_in_sequences.json`, flip `verified` — currently 0/4)
+  - **Acceptance:** ✅ 4 sequences added, source-referenced; honest split documented in `reports/sequences.md`.
+  - **KEY FINDING:** shipped Markov on the real report-ordered manual set = **top-3 8.7%** vs **38.6%** on kill-chain-ordered auto set → confirms real orderings are harder and the auto number was partly ordering-driven. Prediction = experimental/supporting feature; lean pitch on Engine 1 + attribution. See `reports/prediction_eval.md`.
 - [x] 🟡 **E2.3 Technique embeddings** — descriptions → all-MiniLM-L6-v2 ✅
   - **Acceptance:** ✅ same-tactic cosine 0.403 vs random 0.330 (gap +0.074, PASS). 794 techniques, 384-d.
   - **Deliverable:** `data/processed/engine2/technique_embeddings.pkl` (gitignored) + `src/engine2/build_embeddings.py`

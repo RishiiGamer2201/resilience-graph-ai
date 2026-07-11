@@ -58,7 +58,9 @@ def load():
     train = [s["ordered_technique_ids"] for s in seqs if s["split"] == "train"]
     val = [s["ordered_technique_ids"] for s in seqs if s["split"] == "val"]
     test = [s["ordered_technique_ids"] for s in seqs if s["split"] == "test"]
-    return train, val, test, emb, lk
+    # manual (report-ordered CERT-In) sequences — the non-circular test subset
+    manual = [s["ordered_technique_ids"] for s in seqs if s.get("is_manual")]
+    return train, val, test, manual, emb, lk
 
 
 def positions(seqs):
@@ -236,16 +238,23 @@ def main() -> None:
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     MODEL_OUT.parent.mkdir(parents=True, exist_ok=True)
 
-    train, val, test, emb, lk = load()
+    train, val, test, manual, emb, lk = load()
     vocab = sorted({t for s in train for t in s})
     vocab_set = set(vocab)
     idx = {t: i for i, t in enumerate(vocab)}
-    print(f"train {len(train)} / val {len(val)} / test {len(test)} sequences · vocab {len(vocab)}")
+    print(f"train {len(train)} / val {len(val)} / test {len(test)} "
+          f"(manual {len(manual)}) sequences · vocab {len(vocab)}")
 
     results = {}
+    markov_predict = baseline_markov(train, vocab)
     results["most_frequent"], n_test, oov = eval_ranker(baseline_most_frequent(train, vocab), test, vocab_set)
-    results["markov"], _, _ = eval_ranker(baseline_markov(train, vocab), test, vocab_set)
+    results["markov"], _, _ = eval_ranker(markov_predict, test, vocab_set)
     results["killchain"], _, _ = eval_ranker(baseline_killchain(train, vocab, lk), test, vocab_set)
+
+    # non-circular headline: shipped Markov model on the manual CERT-In sequences
+    manual_res = manual_n = manual_oov = None
+    if manual:
+        manual_res, manual_n, manual_oov = eval_ranker(markov_predict, manual, vocab_set)
 
     print("Training LSTM ...")
     net, emb_of, dim = train_lstm(train, val, emb, vocab, idx)
@@ -300,6 +309,21 @@ def main() -> None:
         f"training sequences; **top-3/top-5 are the honest headline** — they match how an "
         f"analyst uses a ranked list of 'likely next moves'.",
         "",
+    ]
+    if manual_res is not None:
+        lines += [
+            "## ⭐ Non-circular headline — manual CERT-In / India sequences (report-ordered)",
+            f"- Shipped Markov model on **{len(manual)} hand-curated** report-ordered "
+            f"sequences ({manual_n} prediction points, {manual_oov} OOV): "
+            f"**top-1 {manual_res[1]*100:.1f}% · top-3 {manual_res[3]*100:.1f}% · "
+            f"top-5 {manual_res[5]*100:.1f}%**.",
+            "- These are ordered by the REAL reported attack timeline (not the kill-chain "
+            "heuristic), so this is the honest, non-circular evaluation. "
+            "⚠️ Verify each sequence's mappings (`data/manual/cert_in_sequences.json`) "
+            "before quoting this in the pitch.",
+            "",
+        ]
+    lines += [
         f"_Shipped: `models/next_technique_markov.pkl` · LSTM comparison: "
         f"`{MODEL_OUT.relative_to(ROOT)}` · sequences E2.2 · embeddings E2.3._",
     ]
