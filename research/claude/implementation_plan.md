@@ -44,7 +44,7 @@
 
 ---
 
-## Milestone 2 — ENGINE 1: Real Detection 🟡 *(Days 2–5 · owner M2, +M1)*
+## Milestone 2 — ENGINE 1: Real Detection 🟡 *(Days 2–5 · owner M2, +M1)* — ✅ CORE COMPLETE (E1.x UNSW stretch remains)
 *This is the number that earns Technical Excellence (20%). Build before the fancy stuff.*
 
 - [x] 🔴 **E1.2a Baselines first** — random scorer + rule threshold on `Flow Packets/s` ✅ *(delegated to `ai-engineer`, reviewed + bug-fixed by Claude)*
@@ -54,9 +54,10 @@
   - **Acceptance:** ✅ PR-AUC 0.473 · ROC-AUC 0.826 · **3.1× lift over random, 4.8× over rule**; PR-curve PNG; per-attack recall. No accuracy headline, no SMOTE.
   - **Deliverable:** `models/iforest_cicids.joblib` (gitignored) + `reports/evaluation_report.md` + `reports/pr_curve_cicids.png` + `src/engine1/anomaly.py`
 - [x] 🟢 **E1.2c Autoencoder** — benign-trained AE comparison ✅ **best model: PR-AUC 0.570 · ROC-AUC 0.836** (edges out IsolationForest); side-by-side in eval report.
-- [ ] 🔴 **E1.3 LANL lateral movement** — features (new-host auth, failed→success burst, rare-dest, auth fan-out); score window; evaluate vs red-team ground truth
-  - **Acceptance:** **TPR @ fixed FPR** reported on the 749 red-team events; confusion matrix; cite ~85%@<1% as literature context (not our claim).
-  - **Deliverable:** `reports/lanl_redteam_detection.md`, scored events parquet
+- [x] 🔴 **E1.3 LANL lateral movement** — 7 behavioral features (new-host, fan-out, dst-rarity, fail-rate, NTLM); unsupervised IsolationForest; evaluate vs red-team ground truth ✅
+  - **Acceptance:** ✅ **TPR @ fixed FPR** table on 702 red-team events; ROC-AUC; literature context cited.
+  - **RESULT:** **ROC-AUC 0.988** · TPR@1%FPR **51.4%** · TPR@5%FPR **96.9%** (680/702). Feature signals: new-host 14×, dst-rarity 2×, fail-rate 5× vs benign. **Robustness ablation:** behavioral-only (no NTLM) still **ROC 0.929** — not a protocol crutch. See `reports/lanl_redteam_detection.md`.
+  - **Deliverable:** `src/engine1/lanl_detect.py` + `reports/lanl_redteam_detection.md` + `models/iforest_lanl.joblib` (gitignored)
 - [ ] 🟢 **E1.x UNSW-NB15** — second benchmark to show generalization (stretch)
 
 ---
