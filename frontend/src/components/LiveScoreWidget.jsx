@@ -24,12 +24,51 @@ const MALICIOUS = {
   user_distinct_dst_sofar: 3, user_fail_rate_sofar: 0.5, dst_rarity: 12, is_ntlm: 1,
 }
 
+function scoreBand(score) {
+  if (score >= 90) return 'very rare compared with normal sign-in behavior'
+  if (score >= 70) return 'strongly unusual and worth fast investigation'
+  if (score >= 45) return 'noticeably different from the baseline'
+  return 'close to normal baseline activity'
+}
+
+function explainScore(features, score) {
+  const reasons = []
+  if (features.is_ntlm) reasons.push('NTLM authentication is enabled, which is a stronger lateral-movement signal.')
+  if (features.is_fail) reasons.push('The sign-in failed, so the model sees possible guessing or misuse.')
+  if (features.new_dst_for_user) reasons.push('The account is reaching a computer it does not normally use.')
+  if (features.new_src_for_user) reasons.push('The account is coming from a new source computer.')
+  if (features.dst_rarity >= 10) reasons.push('The destination computer is rare in the baseline.')
+  else if (features.dst_rarity >= 6) reasons.push('The destination computer is somewhat uncommon.')
+  if (features.user_fail_rate_sofar >= 0.2) reasons.push('Recent failed sign-ins are high for this account.')
+  else if (features.user_fail_rate_sofar >= 0.05) reasons.push('Recent failed sign-ins are elevated.')
+  if (features.user_distinct_dst_sofar <= 5) reasons.push('The account has contacted only a small set of computers in this window, which can look like focused probing.')
+
+  if (!reasons.length) {
+    reasons.push('No major risky switches are enabled, failed sign-ins are low, and the destination is not especially rare.')
+  }
+
+  return {
+    summary: `A score of ${score} means this event is ${scoreBand(score)}.`,
+    reasons: reasons.slice(0, 4),
+  }
+}
+
 function Switch({ checked, onChange, id, label }) {
   return (
-    <span className="sw">
-      <input type="checkbox" id={id} checked={checked} onChange={(e) => onChange(e.target.checked ? 1 : 0)} aria-label={label} />
+    <button
+      type="button"
+      className={`sw${checked ? ' on' : ''}`}
+      id={id}
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={(event) => {
+        event.stopPropagation()
+        onChange(checked ? 0 : 1)
+      }}
+    >
       <span className="track" /><span className="knob" />
-    </span>
+    </button>
   )
 }
 
@@ -54,6 +93,7 @@ export default function LiveScoreWidget() {
   }
 
   const sev = result ? (result.severity || severityFromScore(result.anomaly_score)) : null
+  const scoreExplanation = result ? explainScore(feat, result.anomaly_score) : null
   const displayValue = (key) => key === 'user_fail_rate_sofar' ? Number((feat[key] * 100).toFixed(1)) : feat[key]
   const updateNumber = (key, value) => {
     const number = value === '' ? 0 : Number(value)
@@ -69,8 +109,8 @@ export default function LiveScoreWidget() {
 
       <div className="feat-grid">
         {BOOL_FEATURES.map(([key, label, help]) => (
-          <div className="feat" key={key}>
-            <label htmlFor={`sw-${key}`}><span>{label}</span><small>{help}</small></label>
+          <div className="feat feat-clickable" key={key} onClick={() => set(key, feat[key] ? 0 : 1)}>
+            <div className="feature-copy"><span>{label}</span><small>{help}</small></div>
             <Switch id={`sw-${key}`} checked={!!feat[key]} onChange={(value) => set(key, value)} label={`${label}: ${help}`} />
           </div>
         ))}
@@ -97,7 +137,14 @@ export default function LiveScoreWidget() {
       {result && (
         <div className="score-out">
           <div><div className={`big s-${sev}`}>{result.anomaly_score}</div><div className={`sevlabel s-${sev}`}>{sev}</div></div>
-          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+          <div className="score-explain">
+            <div className="score-explain-title">Why this score?</div>
+            <p>{scoreExplanation.summary}</p>
+            <ul>
+              {scoreExplanation.reasons.map((reason) => <li key={reason}>{reason}</li>)}
+            </ul>
+          </div>
+          <div className="score-model">
             <LiveBadge live={result.live} />
             <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>Isolation-Forest · LANL model</div>
           </div>

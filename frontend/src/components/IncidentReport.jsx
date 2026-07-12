@@ -31,6 +31,13 @@ export default function IncidentReport() {
   const { data: r, loading } = useFetch(getReport)
   if (loading || !r) return null
 
+  const printReport = () => {
+    document.body.classList.add('printing-incident-report')
+    const cleanup = () => document.body.classList.remove('printing-incident-report')
+    window.addEventListener('afterprint', cleanup, { once: true })
+    window.print()
+  }
+
   const download = () => {
     const blob = new Blob([toMarkdown(r)], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
@@ -50,18 +57,18 @@ export default function IncidentReport() {
   )
 
   return (
-    <Card>
+    <Card className="incident-report-card">
       <CardHeader title="Audit-ready incident report" meta={r.generated_at}>
         <button className="btn" onClick={download}
           style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
           <Download size={13} aria-hidden="true" /> Download .md
         </button>
-        <button className="btn" onClick={() => window.print()}
+        <button className="btn" onClick={printReport}
           style={{ display: 'inline-flex', gap: 6, alignItems: 'center', marginLeft: 8 }}>
           <Printer size={13} aria-hidden="true" /> Print
         </button>
       </CardHeader>
-      <div className="card-b pad" style={{ fontSize: 13, lineHeight: 1.55 }}>
+      <div className="card-b pad incident-report-body" style={{ fontSize: 13, lineHeight: 1.55 }}>
         <Section title="Summary">
           <div style={{ color: 'var(--text)' }}>{r.summary}</div>
         </Section>
