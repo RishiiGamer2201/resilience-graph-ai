@@ -1,4 +1,4 @@
-/* Resilience Graph AI — SOC Command Center · design tokens (light default + dark)
+/* Resilience Graph AI: SOC Command Center · design tokens (light default + dark)
    Source of truth for the palette. Components style THROUGH these vars, never
    hardcode colors. Toggle sets data-theme="light|dark" on <html>. */
 :root{
@@ -48,7 +48,7 @@ a{color:var(--accent);text-decoration:none}
 button{font-family:var(--sans);cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* severity helpers (text + bg) — shared across screens */
+/* severity helpers (text + bg): shared across screens */
 .s-critical{color:var(--sev-critical)} .bg-critical{background:var(--sev-critical)}
 .s-high{color:var(--sev-high)} .bg-high{background:var(--sev-high)}
 .s-medium{color:var(--sev-medium)} .bg-medium{background:var(--sev-medium)}

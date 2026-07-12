@@ -41,7 +41,8 @@ function explainScore(features, score) {
   else if (features.dst_rarity >= 6) reasons.push('The destination computer is somewhat uncommon.')
   if (features.user_fail_rate_sofar >= 0.2) reasons.push('Recent failed sign-ins are high for this account.')
   else if (features.user_fail_rate_sofar >= 0.05) reasons.push('Recent failed sign-ins are elevated.')
-  if (features.user_distinct_dst_sofar <= 5) reasons.push('The account has contacted only a small set of computers in this window, which can look like focused probing.')
+  if (features.user_distinct_dst_sofar >= 100) reasons.push('The account has contacted an unusually large number of computers in this window.')
+  else if (features.user_distinct_dst_sofar <= 5) reasons.push('The account has contacted only a small set of computers in this window, which can look like focused probing.')
 
   if (!reasons.length) {
     reasons.push('No major risky switches are enabled, failed sign-ins are low, and the destination is not especially rare.')
@@ -75,25 +76,28 @@ function Switch({ checked, onChange, id, label }) {
 export default function LiveScoreWidget() {
   const [feat, setFeat] = useState(BENIGN)
   const [result, setResult] = useState(null)
+  const [scoredFeat, setScoredFeat] = useState(null)
   const [busy, setBusy] = useState(false)
   const set = (k, v) => setFeat((f) => ({ ...f, [k]: v }))
 
   async function run(next = feat) {
+    const snapshot = { ...next }
     setBusy(true)
     try {
-      setResult(await scoreEvent(next))
+      setResult(await scoreEvent(snapshot))
+      setScoredFeat(snapshot)
     } finally {
       setBusy(false)
     }
   }
 
   function preset(p) {
-    setFeat(p)
-    run(p)
+    setFeat({ ...p })
   }
 
   const sev = result ? (result.severity || severityFromScore(result.anomaly_score)) : null
-  const scoreExplanation = result ? explainScore(feat, result.anomaly_score) : null
+  const scoreExplanation = result && scoredFeat ? explainScore(scoredFeat, result.anomaly_score) : null
+  const inputsChanged = result && scoredFeat && JSON.stringify(feat) !== JSON.stringify(scoredFeat)
   const displayValue = (key) => key === 'user_fail_rate_sofar' ? Number((feat[key] * 100).toFixed(1)) : feat[key]
   const updateNumber = (key, value) => {
     const number = value === '' ? 0 : Number(value)
@@ -127,12 +131,16 @@ export default function LiveScoreWidget() {
 
       <details className="technical-details">
         <summary>Technical field names</summary>
-        <div>{[...BOOL_FEATURES, ...NUM_FEATURES].map(([key, label]) => <div key={key}><code>{key}</code> — {label}</div>)}</div>
+        <div>{[...BOOL_FEATURES, ...NUM_FEATURES].map(([key, label]) => <div key={key}><code>{key}</code>: {label}</div>)}</div>
       </details>
 
       <button className="btn primary" onClick={() => run()} disabled={busy} style={{ alignSelf: 'flex-start' }}>
         {busy ? 'Scoring…' : 'Score event'}
       </button>
+
+      {inputsChanged && (
+        <div className="score-pending">Inputs changed. Click Score event to calculate a new score.</div>
+      )}
 
       {result && (
         <div className="score-out">

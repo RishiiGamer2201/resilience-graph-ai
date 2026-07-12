@@ -71,14 +71,14 @@ export default function Incident() {
         <p>{data.alert_count} alerts from {data.event_count} events · {describeAccount(data.account)} · investigation pivot: {describeHost(data.pivot)}</p>
       </div>
 
-      <div className="grid2">
-        <Card>
-          <CardHeader title="Correlated attack chain — replay" meta={`${shown.length}/${steps.length} steps`}>
+      <div className="grid2 incident-grid">
+        <Card className="incident-chain-card">
+          <CardHeader title="Correlated attack chain replay" meta={`${shown.length}/${steps.length} steps`}>
             <button className="btn" onClick={replay} disabled={replaying} style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
               <Play size={13} aria-hidden="true" /> {replaying ? 'Replaying…' : 'Replay'}
             </button>
           </CardHeader>
-          <div className="card-b" style={{ maxHeight: 620, overflowY: 'auto' }}>
+          <div className="card-b incident-timeline">
             {shown.map((step, index) => <TimelineRow key={`${step.timestamp}-${index}`} step={step} animate={replaying} />)}
           </div>
         </Card>

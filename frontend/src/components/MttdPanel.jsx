@@ -23,7 +23,7 @@ export default function MttdPanel({ mttd }) {
 
   return (
     <Card>
-      <CardHeader title="Detection time — weeks to minutes" meta="MTTD" />
+      <CardHeader title="Detection time: weeks to minutes" meta="MTTD" />
       <div className="card-b pad">
         <Row label="Traditional APT dwell" value={`≈ ${days} d`}
              width="100%" color="var(--sev-critical)" />
@@ -31,7 +31,7 @@ export default function MttdPanel({ mttd }) {
              width="3%" color="var(--accent)" />
         <div style={{ marginTop: 6, fontSize: 13, color: 'var(--text)' }}>
           Detection compressed <b className="mono s-low">{factor.toLocaleString()}×</b>
-          {' '}— from <b>{days} days</b> of adversary dwell to <b>{mins} minutes</b>.
+          {' '}from <b>{days} days</b> of adversary dwell to <b>{mins} minutes</b>.
         </div>
       </div>
     </Card>

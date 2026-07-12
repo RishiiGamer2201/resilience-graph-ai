@@ -5,7 +5,7 @@ import { Card, CardHeader } from './Card.jsx'
 
 function toMarkdown(r) {
   const L = [
-    `# Incident Report — ${r.incident_id}`, '',
+    `# Incident Report: ${r.incident_id}`, '',
     `- Generated: ${r.generated_at}`,
     `- Severity: ${r.severity.toUpperCase()} (max anomaly ${r.max_anomaly_score}/100)`,
     `- Account: ${r.account} · Pivot: ${r.pivot}`, '',
@@ -13,11 +13,11 @@ function toMarkdown(r) {
     '## ATT&CK chain',
     ...r.attack_chain.map((t) => `- ${t.tactic} (×${t.count})`),
     '', '## Techniques',
-    ...r.techniques.map((t) => `- ${t.technique_id} — ${t.name}`),
+    ...r.techniques.map((t) => `- ${t.technique_id}: ${t.name}`),
     '', `## Attack path`, r.attack_path.join(' -> '),
     '', '## Attribution', `- ${r.attributed_actor.actor}: ${r.attributed_actor.justification}`,
     '', '## Predicted next moves',
-    ...r.predicted_next.map((t) => `- ${t.technique_id} — ${t.name}`),
+    ...r.predicted_next.map((t) => `- ${t.technique_id}: ${t.name}`),
     '', '## Recommended response (simulated, gated)',
     ...r.response_actions.map((a) => `- [${a.mode}] ${a.action}`),
     '', '## Evidence',

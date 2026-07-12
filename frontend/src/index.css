@@ -1,7 +1,7 @@
 @import "./theme.css";
 
 /* ============================================================= *
- * SOC Command Center — app shell + screen styles.
+ * SOC Command Center: app shell + screen styles.
  * All colors flow through theme.css variables. No hardcoded hex.
  * ============================================================= */
 
@@ -130,6 +130,7 @@
 .stack { display: flex; flex-direction: column; gap: 20px; }
 @media (max-width: 1180px) {
   .grid2 { grid-template-columns: 1fr; }
+  .incident-chain-card { height: 620px; }
   .tiles { grid-template-columns: repeat(2, 1fr); }
 }
 .card { display: flex; flex-direction: column; overflow: hidden; }
@@ -138,6 +139,8 @@
 .card-h .meta { margin-left: auto; font-size: 11.5px; color: var(--text-faint); font-family: var(--mono); }
 .card-b { padding: 6px 8px; }
 .card-b.pad { padding: 16px; }
+.incident-chain-card { height: 620px; min-height: 0; }
+.incident-timeline { flex: 1; min-height: 0; overflow-y: auto; }
 
 .tag-pill {
   display: inline-flex; align-items: center; font-size: 11px; font-weight: 700;
@@ -270,6 +273,11 @@
 .score-explain li + li { margin-top: 2px; }
 .score-model { margin-left: auto; text-align: right; color: var(--text-faint); font-size: 11px; }
 .score-model > div:last-child { margin-top: 8px; }
+.score-pending {
+  align-self: flex-start; color: var(--sev-high); background: color-mix(in srgb, var(--sev-high) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sev-high) 28%, var(--border));
+  border-radius: 7px; padding: 6px 9px; font-size: 12px;
+}
 .badge {
   font-size: 10.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
   padding: 3px 8px; border-radius: 5px; font-family: var(--mono);
