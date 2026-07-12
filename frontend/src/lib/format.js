@@ -27,6 +27,34 @@ export function fmtTime(ts) {
   return `${p(h)}:${p(m)}:${p(sec)}`
 }
 
+// LANL uses opaque identifiers. Keep raw values for analysts, but present a
+// plain-language description first.
+export function describeAccount(account) {
+  if (!account) return 'Unknown account'
+  const [user, domain] = account.split('@')
+  return domain ? `Account ${user} in the ${domain} domain` : `Account ${user}`
+}
+
+export function describeHost(host) {
+  return host ? `computer ${host}` : 'an unknown computer'
+}
+
+export function describeStep(step) {
+  const subject = describeAccount(step.user)
+  const destination = describeHost(step.destination_host)
+  const source = step.source_host ? ` from ${describeHost(step.source_host)}` : ''
+  if (!step.technique_id || step.technique_id === '-' || step.tactic === 'Normal') {
+    return `${subject} accessed ${destination}${source}. This activity matches the baseline pattern.`
+  }
+  return `${subject} accessed ${destination}${source}. Detected behavior: ${step.technique}.`
+}
+
+export function shortExplanation(explanation) {
+  if (!explanation) return ''
+  const firstSentence = explanation.replace(/\s+/g, ' ').match(/^.*?[.!?](?:\s|$)/)
+  return firstSentence ? firstSentence[0].trim() : explanation
+}
+
 // Read a live CSS custom property off <html> (theme-aware).
 export function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
