@@ -9,6 +9,8 @@ KEV date ordering, and the ransomware flag leaking into technique mapping.
 import json
 from unittest.mock import patch
 
+import pytest
+
 from src.shared import osint
 
 KEV_FIXTURE = json.dumps({
@@ -107,6 +109,34 @@ def test_relevance_unrelated_item_scores_zero():
     item = {"title": "Patch released", "text": "", "tags": [], "techniques": ["T1486"]}
     r = osint.relevance(item, ["T1550.002"], ["Ember Bear"])
     assert r["score"] == 0 and not r["matched_techniques"]
+
+
+# --- India-first ------------------------------------------------------------
+def test_soft_404_html_rejected():
+    """CERT-In returns 200 with an HTML 'not found' page — must not pass as a feed."""
+    with patch.object(osint, "_get", return_value=b"<!DOCTYPE html><html><body>not found</body></html>"):
+        with pytest.raises(ValueError):
+            osint.fetch_rss("Bad", "http://x")
+
+
+def test_india_relevance_tagging():
+    assert osint._india_relevant("APT36 targets Indian defence")
+    assert osint._india_relevant("Breach at an AIIMS hospital in Delhi")
+    assert not osint._india_relevant("Ransomware hits a US hospital")
+    # word-boundary: 'indiana' must not count as India
+    assert not osint._india_relevant("A company in Indiana, USA")
+
+
+def test_india_items_sort_first():
+    india = {"published": "2026-07-01", "india": True, "techniques": []}
+    glob = {"published": "2026-07-16", "india": False, "techniques": []}
+    with patch.object(osint, "fetch_kev", return_value=[glob]), \
+         patch.object(osint, "fetch_rss", return_value=[india]), \
+         patch.object(osint, "fetch_otx", side_effect=RuntimeError), \
+         patch.object(osint, "fetch_threatfox", side_effect=RuntimeError):
+        r = osint.collect()
+    assert r["items"][0]["india"] is True       # India leads even when older
+    assert r["india_count"] >= 1                # fetch_rss runs once per feed
 
 
 # --- resilience ------------------------------------------------------------

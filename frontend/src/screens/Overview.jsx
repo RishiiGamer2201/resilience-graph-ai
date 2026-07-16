@@ -43,8 +43,7 @@ export default function Overview() {
       <MttdPanel mttd={mttd} />
 
       <Card>
-        <CardHeader title="Detector scorecard"
-          meta={`${alerts_correlated.alerts} alerts ← ${alerts_correlated.events} events`} />
+        <CardHeader title="Detector benchmarks" meta="model performance — fixed" />
         <div className="card-b pad">
           <div className="metric-row">
             {scorecard.map((s) => (
@@ -56,6 +55,12 @@ export default function Overview() {
               </div>
             ))}
           </div>
+        </div>
+        <div className="note">
+          These are the <b>models' benchmark scores</b> (from held-out evaluation) — they
+          describe the detectors, so they're the same whatever log you analyze. The
+          per-incident numbers above ({alerts_correlated.alerts} alerts ← {alerts_correlated.events} events)
+          are what changes with the data.
         </div>
       </Card>
 

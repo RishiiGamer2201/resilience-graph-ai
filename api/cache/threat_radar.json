@@ -1,6 +1,140 @@
 {
-  "fetched_at": "2026-07-16 20:01 IST",
+  "fetched_at": "2026-07-16 20:09 IST",
   "items": [
+    {
+      "source": "ET CISO (India)",
+      "title": "AI is reshaping cybersecurity - for better and worse",
+      "published": "2026-07-16 08:03 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/ai-is-reshaping-cybersecurity-for-better-and-worse/132424825",
+      "text": "Artificial intelligence is transforming cybersecurity for both defenders and attackers. Machine learning models improve detection and response capabilities significantly. However, threat actors also leverage AI for more sophisticated phishing campaigns. Organizations must now focus on responsible AI deployment and robust governance. This evolving landscape necessitates continuous adaptation and human oversight for cyber resilience.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": [
+        "T1566"
+      ]
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "India must build resilient software and hardware systems to withstand cyber threats",
+      "published": "2026-07-14 08:01 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/indias-cyber-resilience-building-robust-systems-against-digital-threats/132362634",
+      "text": "India must build strong and reliable software and hardware systems that can keep working even during cyberattacks. This resilience is important to support daily life and make it easier to do business as the country becomes more digital, said S. Krishnan, Secretary of the Ministry of Electronics and Information Technology (MeitY), on Monday.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "India considers stronger safeguards as online fraud surges",
+      "published": "2026-07-13 06:07 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/india-considers-stronger-safeguards-as-online-fraud-surges/132346662",
+      "text": "India&#039;s central bank is seeking recommendations to tackle a surge in online fraud as scammers siphon off billions of dollars annually from users of its widely used digital payments network. Users can send the bank recommendations until May 9.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "Why Zero Trust is becoming non-negotiable",
+      "published": "2026-07-11 08:02 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/ot-security/zero-trust-the-essential-shift-in-cybersecurity-for-cloud-transformation/132306745",
+      "text": "Cloud transformation necessitates Zero Trust for modern enterprise security. Traditional perimeters are collapsing, making identity the new attack surface. AI adoption and multi-cloud complexity increase security challenges significantly. Zero Trust ensures continuous verification for all users and systems. This principle is vital for business resilience and responsible AI integration.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "Beyond the blind trust: The hard questions security leaders must ask about AI",
+      "published": "2026-07-10 09:25 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/ot-security/beyond-the-blind-trust-the-hard-questions-security-leaders-must-ask-about-ai/132302479",
+      "text": "Enterprise technology faces risks with rapid AI adoption and slow integration. CISOs must enable safe AI implementation by addressing people, process, and technology. AI literacy and developer awareness are crucial for mitigating human-driven errors. Robust processes and least privilege principles build essential AI guardrails. Technology provides control and visibility, ensuring explainability and cost management.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "Digital trust in 2026: Why privacy must be paired with accountability",
+      "published": "2026-07-09 08:05 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/the-future-of-digital-trust-balancing-privacy-with-accountability-in-communication-platforms/132256858",
+      "text": "Digital platforms grapple with balancing user privacy and preventing cybercrime. Concerns arise over platforms enabling child abuse and drug trafficking channels. Cybercriminals exploit communication tools for credential theft and illicit activity coordination. Platforms must develop safeguards against misuse while protecting valid privacy rights. Achieving this balance is crucial for trusted digital ecosystems moving forward.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "The expanding API attack surface in the age of AI",
+      "published": "2026-07-08 08:09 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/ot-security/the-expanding-api-attack-surface-in-the-age-of-ai/132238082",
+      "text": "Application programming interfaces are becoming a significant attack surface due to AI&#039;s rapid expansion. AI agents are now accelerating these security risks, making defense more challenging. Security leaders must establish complete visibility and categorize APIs based on business risk. Conducting threat modeling and continuously managing API security posture are essential steps. Implementing layered protection controls and strengthening access authorization will mitigate API attacks.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "Fraud-as-a-Service: How cybercrime became a subscription business",
+      "published": "2026-07-07 08:00 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/fraud-as-a-service-how-cybercrime-became-a-subscription-business/132209066",
+      "text": "The rise of AI has made it alarmingly easy for criminals to engage in digital fraud through a thriving &#039;Fraud-as-a-Service&#039; network. With minimal effort, they can access advanced tools for executing complex schemes like AI-driven phishing, deepfakes, and identity theft. This alarming trend has escalated swiftly, especially in India, where rapid digitization coupled with limited digital awareness has led to massive financial losses across various sectors.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": [
+        "T1566"
+      ]
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "The hidden cost of ignoring cybersecurity in India&#039;s SME sector",
+      "published": "2026-07-06 09:18 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/the-hidden-cost-of-ignoring-cybersecurity-in-indias-sme-sector/132206790",
+      "text": "India&#039;s SMEs are embracing digital tools, but cybersecurity preparedness lags. Cybercriminals are increasingly targeting smaller businesses, exploiting routine processes like invoice fraud. With over 12 lakh UPI fraud cases reported in FY25, the landscape has shifted, making cybersecurity a critical business resilience issue. Regulatory frameworks are now formalizing expectations, emphasizing practical steps over large budgets for enhanced cyber defense.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
+    {
+      "source": "ET CISO (India)",
+      "title": "Fraud has industrialised; it now demands AI-led defence: Zeenat Hamirani, CRO, L&amp;T Finance",
+      "published": "2026-07-04 08:02 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/ai-transforming-financial-services-combating-industrialized-fraud-with-technology/132160507",
+      "text": "With digital fraud growing in scale and sophistication, NBFCs are rethinking risk beyond traditional credit assessment. L&amp;T Finance&#039;s Zeenat Hamirani discusses why AI, explainability and cybersecurity convergence are becoming central to modern risk management.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
     {
       "source": "BleepingComputer",
       "title": "AI Agents Broke the Security Playbook. Here's What Replaces It.",
@@ -9,6 +143,7 @@
       "text": "Traditional security workflows were built for environments that changed at human speed. Token Security explains why AI agents require a new approach: building on a live identity foundation while giving security teams the flexibility to create workflows tailored to their own environments. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -19,6 +154,7 @@
       "text": "Genetic testing company 23andMe has agreed to pay $18 million to settle claims from a coalition of 43 attorneys general that it failed to protect customers' genetic data. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -29,6 +165,7 @@
       "text": "Cybersecurity researchers have called attention to a new modular malware called TELEPUZ that's been spreading via websites infected with ClickFix lures since late April 2026. \"The malware is full-featured, lightweight, and modular,\" Elastic Security Labs researcher Cyril Fran\u00e7ois said in a technical report. \"While the number of C2 [command-and-control] domains is currently small, the daily",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -39,6 +176,7 @@
       "text": "ClickLock Stealer, a new macOS infostealer, answers a victim's refusal by killing their apps on a loop until they hand over the login password. It arrives as a command pasted into Terminal, asks for the password behind a fake system dialog, and when the victim cancels, installs two LaunchAgents and quietly exits. At the next login, Finder, the Dock, Spotlight, Terminal, Activity Monitor, and",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1555"
       ]
@@ -51,6 +189,7 @@
       "text": "Two leading members of the Scattered Spider cybercrime collective were sentenced to five years and six months in prison each for hacking Transport for London (TfL) in 2024. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -61,6 +200,7 @@
       "text": "Microsoft announced on Wednesday that systems running Windows 10 Enterprise LTSB 2016 and Home and Pro editions of Windows 11 24H2 will stop receiving updates in three months. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -71,6 +211,7 @@
       "text": "More than 20 Brazilian government websites were hijacked and turned into malware delivery channels in an active PhantomEnigma campaign uncovered by ANY.RUN, a leading provider of interactive malware analysis and threat intelligence solutions. The investigation revealed previously undocumented backdoor behavior, hidden infrastructure relationships, and multiple attack arms behind a campaign",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1505"
       ]
@@ -83,6 +224,7 @@
       "text": "Ask an AI agent to summarize the reviews on a product page, and a single planted review can make it click \"Buy Now\" instead. Ask a coding assistant to apply a maintainer's fix from a GitHub thread, and a fake comment can make it run a stranger's command on your computer. Neither trick hijacks the agent's task. Each one just corrupts the facts it trusts and lets it carry on with the job you",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -93,6 +235,7 @@
       "text": "An advanced malware previously attributed to a China-linked threat actor has resurfaced after more than four years within a Taiwan manufacturing firm, along with a previously unreported backdoor dubbed Stupig. Daxin (\"srt64.sys\"), as the kernel-mode rootkit is referred to, was first documented by Broadcom-owned Symantec in March 2022, with evidence indicating its use in targeted attacks aimed",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1505"
       ]
@@ -105,6 +248,7 @@
       "text": "CISA has ordered federal agencies to secure their systems by Saturday against ongoing attacks exploiting a critical vulnerability in the Oracle E-Business Suite financial application. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -115,6 +259,7 @@
       "text": "A financially motivated Russian threat actor tracked as UAT-11795 is using trojanized software to steal credentials and cryptocurrency by deploying a new backdoor called Starland RAT. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1505",
         "T1204.002"
@@ -128,6 +273,7 @@
       "text": "Artificial intelligence (AI) is changing offensive security, but it has not changed the standard that matters most: a finding has to be proven before it becomes useful. AI-assisted tools can read code quickly, generate payloads, summarize attack surfaces, explain unfamiliar APIs, and run repetitive testing workflows at impressive speed. That is a real advantage for security teams. It also",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -138,6 +284,7 @@
       "text": "A new ransomware actor called Spirals completed a corporate intrusion, from initial access to data theft and encryption, in less than 24 hours. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1486"
       ]
@@ -150,6 +297,7 @@
       "text": "Pull the certificate off the flash of a Shark RV2320EDUS robot vacuum, and you can run root commands on other people's Shark vacuums across the same AWS region: watch the camera, drive the robot, read the map of the house, and take the Wi-Fi password in plaintext. A researcher publishing under the handle tokay0&nbsp;put the method online&nbsp;on Monday, having tested it only against vacuums he",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -160,6 +308,7 @@
       "text": "OpenAI has disclosed details of GPT-Red, an internal automated red-teaming model that scales prompt injection vulnerability discovery with an aim to fix issues before the tools are deployed widely. \"GPT\u2011Red is a strong red-teamer, and our previous models are highly vulnerable to its prompt injection attacks,\" the artificial intelligence (AI) company said. \"We use GPT\u2011Red to adversarially train",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -170,6 +319,7 @@
       "text": "Zoom has released security updates for a critical security flaw impacting Zoom Workplace for Windows that could facilitate account takeover. The vulnerability, tracked as CVE-2026-53412 (CVSS score: 9.8), affects Zoom Desktop Client for Windows, Zoom VDI Client for Windows, and Zoom Meeting SDK for Windows. \"Improper Input Validation in Zoom Desktop Client for Windows, Zoom VDI Client for",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -180,6 +330,7 @@
       "text": "The Dutch Police announced the arrest of multiple individuals suspected of being part of an international investment fraud scheme estimated to have tens of thousands of victims. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -190,6 +341,7 @@
       "text": "Zoom is warning of a critical vulnerability in its desktop client and software development kit for Windows that could be exploited by an unauthenticated party to hijack accounts. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -200,6 +352,7 @@
       "text": "Cybersecurity researchers have disclosed details of a previously unreported Internet-of-Things (IoT) botnet framework dubbed TuxBot v3 Evolution that shows signs of being developed with assistance from a large language model (LLM), albeit with not so successful results. \"While the AI complied with their request to generate botnet code, it included a safety disclaimer that the developer failed",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1584.005"
       ]
@@ -212,6 +365,7 @@
       "text": "A Russian-speaking threat actor known as \"bandcampro\" used Google's open-source Gemini CLI AI tool as a hacking agent and to operate a small-scale botnet. [...]",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1584.005"
       ]
@@ -224,6 +378,7 @@
       "text": "Developed by CISA, the National Security Agency (NSA) and international partners, this joint guidance contains best practices for software manufacturers and online service providers to design and implement a coordinated vulnerability disclosure (CVD) program for working with external security researchers that includes a clear vulnerability disclosure policy (VDP) and process for triaging, remediating and assigning Common Vulnerabilities and Exposures (CVE) identifiers to reported vulnerabilities. The guidance also provides considerations for leveraging third-party intermediaries, like CISA or ",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -234,6 +389,7 @@
       "text": "CISA has added two new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. CVE-2023-4346 KNX Association KNX Protocol Connection Authorization Option 1 Overly Restrictive Account Lockout Mechanism Vulnerability CVE-2026-46817 Oracle E-Business Suite Improper Privilege Management Vulnerability &nbsp; These types of vulnerabilities are frequent attack vectors for malicious cyber actors and pose significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1068"
       ]
@@ -250,6 +406,7 @@
       "iocs": [
         "CVE-2026-46817"
       ],
+      "india": false,
       "techniques": [
         "T1068"
       ]
@@ -266,6 +423,7 @@
       "iocs": [
         "CVE-2023-4346"
       ],
+      "india": false,
       "techniques": []
     },
     {
@@ -276,6 +434,7 @@
       "text": "CISA has added four new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. CVE-2026-15409 SonicWall SMA1000 Appliances Server-Side Request Forgery Vulnerability CVE-2026-15410 SonicWall SMA1000 Appliances Code Injection Vulnerability CVE-2026-56155 Microsoft Active Directory Federation Services Insufficient Granularity of Access Control Vulnerability CVE-2026-56164 Microsoft SharePoint Server Missing Authentication for Critical Function Vulnerability These types of vulnerabilities are a frequent attack vector for malicious cyber act",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1055",
         "T1190"
@@ -289,6 +448,7 @@
       "text": "View CSAF Summary ABB is aware of public reports of a vulnerability CVE\u20112026\u201131431 (Copy Fail) in the product versions listed as affected in the advisory. An update is available that resolves a publicly reported vulnerability. CVE\u20112026\u201131431 (Copy Fail) is a Linux kernel vulnerability that may allow a locally authenticated user or compromised container workload to gain elevated (root) privileges on affected systems. Once root access is obtained, the attacker can effectively gain complete control of the system The following versions of ABB Ability Edgenius are affected: Ability Edgenius &gt;=3.",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -299,6 +459,7 @@
       "text": "View CSAF Summary ABB became aware of vulnerability in the products versions listed as affected in the advisory, where an incorrect version of Online Builder (ONB) was included in the media. An update is available that resolves the vulnerability, see details in Recommended immediate actions. The following versions of ABB Advant Master Online Builder are affected: Control Builder A &lt;=1.4/4 (CVE-2025-13162) 800xA for Advant Master &lt;=6.0.3-1, &lt;=6.1.1-1, 6.1.1-3, 6.2.0-1 (CVE-2025-13162, CVE-2025-13162, CVE-2025-13162, CVE-2025-13162) CVSS Vendor Equipment Vulnerabilities v3 4.4 ABB ABB A",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -309,6 +470,7 @@
       "text": "View CSAF Summary ABB became aware of vulnerability in the products versions listed as affected in the advisory. An update is available that resolves the reported vulnerabilities. An attacker who successfully exploited any of these vulnerabilities could potentially compromise the system in different ways. The following versions of ABB T-MAC Plus are affected: T-MAC Plus 4.0-24 (CVE-2025-14771, CVE-2025-14772, CVE-2025-14773, CVE-2025-14774) CVSS Vendor Equipment Vulnerabilities v3 9.9 ABB ABB T-MAC Plus Files or Directories Accessible to External Parties, Authorization Bypass Through User-Cont",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -319,6 +481,7 @@
       "text": "CISA is aware of active exploitation of vulnerabilities CVE-2026-32201 , CVE-2026-45659 , and CVE-2026-56164 , enabling cyber threat actors to gain unauthorized access to on-premises SharePoint Server instances. These vulnerabilities affect all supported on-premises SharePoint Server versions (Subscription Edition, 2019, and 2016) and involve establishing remote code execution (RCE) and post-exploitation activities, such as stealing Internet Information Services (IIS) machine keys and performing deserialization techniques, to gain persistence and deploy malware. Organizations should monitor af",
       "tags": [],
       "iocs": [],
+      "india": false,
       "techniques": [
         "T1190"
       ]
@@ -331,145 +494,11 @@
       "text": "View CSAF Summary Successful exploitation of this vulnerability could allow an attacker to read or delete files, stop tasks, modify memory, and change I/O states, potentially impacting the confidentiality, integrity, and availability of the device. The following versions of Rockwell Automation 1715-AENTR EtherNet/IP Adapter are affected: 1715-AENTR EtherNet/IP Adapter &lt;=3.003 (CVE-2026-10577) CVSS Vendor Equipment Vulnerabilities v3 10 Rockwell Automation Rockwell Automation 1715-AENTR EtherNet/IP Adapter Missing Authentication for Critical Function Background Critical Infrastructure Sector",
       "tags": [],
       "iocs": [],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-56155 \u2014 Microsoft Active Directory Federation Services",
-      "published": "2026-07-14",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56155",
-      "text": "Microsoft Active Directory Federation Services Insufficient Granularity of Access Control Vulnerability . Microsoft Active Directory Federation Services contains an insufficient granularity of access control vulnerability that allows an authorized attacker to elevate privileges locally.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-56155"
-      ],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-56164 \u2014 Microsoft SharePoint Server",
-      "published": "2026-07-14",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56164",
-      "text": "Microsoft SharePoint Server Missing Authentication for Critical Function Vulnerability. Microsoft SharePoint contains a missing authentication for critical function vulnerability that allows an unauthorized attacker to elevate privileges over a network.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-56164"
-      ],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-15409 \u2014 SonicWall SMA1000 Appliances",
-      "published": "2026-07-14",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-15409",
-      "text": "SonicWall SMA1000 Appliances Server-Side Request Forgery Vulnerability. SonicWall SMA1000 Appliances contain a server-side request forgery vulnerability that could allow a remote unauthenticated attacker to potentially cause the appliance to make requests to unintended location.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-15409"
-      ],
-      "techniques": [
-        "T1190"
-      ]
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-15410 \u2014 SonicWall SMA1000 Appliances",
-      "published": "2026-07-14",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-15410",
-      "text": "SonicWall SMA1000 Appliances Code Injection Vulnerability. SonicWall SMA1000 Appliances contain a code injection vulnerability which in specific conditions could potentially enable a remote authenticated attacker as administrator to execute arbitrary OS commands.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-15410"
-      ],
-      "techniques": [
-        "T1055"
-      ]
-    },
-    {
-      "source": "CISA advisories",
-      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
-      "published": "2026-07-13 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/alerts/2026/07/13/cisa-adds-one-known-exploited-vulnerability-catalog",
-      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. CVE-2008-4128 Cisco IOS Cross-Site Request Forgery Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV Catalog and requires fede",
-      "tags": [],
-      "iocs": [],
-      "techniques": []
-    },
-    {
-      "source": "CISA advisories",
-      "title": "Improve Router Hygiene to Protect Against Russian State-Sponsored Targeting",
-      "published": "2026-07-13 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-194a",
-      "text": "Russian Government-Sponsored Activity Targets Poorly Configured and Vulnerable Devices Across Critical Sectors Executive summary Russian Federal Security Service (FSB) Center 16 cyber actors continue to exploit poorly configured and vulnerable networking devices worldwide, opportunistically compromising multiple critical infrastructure sector networks. This joint Cybersecurity Advisory (CSA) builds on FBI\u2019s Russian Government Cyber Actors Targeting Networking Devices, Critical Infrastructure Public Service Announcement of the decade-plus FSB Center 16 cyber activity by providing additional tac",
-      "tags": [],
-      "iocs": [],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2008-4128 \u2014 Cisco IOS",
-      "published": "2026-07-13",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2008-4128",
-      "text": "Cisco IOS Cross-Site Request Forgery Vulnerability. Cisco IOS 12.4 contains multiple cross-site forgery vulnerabilities that allows remote attackers to execute arbitrary commands via (1) a certain \"show privilege\" command to the /level/15/exec/- URI, and (2) a certain \"alias exec\" command to the /level/15/exec/-/configure/http URI.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2008-4128"
-      ],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-56291 \u2014 Balbooa Forms",
-      "published": "2026-07-10",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56291",
-      "text": "Balbooa Forms Unrestricted Upload of File with Dangerous Type Vulnerability. Balbooa Forms contains an unrestricted upload of file with dangerous type vulnerability that allows an unauthenticated arbitrary file upload which could allow uploading of executable files leading to full RCE.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-56291"
-      ],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-48939 \u2014 iCagenda iCagenda",
-      "published": "2026-07-10",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939",
-      "text": "iCagenda Unrestricted Upload of File with Dangerous Type Vulnerability. iCagenda contains an unrestricted upload of file with dangerous type vulnerability that allows the upload of arbitrary files in the file attachment feature, ultimately resulting in PHP code upload and execution.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-48939"
-      ],
-      "techniques": []
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-48908 \u2014 JoomShaper SP Page Builder",
-      "published": "2026-07-07",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48908",
-      "text": "JoomShaper SP Page Builder Unrestricted Upload of File with Dangerous Type Vulnerability. JoomShaper SP Page Builder contains an unrestricted upload of file with dangerous type vulnerability that allows unauthenticated users to upload arbitrary files, ultimately resulting in the upload and execution of PHP code.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-48908"
-      ],
+      "india": false,
       "techniques": []
     }
   ],
+  "india_count": 10,
   "technique_names": {
     "T1055": "Process Injection",
     "T1068": "Exploitation for Privilege Escalation",
@@ -478,6 +507,7 @@
     "T1486": "Data Encrypted for Impact",
     "T1505": "Server Software Component",
     "T1555": "Credentials from Password Stores",
+    "T1566": "Phishing",
     "T1584.005": "Botnet"
   },
   "sources": [
@@ -485,6 +515,11 @@
       "source": "CISA KEV",
       "ok": true,
       "items": 15
+    },
+    {
+      "source": "ET CISO (India)",
+      "ok": true,
+      "items": 10
     },
     {
       "source": "CISA advisories",
@@ -514,5 +549,5 @@
       "note": "no ABUSECH_AUTH_KEY set"
     }
   ],
-  "note": "Free, purpose-built CTI sources only (CISA KEV/advisories, security news RSS, optional OTX/ThreatFox with free keys). No social-media scraping. Intel is enrichment \u2014 alerts are simulated and human-gated."
+  "note": "India-first CTI from free, purpose-built sources (ET CISO India, CISA KEV/advisories, security news RSS; optional OTX/ThreatFox with free keys). CERT-In has no working feed. No social-media scraping. Intel is enrichment \u2014 alerts are simulated and human-gated."
 }

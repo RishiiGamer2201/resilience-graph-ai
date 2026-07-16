@@ -98,6 +98,12 @@ export default function Analyze() {
                 Columns: <span className="mono">timestamp, user, source_host, destination_host,
                 status, protocol</span> (extras ignored). Max 50k rows.
               </div>
+              <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.55 }}>
+                No file handy? Grab the synthetic{' '}
+                <a href="/sample_bank_incident.csv" download>sample bank incident CSV</a>{' '}
+                — a fictional estate (nothing like LANL) that proves the pipeline analyzes
+                whatever you feed it. Add crown jewels <span className="mono">DC-MUMBAI-01, DB-COREBANK-01</span>.
+              </div>
               <label className="btn" style={{ display: 'inline-flex', gap: 6, alignItems: 'center', alignSelf: 'flex-start' }}>
                 <Upload size={13} aria-hidden="true" /> {file ? file.name : 'Choose CSV'}
                 <input type="file" accept=".csv" hidden

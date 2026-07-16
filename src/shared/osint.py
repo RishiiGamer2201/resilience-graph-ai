@@ -43,11 +43,27 @@ TIMEOUT = 15
 UA = "ResilienceGraphAI-ThreatRadar/1.0 (hackathon research; contact: repo owner)"
 
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+# India-first: PS7 protects Indian critical infrastructure, so the operator's own
+# region leads. ⚠️ CERT-In publishes no working feed — https://www.cert-in.org.in/
+# RSS URLs return HTTP 200 with an HTML "URL not found" body (a soft 404), so it is
+# deliberately NOT listed; _parse_rss also rejects HTML that pretends to be a feed.
 RSS_FEEDS = [
+    ("ET CISO (India)", "https://ciso.economictimes.indiatimes.com/rss/topstories"),
     ("CISA advisories", "https://www.cisa.gov/cybersecurity-advisories/all.xml"),
     ("The Hacker News", "https://feeds.feedburner.com/TheHackersNews"),
     ("BleepingComputer", "https://www.bleepingcomputer.com/feed/"),
 ]
+
+# India-relevance markers: the country, its agencies, its sectors, and the actors
+# publicly reported to target it. Word-boundary matched to avoid "indiana" etc.
+INDIA_TERMS = [
+    "india", "indian", "cert-in", "certin", "nciipc", "csk", "bharat",
+    "apt36", "transparent tribe", "sidewinder", "patchwork", "donot team",
+    "rbi", "npci", "upi", "aadhaar", "digilocker", "isro", "drdo", "aiims",
+    "cbse", "delhi", "mumbai", "bengaluru", "bangalore", "chennai",
+    "hyderabad", "pune", "kolkata", "sebi", "irctc",
+]
+INDIA_RE = re.compile(r"\b(" + "|".join(re.escape(t) for t in INDIA_TERMS) + r")\b", re.I)
 OTX_URL = "https://otx.alienvault.com/api/v1/pulses/subscribed?limit=20"
 THREATFOX_URL = "https://threatfox-api.abuse.ch/api/v1/"
 
@@ -290,6 +306,7 @@ def fetch_kev(limit: int = 15) -> list[dict]:
     for v in vulns:
         text = f"{v.get('vulnerabilityName','')}. {v.get('shortDescription','')}"
         ransom = str(v.get("knownRansomwareCampaignUse", "")).lower() == "known"
+        india = _india_relevant(text)
         items.append({
             "source": "CISA KEV",
             "title": f"{v.get('cveID')} — {v.get('vendorProject')} {v.get('product')}",
@@ -299,14 +316,24 @@ def fetch_kev(limit: int = 15) -> list[dict]:
             # 'ransomware' is a CISA flag about campaign USE — shown as a tag, but
             # deliberately NOT fed to map_item: the vuln's technique is the exploit
             # itself, not Data Encrypted for Impact.
-            "tags": ["actively-exploited"] + (["ransomware-linked"] if ransom else []),
+            "tags": ["actively-exploited"] + (["ransomware-linked"] if ransom else [])
+                    + (["india"] if india else []),
             "iocs": [v.get("cveID", "")],
+            "india": india,
             "techniques": map_item(text),
         })
     return items
 
 
+def _india_relevant(text: str) -> bool:
+    return bool(INDIA_RE.search(text or ""))
+
+
 def _parse_rss(xml_bytes: bytes, source: str, limit: int) -> list[dict]:
+    # a soft-404 page returns 200 with an HTML body (CERT-In does this) — reject it
+    head = xml_bytes[:200].lstrip().lower()
+    if head.startswith(b"<!doctype html") or head.startswith(b"<html"):
+        raise ValueError("feed returned an HTML page, not RSS (soft 404)")
     root = ET.fromstring(xml_bytes)
     out = []
     for it in root.iter("item"):
@@ -320,9 +347,11 @@ def _parse_rss(xml_bytes: bytes, source: str, limit: int) -> list[dict]:
         except Exception:
             published = _iso_dt(None)
         blob = f"{title}. {desc}"
+        india = source.startswith("ET CISO") or _india_relevant(blob)
         out.append({
             "source": source, "title": title, "published": published, "url": link,
-            "text": desc, "tags": [], "iocs": [],
+            "text": desc, "tags": (["india"] if india else []), "iocs": [],
+            "india": india,
             "techniques": map_item(blob),
         })
         if len(out) >= limit:
@@ -424,18 +453,22 @@ def collect(limit: int = 40) -> dict:
     run("AlienVault OTX", fetch_otx)
     run("ThreatFox", fetch_threatfox)
 
-    items.sort(key=lambda i: i.get("published", ""), reverse=True)
+    # India-first (PS7 protects Indian CNI), then most recent. Keeps a healthy
+    # India share at the top without hiding the global feed that follows.
+    items.sort(key=lambda i: (bool(i.get("india")), i.get("published", "")), reverse=True)
     items = items[:limit]
     names = technique_names(sorted({t for i in items for t in i["techniques"]}))
 
     return {
         "fetched_at": fmt_ist(),
         "items": items,
+        "india_count": sum(1 for i in items if i.get("india")),
         "technique_names": names,
         "sources": status,
-        "note": "Free, purpose-built CTI sources only (CISA KEV/advisories, security "
-                "news RSS, optional OTX/ThreatFox with free keys). No social-media "
-                "scraping. Intel is enrichment — alerts are simulated and human-gated.",
+        "note": "India-first CTI from free, purpose-built sources (ET CISO India, "
+                "CISA KEV/advisories, security news RSS; optional OTX/ThreatFox with "
+                "free keys). CERT-In has no working feed. No social-media scraping. "
+                "Intel is enrichment — alerts are simulated and human-gated.",
     }
 
 
