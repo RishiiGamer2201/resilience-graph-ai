@@ -1,18 +1,39 @@
 {
-  "_comment": "Canonical evaluation metrics — the SINGLE source of truth for the Models & Metrics screen. build_cache reads this; the eval scripts (src/engine1/*, src/engine2/build_predictor.py, build_embeddings.py) write their own section via src.shared.metrics_store.update() when they run. Never hand-edit numbers here to match a screen — re-run the eval instead. Values below are transcribed from reports/*.md (verified 2026-07-16).",
+  "_comment": "Canonical evaluation metrics \u2014 the SINGLE source of truth for the Models & Metrics screen. build_cache reads this; the eval scripts (src/engine1/*, src/engine2/build_predictor.py, build_embeddings.py) write their own section via src.shared.metrics_store.update() when they run. Never hand-edit numbers here to match a screen \u2014 re-run the eval instead. Values below are transcribed from reports/*.md (verified 2026-07-16).",
   "engine1": {
-    "cicids": {"random_prauc": 0.155, "rule_prauc": 0.098, "iforest_prauc": 0.473,
-               "autoencoder_prauc": 0.570, "iforest_roc": 0.826,
-               "note": "benign-only, PR-AUC not accuracy"},
-    "lanl": {"roc_auc": 0.988, "tpr_at_1pct_fpr": 0.514, "tpr_at_5pct_fpr": 0.969,
-             "behavioral_only_roc": 0.929, "note": "702 real red-team events; NTLM ablation"},
-    "unsw": {"roc_auc": 0.829, "prauc": 0.867, "note": "2nd benchmark, official split"}
+    "cicids": {
+      "random_prauc": 0.155,
+      "rule_prauc": 0.098,
+      "iforest_prauc": 0.473,
+      "autoencoder_prauc": 0.57,
+      "iforest_roc": 0.826,
+      "note": "benign-only, PR-AUC not accuracy"
+    },
+    "lanl": {
+      "roc_auc": 0.988,
+      "tpr_at_1pct_fpr": 0.514,
+      "tpr_at_5pct_fpr": 0.969,
+      "behavioral_only_roc": 0.929,
+      "note": "702 real red-team events; NTLM ablation"
+    },
+    "unsw": {
+      "roc_auc": 0.829,
+      "prauc": 0.867,
+      "note": "2nd benchmark, official split"
+    }
   },
   "engine2": {
-    "predictor": {"most_frequent_top3": 0.053, "killchain_top3": 0.083,
-                  "lstm_top3": 0.284, "markov_top3": 0.386,
-                  "note": "Markov shipped; 4.7x the kill-chain baseline = anti-circularity"},
-    "manual_cert_in_top3": 0.087,
-    "embeddings": {"same_tactic_cos": 0.403, "random_cos": 0.330}
+    "predictor": {
+      "most_frequent_top3": 0.049,
+      "killchain_top3": 0.071,
+      "lstm_top3": 0.272,
+      "markov_top3": 0.365,
+      "note": "Markov shipped; 5.2x the kill-chain baseline = anti-circularity"
+    },
+    "manual_cert_in_top3": 0.1,
+    "embeddings": {
+      "same_tactic_cos": 0.412,
+      "random_cos": 0.327
+    }
   }
 }

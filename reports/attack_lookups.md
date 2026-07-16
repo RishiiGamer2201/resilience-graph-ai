@@ -1,9 +1,9 @@
 # MITRE ATT&CK lookups
 
-- Techniques: **794**
-- Groups (with techniques): **172**
-- Campaigns (with techniques): **57**
-- Mitigations: **96** · techniques with mitigations: 682
+- Techniques: **918**
+- Groups (with techniques): **175**
+- Campaigns (with techniques): **59**
+- Mitigations: **108** · techniques with mitigations: 771
 
 ## Self-test queries
 - APT29 techniques: 66 (expect >0) -> ['T1595.002', 'T1583.006', 'T1586.002', 'T1586.003', 'T1587.001']

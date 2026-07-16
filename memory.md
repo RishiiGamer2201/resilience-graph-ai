@@ -42,6 +42,7 @@
 ## Session log (newest first)
 | Date | Who | What changed |
 |---|---|---|
+| 2026-07-16 | Claude | E2.2b CERT-In: teammate verified 4/4 real advisories. Added Mobile ATT&CK bundle (lookups 794→918 techniques) for the Android-trojan sequence; regenerated embeddings (CPU, GPU busy) + predictor. Manual top-3 now 10.0%, anti-circularity 5.2×. |
 | 2026-07-16 | Claude | `threat-radar`: External Threat Radar — free CTI feeds → ATT&CK → cross-referenced with the live incident; simulated gated alerts. Social scraping assessed + rejected (ToS/ethics/no control surface) |
 | 2026-07-16 | Claude | `remove-hardcode`: live `/api/analyze` pipeline, Analyze screen, killed fabricated UI, deploy config, docs updated (Phases 0–5 of the de-hardcode plan) |
 | 2026-07-16 | Claude | Added docs scaffold: prd.md, architecture.md, rules.md, phases.md, design.md, memory.md |

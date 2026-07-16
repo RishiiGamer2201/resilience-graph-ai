@@ -1,60 +1,72 @@
 [
   {
-    "actor": "APT36 (Transparent Tribe) — Indian govt/defense (scaffold, needs specific campaign report)",
-    "source": "MITRE ATT&CK G0134. REVIEW (teammate): group page evidences phishing attachment, malicious-file execution, masquerading, encoded payloads. It does NOT evidence the earlier T1218.005/T1059.001 chain — those were removed. Tie to ONE specific campaign report before verifying.",
-    "source_url": "https://attack.mitre.org/groups/G0134/",
-    "verified": false,
-    "note": "Trimmed to source-evidenced techniques only (per analyst review). Add campaign-specific techniques in narrative order from a single report, then verify.",
+    "actor": "WhatsApp-distributed VBScript loader → RMM takeover campaign (unattributed)",
+    "source": "CERT-In advisory CICA-2026-3534 — malware campaign via WhatsApp",
+    "source_url": "https://www.cert-in.org.in/s2cMainServlet?pageid=PUBADV01&CACODE=CICA-2026-3534",
+    "verified": true,
+    "note": "Verified against the CERT-In advisory by teammate.",
     "ordered_technique_ids": [
-      "T1566.001",
+      "T1566.003",
+      "T1534",
       "T1204.002",
-      "T1027",
-      "T1036"
+      "T1059.005",
+      "T1105",
+      "T1059.005",
+      "T1105",
+      "T1140",
+      "T1219.002"
     ]
   },
   {
-    "actor": "RedEcho — Chinese state-sponsored targeting of Indian power grid (C2 infrastructure)",
-    "source": "MITRE ATT&CK G1042. REVIEW (teammate): source-backed core — T1583.001 (Domains), T1568 (Dynamic Resolution), T1071.001 (Web Protocols), T1573.002 (Asymmetric Cryptography), T1571 (Non-Standard Port); the latter three explicitly documented. Ordered as C2 setup → beacon.",
-    "source_url": "https://attack.mitre.org/groups/G1042/",
-    "verified": false,
-    "note": "Replaced earlier unsupported T1133/T1105/T1090 with the G1042-backed core (per analyst review). Confirm ordering against the Recorded Future report before verifying.",
+    "actor": "RTO/eChallan-themed Android banking trojan (unattributed)",
+    "source": "CERT-In advisory CICA-2026-3492 — fraudulent-alert Android malware campaign",
+    "source_url": "https://www.cert-in.org.in/s2cMainServlet?pageid=PUBADV01&CACODE=CICA-2026-3492",
+    "verified": true,
+    "note": "Mobile ATT&CK. Verified by teammate. T1476 was in the draft but is deprecated in current Mobile ATT&CK, so it is omitted here.",
     "ordered_technique_ids": [
-      "T1583.001",
-      "T1568",
-      "T1071.001",
-      "T1573.002",
-      "T1571"
+      "T1660",
+      "T1407",
+      "T1417.002",
+      "T1636",
+      "T1638",
+      "T1638",
+      "T1636.004",
+      "T1616"
     ]
   },
   {
-    "actor": "AIIMS Delhi ransomware (2022) — ILLUSTRATIVE placeholder, needs detailed incident report",
-    "source": "AIIMS Delhi 2022 ransomware — CERT-In investigated. REVIEW (teammate): reporting supports ransomware encryption (T1486) + infected servers, but NOT the full phishing→cred-dump→lateral→recovery-inhibition chain below. Treat the extra steps as illustrative until a detailed incident report is cited.",
-    "source_url": "TODO: add the specific verified report URL here (a previously-guessed URL was removed as unverified)",
-    "verified": false,
-    "note": "Only T1486 is currently source-backed. The rest is a typical ransomware chain kept for illustration. DO NOT verify until: (1) a real report URL is added above and confirmed to load, and (2) its observed sequence is matched.",
+    "actor": "Malicious package supply-chain compromise (npm/PyPI, unattributed)",
+    "source": "CERT-In advisory CICA-2026-3493 — multi-software supply-chain attack",
+    "source_url": "https://www.cert-in.org.in/s2cMainServlet?pageid=PUBADV01&CACODE=CICA-2026-3493",
+    "verified": true,
+    "note": "Verified against the CERT-In advisory by teammate.",
     "ordered_technique_ids": [
-      "T1566.001",
-      "T1204.002",
-      "T1059.001",
-      "T1003",
-      "T1021",
-      "T1486",
-      "T1490"
+      "T1195.001",
+      "T1059.004",
+      "T1059.006",
+      "T1059",
+      "T1195.001",
+      "T1078",
+      "T1059.004",
+      "T1078",
+      "T1552.001",
+      "T1552.004",
+      "T1552.005",
+      "T1041"
     ]
   },
   {
-    "actor": "Public-facing exploit → data theft — PLACEHOLDER, replace with a specific CERT-In advisory",
-    "source": "Placeholder. Replace with a concrete CERT-In advisory / incident report and record only the techniques it explicitly describes, in narrative order.",
-    "source_url": "https://www.cert-in.org.in/",
-    "verified": false,
-    "note": "Entirely placeholder-sourced (per analyst review). Keep verified=false until replaced.",
+    "actor": "Fortigate/SSL-VPN mass credential-stuffing campaign (FortiBleed, unattributed)",
+    "source": "CERT-In advisory CICA-2026-3534 — potential exposure of Fortigate admin & VPN credentials",
+    "source_url": "https://www.cert-in.org.in/s2cMainServlet?pageid=PUBADV01&CACODE=CICA-2026-3534",
+    "verified": true,
+    "note": "Verified against the CERT-In advisory by teammate.",
     "ordered_technique_ids": [
-      "T1190",
-      "T1059.001",
-      "T1082",
-      "T1057",
-      "T1021",
-      "T1567"
+      "T1595.002",
+      "T1110.004",
+      "T1589.001",
+      "T1110.001",
+      "T1589.001"
     ]
   }
 ]

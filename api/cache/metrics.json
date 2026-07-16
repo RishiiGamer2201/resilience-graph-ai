@@ -23,16 +23,16 @@
   },
   "engine2": {
     "predictor": {
-      "most_frequent_top3": 0.053,
-      "killchain_top3": 0.083,
-      "lstm_top3": 0.284,
-      "markov_top3": 0.386,
-      "note": "Markov shipped; 4.7x the kill-chain baseline = anti-circularity"
+      "most_frequent_top3": 0.049,
+      "killchain_top3": 0.071,
+      "lstm_top3": 0.272,
+      "markov_top3": 0.365,
+      "note": "Markov shipped; 5.2x the kill-chain baseline = anti-circularity"
     },
-    "manual_cert_in_top3": 0.087,
+    "manual_cert_in_top3": 0.1,
     "embeddings": {
-      "same_tactic_cos": 0.403,
-      "random_cos": 0.33
+      "same_tactic_cos": 0.412,
+      "random_cos": 0.327
     }
   }
 }

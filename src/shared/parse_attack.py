@@ -32,6 +32,7 @@ RAW = ROOT / "data" / "raw" / "mitre_attack"
 BUNDLES = [
     RAW / "enterprise-attack" / "enterprise-attack.json",
     RAW / "ics-attack" / "ics-attack.json",
+    RAW / "mobile-attack" / "mobile-attack.json",   # India's threat mix is mobile-heavy
 ]
 OUT_DIR = ROOT / "data" / "processed" / "mitre_attack"
 OUT_PKL = OUT_DIR / "attack_lookups.pkl"

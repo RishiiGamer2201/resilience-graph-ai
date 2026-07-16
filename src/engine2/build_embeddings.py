@@ -80,6 +80,13 @@ def main() -> None:
         f"({'PASS — same-tactic techniques are closer' if same_m > rand_m else 'WEAK'}).",
     ]), encoding="utf-8")
 
+    try:
+        from src.shared.metrics_store import update as _update
+        _update("engine2", "embeddings", {"same_tactic_cos": round(same_m, 3),
+                                          "random_cos": round(rand_m, 3)})
+    except Exception as e:
+        print(f"  [metrics_store skipped: {e}]")
+
     print(f"  embedded {len(techs)} techniques, dim {emb.shape[1]}")
     print(f"  same-tactic cos {same_m:.3f} vs random {rand_m:.3f} (gap {same_m-rand_m:+.3f})")
     print(f"  -> {OUT_PKL.relative_to(ROOT)}")
