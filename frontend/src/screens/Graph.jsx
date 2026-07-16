@@ -1,11 +1,55 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
-import { Route } from 'lucide-react'
+import { Route, X } from 'lucide-react'
 import { getGraph } from '../api.js'
 import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import { useTheme } from '../lib/theme.jsx'
-import { cssVar } from '../lib/format.js'
+import { cssVar, fmtTime, severityFromScore } from '../lib/format.js'
+
+// Drill-down: every drawn edge is the authentication(s) between two hosts.
+function EdgeDetail({ edge, onClose }) {
+  const sev = severityFromScore(edge.score)
+  const multi = edge.event_count > 1
+  return (
+    <Card>
+      <CardHeader title="Selected movement" meta={`${edge.event_count} authentication${multi ? 's' : ''}`}>
+        <button className="btn" onClick={onClose} aria-label="Close detail"
+          style={{ padding: '2px 7px', display: 'inline-flex', alignItems: 'center' }}>
+          <X size={12} />
+        </button>
+      </CardHeader>
+      <div className="kv">
+        <div className="row"><span className="k">Path</span>
+          <span className="v mono">{edge.from} → {edge.to}</span></div>
+        <div className="row"><span className="k">Account</span>
+          <span className="v mono">{edge.user || '—'}</span></div>
+        <div className="row"><span className="k">Technique</span>
+          <span className="v"><span className="mono">{edge.technique}</span>
+            {edge.technique_name ? ` · ${edge.technique_name}` : ''}</span></div>
+        <div className="row"><span className="k">Tactic</span>
+          <span className="v">{edge.tactic}</span></div>
+        <div className="row"><span className="k">{multi ? 'Max anomaly score' : 'Anomaly score'}</span>
+          <span className={`v s-${sev}`}>{edge.score}/100 · {sev}</span></div>
+        <div className="row"><span className="k">{multi ? 'First seen' : 'Seen at'}</span>
+          <span className="v mono">{fmtTime(edge.first_seen)}</span></div>
+        {multi && (
+          <div className="row"><span className="k">Last seen</span>
+            <span className="v mono">{fmtTime(edge.last_seen)}</span></div>
+        )}
+      </div>
+      {edge.explanation && (
+        <div className="note"><b>{edge.technique}</b> — {edge.explanation}</div>
+      )}
+      {multi && (
+        <div className="note">
+          This host pair was authenticated <b>{edge.event_count} times</b> during the incident;
+          the scores above summarise those events (max score, first/last seen).
+        </div>
+      )}
+    </Card>
+  )
+}
 
 function useMeasuredWidth() {
   const ref = useRef(null)
@@ -27,6 +71,7 @@ export default function Graph() {
   const { theme } = useTheme()
   const [wrapRef, width] = useMeasuredWidth()
   const [showPath, setShowPath] = useState(false)
+  const [selected, setSelected] = useState(null)     // clicked edge (drill-down)
   const fgRef = useRef(null)
 
   // Precompute highlighted node/edge sets from paths_to_critical.
@@ -45,9 +90,8 @@ export default function Graph() {
     if (!data) return { nodes: [], links: [] }
     return {
       nodes: data.nodes.map((n) => ({ ...n })),
-      links: data.edges.map((e) => ({
-        source: e.from, target: e.to, technique: e.technique, tactic: e.tactic, score: e.score,
-      })),
+      // keep every edge field so a click can show the underlying authentication(s)
+      links: data.edges.map((e) => ({ ...e, source: e.from, target: e.to })),
     }
   }, [data])
 
@@ -68,12 +112,15 @@ export default function Graph() {
     return cssVar('--sev-normal')
   }
   const nodeVal = (n) => (n.pivot ? 9 : n.critical ? 7 : 2)
+  const isSelected = (l) => selected && l.from === selected.from && l.to === selected.to
   const linkColor = (l) => {
+    if (isSelected(l)) return cssVar('--accent')
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     if (showPath && highlight.edges.has(key)) return cssVar('--sev-high')
     return cssVar('--grid')
   }
   const linkWidth = (l) => {
+    if (isSelected(l)) return 4
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     return showPath && highlight.edges.has(key) ? 3 : 1
   }
@@ -105,8 +152,12 @@ export default function Graph() {
               nodeLabel={(n) => `${n.id}${n.pivot ? ' · pivot' : n.critical ? ' · CRITICAL' : ''}`}
               linkColor={linkColor}
               linkWidth={linkWidth}
+              linkLabel={(l) => `${l.from} → ${l.to} · ${l.technique} · score ${l.score}` +
+                (l.event_count > 1 ? ` · ${l.event_count} auths` : '') + ' — click for detail'}
               linkDirectionalParticles={showPath ? 2 : 0}
               linkDirectionalParticleWidth={2}
+              linkHoverPrecision={6}
+              onLinkClick={(l) => setSelected(l)}
               cooldownTicks={120}
               onNodeClick={(n) => fgRef.current?.centerAt(n.x, n.y, 600)}
               enableNodeDrag={false}
@@ -118,9 +169,16 @@ export default function Graph() {
             <span><i style={{ background: 'var(--sev-normal)' }} />Reached host</span>
             <span><i style={{ background: 'var(--sev-high)' }} />Highlighted path</span>
           </div>
+          <div className="note">
+            Every edge is a real authentication between two hosts — <b>click one</b> to see the
+            event(s) behind it. All {data.n_edges} edges are drawn at once: the fan-out is the
+            incident.
+          </div>
         </Card>
 
         <div className="stack">
+          {selected && <EdgeDetail edge={selected} onClose={() => setSelected(null)} />}
+
           <Card>
             <CardHeader title="Blast-radius analysis" />
             <div className="kv">

@@ -675,904 +675,1678 @@
       "from": "C17693",
       "to": "C3435",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 85
+      "score": 85,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 766788,
+      "last_seen": 766788,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C61",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 73
+      "score": 73,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 766846,
+      "last_seen": 766846,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C307",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72
+      "score": 72,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 767001,
+      "last_seen": 767001,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3699",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 73
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 767180,
+      "last_seen": 2367407,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C3755",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72
+      "score": 72,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 767288,
+      "last_seen": 1069965,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2944",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 71
+      "score": 71,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 767813,
+      "last_seen": 767813,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2196",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 71
+      "score": 71,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 768404,
+      "last_seen": 768404,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C306",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72
+      "score": 72,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 768556,
+      "last_seen": 768556,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1944",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72
+      "score": 72,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 768742,
+      "last_seen": 1074074,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1732",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 71
+      "score": 71,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 769094,
+      "last_seen": 769094,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1028",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72
+      "score": 72,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 769352,
+      "last_seen": 769352,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1823",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72
+      "score": 72,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 769507,
+      "last_seen": 769507,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C779",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 73
+      "score": 73,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 769638,
+      "last_seen": 769638,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3305",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74
+      "score": 74,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 769751,
+      "last_seen": 769751,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1952",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74
+      "score": 74,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 769933,
+      "last_seen": 769933,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2388",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77
+      "score": 77,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 770056,
+      "last_seen": 1166288,
+      "event_count": 11
     },
     {
       "from": "C17693",
       "to": "C2737",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74
+      "score": 74,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 770089,
+      "last_seen": 770089,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1881",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77
+      "score": 77,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 770435,
+      "last_seen": 2369300,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C765",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 770651,
+      "last_seen": 770651,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C92",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77
+      "score": 77,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 770816,
+      "last_seen": 1168100,
+      "event_count": 4
     },
     {
       "from": "C17693",
       "to": "C742",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74
+      "score": 74,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 770950,
+      "last_seen": 770950,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3017",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 771332,
+      "last_seen": 1070688,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C3938",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 771543,
+      "last_seen": 1070820,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1646",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 771870,
+      "last_seen": 1079318,
+      "event_count": 7
     },
     {
       "from": "C17693",
       "to": "C2481",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 771890,
+      "last_seen": 1161641,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C2069",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74
+      "score": 74,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 772122,
+      "last_seen": 772122,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C5653",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 76
+      "score": 76,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 772253,
+      "last_seen": 2370126,
+      "event_count": 4
     },
     {
       "from": "C17693",
       "to": "C2508",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 772570,
+      "last_seen": 772570,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C398",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 772864,
+      "last_seen": 1070107,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2707",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 772910,
+      "last_seen": 2370806,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1710",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75
+      "score": 75,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 774180,
+      "last_seen": 1178267,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1966",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74
+      "score": 74,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 774214,
+      "last_seen": 774214,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C19646",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 774246,
+      "last_seen": 1080589,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C3610",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88
+      "score": 88,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1066394,
+      "last_seen": 1165092,
+      "event_count": 4
     },
     {
       "from": "C17693",
       "to": "C1036",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1066462,
+      "last_seen": 1066462,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C881",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1066725,
+      "last_seen": 1079893,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C1482",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1066734,
+      "last_seen": 1076286,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2489",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1066849,
+      "last_seen": 1066849,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C4998",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1067617,
+      "last_seen": 1067617,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2762",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1067763,
+      "last_seen": 1067763,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2344",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1067954,
+      "last_seen": 1067954,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3015",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1068217,
+      "last_seen": 1073022,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C3813",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1068390,
+      "last_seen": 1068390,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C4610",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1068507,
+      "last_seen": 1068507,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C626",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 90
+      "score": 90,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1068638,
+      "last_seen": 2372551,
+      "event_count": 5
     },
     {
       "from": "C17693",
       "to": "C1191",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1068810,
+      "last_seen": 1068810,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1006",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1069035,
+      "last_seen": 1069035,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3413",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1069304,
+      "last_seen": 2372366,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C3430",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1069705,
+      "last_seen": 2372649,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2472",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1069849,
+      "last_seen": 1069849,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1152",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 90
+      "score": 90,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1070196,
+      "last_seen": 1358387,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C2143",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1070370,
+      "last_seen": 1070370,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2186",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91
+      "score": 91,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1071334,
+      "last_seen": 1071334,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C6699",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1071835,
+      "last_seen": 1071835,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C8410",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1071879,
+      "last_seen": 1074089,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1371",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1071931,
+      "last_seen": 1165528,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2457",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072061,
+      "last_seen": 1072061,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2313",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072511,
+      "last_seen": 2373132,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1149",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072623,
+      "last_seen": 1072623,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3288",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 95,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072662,
+      "last_seen": 2304891,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C2706",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072801,
+      "last_seen": 1072801,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C849",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072904,
+      "last_seen": 1072904,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1737",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072980,
+      "last_seen": 1074754,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C2012",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072989,
+      "last_seen": 1072989,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2079",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1072998,
+      "last_seen": 1167670,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C4728",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1073011,
+      "last_seen": 1074235,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C102",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1073108,
+      "last_seen": 1073108,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1879",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1073200,
+      "last_seen": 1073200,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2257",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1073466,
+      "last_seen": 1073466,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1042",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92
+      "score": 92,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1073709,
+      "last_seen": 1073709,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C8209",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1074057,
+      "last_seen": 1074057,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1964",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1074182,
+      "last_seen": 1074182,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2379",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1074213,
+      "last_seen": 1074387,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1961",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1074395,
+      "last_seen": 1074395,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C423",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1074512,
+      "last_seen": 1167547,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1936",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1074741,
+      "last_seen": 1074741,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C976",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1074920,
+      "last_seen": 1076306,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C3380",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1074927,
+      "last_seen": 1074927,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3635",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1074955,
+      "last_seen": 1074955,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1172",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1075332,
+      "last_seen": 1075332,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C452",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075345,
+      "last_seen": 1075345,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1015",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075356,
+      "last_seen": 1075356,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C22174",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075370,
+      "last_seen": 1079716,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C5439",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075605,
+      "last_seen": 1075609,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C4106",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075721,
+      "last_seen": 1075721,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C368",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075914,
+      "last_seen": 1075914,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C5343",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1075935,
+      "last_seen": 1075935,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C20742",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1075957,
+      "last_seen": 1075957,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C20741",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1075965,
+      "last_seen": 1075977,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2631",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1076117,
+      "last_seen": 1076117,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2013",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1076311,
+      "last_seen": 1079871,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C3019",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1078177,
+      "last_seen": 1078177,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C4476",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1078305,
+      "last_seen": 1078305,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C5489",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1078386,
+      "last_seen": 1078386,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C5264",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1078854,
+      "last_seen": 1165467,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1760",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079008,
+      "last_seen": 1079008,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C4759",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079080,
+      "last_seen": 1079080,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3386",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079182,
+      "last_seen": 1166085,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C2813",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1079438,
+      "last_seen": 1079438,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C22176",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079728,
+      "last_seen": 1079728,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C553",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079836,
+      "last_seen": 1079836,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3888",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079852,
+      "last_seen": 1079852,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1085",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079883,
+      "last_seen": 1079883,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C243",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079904,
+      "last_seen": 1079904,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C4403",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079916,
+      "last_seen": 1079916,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C798",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1079926,
+      "last_seen": 1079926,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C5111",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1080030,
+      "last_seen": 1080030,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C506",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1080147,
+      "last_seen": 1080147,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C429",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1080418,
+      "last_seen": 1166301,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1360",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1080432,
+      "last_seen": 1080490,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C1755",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93
+      "score": 93,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1080532,
+      "last_seen": 2303820,
+      "event_count": 4
     },
     {
       "from": "C17693",
       "to": "C755",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1080606,
+      "last_seen": 1080606,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1096",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1080926,
+      "last_seen": 1080926,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3758",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1082123,
+      "last_seen": 1179625,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C2254",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1082244,
+      "last_seen": 1082244,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C177",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1163185,
+      "last_seen": 1166263,
+      "event_count": 2
     },
     {
       "from": "C17693",
       "to": "C285",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1163203,
+      "last_seen": 1163203,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C155",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1165923,
+      "last_seen": 1165923,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3170",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1166320,
+      "last_seen": 1166320,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C3037",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1167994,
+      "last_seen": 1167994,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1509",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1168077,
+      "last_seen": 1168077,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C313",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1184331,
+      "last_seen": 1184331,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C977",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1357892,
+      "last_seen": 1357892,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1790",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1358290,
+      "last_seen": 1358290,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C370",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 1358950,
+      "last_seen": 1358950,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C1703",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95
+      "score": 95,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1359671,
+      "last_seen": 1359671,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2725",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94
+      "score": 94,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 1847858,
+      "last_seen": 1847922,
+      "event_count": 3
     },
     {
       "from": "C17693",
       "to": "C2083",
       "technique": "T1110",
+      "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 100
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "user": "U66@DOM1",
+      "first_seen": 2304842,
+      "last_seen": 2304842,
+      "event_count": 1
     },
     {
       "from": "C17693",
       "to": "C2733",
       "technique": "T1550.002",
+      "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95
+      "score": 95,
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
+      "user": "U66@DOM1",
+      "first_seen": 2305469,
+      "last_seen": 2305469,
+      "event_count": 1
     }
   ]
 }

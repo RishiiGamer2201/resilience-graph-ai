@@ -129,7 +129,12 @@ def incident_view(full: dict) -> dict:
 def graph_view(full: dict) -> dict:
     g = full["graph"]
     crit = set(full.get("critical_assets", []))
-    node_ids, edges, seen = set(), [], set()
+    names = _names()
+
+    # One edge per (src,dst) host pair, carrying the underlying event(s) so the UI
+    # can drill from a drawn edge back to the authentications that produced it.
+    node_ids: set = set()
+    by_pair: dict[tuple, dict] = {}
     for s in full["incident"]["steps"]:
         if not s["is_alert"]:
             continue
@@ -137,11 +142,25 @@ def graph_view(full: dict) -> dict:
         if not src or not dst:
             continue
         node_ids.update((src, dst))
-        if (src, dst) in seen:
-            continue
-        seen.add((src, dst))
-        edges.append({"from": src, "to": dst, "technique": s["technique_id"],
-                      "tactic": s["tactic"], "score": s["anomaly_score"]})
+        e = by_pair.get((src, dst))
+        if e is None:
+            by_pair[(src, dst)] = {
+                "from": src, "to": dst,
+                "technique": s["technique_id"],
+                "technique_name": names.get(s["technique_id"], ""),
+                "tactic": s["tactic"],
+                "score": s["anomaly_score"],          # max across the pair's events
+                "explanation": s.get("explanation", ""),
+                "user": s.get("user", ""),
+                "first_seen": s["timestamp"], "last_seen": s["timestamp"],
+                "event_count": 1,
+            }
+        else:
+            e["event_count"] += 1
+            e["score"] = max(e["score"], s["anomaly_score"])
+            e["first_seen"] = min(e["first_seen"], s["timestamp"])
+            e["last_seen"] = max(e["last_seen"], s["timestamp"])
+    edges = list(by_pair.values())
     nodes = [{"id": n, "critical": n in crit, "pivot": n == g["entry_host"]}
              for n in sorted(node_ids)]
     return {
