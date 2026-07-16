@@ -6,6 +6,8 @@ frontend/dist
 data/raw
 data/processed/**/*.parquet
 data/demo
+!data/demo/scenarios
+!data/demo/scenarios/**
 reports
 *.pdf
 research
