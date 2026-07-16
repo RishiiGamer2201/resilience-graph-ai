@@ -66,13 +66,6 @@
       "redteam_events": 0
     },
     {
-      "host": "TGT",
-      "accounts_dependent": 8685,
-      "reached_by_redteam": false,
-      "redteam_accounts": 0,
-      "redteam_events": 0
-    },
-    {
       "host": "C2327",
       "accounts_dependent": 4258,
       "reached_by_redteam": false,
@@ -141,6 +134,13 @@
       "reached_by_redteam": true,
       "redteam_accounts": 4,
       "redteam_events": 15
+    },
+    {
+      "host": "C2553",
+      "accounts_dependent": 611,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
     }
   ]
 }

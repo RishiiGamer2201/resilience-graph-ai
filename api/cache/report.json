@@ -1,11 +1,11 @@
 {
   "incident_id": "INC-PS7-LANL-CAMPAIGN",
-  "generated_at": "2026-07-16 20:48 IST",
+  "generated_at": "2026-07-16 20:58 IST",
   "severity": "critical",
   "max_anomaly_score": 100,
   "account": "104 accounts",
   "pivot": "C17693",
-  "summary": "A CRITICAL campaign spanning 104 compromised accounts. From pivot host C17693, the attacker authenticated to 475 hosts, reaching the critical asset C1015, C1065, C1640, C2106, C231, C3173, C457, C467, C528, C529, C585, C586, C612, C625, C706, C743, C801. 1192 anomaly alerts were correlated from 2732 events into this single campaign.",
+  "summary": "A CRITICAL campaign spanning 104 compromised accounts. From pivot host C17693, the attacker authenticated to 475 hosts, reaching the critical asset C1015, C1065, C1640, C2106, C231, C2553, C3173, C457, C467, C528, C529, C585, C586, C612, C625, C706, C743, C801. 1192 anomaly alerts were correlated from 2732 events into this single campaign.",
   "attack_chain": [
     {
       "tactic": "Lateral Movement",
@@ -32,7 +32,7 @@
   ],
   "attack_path": [
     "C17693",
-    "C625"
+    "C585"
   ],
   "attributed_actor": {
     "actor": "Ember Bear",

@@ -78,6 +78,10 @@ def critical_assets(top_n: int = 20) -> dict:
     """
     df = pd.read_parquet(PARQUET, columns=["destination_host", "user", "label"])
     depend = df.groupby("destination_host")["user"].nunique().sort_values(ascending=False)
+    # LANL computers are named C####; drop non-host auth artifacts that appear as
+    # "destinations" but aren't assets — TGT (Kerberos ticket), ANONYMOUS LOGON,
+    # user principals (U####@...), etc. A crown jewel must be a real host.
+    depend = depend[depend.index.to_series().str.match(r"^C\d+$")]
     top = depend.head(top_n)
     mal = df[df.label == 1]
     reached = set(mal["destination_host"].unique())

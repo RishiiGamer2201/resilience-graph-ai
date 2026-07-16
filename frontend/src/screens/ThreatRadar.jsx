@@ -7,6 +7,14 @@ import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveBadge from '../components/LiveBadge.jsx'
 import { nowIST } from '../lib/format.js'
 
+// The distinct techniques behind an item's "where you're exposed" movements —
+// used to deep-link the Attack Graph to exactly those movements.
+function exposureTechs(item) {
+  const bridge = (item?.your_exposure && Object.keys(item.your_exposure).length)
+    ? item.your_exposure : (item?.your_exposure_tactic || {})
+  return [...new Set(Object.values(bridge).flat().map((m) => m.technique).filter(Boolean))]
+}
+
 // The advisory text a SOC lead would review before anything left the building.
 // Generated from real fields only — no invented impact claims.
 function draftAdvisory(entry, incidentId) {
@@ -108,8 +116,7 @@ function RadarItem({ item, names, onAlert, alerted }) {
         const exact = item.your_exposure && Object.keys(item.your_exposure).length > 0
         const bridge = exact ? item.your_exposure : (item.your_exposure_tactic || {})
         if (Object.keys(bridge).length === 0) return null
-        // the actual techniques behind these movements — what the graph should highlight
-        const techs = [...new Set(Object.values(bridge).flat().map((m) => m.technique).filter(Boolean))]
+        const techs = exposureTechs(item)   // techniques the graph should highlight
         return (
           <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
             <div style={{ fontSize: 11.5, fontWeight: 600, marginBottom: 4 }}>
@@ -308,7 +315,9 @@ export default function ThreatRadar() {
                         </button>
                       </>
                     )}
-                    <Link to="/graph" className="btn"
+                    <Link to={exposureTechs(e.item).length
+                      ? `/graph?techniques=${encodeURIComponent(exposureTechs(e.item).join(','))}`
+                      : '/graph'} className="btn"
                       style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                       <Waypoints size={12} aria-hidden="true" /> Review your attack path
                     </Link>
