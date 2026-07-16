@@ -17,8 +17,11 @@ RUN pip install --no-cache-dir -r requirements-deploy.txt
 
 # app code + runtime artifacts (small)
 COPY api ./api
+COPY src ./src
 COPY models/iforest_lanl.joblib models/next_technique_markov.pkl ./models/
 COPY data/processed/mitre_attack/attack_lookups.pkl ./data/processed/mitre_attack/attack_lookups.pkl
+COPY data/processed/engine2/technique_embeddings.pkl ./data/processed/engine2/technique_embeddings.pkl
+COPY data/demo/scenarios ./data/demo/scenarios
 # built SPA from stage 1
 COPY --from=frontend /app/frontend/dist ./frontend/dist
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Zap } from 'lucide-react'
-import { getIncident } from '../api.js'
-import { useFetch } from '../lib/useFetch.js'
+import { Play, Zap, Radio } from 'lucide-react'
+import { getIncident, streamUrl } from '../api.js'
+import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveScoreWidget from '../components/LiveScoreWidget.jsx'
 import IncidentReport from '../components/IncidentReport.jsx'
@@ -31,13 +31,37 @@ function TimelineRow({ step, animate }) {
 }
 
 export default function Incident() {
-  const { data, error, loading } = useFetch(getIncident)
+  const { data, error, loading } = useScreenData('incident', getIncident)
+  const { setBundle } = useAnalysis()
   const [visible, setVisible] = useState(Infinity)
   const [replaying, setReplaying] = useState(false)
+  const [streamSteps, setStreamSteps] = useState(null)   // null = not streaming
+  const [streaming, setStreaming] = useState(false)
   const timer = useRef(null)
+  const esRef = useRef(null)
+
   const steps = data?.steps || []
 
-  useEffect(() => () => clearInterval(timer.current), [])
+  useEffect(() => () => { clearInterval(timer.current); esRef.current?.close() }, [])
+
+  // Stream the shipped scenario's real per-event scores live (SSE), then promote
+  // the finished analysis to the live bundle so every screen updates.
+  function streamLive() {
+    clearInterval(timer.current); setReplaying(false)
+    esRef.current?.close()
+    setStreamSteps([]); setStreaming(true)
+    const es = new EventSource(streamUrl('lanl_redteam_u66'))
+    esRef.current = es
+    es.addEventListener('step', (e) => {
+      const { step } = JSON.parse(e.data)
+      setStreamSteps((s) => [...(s || []), step])
+    })
+    es.addEventListener('done', (e) => {
+      es.close(); setStreaming(false)
+      try { setBundle(JSON.parse(e.data)) } catch { /* ignore */ }
+    })
+    es.onerror = () => { es.close(); setStreaming(false) }
+  }
 
   function replay() {
     clearInterval(timer.current)
@@ -61,7 +85,10 @@ export default function Incident() {
 
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
-  const shown = steps.slice(0, visible === Infinity ? steps.length : visible)
+
+  const shown = streamSteps !== null
+    ? streamSteps
+    : steps.slice(0, visible === Infinity ? steps.length : visible)
 
   return (
     <>
@@ -73,13 +100,20 @@ export default function Incident() {
 
       <div className="grid2 incident-grid">
         <Card className="incident-chain-card">
-          <CardHeader title="Correlated attack chain replay" meta={`${shown.length}/${steps.length} steps`}>
-            <button className="btn" onClick={replay} disabled={replaying} style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <CardHeader title="Correlated attack chain replay"
+            meta={streamSteps !== null ? `${shown.length} streamed` : `${shown.length}/${steps.length} steps`}>
+            <button className="btn" onClick={streamLive} disabled={streaming}
+              style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
+              title="Score the shipped scenario's events live over SSE">
+              <Radio size={13} aria-hidden="true" /> {streaming ? 'Streaming…' : 'Stream live'}
+            </button>
+            <button className="btn" onClick={replay} disabled={replaying || streaming}
+              style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
               <Play size={13} aria-hidden="true" /> {replaying ? 'Replaying…' : 'Replay'}
             </button>
           </CardHeader>
           <div className="card-b incident-timeline">
-            {shown.map((step, index) => <TimelineRow key={`${step.timestamp}-${index}`} step={step} animate={replaying} />)}
+            {shown.map((step, index) => <TimelineRow key={`${step.timestamp}-${index}`} step={step} animate={replaying || streaming} />)}
           </div>
         </Card>
 
@@ -91,7 +125,11 @@ export default function Incident() {
           <Card>
             <CardHeader title="What this means" />
             <div className="card-b pad" style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.6 }}>
-              {data.event_count} raw sign-in events collapsed into a single correlated incident. The account appears to reuse stolen authentication material from {describeHost(data.pivot)}, then attempts repeated password guesses; anomaly scores reached {data.max_anomaly_score}. The scoring panel above runs the same Isolation-Forest model live.
+              {data.event_count} raw sign-in events collapsed into a single correlated incident —
+              {' '}{data.alert_count} flagged anomalous. The account appears to reuse stolen
+              authentication material from {describeHost(data.pivot)}, then attempts repeated
+              password guesses; anomaly scores reached {data.max_anomaly_score}. The scoring panel
+              above runs the same Isolation-Forest model live.
             </div>
           </Card>
         </div>

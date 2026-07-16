@@ -1,15 +1,15 @@
 {
   "incident_id": "INC-PS7-LANL-001",
-  "generated_at": "2026-07-11 15:14 UTC",
+  "generated_at": "2026-07-16 10:11 UTC",
   "severity": "critical",
   "max_anomaly_score": 100,
   "account": "U66@DOM1",
   "pivot": "C17693",
-  "summary": "A CRITICAL incident on the U66@DOM1 account. From pivot host C17693, the account authenticated to 93 hosts via NTLM (pass-the-hash), reaching the critical asset C2388. 131 anomaly alerts were correlated from 215 events into this single incident.",
+  "summary": "A CRITICAL incident on the U66@DOM1 account. From pivot host C17693, the account authenticated to 129 hosts, reaching the critical asset C2388. 209 anomaly alerts were correlated from 215 events into this single incident.",
   "attack_chain": [
     {
       "tactic": "Lateral Movement",
-      "count": 67
+      "count": 109
     },
     {
       "tactic": "Credential Access",
@@ -61,7 +61,7 @@
     },
     {
       "tactic": "Containment",
-      "action": "Isolate choke-point host C17693 (cuts blast radius of 93 hosts)",
+      "action": "Isolate choke-point host C17693 (cuts blast radius of 129 hosts)",
       "mode": "requires human approval"
     },
     {
@@ -77,9 +77,12 @@
     "Multi-factor Authentication"
   ],
   "mttd": {
-    "traditional_days": 21,
-    "ours_minutes": 4,
-    "note": "Industry APT dwell time is measured in weeks; correlated behavioral detection compresses it to minutes."
+    "traditional_days": 10,
+    "ours_minutes": 0.0,
+    "ours_seconds": 0,
+    "value": "immediate",
+    "citation": "Mandiant M-Trends 2024 - global median dwell ~10 days",
+    "note": "time to first correlated alert in this log (measured); industry dwell is a cited comparison, not our claim"
   },
   "evidence": {
     "lanl_roc_auc": 0.988,

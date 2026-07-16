@@ -1,5 +1,7 @@
 # Design — SOC Command Center
 
+> **Living document — update every working session.** Last updated: 2026-07-16.
+
 Source of truth for tokens: [frontend/src/theme.css](frontend/src/theme.css). Components style **through CSS custom properties only** — never hardcode a color. Visual reference: [frontend/DESIGN_REFERENCE.html](frontend/DESIGN_REFERENCE.html).
 
 ## Principles
@@ -57,5 +59,8 @@ Thresholds (mirror `api/main.py::_severity` and `lib/format.js`): score ≥90 cr
 - Grids: 4-up stat tiles on Overview; `grid2` two-column for detail screens; `.stack` for vertical card stacks.
 - Wide content scrolls inside its card (timeline maxHeight 620) — page never scrolls horizontally.
 
+## Source honesty (LIVE vs SAMPLE)
+The topbar pill is the one-glance trust signal: green pulsing "LIVE ANALYSIS · N events" when a live analysis is loaded, dim "SAMPLE DATA · pre-computed" otherwise (`.pill.sample`). `LiveBadge` (● live / ○ cached) marks the two model widgets. Rule: no decorative data — every value traces to the analysis bundle or a labelled citation (see [rules.md](rules.md)); sparklines plot real series only.
+
 ## Component vocabulary (reuse, don't reinvent)
-`Card / CardHeader` · stat `.tile` · `Sparkline` (SVG, accent) · `LiveBadge` (● live / ○ cached) · `.tag-pill` chips · ranked lists (`.ranked`, `.actor`, `.pred`) · metric tables (`.mtable`) · toggle switches (`.sw`) in the live scorer.
+`Card / CardHeader` · stat `.tile` · `Sparkline` (SVG, accent — real series only) · `LiveBadge` (● live / ○ cached) · source `.pill` (`.live` / `.sample`) · `.tag-pill` chips · `.chip-x` / `.chip-add` (critical-asset + technique inputs) · ranked lists (`.ranked`, `.actor`, `.pred`) · metric tables (`.mtable`) · toggle switches (`.sw`) in the live scorer.

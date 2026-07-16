@@ -12,13 +12,15 @@ Run:
 """
 from __future__ import annotations
 
+import io
 import json
 import pickle
 from pathlib import Path
 
 import joblib
 import numpy as np
-from fastapi import FastAPI, HTTPException
+import pandas as pd
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -27,6 +29,17 @@ CACHE = ROOT / "api" / "cache"
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
 MARKOV = ROOT / "models" / "next_technique_markov.pkl"
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
+SCENARIOS = ROOT / "data" / "demo" / "scenarios"
+
+# Human labels for the shipped demo scenarios (files live in SCENARIOS/).
+SCENARIO_META = {
+    "lanl_redteam_u66": {
+        "label": "LANL red-team incident (real)",
+        "description": "215 real auth events from a compromised account's pivot host "
+                       "during the LANL red-team campaign. The star scenario.",
+        "critical_default": ["C2388"],
+    },
+}
 
 FEATURES = ["is_fail", "new_dst_for_user", "new_src_for_user",
             "user_distinct_dst_sofar", "user_fail_rate_sofar", "dst_rarity", "is_ntlm"]
@@ -156,6 +169,107 @@ def predict_next(c: Chain):
             "predictions": [{"rank": i + 1, "technique_id": t, "name": names.get(t, t)}
                             for i, t in enumerate(top)],
             "source": "markov" if last in trans else "frequency-fallback"}
+
+
+# --- LIVE endpoint 3: full pipeline analysis of an event log ---------------
+# This is what makes the app WORK rather than replay one baked incident: score
+# every event → correlate → graph → SOAR → attribute → predict, computed live.
+from src.shared.live_analyze import analyze_events, MAX_ROWS   # noqa: E402
+
+
+@app.get("/api/scenarios")
+def scenarios():
+    """List the shipped demo event logs for 1-click analysis."""
+    out = []
+    if SCENARIOS.exists():
+        for csv in sorted(SCENARIOS.glob("*.csv")):
+            meta = SCENARIO_META.get(csv.stem, {})
+            try:
+                n = sum(1 for _ in csv.open(encoding="utf-8")) - 1  # minus header
+            except OSError:
+                n = None
+            out.append({"name": csv.stem,
+                        "label": meta.get("label", csv.stem),
+                        "description": meta.get("description", ""),
+                        "n_events": n,
+                        "critical_default": meta.get("critical_default", [])})
+    return {"scenarios": out}
+
+
+class AnalyzeRequest(BaseModel):
+    events: list[dict] | None = None       # rows in the common event schema
+    scenario: str | None = None            # OR the name of a shipped scenario
+    critical_assets: list[str] = []
+    incident_id: str = "INC-LIVE-001"
+
+
+def _run_analysis(df: pd.DataFrame, critical_assets, incident_id) -> dict:
+    try:
+        return analyze_events(df, critical_assets=set(critical_assets or []),
+                              incident_id=incident_id)
+    except ValueError as e:                # trust-boundary rejections → 422
+        raise HTTPException(422, str(e))
+
+
+@app.post("/api/analyze")
+def analyze(req: AnalyzeRequest):
+    if req.scenario:
+        path = SCENARIOS / f"{req.scenario}.csv"
+        if not path.exists():
+            raise HTTPException(404, f"unknown scenario '{req.scenario}'")
+        df = pd.read_csv(path)
+        crit = req.critical_assets or SCENARIO_META.get(req.scenario, {}).get("critical_default", [])
+    elif req.events:
+        df = pd.DataFrame(req.events)
+        crit = req.critical_assets
+    else:
+        raise HTTPException(422, "provide either 'scenario' or 'events'")
+    return _run_analysis(df, crit, req.incident_id)
+
+
+@app.post("/api/analyze/upload")
+async def analyze_upload(file: UploadFile = File(...),
+                         critical_assets: str = Form(""),
+                         incident_id: str = Form("INC-UPLOAD-001")):
+    """Analyze an uploaded CSV (rows in the common event schema)."""
+    raw = await file.read()
+    try:
+        df = pd.read_csv(io.BytesIO(raw))
+    except Exception as e:
+        raise HTTPException(422, f"could not parse CSV: {e}")
+    crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
+    return _run_analysis(df, crit, incident_id)
+
+
+@app.get("/api/analyze/stream")
+async def analyze_stream(scenario: str, critical_assets: str = "", delay: float = 0.15):
+    """Server-Sent Events: replay a scenario's real per-event scores one at a time,
+    then a final `done` event carrying the full analysis bundle. The scoring is real
+    (done up front by analyze_events); the delay just paces the on-stage reveal."""
+    import asyncio
+    from fastapi.responses import StreamingResponse
+
+    path = SCENARIOS / f"{scenario}.csv"
+    if not path.exists():
+        raise HTTPException(404, f"unknown scenario '{scenario}'")
+    crit = [c.strip() for c in critical_assets.split(",") if c.strip()] \
+        or SCENARIO_META.get(scenario, {}).get("critical_default", [])
+    try:
+        bundle = analyze_events(pd.read_csv(path), critical_assets=set(crit),
+                                incident_id="INC-STREAM-001")
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    steps = bundle["incident"]["steps"]
+
+    async def gen():
+        for i, s in enumerate(steps):
+            payload = json.dumps({"i": i, "total": len(steps), "step": s})
+            yield f"event: step\ndata: {payload}\n\n"
+            await asyncio.sleep(max(0.0, min(delay, 1.0)))
+        yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 # --- serve the built React app (single-container deploy) -------------------

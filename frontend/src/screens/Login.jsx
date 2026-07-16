@@ -13,10 +13,10 @@ export default function Login() {
           Real-time anomaly detection, attack-path reasoning and ATT&amp;CK-driven
           attribution for critical national infrastructure.
         </p>
-        <button className="btn primary" onClick={() => navigate('/overview')}>
-          Sign in as Analyst <ArrowRight size={16} aria-hidden="true" />
+        <button className="btn primary" onClick={() => navigate('/analyze')}>
+          Enter demo environment <ArrowRight size={16} aria-hidden="true" />
         </button>
-        <div className="login-meta">Demo environment · no credentials required</div>
+        <div className="login-meta">Demo environment · no credentials · analyze a real log to start</div>
       </div>
     </div>
   )

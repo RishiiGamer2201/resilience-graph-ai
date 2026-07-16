@@ -31,6 +31,47 @@ export const getMethodology = () => get("/methodology");
 export const getReport = () => get("/report");
 export const getHealth = () => get("/health");
 
+// ---- LIVE pipeline: analyze a whole event log ----
+export const getScenarios = () => get("/scenarios");
+
+// Analyze a shipped scenario or raw event rows → full bundle (overview,
+// incident, graph, threat_intel, report, meta). Errors bubble up so the
+// Analyze screen can show the backend's validation message.
+export async function analyze({ scenario, events, critical_assets = [], incident_id }) {
+  const r = await fetch(`${BASE}/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scenario, events, critical_assets, incident_id }),
+  });
+  if (!r.ok) {
+    let msg = `${r.status}`;
+    try { msg = (await r.json()).detail || msg; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+// SSE URL for the streaming replay (EventSource needs a plain URL; same-origin
+// /api is proxied in dev and same-origin in prod).
+export const streamUrl = (scenario, critical_assets = []) =>
+  `${BASE}/analyze/stream?scenario=${encodeURIComponent(scenario)}` +
+  (critical_assets.length ? `&critical_assets=${encodeURIComponent(critical_assets.join(','))}` : '');
+
+// Analyze an uploaded CSV file (multipart).
+export async function analyzeUpload(file, critical_assets = [], incident_id = "INC-UPLOAD-001") {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("critical_assets", critical_assets.join(","));
+  fd.append("incident_id", incident_id);
+  const r = await fetch(`${BASE}/analyze/upload`, { method: "POST", body: fd });
+  if (!r.ok) {
+    let msg = `${r.status}`;
+    try { msg = (await r.json()).detail || msg; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
 // ---- LIVE endpoint 1: score an event (with cached fallback) ----
 export async function scoreEvent(features) {
   try {

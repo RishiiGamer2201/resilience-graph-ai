@@ -1,6 +1,6 @@
 import { Download, Printer } from 'lucide-react'
 import { getReport } from '../api.js'
-import { useFetch } from '../lib/useFetch.js'
+import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader } from './Card.jsx'
 
 function toMarkdown(r) {
@@ -28,7 +28,7 @@ function toMarkdown(r) {
 }
 
 export default function IncidentReport() {
-  const { data: r, loading } = useFetch(getReport)
+  const { data: r, loading } = useScreenData('report', getReport)
   if (loading || !r) return null
 
   const printReport = () => {

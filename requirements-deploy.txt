@@ -1,7 +1,11 @@
-# Slim runtime deps for the deployed API (NO torch/pandas/sentence-transformers —
-# those are build-time only; the live endpoints just unpickle sklearn models).
+# Slim runtime deps for the deployed API. NO torch/sentence-transformers — those
+# are build-time only (embeddings ship as a precomputed pkl). The live /api/analyze
+# pipeline needs pandas (CSV + frames) and networkx (attack-path graph).
 fastapi>=0.110
 uvicorn>=0.29
+python-multipart>=0.0.9   # multipart CSV upload (/api/analyze/upload)
 scikit-learn==1.7.2   # must match the version that pickled models/iforest_lanl.joblib
 numpy>=1.26
 joblib>=1.3
+pandas>=2.0
+networkx>=3.1

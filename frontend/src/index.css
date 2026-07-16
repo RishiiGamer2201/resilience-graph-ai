@@ -83,6 +83,8 @@
 :root[data-theme="dark"] .live { color: #4ade80; background: rgba(16,163,74,.16); }
 .live .d { background: #12b155; box-shadow: 0 0 0 0 rgba(18,177,85,.6); animation: pulse 2s infinite; }
 @keyframes pulse { 70% { box-shadow: 0 0 0 6px rgba(18,177,85,0); } 100% { box-shadow: 0 0 0 0 rgba(18,177,85,0); } }
+.pill.sample { color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--border); }
+.pill.sample .d { background: var(--text-faint); }
 
 .toggle {
   display: inline-flex; background: var(--surface-2); border: 1px solid var(--border);

@@ -1,5 +1,7 @@
 # Rules — what to use, what to avoid
 
+> **Living document — update every working session.** Last updated: 2026-07-16.
+
 Working rules for humans and AI agents (Claude/Codex) on this repo. These encode decisions already made — do not relitigate them mid-hackathon.
 
 ---
@@ -17,7 +19,9 @@ Working rules for humans and AI agents (Claude/Codex) on this repo. These encode
 
 ### Patterns
 - **Schema first:** every dataset normalizes into the 12-field schema in `src/schema.py`. Import from there; never redefine columns.
-- **Pre-cache everything:** new UI data = new entry in `scripts/build_cache.py` + cached GET in `api/main.py`. Live computation only for the 2 existing live endpoints.
+- **No fabricated display data:** every number or series shown in the UI must trace to the current analysis bundle (live or the sample-of-a-real-log cache) or be a labelled citation. No invented arrays (the old `SPARKS`), no asserted metrics. If you need a new display value, compute it in `src/shared/views.py` so cache and live share one code path.
+- **One pipeline, two entry points:** offline `build_cache.py` and live `/api/analyze` both call `src/shared/live_analyze.analyze_events` → `views.*`. Don't duplicate transform logic; add it to `views.py`.
+- **Pre-cache the sample, compute the rest live:** cached GETs are the landing *sample* (a real analysis of the shipped scenario). New per-screen data = a field in `views.py`, surfaced through both. Genuinely live paths: `/analyze`, `/analyze/upload`, `/score-event`, `/predict-next`.
 - **Fallbacks on live calls:** any frontend live call wraps in try/catch and degrades to a cached/deterministic result (`frontend/src/api.js` pattern) with a "cached" badge.
 - **Theme through tokens:** components style via CSS custom properties from `theme.css` (`var(--accent)` etc.). Never hardcode a color in a component.
 - **Reports as evidence:** every pipeline script writes a markdown report to `reports/`. Numbers in the pitch/UI must trace to a report.

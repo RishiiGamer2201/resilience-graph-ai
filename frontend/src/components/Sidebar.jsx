@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database } from 'lucide-react'
+import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database, ScanSearch } from 'lucide-react'
 
 const OPERATIONS = [
+  { to: '/analyze', label: 'Analyze Log', icon: ScanSearch },
   { to: '/overview', label: 'Overview', icon: LayoutDashboard },
   { to: '/incident', label: 'Live Incident', icon: Radar, alert: true },
   { to: '/graph', label: 'Attack Graph', icon: Waypoints },

@@ -1,5 +1,7 @@
 # Phases — Resilience Graph AI
 
+> **Living document — update every working session.** Last updated: 2026-07-16.
+
 Project broken into phases. Detailed task-level checklist with acceptance criteria lives in [research/claude/implementation_plan.md](research/claude/implementation_plan.md) — this file is the at-a-glance view. Statuses as of 2026-07-16.
 
 | Phase | Name | Status |
@@ -11,7 +13,8 @@ Project broken into phases. Detailed task-level checklist with acceptance criter
 | 4 | Shared spine | ✅ done |
 | 5 | SOC Command Center app | ✅ done |
 | 6 | Deploy | ✅ done (Render blueprint) |
-| 7 | Pitch & submission | ⏳ OPEN — current phase |
+| 8 | De-hardcode → live pipeline | 🔄 in progress (Phases 1–4 of 6 done) |
+| 7 | Pitch & submission | ⏳ OPEN |
 
 ---
 
@@ -48,6 +51,16 @@ Correlation (215 events → 1 CRITICAL incident, U66@DOM1) → ATT&CK mapping (T
 
 ## Phase 6 — Deploy ✅
 Single-container Dockerfile (SPA baked in, slim deps), `render.yaml` blueprint, deploy artifacts force-added to git.
+
+## Phase 8 — De-hardcode → live pipeline 🔄
+Teammate flagged the app "looks hardcoded." It wasn't fake data (cache came from real runs) but it *behaved* statically — one baked incident, only 2 live endpoints, plus a few genuinely fabricated UI bits. Fix: a live analysis pipeline + honest UI. Full task detail + findings in [research/claude/dehardcode_plan.md](research/claude/dehardcode_plan.md). Branch: `remove-hardcode`.
+
+- [x] **8.1 Live engine** — `src/shared/live_analyze.analyze_events()` runs the whole spine on any event log; `views.py` shares transforms with the cache; MTTD computed from timestamps.
+- [x] **8.2 API** — `POST /api/analyze`, `/analyze/upload`, `GET /api/scenarios`; sample cache is now a real analysis of a shipped LANL log.
+- [x] **8.3 Frontend** — Analyze Log screen (scenario picker + CSV upload), `AnalysisProvider` so live results override the sample, LIVE/SAMPLE topbar pill.
+- [x] **8.4 Fabricated bits removed** — invented sparklines → real anomaly-score trend; MTTD dwell is a cited comparison; incident prose + login templated/relabelled.
+- [x] **8.5 Deploy config** — slim deps + Dockerfile updated (docker build still to be confirmed on a Docker host / Render).
+- [ ] **8.6 (stretch) streaming replay** — SSE per-event scoring on the Live Incident screen.
 
 ## Phase 7 — Pitch & submission ⏳ CURRENT
 - [ ] Deck with the 4 honesty rules stated explicitly (sequence split · real-data metrics · baseline lift · SOAR simulated)

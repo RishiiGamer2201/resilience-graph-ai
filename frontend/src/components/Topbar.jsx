@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Sun, Moon } from 'lucide-react'
 import { useTheme } from '../lib/theme.jsx'
+import { useAnalysis } from '../lib/analysis.jsx'
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -17,11 +18,17 @@ function useClock() {
 export default function Topbar({ title, subtitle }) {
   const clock = useClock()
   const { theme, setTheme } = useTheme()
+  const { source, bundle } = useAnalysis()
+  const live = source === 'live'
 
   return (
     <div className="topbar">
       <h1>{title}{subtitle && <small>{subtitle}</small>}</h1>
-      <span className="pill live"><span className="d" />2 detectors live</span>
+      <span className={`pill ${live ? 'live' : 'sample'}`}
+        title={live ? 'Rendering a live analysis you ran' : 'Pre-computed sample analysis of a shipped real log'}>
+        <span className="d" />
+        {live ? `LIVE ANALYSIS · ${bundle?.meta?.n_events ?? ''} events` : 'SAMPLE DATA · pre-computed'}
+      </span>
       <div className="spacer" />
       <span className="clock" aria-live="off">{clock}</span>
       <div className="toggle" role="group" aria-label="Theme">

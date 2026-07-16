@@ -4,9 +4,11 @@ import { Card, CardHeader } from './Card.jsx'
 // invisible (21 days vs 4 min), so we use fixed emphasis widths and state the
 // real compression factor in text.
 export default function MttdPanel({ mttd }) {
-  const days = mttd?.traditional_days ?? 21
-  const mins = mttd?.ours_minutes ?? 4
-  const factor = Math.round((days * 24 * 60) / mins)
+  const days = mttd?.traditional_days ?? 10
+  const secs = mttd?.ours_seconds ?? 0
+  const oursLabel = mttd?.value ?? '< 1 min'
+  // detection compression vs cited industry dwell; guard the immediate (0s) case
+  const factor = secs > 0 ? Math.round((days * 86400) / secs) : null
 
   const Row = ({ label, value, width, color }) => (
     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 78px',
@@ -25,13 +27,18 @@ export default function MttdPanel({ mttd }) {
     <Card>
       <CardHeader title="Detection time: weeks to minutes" meta="MTTD" />
       <div className="card-b pad">
-        <Row label="Traditional APT dwell" value={`≈ ${days} d`}
+        <Row label={`Industry median dwell`} value={`≈ ${days} d`}
              width="100%" color="var(--sev-critical)" />
-        <Row label="Resilience Graph AI" value={`≈ ${mins} min`}
+        <Row label="Resilience Graph AI" value={oursLabel}
              width="3%" color="var(--accent)" />
         <div style={{ marginTop: 6, fontSize: 13, color: 'var(--text)' }}>
-          Detection compressed <b className="mono s-low">{factor.toLocaleString()}×</b>
-          {' '}from <b>{days} days</b> of adversary dwell to <b>{mins} minutes</b>.
+          {factor
+            ? <>Detection compressed <b className="mono s-low">{factor.toLocaleString()}×</b>{' '}
+                — from <b>{days} days</b> of typical dwell to <b>{oursLabel}</b>.</>
+            : <>First correlated alert fired <b className="s-low">{oursLabel}</b> — on the first
+                anomalous authentication, vs a <b>{days}-day</b> industry median dwell.</>}
+          {mttd?.citation && <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-faint)' }}>
+            Dwell reference: {mttd.citation}</div>}
         </div>
       </div>
     </Card>
