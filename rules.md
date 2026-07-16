@@ -38,6 +38,13 @@ Working rules for humans and AI agents (Claude/Codex) on this repo. These encode
 - **No temporal leakage:** CICIDS splits by day, UNSW keeps official split, sequences split at sequence level. Keep it that way.
 - **SOAR is simulated** — every action stays gated; critical-asset actions always "requires human approval". Never word it as real execution.
 
+### External intel (Threat Radar)
+- **Legitimate CTI feeds only.** No scraping Facebook/Instagram/X/Google — violates their terms, gets blocked, and person-level attribution from posts is irresponsible. Use feeds built for programmatic access (CISA KEV/advisories, security RSS, OTX/ThreatFox with free keys).
+- **Free keys stay optional.** Any source needing a key must skip cleanly and report itself as skipped — the demo works with zero signups.
+- **Precision over recall in ATT&CK mapping.** A wrong technique on screen is worse than none. Never keyword-match reconnaissance/resource-development technique names (generic English nouns → false positives). Validate every ID against `attack_lookups`.
+- **Radar is enrichment, never prevention.** Alerts are simulated + human-gated like SOAR. Zero matches is a legitimate, honest result — display it, don't manufacture hits.
+- **Stdlib-only fetching** (`urllib`/`xml.etree`) so the deploy image gains no dependencies.
+
 ### Boundaries for AIs / LLM features
 - **No hallucinated ATT&CK IDs:** technique names/descriptions/mitigations come from `attack_lookups.pkl` (parsed real STIX). Any LLM/RAG explanation layer must be constrained to IDs that exist in the lookups.
 - **AI agents:** read before editing; grep callers before changing a function; verify (build/run) before claiming done. Agents build, a human or Claude verifies before merge.

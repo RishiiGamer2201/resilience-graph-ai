@@ -43,6 +43,7 @@
         │  · GET /scenarios                             │
         │  · POST /analyze, /analyze/upload  ◀ LIVE     │
         │  · POST /score-event, /predict-next  ◀ LIVE   │
+        │  · POST /threat-radar (+refresh)   ◀ LIVE CTI │
         │  · serves frontend/dist in production         │
         └───────────────────────┬───────────────────────┘
                                 ▼
@@ -55,6 +56,17 @@
 ```
 
 **Key principle:** the app is genuinely live — `POST /api/analyze` runs the entire spine on whatever event log you give it. The cached GETs serve a *sample* that is itself a real analysis of a shipped LANL red-team log (built by `build_cache.py` calling the same `analyze_events`). The frontend prefers a loaded live bundle over the sample (`lib/analysis.jsx` `useScreenData`); the 2 model widgets keep a cached fallback so a dropped backend never blanks the pitch.
+
+### Threat Radar (external CTI)
+```
+free feeds ──► src/shared/osint.py ──► ATT&CK mapping ──► relevance vs YOUR incident
+CISA KEV (no key)          explicit T#### + curated aliases      technique / tactic /
+CISA advisories RSS        (recon+resource-dev names excluded:   attributed-actor match
+The Hacker News RSS         generic nouns false-positive)               │
+BleepingComputer RSS       every ID validated vs lookups                ▼
+OTX / ThreatFox (optional, free keys — skipped if absent)     Threat Radar screen
+```
+Fetched at build time into `api/cache/threat_radar.json` (deploy has intel day-one); `POST /api/threat-radar` re-scores against the current incident and can `refresh` live, falling back to cache unless a source really answered. Stdlib-only HTTP/XML → **no new deploy deps**. No social scraping (see [prd.md](prd.md) non-goals).
 
 ## Runtime topology
 
@@ -98,6 +110,7 @@ ET_HACK_26/
 │       ├── soar.py             # gated response actions (S5)
 │       ├── views.py            # `full` incident → per-screen payloads + computed MTTD
 │       ├── live_analyze.py     # analyze_events(): the whole spine, per request (LIVE)
+│       ├── osint.py            # Threat Radar: free CTI feeds → ATT&CK → relevance
 │       └── run_spine.py        # S2→S5 driver on real LANL incident (offline)
 ├── frontend/                   # Vite + React 19 SPA
 │   ├── vite.config.js          # dev proxy /api → :8000

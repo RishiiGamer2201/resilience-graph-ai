@@ -46,6 +46,7 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 - **Live analysis pipeline (`POST /api/analyze`)** — pick a shipped scenario or upload a CSV event log; the backend scores **every event** with the real IsolationForest, correlates into one incident, maps ATT&CK, builds the attack graph, gates SOAR, attributes an actor, and predicts the next technique — all computed per request. Every screen renders the live result; a topbar pill shows LIVE vs SAMPLE. Judges can feed their own data.
 - 7 screens: **Analyze Log** · Overview · Live Incident (replay + live event scoring) · Attack Graph · Threat Intel & Attribution (live prediction) · Models & Metrics · Data & Methodology. Plus aesthetic login splash (no real auth).
 - The committed sample cache is itself a **real live analysis** of a shipped LANL red-team log — sample and live use the identical pipeline. Live model widgets keep a silent cached fallback so the pitch never breaks.
+- **Threat Radar (external CTI)** — free, purpose-built intel feeds (CISA KEV, CISA advisories, The Hacker News, BleepingComputer; optional AlienVault OTX / ThreatFox behind free keys) mapped to real ATT&CK techniques and **cross-referenced with the incident you're investigating** ("same technique / same tactic / mentions your attributed actor"). Cached at build time + live refresh. Closes the loop: outside world → your infrastructure.
 - Audit-ready incident report (download .md / print) + MTTD panel (detection latency measured from the log; industry dwell cited, not asserted).
 - Single-container deploy (Docker, Render free tier).
 
@@ -53,6 +54,8 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 Every number on screen is either computed live from the analysed log or a labelled citation. Anomaly scores come from the real IsolationForest; the incident/graph/attribution/prediction are the actual spine output; MTTD is measured from timestamps. Change the input and the output changes.
 
 ## Non-goals (deliberate scope boundaries, not shortcuts)
+- **No social-media scraping (Facebook / Instagram / X / Google results).** Evaluated and rejected: it violates those platforms' terms and is actively blocked; "tracking an attacker" from public posts is person-level attribution that risks naming the wrong people; and nothing external can be "stopped" from a dashboard. The Threat Radar uses legitimate CTI feeds built for programmatic use instead — same intent, defensible execution.
+- **Threat Radar is enrichment, not prevention.** It informs and (simulated) alerts; it does not block, take down, or contact anyone.
 - **Real SOAR execution** — there is no live infrastructure to isolate hosts on, so response actions are simulated and human-gated. Standard for a demo; clearly labelled, never worded as real execution.
 - **Real authentication** — single-analyst demo; login is a splash, no credentials to fake or leak (team decision, 2026-07-16).
 - **Trained attribution classifier** — attribution is transparent profile retrieval, stated openly (a trained actor classifier would overclaim on this data).

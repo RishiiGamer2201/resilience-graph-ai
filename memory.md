@@ -29,6 +29,8 @@
 - 🟢 Stretch: India scenario replay (AIIMS/CBSE-styled), one-page handout.
 
 ## Known caveats (do not lose these)
+- **Threat Radar "relevant to your incident" is legitimately EMPTY** with the demo LANL incident: it's auth-based (T1550.002/T1110 = lateral-movement/credential-access) while public feeds are vuln/malware-dominated (initial-access/execution/impact). Verified not a bug — a synthetic T1190/T1486 incident scores 7 hits. The screen explains this honestly. Don't "fix" it by loosening matching.
+- **Threat Radar optional keys:** `OTX_API_KEY`, `ABUSECH_AUTH_KEY` (both free signups). Without them those 2 sources are skipped; the 4 no-key sources still deliver 40 items. abuse.ch/ThreatFox now 401s without a key (policy changed).
 - Attribution "100% top-1" is near-trivial by construction — never headline it; demo with 3–4 observed techniques.
 - Manual (real-ordered) prediction is much harder than auto (8.7% vs 38.6% top-3) — prediction is a supporting feature; lean the pitch on Engine 1 + attribution.
 - `requirements-deploy.txt` pins scikit-learn **1.7.2** to match the pickled models — bump only together with re-training.
@@ -40,6 +42,7 @@
 ## Session log (newest first)
 | Date | Who | What changed |
 |---|---|---|
+| 2026-07-16 | Claude | `threat-radar`: External Threat Radar — free CTI feeds → ATT&CK → cross-referenced with the live incident; simulated gated alerts. Social scraping assessed + rejected (ToS/ethics/no control surface) |
 | 2026-07-16 | Claude | `remove-hardcode`: live `/api/analyze` pipeline, Analyze screen, killed fabricated UI, deploy config, docs updated (Phases 0–5 of the de-hardcode plan) |
 | 2026-07-16 | Claude | Added docs scaffold: prd.md, architecture.md, rules.md, phases.md, design.md, memory.md |
 | 2026-07-11 | team | Render blueprint + single-container deploy; M5.6 report + MTTD panel; M5 frontend verified |

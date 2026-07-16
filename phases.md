@@ -13,8 +13,9 @@ Project broken into phases. Detailed task-level checklist with acceptance criter
 | 4 | Shared spine | ✅ done |
 | 5 | SOC Command Center app | ✅ done |
 | 6 | Deploy | ✅ done (Render blueprint) |
-| 8 | De-hardcode → live pipeline | 🔄 in progress (Phases 1–4 of 6 done) |
-| 7 | Pitch & submission | ⏳ OPEN |
+| 8 | De-hardcode → live pipeline | ✅ done (merged to main) |
+| 9 | Threat Radar (external CTI) | ✅ done (branch `threat-radar`) |
+| 7 | Pitch & submission | ⏳ OPEN — current phase |
 
 ---
 
@@ -61,6 +62,16 @@ Teammate flagged the app "looks hardcoded." It wasn't fake data (cache came from
 - [x] **8.4 Fabricated bits removed** — invented sparklines → real anomaly-score trend; MTTD dwell is a cited comparison; incident prose + login templated/relabelled.
 - [x] **8.5 Deploy config** — slim deps + Dockerfile updated (docker build still to be confirmed on a Docker host / Render).
 - [ ] **8.6 (stretch) streaming replay** — SSE per-event scoring on the Live Incident screen.
+
+## Phase 9 — Threat Radar (external CTI / OSINT) 🔄
+Asked: could we OSINT social media to track attackers and stop attacks? Assessed: **no** — scraping Meta/X/Google violates their terms and is blocked, person-level attribution from posts is irresponsible, nothing external can be "stopped" from a dashboard, and real alerts to real orgs are out of scope. **Built instead:** an External Threat Radar on legitimate free CTI feeds, mapped to ATT&CK and cross-referenced with the live incident. Branch: `threat-radar`. Detail: `research/claude/dehardcode_plan.md` successor plan.
+
+- [x] **9.1** `src/shared/osint.py` — CISA KEV + CISA advisories + The Hacker News + BleepingComputer (all **no key**); OTX/ThreatFox optional behind free keys. Stdlib-only, each feed isolated. 40 items.
+- [x] **9.2** ATT&CK mapping (explicit IDs + 70 curated aliases + name match, all validated) — recon/resource-dev names excluded after they false-positived on ordinary prose.
+- [x] **9.3** Relevance vs the incident: technique / tactic / attributed-actor, reported separately.
+- [x] **9.4** `POST /api/threat-radar` (+ live `refresh`, cache fallback) · cached at build time.
+- [x] **9.5** Threat Radar screen: feed status, technique chips, match explanations, simulated gated sector alert.
+- [x] **9.6** 11 tests (17 repo-wide), docs, docker build verified.
 
 ## Phase 7 — Pitch & submission ⏳ CURRENT
 - [ ] Deck with the 4 honesty rules stated explicitly (sequence split · real-data metrics · baseline lift · SOAR simulated)
