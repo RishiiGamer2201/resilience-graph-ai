@@ -80,7 +80,7 @@ Asked: could we OSINT social media to track attackers and stop attacks? Assessed
 - [ ] Judge Q&A prep: circularity, synthetic-data honesty, scale-to-production path
 - [ ] Architecture diagram polished for a slide
 - [ ] Verify CERT-In sequences (unblocks India-scenario claims)
-- [ ] (stretch) India scenario replay styled after AIIMS/CBSE
+- [x] India scenarios: AIIMS ransomware + CBSE exam-board breach (shipped, selectable)
 - [ ] (stretch) One-page concept-note handout
 
 ### Demo storyboard (3 min — drives the pitch)

@@ -117,7 +117,7 @@
 - [x] 🔴 **M5.5 Integration + fallback** ✅ — `api.js` live→cached fallback; **verified full stack runs** (uvicorn :8000 + vite :5173, live score-event over HTTP → 89.9/high). *Visual QA pending user test.*
 - [x] 🟡 **M5.6 Incident report + MTTD panel** — audit-ready report + weeks→minutes visual ✅
   - **RESULT:** `/api/report` endpoint (structured audit report: summary, ATT&CK chain, path, attribution=Ember Bear, predicted next, gated response, evidence) → `IncidentReport.jsx` on Live Incident screen with **Download .md + Print**. `MttdPanel.jsx` on Overview shows weeks→minutes (21 d → 4 min ≈ 7,560×). Cache rebuilt, `npm run build` clean, endpoints verified over HTTP.
-- [ ] 🟢 **India scenarios** — replay styled after AIIMS/CBSE; concrete > generic (needs verified CERT-In sequences, see E2.2b)
+- [x] 🟢 **India scenarios** — ✅ **DONE (2026-07-16).** Two shipped scenarios styled after real Indian-CNI attacks: **AIIMS Delhi 2022 ransomware** (`aiims_ransomware.csv` → PATIENT-DB-01, DC-AIIMS-01) and a **CBSE-style exam-board breach** (`cbse_exam_breach.csv` → EXAM-PAPERS-SRV-01, RESULTS-DB-01, STUDENT-DATA-DB-01, DC-CBSE-01). Both are synthetic auth logs the live pipeline analyses end-to-end; selectable on Analyze Log. `scripts/make_india_scenario.py`.
 
 ---
 

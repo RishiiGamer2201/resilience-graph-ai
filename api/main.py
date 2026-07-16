@@ -64,6 +64,13 @@ SCENARIO_META = {
                        "database and domain controller. Concrete Indian-CNI scenario.",
         "critical_default": ["PATIENT-DB-01", "DC-AIIMS-01"],
     },
+    "cbse_exam_breach": {
+        "label": "CBSE-style exam-board breach (India · synthetic)",
+        "description": "Synthetic auth log styled after an Indian education-board attack: "
+                       "a phished office PC pivots to the exam-paper server, results database "
+                       "and student-data store — paper leak / result tampering.",
+        "critical_default": ["EXAM-PAPERS-SRV-01", "RESULTS-DB-01", "STUDENT-DATA-DB-01", "DC-CBSE-01"],
+    },
 }
 
 FEATURES = ["is_fail", "new_dst_for_user", "new_src_for_user",
