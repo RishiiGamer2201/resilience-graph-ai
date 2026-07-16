@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Route, X, Search, Crosshair } from 'lucide-react'
 import { getGraph, getAttackers, analyze } from '../api.js'
@@ -119,6 +120,13 @@ export default function Graph() {
   const fgRef = useRef(null)
   const fitted = useRef(null)
 
+  // techniques to spotlight, arriving from a Threat Radar "highlight these" link
+  const [params, setParams] = useSearchParams()
+  const techFocus = useMemo(() => {
+    const raw = params.get('techniques')
+    return raw ? new Set(raw.split(',').filter(Boolean)) : null
+  }, [params])
+
   // Full campaign roster for the picker — the loaded graph may be scoped to one
   // account, which would otherwise leave no way back to the others.
   const { data: roster } = useFetch(() => getAttackers().then((d) => d.attackers))
@@ -201,8 +209,19 @@ export default function Graph() {
         .flatMap((e) => [e.from, e.to]))
     : null
 
+  // nodes touched by a technique-focused edge (from a Threat Radar drill-in)
+  const focusNodes = useMemo(() => {
+    if (!techFocus) return null
+    const s = new Set()
+    for (const e of view.edges) if (techFocus.has(e.technique)) { s.add(e.from); s.add(e.to) }
+    return s
+  }, [techFocus, view])
+
+  const dim = (id) => techFocus && !focusNodes.has(id)
   const nodeColor = (n) => {
     if (selected && n.id === selected) return cssVar('--accent')
+    if (dim(n.id)) return cssVar('--grid')                 // fade non-matching hosts
+    if (techFocus && focusNodes.has(n.id)) return cssVar('--sev-high')
     if (n.pivot) return cssVar('--accent')
     if (n.critical) return cssVar('--sev-critical')
     if (selected && neighbours.has(n.id)) return cssVar('--sev-high')
@@ -213,19 +232,35 @@ export default function Graph() {
   const touchesSel = (l) => selected &&
     ((l.source.id || l.source) === selected || (l.target.id || l.target) === selected)
   const linkColor = (l) => {
+    if (techFocus) return techFocus.has(l.technique) ? cssVar('--sev-high') : cssVar('--grid')
     if (touchesSel(l)) return cssVar('--accent')
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     if (showPath && highlight.edges.has(key)) return cssVar('--sev-high')
     return cssVar('--grid')
   }
   const linkWidth = (l) => {
+    if (techFocus) return techFocus.has(l.technique) ? 3 : 0.5
     if (touchesSel(l)) return 3
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     return showPath && highlight.edges.has(key) ? 3 : 1
   }
 
+  const focusCount = techFocus ? view.edges.filter((e) => techFocus.has(e.technique)).length : 0
+
   return (
     <>
+      {techFocus && (
+        <div className="note" style={{
+          margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 10,
+          borderLeft: '3px solid var(--sev-high)',
+        }}>
+          <Crosshair size={14} aria-hidden="true" style={{ color: 'var(--sev-high)' }} />
+          <span>Highlighting <b>{focusCount}</b> movement{focusCount !== 1 ? 's' : ''} using{' '}
+            <b className="mono">{[...techFocus].join(', ')}</b> — the technique from that threat-radar hit.</span>
+          <button className="btn" onClick={() => setParams({})}
+            style={{ marginLeft: 'auto', padding: '2px 8px', fontSize: 11 }}>Clear</button>
+        </div>
+      )}
       <div className="grid2" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
         <Card>
           <CardHeader title="Attack-path graph"

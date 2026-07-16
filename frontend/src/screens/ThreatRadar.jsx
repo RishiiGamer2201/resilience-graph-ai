@@ -108,6 +108,8 @@ function RadarItem({ item, names, onAlert, alerted }) {
         const exact = item.your_exposure && Object.keys(item.your_exposure).length > 0
         const bridge = exact ? item.your_exposure : (item.your_exposure_tactic || {})
         if (Object.keys(bridge).length === 0) return null
+        // the actual techniques behind these movements — what the graph should highlight
+        const techs = [...new Set(Object.values(bridge).flat().map((m) => m.technique).filter(Boolean))]
         return (
           <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
             <div style={{ fontSize: 11.5, fontWeight: 600, marginBottom: 4 }}>
@@ -128,9 +130,9 @@ function RadarItem({ item, names, onAlert, alerted }) {
                 </div>
               </div>
             ))}
-            <Link to="/graph" className="btn"
+            <Link to={`/graph?techniques=${encodeURIComponent(techs.join(','))}`} className="btn"
               style={{ marginTop: 4, padding: '2px 8px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-              <Waypoints size={11} aria-hidden="true" /> Open these in the Attack Graph
+              <Waypoints size={11} aria-hidden="true" /> Highlight these in the Attack Graph
             </Link>
           </div>
         )
