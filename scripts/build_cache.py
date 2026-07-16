@@ -22,7 +22,9 @@ from src.shared.live_analyze import analyze_events
 from src.shared.osint import collect as collect_osint
 
 ROOT = Path(__file__).resolve().parents[1]
-SCENARIO = ROOT / "data" / "demo" / "scenarios" / "lanl_redteam_u66.csv"
+# Default view = the WHOLE red-team campaign (104 compromised accounts, 702 red-team
+# events from 4 attacker pivots), not a single account's slice of it.
+SCENARIO = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
 CACHE = ROOT / "api" / "cache"
 
@@ -94,10 +96,13 @@ def main() -> None:
     # score_ref FIRST — the live engine reads it to calibrate scores.
     _write("score_ref", score_ref())
 
-    print("  running live analysis on the shipped LANL scenario ...")
+    print("  running live analysis on the full LANL campaign ...")
     bundle = analyze_events(pd.read_csv(SCENARIO), critical_assets=DEMO_CRITICAL,
-                            incident_id="INC-PS7-LANL-001")
-    for name in ("overview", "incident", "graph", "threat_intel", "report"):
+                            incident_id="INC-PS7-LANL-CAMPAIGN")
+    print(f"    {bundle['incident']['alert_count']} alerts · "
+          f"{len(bundle['attackers'])} compromised accounts · "
+          f"{bundle['graph']['n_nodes']} hosts")
+    for name in ("overview", "incident", "graph", "threat_intel", "report", "attackers"):
         _write(name, bundle[name])
 
     _write("metrics", metrics())

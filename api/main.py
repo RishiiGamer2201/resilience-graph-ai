@@ -33,10 +33,17 @@ SCENARIOS = ROOT / "data" / "demo" / "scenarios"
 
 # Human labels for the shipped demo scenarios (files live in SCENARIOS/).
 SCENARIO_META = {
+    "lanl_campaign_all": {
+        "label": "LANL red-team campaign — all 104 accounts (real)",
+        "description": "The full campaign: 2,732 auth events covering every compromised "
+                       "account (702 red-team events) from the attacker's 4 pivot hosts. "
+                       "The default view.",
+        "critical_default": ["C2388"],
+    },
     "lanl_redteam_u66": {
-        "label": "LANL red-team incident (real)",
-        "description": "215 real auth events from a compromised account's pivot host "
-                       "during the LANL red-team campaign. The star scenario.",
+        "label": "LANL red-team — single account U66 (real)",
+        "description": "215 events from one compromised account's pivot — the narrow "
+                       "view, useful for a focused walkthrough.",
         "critical_default": ["C2388"],
     },
 }
@@ -127,6 +134,12 @@ def methodology():
 @app.get("/api/report")
 def report():
     return _cached("report")
+
+
+@app.get("/api/attackers")
+def attackers():
+    """Per-account breakdown of the campaign — the 'who' table."""
+    return {"attackers": _cached("attackers")}
 
 
 @app.get("/api/threat-radar")
@@ -249,12 +262,13 @@ class AnalyzeRequest(BaseModel):
     scenario: str | None = None            # OR the name of a shipped scenario
     critical_assets: list[str] = []
     incident_id: str = "INC-LIVE-001"
+    account: str | None = None             # scope a campaign log to one account
 
 
-def _run_analysis(df: pd.DataFrame, critical_assets, incident_id) -> dict:
+def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None) -> dict:
     try:
         return analyze_events(df, critical_assets=set(critical_assets or []),
-                              incident_id=incident_id)
+                              incident_id=incident_id, account=account)
     except ValueError as e:                # trust-boundary rejections → 422
         raise HTTPException(422, str(e))
 
@@ -272,7 +286,10 @@ def analyze(req: AnalyzeRequest):
         crit = req.critical_assets
     else:
         raise HTTPException(422, "provide either 'scenario' or 'events'")
-    return _run_analysis(df, crit, req.incident_id)
+    inc_id = req.incident_id
+    if req.account and inc_id == "INC-LIVE-001":
+        inc_id = f"INC-{req.account.split('@')[0]}"
+    return _run_analysis(df, crit, inc_id, req.account)
 
 
 @app.post("/api/analyze/upload")

@@ -1,19 +1,19 @@
 {
-  "incident_id": "INC-PS7-LANL-001",
-  "generated_at": "2026-07-16 19:14 IST",
+  "incident_id": "INC-PS7-LANL-CAMPAIGN",
+  "generated_at": "2026-07-16 19:28 IST",
   "severity": "critical",
   "max_anomaly_score": 100,
-  "account": "U66@DOM1",
+  "account": "104 accounts",
   "pivot": "C17693",
-  "summary": "A CRITICAL incident on the U66@DOM1 account. From pivot host C17693, the account authenticated to 129 hosts, reaching the critical asset C2388. 209 anomaly alerts were correlated from 215 events into this single incident.",
+  "summary": "A CRITICAL campaign spanning 104 compromised accounts. From pivot host C17693, the attacker authenticated to 463 hosts, reaching the critical asset C2388. 1192 anomaly alerts were correlated from 2732 events into this single campaign.",
   "attack_chain": [
     {
       "tactic": "Lateral Movement",
-      "count": 109
+      "count": 555
     },
     {
       "tactic": "Credential Access",
-      "count": 30
+      "count": 217
     }
   ],
   "techniques": [
@@ -24,6 +24,10 @@
     {
       "technique_id": "T1110",
       "name": "Brute Force"
+    },
+    {
+      "technique_id": "T1021",
+      "name": "Remote Services"
     }
   ],
   "attack_path": [
@@ -32,20 +36,12 @@
   ],
   "attributed_actor": {
     "actor": "Ember Bear",
-    "justification": "Ember Bear matches 2/2 observed techniques (profile coverage 100%; semantic similarity 0.66)."
+    "justification": "Ember Bear matches 3/3 observed techniques (profile coverage 100%; semantic similarity 0.76)."
   },
   "predicted_next": [
     {
-      "technique_id": "T1552.001",
-      "name": "Credentials In Files"
-    },
-    {
-      "technique_id": "T1018",
-      "name": "Remote System Discovery"
-    },
-    {
-      "technique_id": "T1083",
-      "name": "File and Directory Discovery"
+      "technique_id": "T1021.001",
+      "name": "Remote Desktop Protocol"
     }
   ],
   "response_actions": [
@@ -61,12 +57,12 @@
     },
     {
       "tactic": "Containment",
-      "action": "Isolate choke-point host C17693 (cuts blast radius of 129 hosts)",
+      "action": "Isolate choke-point host C17693 (cuts blast radius of 463 hosts)",
       "mode": "requires human approval"
     },
     {
       "tactic": "Coordination",
-      "action": "Open incident ticket INC-PS7-LANL-001 + notify SOC lead",
+      "action": "Open incident ticket INC-PS7-LANL-CAMPAIGN + notify SOC lead",
       "mode": "automatic"
     }
   ],
@@ -74,7 +70,9 @@
     "Privileged Account Management",
     "Update Software",
     "Account Use Policies",
-    "Multi-factor Authentication"
+    "Multi-factor Authentication",
+    "Audit",
+    "Disable or Remove Feature or Program"
   ],
   "mttd": {
     "traditional_days": 10,

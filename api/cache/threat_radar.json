@@ -1,6 +1,16 @@
 {
-  "fetched_at": "2026-07-16 19:15 IST",
+  "fetched_at": "2026-07-16 19:28 IST",
   "items": [
+    {
+      "source": "BleepingComputer",
+      "title": "23andMe to pay $18 million in new genetics data breach settlement",
+      "published": "2026-07-16 19:17 IST",
+      "url": "https://www.bleepingcomputer.com/news/security/23andme-to-pay-18-million-in-new-genetics-data-breach-settlement/",
+      "text": "Genetic testing company 23andMe has agreed to pay $18 million to settle claims from a coalition of 43 attorneys general that it failed to protect customers' genetic data. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
     {
       "source": "The Hacker News",
       "title": "New TELEPUZ Malware Spreads via ClickFix to Steal Data and Run Commands",
@@ -205,18 +215,6 @@
       "tags": [],
       "iocs": [],
       "techniques": []
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "We built a vulnerability vending machine: AI tokens in, zero-days out",
-      "published": "2026-07-15 19:31 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/we-built-a-vulnerability-vending-machine-ai-tokens-in-zero-days-out/",
-      "text": "Intruder built an AI-powered \"vulnerability vending machine\" that combines code slicing with LLMs to automatically discover complex software vulnerabilities. The company explains how the system found and exploited a previously unknown WordPress plugin zero-day, with additional discoveries already under responsible disclosure. [...]",
-      "tags": [],
-      "iocs": [],
-      "techniques": [
-        "T1190"
-      ]
     },
     {
       "source": "CISA advisories",

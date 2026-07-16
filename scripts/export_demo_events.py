@@ -43,16 +43,39 @@ def lanl_u66() -> pd.DataFrame:
     return sub[keep]
 
 
+def lanl_campaign() -> pd.DataFrame:
+    """The WHOLE red-team campaign: every compromised account's activity from the
+    attacker's pivot hosts, across the full attack window.
+
+    The LANL red team ran 702 authentications against 104 accounts from just FOUR
+    source hosts (C17693 alone covers 670 events / 103 accounts) — scoping the demo
+    to one account showed 17% of the campaign and hid that concentration.
+    """
+    df = engineer(pd.read_parquet(PARQUET))
+    mal = df[df.label == 1]
+    pivots = set(mal["source_host"].unique())
+    users = set(mal["user"].unique())
+    t0, t1 = mal["timestamp"].min() - 3600, mal["timestamp"].max() + 3600
+    sub = (df[df.user.isin(users) & df.source_host.isin(pivots)
+              & df.timestamp.between(t0, t1)]
+           .sort_values("timestamp").reset_index(drop=True))
+    keep = [c for c in EXPORT_COLS if c in sub.columns]
+    return sub[keep]
+
+
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     if not PARQUET.exists():
         raise SystemExit(f"Missing {PARQUET} — this export needs the local LANL parquet "
                          "(run src.engine1.prep_lanl once). Output CSVs are committed.")
-    df = lanl_u66()
-    out = OUT_DIR / "lanl_redteam_u66.csv"
-    df.to_csv(out, index=False)
-    print(f"wrote {out.relative_to(ROOT)} — {len(df)} events "
-          f"({int(df.get('label', pd.Series()).sum() or 0)} labelled red-team)")
+    for name, fn in (("lanl_campaign_all", lanl_campaign), ("lanl_redteam_u66", lanl_u66)):
+        df = fn()
+        out = OUT_DIR / f"{name}.csv"
+        df.to_csv(out, index=False)
+        n_mal = int(df["label"].sum()) if "label" in df.columns else 0
+        print(f"wrote {out.relative_to(ROOT)} — {len(df):,} events · {n_mal} red-team · "
+              f"{df['user'].nunique()} accounts · "
+              f"{len(set(df.source_host) | set(df.destination_host))} hosts")
 
 
 if __name__ == "__main__":

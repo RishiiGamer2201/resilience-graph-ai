@@ -83,12 +83,72 @@ def compute_mttd(full: dict) -> dict:
     }
 
 
+def attackers_view(full: dict) -> list[dict]:
+    """Per-account breakdown of the incident/campaign.
+
+    A campaign log covers many compromised accounts; this is the "who" table —
+    each account's own footprint, computed from its alerts only.
+    """
+    by_user: dict[str, dict] = {}
+    for s in full["incident"]["steps"]:
+        if not s.get("is_alert"):
+            continue
+        u = s.get("user") or "—"
+        a = by_user.setdefault(u, {
+            "user": u, "alerts": 0, "hosts": set(), "pivots": set(),
+            "techniques": [], "max_score": 0,
+            "first_seen": s["timestamp"], "last_seen": s["timestamp"],
+        })
+        a["alerts"] += 1
+        if s.get("destination_host"):
+            a["hosts"].add(s["destination_host"])
+        if s.get("source_host"):
+            a["pivots"].add(s["source_host"])
+        tid = s.get("technique_id")
+        if tid and tid != "-" and tid not in a["techniques"]:
+            a["techniques"].append(tid)
+        a["max_score"] = max(a["max_score"], s["anomaly_score"])
+        a["first_seen"] = min(a["first_seen"], s["timestamp"])
+        a["last_seen"] = max(a["last_seen"], s["timestamp"])
+
+    crit = set(full.get("critical_assets", []))
+    out = []
+    for a in by_user.values():
+        out.append({**a,
+                    "hosts_reached": len(a["hosts"]),
+                    "critical_reached": sorted(a["hosts"] & crit),
+                    "pivots": sorted(a["pivots"]),
+                    "hosts": sorted(a["hosts"])[:50],
+                    "severity": ("critical" if a["max_score"] >= 90 else "high" if a["max_score"] >= 70
+                                 else "medium" if a["max_score"] >= 45 else "low")})
+    out.sort(key=lambda a: (-a["alerts"], -a["max_score"]))
+    return out
+
+
+def _is_campaign(full: dict) -> bool:
+    return len(full["incident"].get("users_involved", [])) > 1
+
+
+def _account_label(full: dict) -> str:
+    """Never label a multi-account campaign with a single victim's name."""
+    users = full["incident"].get("users_involved", [])
+    if len(users) > 1:
+        return f"{len(users)} accounts"
+    return full.get("victim") or (users[0] if users else "—")
+
+
 def _summary(full: dict) -> str:
     inc = full["incident"]
     names = _names()
     top = Counter(inc["attack_chain"]).most_common(1)
     tactic = top[0][0] if top else "anomalous"
     tech = names.get(inc["technique_ids"][0], inc["technique_ids"][0]) if inc["technique_ids"] else "—"
+    if _is_campaign(full):
+        n_users = len(inc["users_involved"])
+        pivots = {s["source_host"] for s in inc["steps"] if s.get("is_alert") and s.get("source_host")}
+        return (f"Campaign across {n_users} compromised accounts from {len(pivots)} attacker "
+                f"host(s); {tactic} centred on {tech}. {inc['alert_count']} alerts correlated "
+                f"from {inc['event_count']} events.")
     return (f"{tactic} centred on {tech}; {inc['alert_count']} anomaly alerts "
             f"correlated from {inc['event_count']} events into one incident.")
 
@@ -104,11 +164,13 @@ def overview(full: dict, scorecard: list[dict]) -> dict:
     return {
         "mttd": compute_mttd(full),
         "active_incident": {"id": inc["incident_id"], "severity": inc["severity"],
-                            "account": full["victim"],
+                            "account": _account_label(full),
                             "summary": _summary(full)},
         "blast_radius_contained": full["graph"]["blast_radius_size"],
         "alerts_correlated": {"alerts": inc["alert_count"], "events": inc["event_count"]},
         "score_trend": trend,
+        "accounts_involved": len(inc.get("users_involved", [])),
+        "is_campaign": _is_campaign(full),
         "scorecard": scorecard,
     }
 
@@ -119,10 +181,13 @@ def incident_view(full: dict) -> dict:
     return {
         "incident_id": inc["incident_id"], "severity": inc["severity"],
         "max_anomaly_score": inc["max_anomaly_score"],
-        "account": full["victim"], "pivot": full["pivot"],
+        "account": _account_label(full), "pivot": full["pivot"],
         "alert_count": inc["alert_count"], "event_count": inc["event_count"],
         "attack_chain": inc["attack_chain"], "technique_ids": inc["technique_ids"],
+        "is_campaign": _is_campaign(full),
+        "accounts_involved": inc.get("users_involved", []),
         "steps": alerts,
+        "steps_shown": len(alerts), "steps_total": inc["alert_count"],
     }
 
 
@@ -151,7 +216,9 @@ def graph_view(full: dict) -> dict:
                 "tactic": s["tactic"],
                 "score": s["anomaly_score"],          # max across the pair's events
                 "explanation": s.get("explanation", ""),
-                "user": s.get("user", ""),
+                # a campaign sends MANY accounts down the same host pair — keep them
+                # all, otherwise filtering the graph by account silently loses edges
+                "users": [s["user"]] if s.get("user") else [],
                 "first_seen": s["timestamp"], "last_seen": s["timestamp"],
                 "event_count": 1,
             }
@@ -160,7 +227,11 @@ def graph_view(full: dict) -> dict:
             e["score"] = max(e["score"], s["anomaly_score"])
             e["first_seen"] = min(e["first_seen"], s["timestamp"])
             e["last_seen"] = max(e["last_seen"], s["timestamp"])
+            if s.get("user") and s["user"] not in e["users"]:
+                e["users"].append(s["user"])
     edges = list(by_pair.values())
+    for e in edges:
+        e["user"] = e["users"][0] if len(e["users"]) == 1 else f"{len(e['users'])} accounts"
     nodes = [{"id": n, "critical": n in crit, "pivot": n == g["entry_host"]}
              for n in sorted(node_ids)]
     return {
@@ -206,19 +277,29 @@ def report_view(full: dict) -> dict:
     crit = ", ".join(g["critical_assets_at_risk"]) or "—"
     tac = Counter(inc["attack_chain"])
     br = g["blast_radius_size"]
-    summary = (
-        f"A {inc['severity'].upper()} incident on the {full['victim']} account. "
-        f"From pivot host {full['pivot']}, the account authenticated to "
-        f"{br} hosts, reaching the critical asset {crit}. "
-        f"{inc['alert_count']} anomaly alerts were correlated from "
-        f"{inc['event_count']} events into this single incident."
-    )
+    if _is_campaign(full):
+        n_users = len(inc["users_involved"])
+        summary = (
+            f"A {inc['severity'].upper()} campaign spanning {n_users} compromised accounts. "
+            f"From pivot host {full['pivot']}, the attacker authenticated to "
+            f"{br} hosts, reaching the critical asset {crit}. "
+            f"{inc['alert_count']} anomaly alerts were correlated from "
+            f"{inc['event_count']} events into this single campaign."
+        )
+    else:
+        summary = (
+            f"A {inc['severity'].upper()} incident on the {full['victim']} account. "
+            f"From pivot host {full['pivot']}, the account authenticated to "
+            f"{br} hosts, reaching the critical asset {crit}. "
+            f"{inc['alert_count']} anomaly alerts were correlated from "
+            f"{inc['event_count']} events into this single incident."
+        )
     mttd = compute_mttd(full)
     return {
         "incident_id": inc["incident_id"],
         "generated_at": fmt_ist(),
         "severity": inc["severity"], "max_anomaly_score": inc["max_anomaly_score"],
-        "account": full["victim"], "pivot": full["pivot"],
+        "account": _account_label(full), "pivot": full["pivot"],
         "summary": summary,
         "attack_chain": [{"tactic": t, "count": c} for t, c in tac.most_common()],
         "techniques": [{"technique_id": t, "name": names.get(t, t)} for t in inc["technique_ids"]],

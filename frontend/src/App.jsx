@@ -6,6 +6,7 @@ import Layout from './components/Layout.jsx'
 import { Loading } from './components/Card.jsx'
 import Login from './screens/Login.jsx'
 import Analyze from './screens/Analyze.jsx'
+import Attackers from './screens/Attackers.jsx'
 import Overview from './screens/Overview.jsx'
 import Incident from './screens/Incident.jsx'
 import ThreatIntel from './screens/ThreatIntel.jsx'
@@ -26,6 +27,7 @@ export default function App() {
             <Route element={<Layout />}>
               <Route path="/analyze" element={<Analyze />} />
               <Route path="/overview" element={<Overview />} />
+              <Route path="/attackers" element={<Attackers />} />
               <Route path="/incident" element={<Incident />} />
               <Route path="/graph" element={<Suspense fallback={<Loading />}><Graph /></Suspense>} />
               <Route path="/threat-intel" element={<ThreatIntel />} />

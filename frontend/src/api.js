@@ -29,6 +29,7 @@ export const getThreatIntel = () => get("/threat-intel");
 export const getMetrics = () => get("/metrics");
 export const getMethodology = () => get("/methodology");
 export const getReport = () => get("/report");
+export const getAttackers = () => get("/attackers");
 export const getHealth = () => get("/health");
 
 // ---- Threat Radar: external CTI, cross-referenced with the current incident ----

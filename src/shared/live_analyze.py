@@ -75,12 +75,22 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
-                   incident_id: str = "INC-LIVE-001") -> dict:
-    """Run score → correlate → graph → SOAR → attribute → report on `df` live."""
+                   incident_id: str = "INC-LIVE-001", account: str | None = None) -> dict:
+    """Run score → correlate → graph → SOAR → attribute → report on `df` live.
+
+    `account` scopes the analysis to one compromised account within a campaign log
+    (the per-account incident). Features are engineered on the FULL log first, then
+    filtered — a user's behavioural baseline (fan-out, host rarity) must be computed
+    against everything that happened, not against the slice we're looking at.
+    """
     critical_assets = set(critical_assets or set())
     df = _prepare(df)
     df = engineer(df)                       # 7 behavioral features, per-user chronological
     df["anomaly_score"] = _score(df).round().astype(int)
+    if account:
+        df = df[df["user"].astype(str) == account]
+        if df.empty:
+            raise ValueError(f"no events for account '{account}' in this log")
 
     incident = correlate(df, incident_id=incident_id)
     g = build_graph(incident, critical_assets=critical_assets)
@@ -101,6 +111,8 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
 
     meta = {"source": "live", "n_events": int(len(df)),
             "analyzed_at": fmt_ist(),
+            "account": account,
+            "accounts_involved": len(incident.get("users_involved", [])),
             "critical_assets": sorted(critical_assets)}
 
     return {
@@ -109,6 +121,7 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
         "graph": views.graph_view(full),
         "threat_intel": views.threat_intel_view(full),
         "report": views.report_view(full),
+        "attackers": views.attackers_view(full),
         "meta": meta,
     }
 

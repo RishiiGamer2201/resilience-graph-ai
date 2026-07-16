@@ -1,55 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
-import { Route, X } from 'lucide-react'
+import { Route, X, Search, Crosshair } from 'lucide-react'
 import { getGraph } from '../api.js'
 import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import { useTheme } from '../lib/theme.jsx'
 import { cssVar, fmtTime, severityFromScore } from '../lib/format.js'
-
-// Drill-down: every drawn edge is the authentication(s) between two hosts.
-function EdgeDetail({ edge, onClose }) {
-  const sev = severityFromScore(edge.score)
-  const multi = edge.event_count > 1
-  return (
-    <Card>
-      <CardHeader title="Selected movement" meta={`${edge.event_count} authentication${multi ? 's' : ''}`}>
-        <button className="btn" onClick={onClose} aria-label="Close detail"
-          style={{ padding: '2px 7px', display: 'inline-flex', alignItems: 'center' }}>
-          <X size={12} />
-        </button>
-      </CardHeader>
-      <div className="kv">
-        <div className="row"><span className="k">Path</span>
-          <span className="v mono">{edge.from} → {edge.to}</span></div>
-        <div className="row"><span className="k">Account</span>
-          <span className="v mono">{edge.user || '—'}</span></div>
-        <div className="row"><span className="k">Technique</span>
-          <span className="v"><span className="mono">{edge.technique}</span>
-            {edge.technique_name ? ` · ${edge.technique_name}` : ''}</span></div>
-        <div className="row"><span className="k">Tactic</span>
-          <span className="v">{edge.tactic}</span></div>
-        <div className="row"><span className="k">{multi ? 'Max anomaly score' : 'Anomaly score'}</span>
-          <span className={`v s-${sev}`}>{edge.score}/100 · {sev}</span></div>
-        <div className="row"><span className="k">{multi ? 'First seen' : 'Seen at'}</span>
-          <span className="v mono">{fmtTime(edge.first_seen)}</span></div>
-        {multi && (
-          <div className="row"><span className="k">Last seen</span>
-            <span className="v mono">{fmtTime(edge.last_seen)}</span></div>
-        )}
-      </div>
-      {edge.explanation && (
-        <div className="note"><b>{edge.technique}</b> — {edge.explanation}</div>
-      )}
-      {multi && (
-        <div className="note">
-          This host pair was authenticated <b>{edge.event_count} times</b> during the incident;
-          the scores above summarise those events (max score, first/last seen).
-        </div>
-      )}
-    </Card>
-  )
-}
 
 function useMeasuredWidth() {
   const ref = useRef(null)
@@ -66,34 +22,141 @@ function useMeasuredWidth() {
   return [ref, w]
 }
 
+// Everything known about one host, derived from the movements touching it.
+function hostFacts(id, edges) {
+  const inbound = edges.filter((e) => e.to === id)
+  const outbound = edges.filter((e) => e.from === id)
+  const accounts = [...new Set([...inbound, ...outbound].flatMap((e) => e.users || []))]
+  const techniques = [...new Set([...inbound, ...outbound].map((e) => e.technique).filter((t) => t && t !== '-'))]
+  const events = [...inbound, ...outbound].reduce((n, e) => n + (e.event_count || 1), 0)
+  const maxScore = Math.max(0, ...[...inbound, ...outbound].map((e) => e.score || 0))
+  return { inbound, outbound, accounts, techniques, events, maxScore }
+}
+
+function MovementRow({ e, dir, onPick }) {
+  const other = dir === 'in' ? e.from : e.to
+  const sev = severityFromScore(e.score)
+  return (
+    <button className="movement" onClick={() => onPick(other)} title={`Focus ${other}`}>
+      <span className="mono dir">{dir === 'in' ? '←' : '→'}</span>
+      <span className="mono host">{other}</span>
+      <span className="mono tid">{e.technique}</span>
+      <span className={`num s-${sev}`}>{e.score}</span>
+      {e.event_count > 1 && <span className="chip">×{e.event_count}</span>}
+    </button>
+  )
+}
+
+function HostDetail({ id, data, onClose, onPick }) {
+  const f = hostFacts(id, data.edges)
+  const node = data.nodes.find((n) => n.id === id)
+  const role = node?.pivot ? 'attacker pivot' : node?.critical ? 'CRITICAL asset' : 'reached host'
+  const roleSev = node?.pivot ? 'low' : node?.critical ? 'critical' : 'normal'
+  return (
+    <Card>
+      <CardHeader title={<span className="mono">{id}</span>} meta={`${f.events} authentication${f.events > 1 ? 's' : ''}`}>
+        <button className="btn" onClick={onClose} aria-label="Close host detail"
+          style={{ padding: '2px 7px', display: 'inline-flex', alignItems: 'center' }}>
+          <X size={12} />
+        </button>
+      </CardHeader>
+      <div className="kv">
+        <div className="row"><span className="k">Role</span>
+          <span className={`v s-${roleSev}`} style={{ fontWeight: 600 }}>{role}</span></div>
+        <div className="row"><span className="k">Movements</span>
+          <span className="v">{f.inbound.length} in · {f.outbound.length} out</span></div>
+        <div className="row"><span className="k">Accounts seen</span>
+          <span className="v mono" style={{ fontSize: 12 }}>
+            {f.accounts.length > 3 ? `${f.accounts.length} accounts` : (f.accounts.join(', ') || '—')}</span></div>
+        <div className="row"><span className="k">Techniques</span>
+          <span className="v mono" style={{ fontSize: 12 }}>{f.techniques.join(' ') || '—'}</span></div>
+        <div className="row"><span className="k">Max anomaly</span>
+          <span className={`v s-${severityFromScore(f.maxScore)}`}>{f.maxScore}/100</span></div>
+      </div>
+
+      {f.outbound.length > 0 && (
+        <>
+          <div className="section-label" style={{ padding: '8px 14px 0' }}>Moved to · {f.outbound.length}</div>
+          <div className="movements">
+            {f.outbound.slice(0, 40).map((e) => (
+              <MovementRow key={`o-${e.to}`} e={e} dir="out" onPick={onPick} />
+            ))}
+            {f.outbound.length > 40 && <div className="more">+{f.outbound.length - 40} more</div>}
+          </div>
+        </>
+      )}
+      {f.inbound.length > 0 && (
+        <>
+          <div className="section-label" style={{ padding: '8px 14px 0' }}>Reached from · {f.inbound.length}</div>
+          <div className="movements">
+            {f.inbound.slice(0, 40).map((e) => (
+              <MovementRow key={`i-${e.from}`} e={e} dir="in" onPick={onPick} />
+            ))}
+          </div>
+        </>
+      )}
+      <div className="note">
+        Click any row to jump to that host. Times:{' '}
+        {fmtTime(Math.min(...[...f.inbound, ...f.outbound].map((e) => e.first_seen)))} –{' '}
+        {fmtTime(Math.max(...[...f.inbound, ...f.outbound].map((e) => e.last_seen)))}
+      </div>
+    </Card>
+  )
+}
+
 export default function Graph() {
   const { data, error, loading } = useScreenData('graph', getGraph)
   const { theme } = useTheme()
   const [wrapRef, width] = useMeasuredWidth()
   const [showPath, setShowPath] = useState(false)
-  const [selected, setSelected] = useState(null)     // clicked edge (drill-down)
+  const [selected, setSelected] = useState(null)   // host id
+  const [account, setAccount] = useState('all')
+  const [q, setQ] = useState('')
   const fgRef = useRef(null)
 
-  // Precompute highlighted node/edge sets from paths_to_critical.
   const highlight = useMemo(() => {
-    const nodes = new Set()
-    const edges = new Set()
-    const paths = data?.paths_to_critical || {}
-    for (const arr of Object.values(paths)) {
+    const nodes = new Set(); const edges = new Set()
+    for (const arr of Object.values(data?.paths_to_critical || {})) {
       arr.forEach((n) => nodes.add(n))
       for (let i = 0; i < arr.length - 1; i++) edges.add(`${arr[i]}->${arr[i + 1]}`)
     }
     return { nodes, edges }
   }, [data])
 
-  const graphData = useMemo(() => {
-    if (!data) return { nodes: [], links: [] }
-    return {
-      nodes: data.nodes.map((n) => ({ ...n })),
-      // keep every edge field so a click can show the underlying authentication(s)
-      links: data.edges.map((e) => ({ ...e, source: e.from, target: e.to })),
-    }
+  const accounts = useMemo(() => {
+    const s = new Set((data?.edges || []).flatMap((e) => e.users || []))
+    return [...s].sort()
   }, [data])
+
+  // Filtering by account keeps only that account's movements and the hosts they touch.
+  const view = useMemo(() => {
+    if (!data) return { nodes: [], edges: [] }
+    const edges = account === 'all'
+      ? data.edges
+      : data.edges.filter((e) => (e.users || []).includes(account))
+    const keep = new Set(edges.flatMap((e) => [e.from, e.to]))
+    const nodes = account === 'all' ? data.nodes : data.nodes.filter((n) => keep.has(n.id))
+    return { nodes, edges }
+  }, [data, account])
+
+  const graphData = useMemo(() => ({
+    nodes: view.nodes.map((n) => ({ ...n })),
+    links: view.edges.map((e) => ({ ...e, source: e.from, target: e.to })),
+  }), [view])
+
+  // Host list beside the graph — 480 nodes are impossible to hunt visually.
+  const hostRows = useMemo(() => {
+    const deg = new Map()
+    for (const e of view.edges) {
+      deg.set(e.from, (deg.get(e.from) || 0) + 1)
+      deg.set(e.to, (deg.get(e.to) || 0) + 1)
+    }
+    const needle = q.trim().toLowerCase()
+    return view.nodes
+      .map((n) => ({ ...n, degree: deg.get(n.id) || 0 }))
+      .filter((n) => !needle || n.id.toLowerCase().includes(needle))
+      .sort((a, b) => (b.pivot - a.pivot) || (b.critical - a.critical) || b.degree - a.degree)
+  }, [view, q])
 
   useEffect(() => {
     if (fgRef.current) {
@@ -102,25 +165,40 @@ export default function Graph() {
     }
   }, [graphData, theme])
 
+  const focus = (id) => {
+    setSelected(id)
+    const n = graphData.nodes.find((x) => x.id === id)
+    if (n && Number.isFinite(n.x)) fgRef.current?.centerAt(n.x, n.y, 600)
+    fgRef.current?.zoom(3, 600)
+  }
+
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 
+  const neighbours = selected
+    ? new Set(view.edges.filter((e) => e.from === selected || e.to === selected)
+        .flatMap((e) => [e.from, e.to]))
+    : null
+
   const nodeColor = (n) => {
+    if (selected && n.id === selected) return cssVar('--accent')
     if (n.pivot) return cssVar('--accent')
     if (n.critical) return cssVar('--sev-critical')
+    if (selected && neighbours.has(n.id)) return cssVar('--sev-high')
     if (showPath && highlight.nodes.has(n.id)) return cssVar('--sev-high')
     return cssVar('--sev-normal')
   }
-  const nodeVal = (n) => (n.pivot ? 9 : n.critical ? 7 : 2)
-  const isSelected = (l) => selected && l.from === selected.from && l.to === selected.to
+  const nodeVal = (n) => (n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 2)
+  const touchesSel = (l) => selected &&
+    ((l.source.id || l.source) === selected || (l.target.id || l.target) === selected)
   const linkColor = (l) => {
-    if (isSelected(l)) return cssVar('--accent')
+    if (touchesSel(l)) return cssVar('--accent')
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     if (showPath && highlight.edges.has(key)) return cssVar('--sev-high')
     return cssVar('--grid')
   }
   const linkWidth = (l) => {
-    if (isSelected(l)) return 4
+    if (touchesSel(l)) return 3
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     return showPath && highlight.edges.has(key) ? 3 : 1
   }
@@ -130,12 +208,18 @@ export default function Graph() {
       <div className="grid2" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
         <Card>
           <CardHeader title="Attack-path graph"
-            meta={`${data.n_nodes} hosts · pivot ${data.entry_host}`}>
+            meta={`${view.nodes.length} hosts · ${view.edges.length} movements`}>
+            <select value={account} onChange={(e) => { setAccount(e.target.value); setSelected(null) }}
+              aria-label="Filter by account"
+              style={{ fontSize: 12, padding: '4px 8px', marginRight: 8, maxWidth: 190 }}>
+              <option value="all">All accounts ({accounts.length})</option>
+              {accounts.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
             <button className="btn" onClick={() => setShowPath((v) => !v)}
               style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
               aria-pressed={showPath}>
               <Route size={13} aria-hidden="true" />
-              {showPath ? 'Hide path' : 'Show path to critical asset'}
+              {showPath ? 'Hide path' : 'Path to crown jewel'}
             </button>
           </CardHeader>
           <div className="graphwrap" ref={wrapRef}>
@@ -149,61 +233,71 @@ export default function Graph() {
               nodeColor={nodeColor}
               nodeVal={nodeVal}
               nodeRelSize={4}
-              nodeLabel={(n) => `${n.id}${n.pivot ? ' · pivot' : n.critical ? ' · CRITICAL' : ''}`}
+              nodeLabel={(n) => `${n.id}${n.pivot ? ' · attacker pivot' : n.critical ? ' · CRITICAL' : ''} — click for detail`}
               linkColor={linkColor}
               linkWidth={linkWidth}
               linkLabel={(l) => `${l.from} → ${l.to} · ${l.technique} · score ${l.score}` +
-                (l.event_count > 1 ? ` · ${l.event_count} auths` : '') + ' — click for detail'}
+                (l.event_count > 1 ? ` · ${l.event_count} auths` : '')}
               linkDirectionalParticles={showPath ? 2 : 0}
               linkDirectionalParticleWidth={2}
-              linkHoverPrecision={6}
-              onLinkClick={(l) => setSelected(l)}
               cooldownTicks={120}
-              onNodeClick={(n) => fgRef.current?.centerAt(n.x, n.y, 600)}
+              onNodeClick={(n) => focus(n.id)}
+              onBackgroundClick={() => setSelected(null)}
               enableNodeDrag={false}
             />
           </div>
           <div className="legend">
-            <span><i style={{ background: 'var(--accent)' }} />Pivot host ({data.entry_host})</span>
-            <span><i style={{ background: 'var(--sev-critical)' }} />Critical asset ({data.critical_assets_at_risk.join(', ')})</span>
+            <span><i style={{ background: 'var(--accent)' }} />Attacker pivot / selected</span>
+            <span><i style={{ background: 'var(--sev-critical)' }} />Crown jewel ({data.critical_assets_at_risk.join(', ') || '—'})</span>
+            <span><i style={{ background: 'var(--sev-high)' }} />Connected / path</span>
             <span><i style={{ background: 'var(--sev-normal)' }} />Reached host</span>
-            <span><i style={{ background: 'var(--sev-high)' }} />Highlighted path</span>
-          </div>
-          <div className="note">
-            Every edge is a real authentication between two hosts — <b>click one</b> to see the
-            event(s) behind it. All {data.n_edges} edges are drawn at once: the fan-out is the
-            incident.
           </div>
         </Card>
 
         <div className="stack">
-          {selected && <EdgeDetail edge={selected} onClose={() => setSelected(null)} />}
+          {selected
+            ? <HostDetail id={selected} data={view} onClose={() => setSelected(null)} onPick={focus} />
+            : (
+              <Card>
+                <CardHeader title="Hosts" meta={`${hostRows.length} in view`}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <Search size={13} aria-hidden="true" style={{ color: 'var(--text-faint)' }} />
+                    <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="find host"
+                      aria-label="Find host" style={{ fontSize: 12, padding: '4px 8px', width: 130 }} />
+                  </span>
+                </CardHeader>
+                <div className="hostlist">
+                  {hostRows.slice(0, 200).map((n) => (
+                    <button key={n.id} className="hostrow" onClick={() => focus(n.id)}>
+                      <span className={`dotm ${n.pivot ? 'bg-low' : n.critical ? 'bg-critical' : 'bg-normal'}`} />
+                      <span className="mono id">{n.id}</span>
+                      {n.pivot && <span className="chip">pivot</span>}
+                      {n.critical && <span className="chip crit">crown jewel</span>}
+                      <span className="deg">{n.degree}</span>
+                    </button>
+                  ))}
+                  {hostRows.length > 200 && <div className="more">+{hostRows.length - 200} more — refine the search</div>}
+                </div>
+                <div className="note">
+                  Sorted by connections. Click a host (here or in the graph) to see every
+                  authentication that touched it.
+                </div>
+              </Card>
+            )}
 
           <Card>
             <CardHeader title="Blast-radius analysis" />
             <div className="kv">
-              <div className="row"><span className="k">Entry host</span><span className="v">{data.entry_host}</span></div>
-              <div className="row"><span className="k">Critical assets at risk</span><span className="v s-critical">{data.critical_assets_at_risk.join(', ')}</span></div>
-              <div className="row"><span className="k">Choke points</span><span className="v">{data.choke_points.join(' · ')}</span></div>
-              <div className="row"><span className="k">Blast radius size</span><span className="v">{data.blast_radius_size} hosts</span></div>
-              <div className="row"><span className="k">Recommended isolation</span><span className="v s-high">{data.recommended_isolation}</span></div>
-              <div className="row"><span className="k">Graph size</span><span className="v">{data.n_nodes} nodes · {data.n_edges} edges</span></div>
+              <div className="row"><span className="k">Entry host</span><span className="v mono">{data.entry_host}</span></div>
+              <div className="row"><span className="k">Critical assets at risk</span><span className="v s-critical mono">{data.critical_assets_at_risk.join(', ') || '—'}</span></div>
+              <div className="row"><span className="k">Choke points</span><span className="v mono">{data.choke_points.join(' · ')}</span></div>
+              <div className="row"><span className="k">Blast radius</span><span className="v">{data.blast_radius_size} hosts</span></div>
+              <div className="row"><span className="k">Recommended isolation</span><span className="v s-high mono">{data.recommended_isolation}</span></div>
+              <div className="row"><span className="k">Full campaign graph</span><span className="v">{data.n_nodes} nodes · {data.n_edges} edges</span></div>
             </div>
-          </Card>
-
-          <Card>
-            <CardHeader title="Path to critical asset" />
-            <div className="card-b pad" style={{ fontSize: 13, color: 'var(--text-dim)', lineHeight: 1.6 }}>
-              {Object.entries(data.paths_to_critical).map(([asset, path]) => (
-                <div key={asset} style={{ marginBottom: 8 }}>
-                  <span className="s-critical mono" style={{ fontWeight: 700 }}>{asset}</span>
-                  <div className="mono" style={{ marginTop: 4, color: 'var(--text)' }}>
-                    {path.join('  →  ')}
-                  </div>
-                </div>
-              ))}
-              Isolating the single pivot <b className="mono">{data.recommended_isolation}</b> severs
-              {' '}{data.blast_radius_size} downstream hosts from the citizen database.
+            <div className="note">
+              Isolating <b className="mono">{data.recommended_isolation}</b> severs{' '}
+              {data.blast_radius_size} downstream hosts.
             </div>
           </Card>
         </div>
