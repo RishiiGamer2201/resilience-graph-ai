@@ -9,12 +9,13 @@ Project broken into phases. Detailed task-level checklist with acceptance criter
 | 0 | Repo & environment | ✅ done |
 | 1 | Data foundation | ✅ done |
 | 2 | Engine 1 — real detection | ✅ done |
-| 3 | Engine 2 — prediction & attribution | ✅ done (CERT-In verification pending) |
+| 3 | Engine 2 — prediction & attribution | ✅ done (CERT-In **4/4 verified**; Mobile ATT&CK added → 918 techniques) |
 | 4 | Shared spine | ✅ done |
-| 5 | SOC Command Center app | ✅ done |
-| 6 | Deploy | ✅ done (Render blueprint) |
+| 5 | SOC Command Center app | ✅ done (8 screens) |
+| 6 | Deploy | ✅ done (Render blueprint; docker build verified) |
 | 8 | De-hardcode → live pipeline | ✅ done (merged to main) |
-| 9 | Threat Radar (external CTI) | ✅ done (branch `threat-radar`) |
+| 9 | Threat Radar (external CTI) | ✅ done (merged to main) |
+| 10 | Campaign view · India scenarios · drift-proof metrics | ✅ done (merged to main) |
 | 7 | Pitch & submission | ⏳ OPEN — current phase |
 
 ---

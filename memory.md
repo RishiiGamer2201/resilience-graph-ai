@@ -5,13 +5,13 @@
 ---
 
 ## Current focus
-**Phase 8 — De-hardcode → live pipeline** (branch `remove-hardcode`). Teammate said the site "looks hardcoded"; built a real `/api/analyze` pipeline so every screen renders live spine output on any uploaded log. Phases 1–5 of the plan done; streaming replay (8.6) is the remaining stretch. Then back to Phase 7 (pitch/deck/video, CERT-In verification).
+**Phase 7 — Pitch & submission.** All build phases done and merged to `main`: live `/api/analyze` pipeline, campaign + per-account views, Attackers screen, Threat Radar (India-first CTI), Mobile ATT&CK + verified CERT-In, AIIMS/CBSE India scenarios, drift-proof metrics, docker verified. Remaining: deck, backup video, judge Q&A prep, one-pager. Deploys to Render from `main` (autoDeploy).
 
 ## Currently being worked on
 | File / area | Who | What |
 |---|---|---|
-| docs (6) | Claude | living-doc banners + live-pipeline updates (Phase 5 of remove-hardcode plan) |
-| streaming replay | Claude | SSE per-event scoring — stretch, not started |
+| docs | Claude | README (mermaid + new-device setup), architecture (mermaid), all md refreshed |
+| pitch | team | deck, backup video, Q&A prep (Phase 7) |
 
 ## What has been completed
 - ✅ **M0–M1** env + data foundation (CICIDS 2.30M flows · LANL 11.2M-row red-team window · ATT&CK lookups · frozen schema).
@@ -42,7 +42,11 @@
 ## Session log (newest first)
 | Date | Who | What changed |
 |---|---|---|
-| 2026-07-16 | Claude | E2.2b CERT-In: teammate verified 4/4 real advisories. Added Mobile ATT&CK bundle (lookups 794→918 techniques) for the Android-trojan sequence; regenerated embeddings (CPU, GPU busy) + predictor. Manual top-3 now 10.0%, anti-circularity 5.2×. |
+| 2026-07-16 | Claude | Docs refresh: README rewritten (mermaid diagram + new-device setup for teammates), architecture.md → mermaid, prd/phases/memory updated. Verified docker build + slim-venv run. Merged `threat-radar` → `main` (fast-forward). |
+| 2026-07-16 | Claude | India scenarios: AIIMS + CBSE (config-driven generator). TGT/non-host artifacts filtered from crown jewels. Alert-queue "review path" deep-links to the focused subgraph. Data & Methodology updated (918 techniques, 5.2×, verified CERT-In). |
+| 2026-07-16 | Claude | Campaign view: all 104 accounts (was 1); Attackers screen; graph node-click + account filter + focused exposure subgraphs; multi-pivot blast radius; crown jewels derived (not the fabricated middle-of-list pick). Many bug fixes from user testing. |
+| 2026-07-16 | Claude | E2.2b CERT-In: teammate verified 4/4 real advisories. Added Mobile ATT&CK bundle (lookups 794→918) for the Android-trojan sequence; regenerated embeddings (CPU, GPU busy) + predictor. Manual top-3 now 10.0%, anti-circularity 5.2×. |
+| 2026-07-16 | Claude | Threat Radar (India-first CTI + technique bridge + alert queue), IST timestamps, drift-proof metrics store. Merged de-hardcode live pipeline to main. |
 | 2026-07-16 | Claude | `threat-radar`: External Threat Radar — free CTI feeds → ATT&CK → cross-referenced with the live incident; simulated gated alerts. Social scraping assessed + rejected (ToS/ethics/no control surface) |
 | 2026-07-16 | Claude | `remove-hardcode`: live `/api/analyze` pipeline, Analyze screen, killed fabricated UI, deploy config, docs updated (Phases 0–5 of the de-hardcode plan) |
 | 2026-07-16 | Claude | Added docs scaffold: prd.md, architecture.md, rules.md, phases.md, design.md, memory.md |
