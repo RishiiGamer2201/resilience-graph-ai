@@ -35,7 +35,7 @@
 - Live endpoints need local `models/` — otherwise UI silently shows "cached" badge (by design).
 - **Live analysis uses FIXED score_ref calibration**, so the demo scenario now shows ~209 alerts (was 131 offline with batch min/max scaling). Intentional — consistent across uploads + matches /score-event. Pivot C17693, 215 events unchanged.
 - **MTTD is "immediate"** on the demo log (attacker's first pivot event is already anomalous). Weeks→minutes headline rests on the *cited* Mandiant dwell (~10 d), labelled a citation not our claim.
-- **Docker build not yet confirmed** for the new deploy config (no Docker on the build machine) — verify on Render or a Docker host before relying on it.
+- **Docker build not run** (no Docker/Desktop/podman on the build machine). Validated the equivalent instead: fresh venv with ONLY `requirements-deploy.txt` installed clean (no torch/sentence-transformers, sklearn 1.7.2), all Dockerfile COPY sources exist + committed, and the app runs under that slim venv — `/api/analyze` (209 alerts, pivot C17693), `/score-event`, `/predict-next`, SPA all 200. Real `docker build` still worth running once on Render/a Docker host, but runtime deps are confirmed complete.
 
 ## Session log (newest first)
 | Date | Who | What changed |
