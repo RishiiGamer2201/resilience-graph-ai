@@ -12,13 +12,18 @@
     },
     {
       "name": "MITRE ATT&CK",
-      "rows": "794 techniques \u00b7 172 groups",
-      "feeds": "mapping, sequences, attribution"
+      "rows": "918 techniques \u00b7 175 groups (Enterprise + ICS + Mobile)",
+      "feeds": "mapping, sequences, attribution, Threat Radar"
     },
     {
       "name": "UNSW-NB15",
       "rows": "175k/82k split",
       "feeds": "second benchmark"
+    },
+    {
+      "name": "CERT-In advisories",
+      "rows": "4/4 verified India sequences",
+      "feeds": "non-circular predictor test \u00b7 India scenarios"
     }
   ],
   "honesty_notes": [
@@ -26,8 +31,11 @@
     "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
     "LANL NTLM signal ablated: behavioral-only still ROC 0.929 \u2014 not a protocol crutch.",
     "Next-technique: Markov beats the LSTM at this data scale, so we ship Markov (honest > fancy).",
-    "Anti-circularity: Markov beats the kill-chain-order baseline 4.7x \u2192 real transitions.",
-    "CERT-In manual sequences kept unverified until an analyst confirms each mapping.",
+    "Anti-circularity: Markov beats the kill-chain-order baseline 5.2x \u2192 real transitions.",
+    "CERT-In manual sequences now analyst-verified (4/4); real report-ordered timelines score top-3 10% vs 37% on kill-chain-ordered auto sets \u2014 real orderings are harder.",
+    "Mobile ATT&CK added so India's mobile-heavy threats (banking trojans) map to real technique IDs.",
+    "LANL is authentication-only, so incidents honestly map to just pass-the-hash / brute-force / remote-services \u2014 we never invent techniques the data can't evidence.",
+    "Crown jewels are a stated heuristic (hosts the most accounts depend on), not a dataset label; attribution is transparent profile retrieval, never headlined as a trained classifier.",
     "Every screen renders live analysis output \u2014 the sample view is a real analysis of a shipped red-team log."
   ]
 }

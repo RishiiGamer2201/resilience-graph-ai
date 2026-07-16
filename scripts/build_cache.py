@@ -55,20 +55,40 @@ def metrics() -> dict:
 
 
 def methodology() -> dict:
+    import pickle
+    lk = pickle.loads((ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl").read_bytes())
+    n_tech = len(lk["technique_to_name"])
+    n_groups = len(lk["group_to_techniques"])
+    n_manual = n_verified = 0
+    mf = ROOT / "data" / "manual" / "cert_in_sequences.json"
+    if mf.exists():
+        import json as _json
+        ms = _json.loads(mf.read_text(encoding="utf-8"))
+        n_manual = len(ms)
+        n_verified = sum(1 for m in ms if m.get("verified"))
     return {
         "datasets": [
             {"name": "CIC-IDS2017", "rows": "2.3M flows", "feeds": "anomaly detection + metrics"},
             {"name": "LANL Cyber", "rows": "11.2M auth · 702 red-team", "feeds": "lateral movement (the moat)"},
-            {"name": "MITRE ATT&CK", "rows": "794 techniques · 172 groups", "feeds": "mapping, sequences, attribution"},
+            {"name": "MITRE ATT&CK", "rows": f"{n_tech} techniques · {n_groups} groups (Enterprise + ICS + Mobile)",
+             "feeds": "mapping, sequences, attribution, Threat Radar"},
             {"name": "UNSW-NB15", "rows": "175k/82k split", "feeds": "second benchmark"},
+            {"name": "CERT-In advisories", "rows": f"{n_verified}/{n_manual} verified India sequences",
+             "feeds": "non-circular predictor test · India scenarios"},
         ],
         "honesty_notes": [
             "Engine 1 trains benign-only (unsupervised) — we never report accuracy, only PR-AUC / TPR@FPR.",
             "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
             "LANL NTLM signal ablated: behavioral-only still ROC 0.929 — not a protocol crutch.",
             "Next-technique: Markov beats the LSTM at this data scale, so we ship Markov (honest > fancy).",
-            "Anti-circularity: Markov beats the kill-chain-order baseline 4.7x → real transitions.",
-            "CERT-In manual sequences kept unverified until an analyst confirms each mapping.",
+            "Anti-circularity: Markov beats the kill-chain-order baseline 5.2x → real transitions.",
+            f"CERT-In manual sequences now analyst-verified ({n_verified}/{n_manual}); real report-ordered "
+            "timelines score top-3 10% vs 37% on kill-chain-ordered auto sets — real orderings are harder.",
+            "Mobile ATT&CK added so India's mobile-heavy threats (banking trojans) map to real technique IDs.",
+            "LANL is authentication-only, so incidents honestly map to just pass-the-hash / brute-force / "
+            "remote-services — we never invent techniques the data can't evidence.",
+            "Crown jewels are a stated heuristic (hosts the most accounts depend on), not a dataset label; "
+            "attribution is transparent profile retrieval, never headlined as a trained classifier.",
             "Every screen renders live analysis output — the sample view is a real analysis of a shipped red-team log.",
         ],
     }
