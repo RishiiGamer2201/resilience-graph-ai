@@ -200,6 +200,9 @@ export default function Graph() {
       fgRef.current.d3ReheatSimulation?.()
     }
     fitted.current = null            // refit when the graph changes
+    // fallback fit in case the sim settles before onEngineStop refires
+    const t = setTimeout(() => fgRef.current?.zoomToFit(500, 60), 700)
+    return () => clearTimeout(t)
   }, [graphData, theme])
 
   const focus = (id) => {
@@ -244,6 +247,9 @@ export default function Graph() {
   }
 
   const focusCount = view.edges.length
+  // pivots / crown jewels actually present in the current view (subgraph or full)
+  const viewPivots = view.nodes.filter((n) => n.pivot).map((n) => n.id)
+  const viewCrown = view.nodes.filter((n) => n.critical).map((n) => n.id)
 
   return (
     <>
@@ -297,10 +303,12 @@ export default function Graph() {
               linkDirectionalParticleWidth={2}
               cooldownTicks={120}
               onEngineStop={() => {
-                // keep every node inside the canvas (they used to drift off-screen)
-                if (fitted.current !== graphData.nodes.length) {
-                  fitted.current = graphData.nodes.length
-                  fgRef.current?.zoomToFit(400, 30)
+                // keep every node inside the canvas (they used to drift off-screen).
+                // Key on node count + focus so a filter change always refits.
+                const sig = `${graphData.nodes.length}:${techFocus ? [...techFocus].join(',') : ''}`
+                if (fitted.current !== sig) {
+                  fitted.current = sig
+                  fgRef.current?.zoomToFit(500, 60)
                 }
               }}
               onNodeClick={(n) => focus(n.id)}
@@ -310,10 +318,11 @@ export default function Graph() {
           </div>
           <div className="legend">
             <span><i style={{ background: 'var(--accent)' }} />
-              Attacker pivot ×{data.n_pivots ?? 1} ({(data.attacker_pivots || [data.entry_host]).join(', ')})</span>
+              Attacker pivot ×{viewPivots.length} ({viewPivots.join(', ') || '—'})</span>
             <span><i style={{ background: 'var(--sev-critical)' }} />
-              Crown jewel ×{data.critical_assets_at_risk.length}</span>
-            <span><i style={{ background: 'var(--sev-high)' }} />Connected / path</span>
+              Crown jewel ×{viewCrown.length}</span>
+            <span><i style={{ background: 'var(--sev-high)' }} />
+              {techFocus ? 'In-focus movement' : 'Connected / path'}</span>
             <span><i style={{ background: 'var(--sev-normal)' }} />Reached host</span>
           </div>
         </Card>
@@ -350,7 +359,8 @@ export default function Graph() {
             )}
 
           <Card>
-            <CardHeader title="Blast-radius analysis" />
+            <CardHeader title="Blast-radius analysis"
+              meta={techFocus ? 'whole incident' : undefined} />
             <div className="kv">
               <div className="row"><span className="k">Attacker pivots</span>
                 <span className="v mono">{(data.attacker_pivots || [data.entry_host]).join(' · ')}</span></div>
