@@ -173,10 +173,37 @@ export default function Graph() {
     return { nodes: base.nodes.filter((n) => keep.has(n.id)), edges }
   }, [base, techFocus])
 
-  const graphData = useMemo(() => ({
-    nodes: view.nodes.map((n) => ({ ...n })),
-    links: view.edges.map((e) => ({ ...e, source: e.from, target: e.to })),
-  }), [view])
+  const graphData = useMemo(() => {
+    let nodes = view.nodes, edges = view.edges
+    // In a focused exposure view, collapse dead-end hosts (a pivot's leaf targets)
+    // into one bubble per pivot — otherwise a 94-leaf star renders as a blob. The
+    // full host list on the right still names every host.
+    if (techFocus) {
+      const deg = {}
+      edges.forEach((e) => { deg[e.from] = (deg[e.from] || 0) + 1; deg[e.to] = (deg[e.to] || 0) + 1 })
+      const byId = Object.fromEntries(nodes.map((n) => [n.id, n]))
+      const isLeaf = (id) => deg[id] === 1 && !byId[id]?.pivot && !byId[id]?.critical
+      const bubbles = {}, kept = [], removed = new Set()
+      edges.forEach((e) => {
+        const leaf = isLeaf(e.to) ? e.to : (isLeaf(e.from) ? e.from : null)
+        if (leaf) { const p = leaf === e.to ? e.from : e.to; bubbles[p] = (bubbles[p] || 0) + 1; removed.add(leaf) }
+        else kept.push(e)
+      })
+      const keptNodes = nodes.filter((n) => !removed.has(n.id))
+      const bubbleEdges = []
+      const tech = [...techFocus][0]
+      Object.entries(bubbles).forEach(([parent, count]) => {
+        const id = `${parent}→${count} hosts`
+        keptNodes.push({ id, bubble: true, count })
+        bubbleEdges.push({ from: parent, to: id, technique: tech, score: 0, event_count: count })
+      })
+      nodes = keptNodes; edges = [...kept, ...bubbleEdges]
+    }
+    return {
+      nodes: nodes.map((n) => ({ ...n })),
+      links: edges.map((e) => ({ ...e, source: e.from, target: e.to })),
+    }
+  }, [view, techFocus])
 
   const hostRows = useMemo(() => {
     const deg = new Map()
@@ -213,8 +240,8 @@ export default function Graph() {
   }, [graphData, theme])
 
   const focus = (id) => {
-    setSelected(id)
     const n = graphData.nodes.find((x) => x.id === id)
+    setSelected(n?.bubble ? null : id)                     // bubbles have no detail
     if (n && Number.isFinite(n.x)) fgRef.current?.centerAt(n.x, n.y, 600)
     fgRef.current?.zoom(3, 600)
   }
@@ -228,6 +255,7 @@ export default function Graph() {
     : null
 
   const nodeColor = (n) => {
+    if (n.bubble) return cssVar('--sev-normal')            // collapsed dead-end hosts
     if (selected && n.id === selected) return cssVar('--accent')
     if (n.pivot) return cssVar('--accent')
     if (n.critical) return cssVar('--sev-critical')
@@ -236,7 +264,7 @@ export default function Graph() {
     if (showPath && highlight.nodes.has(n.id)) return cssVar('--sev-high')
     return cssVar('--sev-normal')
   }
-  const nodeVal = (n) => (n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 3)
+  const nodeVal = (n) => (n.bubble ? Math.min(28, 8 + n.count) : n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 3)
   const touchesSel = (l) => selected &&
     ((l.source.id || l.source) === selected || (l.target.id || l.target) === selected)
   const linkColor = (l) => {
@@ -275,14 +303,16 @@ export default function Graph() {
       )}
       <div className="grid2" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
         <Card>
-          <CardHeader title="Attack-path graph"
+          <CardHeader title={techFocus ? 'Your exposure — attack path' : 'Attack-path graph'}
             meta={busy ? 'analyzing…' : `${view.nodes.length} hosts · ${view.edges.length} movements`}>
-            <select value={account} onChange={(e) => pickAccount(e.target.value)} disabled={busy}
-              aria-label="Analyze one account"
-              style={{ fontSize: 12, padding: '4px 8px', marginRight: 8, maxWidth: 190 }}>
-              <option value="all">All accounts — full campaign</option>
-              {accounts.map((a) => <option key={a} value={a}>{a}</option>)}
-            </select>
+            {!techFocus && (
+              <select value={account} onChange={(e) => pickAccount(e.target.value)} disabled={busy}
+                aria-label="Analyze one account"
+                style={{ fontSize: 12, padding: '4px 8px', marginRight: 8, maxWidth: 190 }}>
+                <option value="all">All accounts — full campaign</option>
+                {accounts.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            )}
             <button className="btn" onClick={() => setShowPath((v) => !v)}
               style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
               aria-pressed={showPath}>
@@ -301,7 +331,19 @@ export default function Graph() {
               nodeColor={nodeColor}
               nodeVal={nodeVal}
               nodeRelSize={4}
-              nodeLabel={(n) => `${n.id}${n.pivot ? ' · attacker pivot' : n.critical ? ' · CRITICAL' : ''} — click for detail`}
+              nodeLabel={(n) => n.bubble
+                ? `${n.count} dead-end hosts reached via ${[...(techFocus || [])].join(', ')} (see the host list)`
+                : `${n.id}${n.pivot ? ' · attacker pivot' : n.critical ? ' · CRITICAL' : ''} — click for detail`}
+              nodeCanvasObjectMode={(n) => (n.bubble || n.pivot || n.critical ? 'after' : undefined)}
+              nodeCanvasObject={(n, ctx, scale) => {
+                const label = n.bubble ? `+${n.count} hosts` : n.id
+                const size = Math.max(9, 11 / scale)
+                ctx.font = `${size}px system-ui`
+                ctx.fillStyle = cssVar('--text')
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'top'
+                ctx.fillText(label, n.x, n.y + (n.bubble ? Math.sqrt(nodeVal(n)) * 4 : 6))
+              }}
               linkColor={linkColor}
               linkWidth={linkWidth}
               linkLabel={(l) => `${l.from} → ${l.to} · ${l.technique} · score ${l.score}` +
@@ -365,29 +407,52 @@ export default function Graph() {
               </Card>
             )}
 
-          <Card>
-            <CardHeader title="Blast-radius analysis"
-              meta={techFocus ? 'whole incident' : undefined} />
-            <div className="kv">
-              <div className="row"><span className="k">Attacker pivots</span>
-                <span className="v mono">{(data.attacker_pivots || [data.entry_host]).join(' · ')}</span></div>
-              <div className="row"><span className="k">Crown jewels at risk</span>
-                <span className="v s-critical mono">
-                  {data.critical_assets_at_risk.length}: {data.critical_assets_at_risk.join(', ') || '—'}</span></div>
-              <div className="row"><span className="k">Choke points</span><span className="v mono">{data.choke_points.join(' · ')}</span></div>
-              <div className="row"><span className="k">Total exposure</span>
-                <span className="v">{data.blast_radius_size} hosts reachable from any pivot</span></div>
-              <div className="row"><span className="k">Recommended isolation</span><span className="v s-high mono">{data.recommended_isolation}</span></div>
-              <div className="row"><span className="k">Graph</span><span className="v">{data.n_nodes} nodes · {data.n_edges} edges</span></div>
-            </div>
-            <div className="note">
-              Isolating <b className="mono">{data.recommended_isolation}</b> severs{' '}
-              <b>{data.isolation_cuts ?? data.blast_radius_size}</b> hosts — of{' '}
-              {data.blast_radius_size} exposed across {data.n_pivots ?? 1} pivot
-              {(data.n_pivots ?? 1) > 1 ? 's' : ''}. Reachability is computed from every
-              attacker pivot, not just the busiest one.
-            </div>
-          </Card>
+          {techFocus ? (
+            <Card>
+              <CardHeader title="Exposure summary" meta={[...techFocus].join(', ')} />
+              <div className="kv">
+                <div className="row"><span className="k">Technique</span>
+                  <span className="v mono">{[...techFocus].join(', ')}</span></div>
+                <div className="row"><span className="k">Your movements using it</span>
+                  <span className="v">{view.edges.length}</span></div>
+                <div className="row"><span className="k">Hosts involved</span>
+                  <span className="v">{view.nodes.length}</span></div>
+                <div className="row"><span className="k">Attacker pivots here</span>
+                  <span className="v mono">{viewPivots.join(' · ') || '—'}</span></div>
+                <div className="row"><span className="k">Crown jewels touched</span>
+                  <span className="v s-critical mono">{viewCrown.join(', ') || 'none'}</span></div>
+              </div>
+              <div className="note">
+                This is <b>only your exposure to that threat-radar hit</b> — the movements in
+                your own network using this technique. <b onClick={() => setParams({})}
+                  style={{ color: 'var(--accent)', cursor: 'pointer' }}>Clear</b> to return to the
+                full campaign graph.
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader title="Blast-radius analysis" />
+              <div className="kv">
+                <div className="row"><span className="k">Attacker pivots</span>
+                  <span className="v mono">{(data.attacker_pivots || [data.entry_host]).join(' · ')}</span></div>
+                <div className="row"><span className="k">Crown jewels at risk</span>
+                  <span className="v s-critical mono">
+                    {data.critical_assets_at_risk.length}: {data.critical_assets_at_risk.join(', ') || '—'}</span></div>
+                <div className="row"><span className="k">Choke points</span><span className="v mono">{data.choke_points.join(' · ')}</span></div>
+                <div className="row"><span className="k">Total exposure</span>
+                  <span className="v">{data.blast_radius_size} hosts reachable from any pivot</span></div>
+                <div className="row"><span className="k">Recommended isolation</span><span className="v s-high mono">{data.recommended_isolation}</span></div>
+                <div className="row"><span className="k">Graph</span><span className="v">{data.n_nodes} nodes · {data.n_edges} edges</span></div>
+              </div>
+              <div className="note">
+                Isolating <b className="mono">{data.recommended_isolation}</b> severs{' '}
+                <b>{data.isolation_cuts ?? data.blast_radius_size}</b> hosts — of{' '}
+                {data.blast_radius_size} exposed across {data.n_pivots ?? 1} pivot
+                {(data.n_pivots ?? 1) > 1 ? 's' : ''}. Reachability is computed from every
+                attacker pivot, not just the busiest one.
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </>
