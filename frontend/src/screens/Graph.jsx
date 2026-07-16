@@ -133,7 +133,7 @@ export default function Graph() {
       if (value === 'all') clear()
       else {
         setBundle(await analyze({
-          scenario: CAMPAIGN_SCENARIO, account: value, critical_assets: ['C2388'],
+          scenario: CAMPAIGN_SCENARIO, account: value,  // crown jewels: backend default (derived)
         }))
       }
     } finally { setBusy(false) }
@@ -275,8 +275,10 @@ export default function Graph() {
             />
           </div>
           <div className="legend">
-            <span><i style={{ background: 'var(--accent)' }} />Attacker pivot / selected</span>
-            <span><i style={{ background: 'var(--sev-critical)' }} />Crown jewel ({data.critical_assets_at_risk.join(', ') || '—'})</span>
+            <span><i style={{ background: 'var(--accent)' }} />
+              Attacker pivot ×{data.n_pivots ?? 1} ({(data.attacker_pivots || [data.entry_host]).join(', ')})</span>
+            <span><i style={{ background: 'var(--sev-critical)' }} />
+              Crown jewel ×{data.critical_assets_at_risk.length}</span>
             <span><i style={{ background: 'var(--sev-high)' }} />Connected / path</span>
             <span><i style={{ background: 'var(--sev-normal)' }} />Reached host</span>
           </div>
@@ -316,16 +318,23 @@ export default function Graph() {
           <Card>
             <CardHeader title="Blast-radius analysis" />
             <div className="kv">
-              <div className="row"><span className="k">Entry host</span><span className="v mono">{data.entry_host}</span></div>
-              <div className="row"><span className="k">Critical assets at risk</span><span className="v s-critical mono">{data.critical_assets_at_risk.join(', ') || '—'}</span></div>
+              <div className="row"><span className="k">Attacker pivots</span>
+                <span className="v mono">{(data.attacker_pivots || [data.entry_host]).join(' · ')}</span></div>
+              <div className="row"><span className="k">Crown jewels at risk</span>
+                <span className="v s-critical mono">
+                  {data.critical_assets_at_risk.length}: {data.critical_assets_at_risk.join(', ') || '—'}</span></div>
               <div className="row"><span className="k">Choke points</span><span className="v mono">{data.choke_points.join(' · ')}</span></div>
-              <div className="row"><span className="k">Blast radius</span><span className="v">{data.blast_radius_size} hosts</span></div>
+              <div className="row"><span className="k">Total exposure</span>
+                <span className="v">{data.blast_radius_size} hosts reachable from any pivot</span></div>
               <div className="row"><span className="k">Recommended isolation</span><span className="v s-high mono">{data.recommended_isolation}</span></div>
-              <div className="row"><span className="k">Full campaign graph</span><span className="v">{data.n_nodes} nodes · {data.n_edges} edges</span></div>
+              <div className="row"><span className="k">Graph</span><span className="v">{data.n_nodes} nodes · {data.n_edges} edges</span></div>
             </div>
             <div className="note">
               Isolating <b className="mono">{data.recommended_isolation}</b> severs{' '}
-              {data.blast_radius_size} downstream hosts.
+              <b>{data.isolation_cuts ?? data.blast_radius_size}</b> hosts — of{' '}
+              {data.blast_radius_size} exposed across {data.n_pivots ?? 1} pivot
+              {(data.n_pivots ?? 1) > 1 ? 's' : ''}. Reachability is computed from every
+              attacker pivot, not just the busiest one.
             </div>
           </Card>
         </div>

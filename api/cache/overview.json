@@ -14,7 +14,7 @@
     "account": "104 accounts",
     "summary": "Campaign across 104 compromised accounts from 4 attacker host(s); Lateral Movement centred on Pass the Hash. 1192 alerts correlated from 2732 events."
   },
-  "blast_radius_contained": 463,
+  "blast_radius_contained": 475,
   "alerts_correlated": {
     "alerts": 1192,
     "events": 2732

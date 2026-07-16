@@ -232,15 +232,21 @@ def graph_view(full: dict) -> dict:
     edges = list(by_pair.values())
     for e in edges:
         e["user"] = e["users"][0] if len(e["users"]) == 1 else f"{len(e['users'])} accounts"
-    nodes = [{"id": n, "critical": n in crit, "pivot": n == g["entry_host"]}
+    # every attacker-controlled source is a pivot, not just the busiest one
+    pivots = set(g.get("attacker_pivots") or [g.get("entry_host")])
+    nodes = [{"id": n, "critical": n in crit, "pivot": n in pivots,
+              "entry": n == g["entry_host"]}
              for n in sorted(node_ids)]
     return {
         "entry_host": g["entry_host"],
+        "attacker_pivots": g.get("attacker_pivots", []),
+        "n_pivots": g.get("n_pivots", 1),
         "critical_assets_at_risk": g["critical_assets_at_risk"],
         "paths_to_critical": g["paths_to_critical"],
         "choke_points": g["choke_points"],
         "blast_radius_size": g["blast_radius_size"],
         "recommended_isolation": g["recommended_isolation"],
+        "isolation_cuts": g.get("isolation_cuts", g["blast_radius_size"]),
         "n_nodes": g["n_nodes"], "n_edges": g["n_edges"],
         "nodes": nodes, "edges": edges,
     }

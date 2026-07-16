@@ -1,7 +1,16 @@
 {
   "entry_host": "C17693",
+  "attacker_pivots": [
+    "C17693",
+    "C19932",
+    "C22409",
+    "C18025"
+  ],
+  "n_pivots": 4,
   "critical_assets_at_risk": [
     "C1015",
+    "C1065",
+    "C1640",
     "C2106",
     "C231",
     "C3173",
@@ -11,62 +20,80 @@
     "C529",
     "C585",
     "C586",
+    "C612",
     "C625",
     "C706",
+    "C743",
     "C801"
   ],
   "paths_to_critical": {
-    "C231": [
-      "C17693",
-      "C231"
-    ],
-    "C585": [
-      "C17693",
-      "C585"
-    ],
-    "C586": [
-      "C17693",
-      "C586"
-    ],
-    "C801": [
-      "C17693",
-      "C801"
-    ],
-    "C457": [
-      "C17693",
-      "C457"
-    ],
-    "C706": [
-      "C17693",
-      "C706"
-    ],
     "C1015": [
       "C17693",
       "C1015"
-    ],
-    "C528": [
-      "C17693",
-      "C528"
-    ],
-    "C529": [
-      "C17693",
-      "C529"
     ],
     "C625": [
       "C17693",
       "C625"
     ],
+    "C1065": [
+      "C19932",
+      "C1065"
+    ],
+    "C706": [
+      "C17693",
+      "C706"
+    ],
     "C2106": [
       "C17693",
       "C2106"
+    ],
+    "C231": [
+      "C17693",
+      "C231"
+    ],
+    "C529": [
+      "C17693",
+      "C529"
+    ],
+    "C3173": [
+      "C17693",
+      "C3173"
+    ],
+    "C743": [
+      "C18025",
+      "C743"
+    ],
+    "C528": [
+      "C17693",
+      "C528"
+    ],
+    "C801": [
+      "C17693",
+      "C801"
+    ],
+    "C612": [
+      "C19932",
+      "C612"
+    ],
+    "C586": [
+      "C17693",
+      "C586"
+    ],
+    "C585": [
+      "C17693",
+      "C585"
+    ],
+    "C457": [
+      "C17693",
+      "C457"
     ],
     "C467": [
       "C17693",
       "C467"
     ],
-    "C3173": [
-      "C17693",
-      "C3173"
+    "C1640": [
+      "C22409",
+      "C1640"
     ]
   },
   "choke_points": [
@@ -74,2405 +101,2885 @@
     "C1759",
     "C1003"
   ],
-  "blast_radius_size": 463,
+  "blast_radius_size": 475,
   "recommended_isolation": "C17693",
+  "isolation_cuts": 463,
   "n_nodes": 479,
   "n_edges": 502,
   "nodes": [
     {
       "id": "C1",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C100",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10005",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1003",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1006",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1014",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1015",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10171",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10199",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C102",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1022",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1028",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1036",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10378",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10405",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1042",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1046",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10577",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1065",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10656",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10794",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C108",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C10817",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1085",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1086",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1089",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1096",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11039",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1117",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11178",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1119",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11194",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11225",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1124",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1125",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C113",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1149",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C115",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1152",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11613",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1172",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11727",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1173",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11787",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C11811",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1183",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1191",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12116",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1215",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1222",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1224",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12244",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12306",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12320",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12448",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12512",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12576",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C126",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1268",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C12682",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1269",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1275",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1302",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1319",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C13194",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C13410",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1352",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1360",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1371",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C13713",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1382",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C13851",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C13866",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1415",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C143",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C14319",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1432",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1438",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1448",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1457",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1461",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1477",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1479",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C148",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1482",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1484",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1486",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1493",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C15",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1500",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1503",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1506",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1509",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1511",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C152",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C15232",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1526",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1529",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1536",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1549",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C155",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1555",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1567",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1570",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1581",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1587",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16088",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1610",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1611",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1616",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1626",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16316",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1632",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1640",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16401",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1646",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16467",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16478",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16516",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16563",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16625",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1665",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C16746",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1697",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1703",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17052",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1710",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17105",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1732",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1737",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17425",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1745",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1755",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1759",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1760",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17600",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1767",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17693",
       "critical": false,
-      "pivot": true
+      "pivot": true,
+      "entry": true
     },
     {
       "id": "C177",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1770",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1776",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17776",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17806",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1784",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1786",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17860",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1789",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1790",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C17931",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1797",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18025",
       "critical": false,
-      "pivot": false
+      "pivot": true,
+      "entry": false
     },
     {
       "id": "C1810",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18106",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18113",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1821",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1823",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18464",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18626",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18720",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1877",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1879",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1881",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1887",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C18872",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1893",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19038",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1906",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19156",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19288",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19356",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1936",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19402",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19430",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1944",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19444",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1952",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1961",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1964",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19646",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1966",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1971",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1973",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1978",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C1980",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19803",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19859",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C19932",
       "critical": false,
-      "pivot": false
+      "pivot": true,
+      "entry": false
     },
     {
       "id": "C2010",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2012",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2013",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20203",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2043",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20455",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2057",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2058",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20624",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20677",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2069",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20741",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20742",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2079",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20811",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20819",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2083",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2085",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2091",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C20966",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2106",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2143",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C21579",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C21664",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2186",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C21873",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C21919",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C21946",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2195",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2196",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C21963",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2198",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2217",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C22174",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C22176",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C22275",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C22408",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C22409",
       "critical": false,
-      "pivot": false
+      "pivot": true,
+      "entry": false
     },
     {
       "id": "C2242",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2254",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2257",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C22766",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2298",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C231",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2313",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2341",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2344",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2378",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2379",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2388",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C243",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2457",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C246",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2472",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2481",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2489",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2508",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2519",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2553",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2578",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2594",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2597",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2604",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2609",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2631",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2634",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2648",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2651",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2669",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2706",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2707",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2721",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2725",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2733",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2737",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2742",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2743",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2762",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2813",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2816",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2844",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2846",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2849",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C285",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2877",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2913",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2914",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2927",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C294",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2944",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2963",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C2987",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3007",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3015",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3017",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3019",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C302",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3033",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3037",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C305",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C306",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C307",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C312",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C313",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3147",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3153",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3170",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3173",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3199",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3219",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3244",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3245",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3249",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3288",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3292",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3303",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3305",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C332",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C338",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3380",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3386",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3388",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3413",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3419",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3422",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3430",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3434",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3435",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3437",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3455",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C346",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3491",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3521",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C353",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3586",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C359",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3597",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3599",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3601",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3610",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3629",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3635",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3644",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C366",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3668",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C368",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3699",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C370",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C375",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3755",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3758",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3774",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3813",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C385",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3888",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3938",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C395",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3953",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C398",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C3997",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C400",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4106",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4159",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4161",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C42",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4208",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C423",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4245",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4280",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C429",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C430",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4403",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4476",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C452",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4554",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C457",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C458",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C46",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4610",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C464",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C467",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4728",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4747",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4759",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C477",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4773",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4784",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4845",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4851",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C486",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C492",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4934",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4996",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C4998",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C500",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5030",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C504",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C506",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5111",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C513",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5131",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5183",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C52",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5252",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5264",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C528",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C529",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5343",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5439",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5453",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5463",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5489",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C553",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5618",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5653",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5693",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C5746",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C583",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C585",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C586",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C61",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C612",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C625",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C626",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C633",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C636",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C6487",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C6513",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C6699",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C685",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C687",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C703",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C706",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C708",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C7131",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C721",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C728",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C7298",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C742",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C743",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C7464",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C7503",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C754",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C755",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C7597",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C765",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C7782",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C779",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C78",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C791",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C798",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C801",
       "critical": true,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C808",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8104",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C815",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8172",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8209",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8219",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8221",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C824",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C828",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8410",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8422",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C849",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8490",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C853",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8585",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8745",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8751",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C881",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C882",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C883",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C886",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C89",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C8972",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C90",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9006",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C917",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C92",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9226",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C923",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9485",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C96",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C965",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9692",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9694",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9723",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C976",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C977",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9945",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     },
     {
       "id": "C9958",
       "critical": false,
-      "pivot": false
+      "pivot": false,
+      "entry": false
     }
   ],
   "edges": [

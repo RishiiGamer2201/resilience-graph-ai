@@ -23,11 +23,11 @@
   },
   "engine2": {
     "predictor": {
-      "most_frequent_top3": 0.049,
-      "killchain_top3": 0.078,
-      "lstm_top3": 0.29,
+      "most_frequent_top3": 0.053,
+      "killchain_top3": 0.083,
+      "lstm_top3": 0.284,
       "markov_top3": 0.386,
-      "note": "Markov shipped; 5.1x kill-chain baseline = anti-circularity"
+      "note": "Markov shipped; 4.7x the kill-chain baseline = anti-circularity"
     },
     "manual_cert_in_top3": 0.087,
     "embeddings": {

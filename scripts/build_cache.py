@@ -58,10 +58,13 @@ def metrics() -> dict:
                      "behavioral_only_roc": 0.929, "note": "702 real red-team events; NTLM ablation"},
             "unsw": {"roc_auc": 0.829, "prauc": 0.867, "note": "2nd benchmark, official split"},
         },
+        # ⚠️ These mirror reports/prediction_eval.md — they were hand-copied and had
+        # drifted from a later run (UI claimed 5.1x anti-circularity; the report says
+        # 4.7x). Re-check against the report whenever the predictor is retrained.
         "engine2": {
-            "predictor": {"most_frequent_top3": 0.049, "killchain_top3": 0.078,
-                          "lstm_top3": 0.290, "markov_top3": 0.386,
-                          "note": "Markov shipped; 5.1x kill-chain baseline = anti-circularity"},
+            "predictor": {"most_frequent_top3": 0.053, "killchain_top3": 0.083,
+                          "lstm_top3": 0.284, "markov_top3": 0.386,
+                          "note": "Markov shipped; 4.7x the kill-chain baseline = anti-circularity"},
             "manual_cert_in_top3": 0.087,
             "embeddings": {"same_tactic_cos": 0.403, "random_cos": 0.330},
         },
@@ -81,7 +84,7 @@ def methodology() -> dict:
             "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
             "LANL NTLM signal ablated: behavioral-only still ROC 0.929 — not a protocol crutch.",
             "Next-technique: Markov beats the LSTM at this data scale, so we ship Markov (honest > fancy).",
-            "Anti-circularity: Markov beats the kill-chain-order baseline 5.1x → real transitions.",
+            "Anti-circularity: Markov beats the kill-chain-order baseline 4.7x → real transitions.",
             "CERT-In manual sequences kept unverified until an analyst confirms each mapping.",
             "Every screen renders live analysis output — the sample view is a real analysis of a shipped red-team log.",
         ],

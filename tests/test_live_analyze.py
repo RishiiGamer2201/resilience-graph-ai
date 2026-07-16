@@ -103,3 +103,28 @@ def test_account_scoping_produces_its_own_incident(campaign):
 def test_unknown_account_rejected():
     with pytest.raises(ValueError):
         analyze_events(pd.read_csv(CAMPAIGN), account="NOBODY@DOM1")
+
+
+def test_all_attacker_pivots_are_found(campaign):
+    """Regression: the model assumed ONE entry host. The LANL red team ran from
+    four, so reachability from the busiest one alone silently under-reported."""
+    g = campaign["graph"]
+    assert g["n_pivots"] == 4, "expected all four attacker source hosts"
+    flagged = {n["id"] for n in g["nodes"] if n["pivot"]}
+    assert flagged == set(g["attacker_pivots"])
+
+
+def test_crown_jewels_agree_across_screens(campaign):
+    """Regression: the Attackers table said an account reached a crown jewel while
+    the graph cleared it, because paths were only searched from one pivot."""
+    reached = set()
+    for a in campaign["attackers"]:
+        reached |= set(a["critical_reached"])
+    at_risk = set(campaign["graph"]["critical_assets_at_risk"])
+    assert not (reached - at_risk), f"reached but not flagged at risk: {reached - at_risk}"
+
+
+def test_isolation_cuts_distinct_from_total_exposure(campaign):
+    """Isolating one choke point cannot sever hosts that only other pivots reach."""
+    g = campaign["graph"]
+    assert g["isolation_cuts"] <= g["blast_radius_size"]

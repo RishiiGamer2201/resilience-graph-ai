@@ -37,7 +37,7 @@ export default function Attackers() {
     setBusy(user); setErr(null)
     try {
       const bundle = await analyze({
-        scenario: CAMPAIGN_SCENARIO, account: user, critical_assets: ['C2388'],
+        scenario: CAMPAIGN_SCENARIO, account: user,   // crown jewels: backend default (derived)
       })
       setBundle(bundle)
       navigate('/incident')
