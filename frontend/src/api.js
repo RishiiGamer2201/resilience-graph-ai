@@ -31,6 +31,14 @@ export const getMethodology = () => get("/methodology");
 export const getReport = () => get("/report");
 export const getHealth = () => get("/health");
 
+// ---- Threat Radar: external CTI, cross-referenced with the current incident ----
+// Scoring happens server-side (one implementation). `refresh` re-fetches the free
+// feeds live; the backend falls back to cache if no source responds, and reports
+// which via meta.source.
+export function getThreatRadar({ technique_ids = [], actors = [], refresh = false } = {}) {
+  return post("/threat-radar", { technique_ids, actors, refresh });
+}
+
 // ---- LIVE pipeline: analyze a whole event log ----
 export const getScenarios = () => get("/scenarios");
 

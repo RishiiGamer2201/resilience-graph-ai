@@ -9,6 +9,7 @@ import Analyze from './screens/Analyze.jsx'
 import Overview from './screens/Overview.jsx'
 import Incident from './screens/Incident.jsx'
 import ThreatIntel from './screens/ThreatIntel.jsx'
+import ThreatRadar from './screens/ThreatRadar.jsx'
 import Methodology from './screens/Methodology.jsx'
 
 // Heavy deps (force-graph, recharts) are split off the initial bundle.
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/incident" element={<Incident />} />
               <Route path="/graph" element={<Suspense fallback={<Loading />}><Graph /></Suspense>} />
               <Route path="/threat-intel" element={<ThreatIntel />} />
+              <Route path="/threat-radar" element={<ThreatRadar />} />
               <Route path="/metrics" element={<Suspense fallback={<Loading />}><Metrics /></Suspense>} />
               <Route path="/methodology" element={<Methodology />} />
             </Route>

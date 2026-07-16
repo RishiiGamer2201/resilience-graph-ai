@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database, ScanSearch } from 'lucide-react'
+import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database, ScanSearch, Satellite } from 'lucide-react'
 
 const OPERATIONS = [
   { to: '/analyze', label: 'Analyze Log', icon: ScanSearch },
@@ -7,6 +7,7 @@ const OPERATIONS = [
   { to: '/incident', label: 'Live Incident', icon: Radar, alert: true },
   { to: '/graph', label: 'Attack Graph', icon: Waypoints },
   { to: '/threat-intel', label: 'Threat Intel & Attribution', icon: Shield },
+  { to: '/threat-radar', label: 'Threat Radar', icon: Satellite },
 ]
 const EVIDENCE = [
   { to: '/metrics', label: 'Models & Metrics', icon: LineChart },

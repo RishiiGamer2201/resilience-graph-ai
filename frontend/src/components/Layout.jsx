@@ -8,6 +8,7 @@ const TITLES = {
   '/incident': { title: 'Live Incident', subtitle: 'INC-PS7-LANL-001' },
   '/graph': { title: 'Attack-path Graph', subtitle: 'Blast radius & choke points' },
   '/threat-intel': { title: 'Threat Intel & Attribution', subtitle: 'ATT&CK-driven' },
+  '/threat-radar': { title: 'Threat Radar', subtitle: 'External CTI · free feeds' },
   '/metrics': { title: 'Models & Metrics', subtitle: 'Evidence' },
   '/methodology': { title: 'Data & Methodology', subtitle: 'Our rigor' },
 }

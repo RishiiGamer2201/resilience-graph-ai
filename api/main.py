@@ -137,23 +137,43 @@ def threat_radar():
     return data
 
 
-@app.post("/api/threat-radar/refresh")
-def threat_radar_refresh():
-    """Re-fetch the free CTI feeds live. Any failure falls back to the cached
-    payload (same never-break-the-demo contract as the model widgets)."""
-    from src.shared.osint import collect as collect_osint      # noqa: PLC0415
-    try:
-        data = collect_osint()
-        # collect() isolates each feed, so it succeeds even when EVERY source is
-        # down — that would render an empty radar labelled "live". Only accept a
-        # live result if at least one source actually returned something.
-        if any(s["ok"] for s in data.get("sources", [])) and data.get("items"):
-            data.setdefault("meta", {})["source"] = "live"
-            return data
-    except Exception:
-        pass
-    data = _cached("threat_radar")
-    data.setdefault("meta", {})["source"] = "cache"
+class RadarRequest(BaseModel):
+    technique_ids: list[str] = []      # the incident being investigated
+    actors: list[str] = []             # its attributed actors
+    refresh: bool = False              # re-fetch the feeds live?
+
+
+@app.post("/api/threat-radar")
+def threat_radar_scored(req: RadarRequest):
+    """Radar cross-referenced against the incident you're investigating.
+
+    Scoring runs here (one implementation, `src.shared.osint.relevance`) rather
+    than in the frontend. `refresh` re-fetches the free feeds live; if no source
+    responds we serve the cache — never an empty radar labelled live.
+    """
+    from src.shared.osint import collect as collect_osint, relevance   # noqa: PLC0415
+
+    data = None
+    if req.refresh:
+        try:
+            live = collect_osint()
+            # collect() isolates each feed, so it succeeds even with everything
+            # down; only accept it if a source actually returned something.
+            if any(s["ok"] for s in live.get("sources", [])) and live.get("items"):
+                live.setdefault("meta", {})["source"] = "live"
+                data = live
+        except Exception:
+            data = None
+    if data is None:
+        data = _cached("threat_radar")
+        data.setdefault("meta", {})["source"] = "cache"
+
+    for item in data.get("items", []):
+        item["relevance"] = relevance(item, req.technique_ids, req.actors)
+    # most relevant first, then most recent
+    data["items"].sort(key=lambda i: (i["relevance"]["score"], i.get("published", "")),
+                       reverse=True)
+    data["relevant_count"] = sum(1 for i in data["items"] if i["relevance"]["score"] > 0)
     return data
 
 
