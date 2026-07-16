@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Zap } from 'lucide-react'
-import { getIncident } from '../api.js'
-import { useScreenData } from '../lib/analysis.jsx'
+import { Play, Zap, Radio } from 'lucide-react'
+import { getIncident, streamUrl } from '../api.js'
+import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveScoreWidget from '../components/LiveScoreWidget.jsx'
 import IncidentReport from '../components/IncidentReport.jsx'
@@ -37,13 +37,36 @@ function TimelineRow({ step, animate }) {
 
 export default function Incident() {
   const { data, error, loading } = useScreenData('incident', getIncident)
+  const { setBundle } = useAnalysis()
   const [visible, setVisible] = useState(Infinity)
   const [replaying, setReplaying] = useState(false)
+  const [streamSteps, setStreamSteps] = useState(null)   // null = not streaming
+  const [streaming, setStreaming] = useState(false)
   const timer = useRef(null)
+  const esRef = useRef(null)
 
   const steps = data?.steps || []
 
-  useEffect(() => () => clearInterval(timer.current), [])
+  useEffect(() => () => { clearInterval(timer.current); esRef.current?.close() }, [])
+
+  // Stream the shipped scenario's real per-event scores live (SSE), then promote
+  // the finished analysis to the live bundle so every screen updates.
+  function streamLive() {
+    clearInterval(timer.current); setReplaying(false)
+    esRef.current?.close()
+    setStreamSteps([]); setStreaming(true)
+    const es = new EventSource(streamUrl('lanl_redteam_u66'))
+    esRef.current = es
+    es.addEventListener('step', (e) => {
+      const { step } = JSON.parse(e.data)
+      setStreamSteps((s) => [...(s || []), step])
+    })
+    es.addEventListener('done', (e) => {
+      es.close(); setStreaming(false)
+      try { setBundle(JSON.parse(e.data)) } catch { /* ignore */ }
+    })
+    es.onerror = () => { es.close(); setStreaming(false) }
+  }
 
   function replay() {
     clearInterval(timer.current)
@@ -68,7 +91,9 @@ export default function Incident() {
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 
-  const shown = steps.slice(0, visible === Infinity ? steps.length : visible)
+  const shown = streamSteps !== null
+    ? streamSteps
+    : steps.slice(0, visible === Infinity ? steps.length : visible)
 
   return (
     <>
@@ -84,15 +109,20 @@ export default function Incident() {
       <div className="grid2">
         <Card>
           <CardHeader title="Correlated attack chain — replay"
-            meta={`${shown.length}/${steps.length} steps`}>
-            <button className="btn" onClick={replay} disabled={replaying}
+            meta={streamSteps !== null ? `${shown.length} streamed` : `${shown.length}/${steps.length} steps`}>
+            <button className="btn" onClick={streamLive} disabled={streaming}
+              style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
+              title="Score the shipped scenario's events live over SSE">
+              <Radio size={13} aria-hidden="true" /> {streaming ? 'Streaming…' : 'Stream live'}
+            </button>
+            <button className="btn" onClick={replay} disabled={replaying || streaming}
               style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
               <Play size={13} aria-hidden="true" /> {replaying ? 'Replaying…' : 'Replay'}
             </button>
           </CardHeader>
           <div className="card-b" style={{ maxHeight: 620, overflowY: 'auto' }}>
             {shown.map((step, i) => (
-              <TimelineRow key={`${step.timestamp}-${i}`} step={step} animate={replaying} />
+              <TimelineRow key={`${step.timestamp}-${i}`} step={step} animate={replaying || streaming} />
             ))}
           </div>
         </Card>

@@ -241,6 +241,37 @@ async def analyze_upload(file: UploadFile = File(...),
     return _run_analysis(df, crit, incident_id)
 
 
+@app.get("/api/analyze/stream")
+async def analyze_stream(scenario: str, critical_assets: str = "", delay: float = 0.15):
+    """Server-Sent Events: replay a scenario's real per-event scores one at a time,
+    then a final `done` event carrying the full analysis bundle. The scoring is real
+    (done up front by analyze_events); the delay just paces the on-stage reveal."""
+    import asyncio
+    from fastapi.responses import StreamingResponse
+
+    path = SCENARIOS / f"{scenario}.csv"
+    if not path.exists():
+        raise HTTPException(404, f"unknown scenario '{scenario}'")
+    crit = [c.strip() for c in critical_assets.split(",") if c.strip()] \
+        or SCENARIO_META.get(scenario, {}).get("critical_default", [])
+    try:
+        bundle = analyze_events(pd.read_csv(path), critical_assets=set(crit),
+                                incident_id="INC-STREAM-001")
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    steps = bundle["incident"]["steps"]
+
+    async def gen():
+        for i, s in enumerate(steps):
+            payload = json.dumps({"i": i, "total": len(steps), "step": s})
+            yield f"event: step\ndata: {payload}\n\n"
+            await asyncio.sleep(max(0.0, min(delay, 1.0)))
+        yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 # --- serve the built React app (single-container deploy) -------------------
 # When frontend/dist exists (production image), FastAPI serves the SPA from the
 # same origin as /api — no CORS, one URL. In local dev the Vite server handles

@@ -51,6 +51,12 @@ export async function analyze({ scenario, events, critical_assets = [], incident
   return r.json();
 }
 
+// SSE URL for the streaming replay (EventSource needs a plain URL; same-origin
+// /api is proxied in dev and same-origin in prod).
+export const streamUrl = (scenario, critical_assets = []) =>
+  `${BASE}/analyze/stream?scenario=${encodeURIComponent(scenario)}` +
+  (critical_assets.length ? `&critical_assets=${encodeURIComponent(critical_assets.join(','))}` : '');
+
 // Analyze an uploaded CSV file (multipart).
 export async function analyzeUpload(file, critical_assets = [], incident_id = "INC-UPLOAD-001") {
   const fd = new FormData();
