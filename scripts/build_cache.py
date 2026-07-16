@@ -48,27 +48,10 @@ def _write(name: str, obj: dict) -> None:
 
 
 def metrics() -> dict:
-    # verified numbers mirror reports/ (Engine 1/2 evaluation reports)
-    return {
-        "engine1": {
-            "cicids": {"random_prauc": 0.155, "rule_prauc": 0.098,
-                       "iforest_prauc": 0.473, "autoencoder_prauc": 0.570,
-                       "iforest_roc": 0.826, "note": "benign-only, PR-AUC not accuracy"},
-            "lanl": {"roc_auc": 0.988, "tpr_at_1pct_fpr": 0.514, "tpr_at_5pct_fpr": 0.969,
-                     "behavioral_only_roc": 0.929, "note": "702 real red-team events; NTLM ablation"},
-            "unsw": {"roc_auc": 0.829, "prauc": 0.867, "note": "2nd benchmark, official split"},
-        },
-        # ⚠️ These mirror reports/prediction_eval.md — they were hand-copied and had
-        # drifted from a later run (UI claimed 5.1x anti-circularity; the report says
-        # 4.7x). Re-check against the report whenever the predictor is retrained.
-        "engine2": {
-            "predictor": {"most_frequent_top3": 0.053, "killchain_top3": 0.083,
-                          "lstm_top3": 0.284, "markov_top3": 0.386,
-                          "note": "Markov shipped; 4.7x the kill-chain baseline = anti-circularity"},
-            "manual_cert_in_top3": 0.087,
-            "embeddings": {"same_tactic_cos": 0.403, "random_cos": 0.330},
-        },
-    }
+    # canonical numbers from reports/metrics.json (written by the eval scripts) —
+    # no hand-copying, so the Metrics screen can't drift from the reports again.
+    from src.shared.metrics_store import load as load_metrics
+    return load_metrics()
 
 
 def methodology() -> dict:

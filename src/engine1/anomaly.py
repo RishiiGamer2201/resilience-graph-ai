@@ -443,6 +443,19 @@ def main() -> None:
     save_pr_curve(y_test, score_sets, prevalence)
     write_report(data, metrics, thresholds, recall_df, prevalence)
 
+    try:
+        from src.shared.metrics_store import update as _update
+        ae = metrics.get("Autoencoder", {})
+        _update("engine1", "cicids", {
+            "random_prauc": round(metrics["Random"]["pr_auc"], 3),
+            "rule_prauc": round(metrics["Rule (Flow Packets/s)"]["pr_auc"], 3),
+            "iforest_prauc": round(metrics["IsolationForest"]["pr_auc"], 3),
+            "autoencoder_prauc": round(ae.get("pr_auc", 0.0), 3),
+            "iforest_roc": round(metrics["IsolationForest"]["roc_auc"], 3),
+            "note": "benign-only, PR-AUC not accuracy"})
+    except Exception as e:
+        print(f"  [metrics_store skipped: {e}]")
+
     # --- console summary -----------------------------------------------------
     print("\n=== RESULTS (PR-AUC primary) ===")
     print(f"{'model':<26}{'PR-AUC':>9}{'ROC-AUC':>9}{'prec':>8}{'recall':>8}{'F1':>8}")

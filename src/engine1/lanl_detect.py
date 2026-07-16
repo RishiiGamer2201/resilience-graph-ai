@@ -139,6 +139,18 @@ def main() -> None:
 
     joblib.dump({"model": iforest, "scaler": scaler, "features": FEATURES}, MODEL_PATH)
 
+    # canonical metrics for the Metrics screen (no hand-copying)
+    tpr1 = next(t for f, t, *_ in rows if f == 0.01)
+    tpr5 = next(t for f, t, *_ in rows if f == 0.05)
+    try:
+        from src.shared.metrics_store import update as _update
+        _update("engine1", "lanl", {
+            "roc_auc": round(float(roc), 3), "tpr_at_1pct_fpr": round(tpr1, 3),
+            "tpr_at_5pct_fpr": round(tpr5, 3), "behavioral_only_roc": round(float(roc_beh), 3),
+            "note": "702 real red-team events; NTLM ablation"})
+    except Exception as e:
+        print(f"  [metrics_store skipped: {e}]")
+
     # --- report ---
     lines = [
         "# Engine 1.3 — LANL Lateral-Movement Detection (red-team ground truth)",

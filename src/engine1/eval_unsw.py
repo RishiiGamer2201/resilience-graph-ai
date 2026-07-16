@@ -92,6 +92,14 @@ def main() -> None:
     MODEL.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump({"preprocessor": preprocessor, "model": detector, "features": features, "threshold": threshold, "training": "official UNSW train benign rows only"}, MODEL)
     prevalence = float(labels.mean())
+    try:
+        from src.shared.metrics_store import update as _update
+        iso = results["IsolationForest"]
+        _update("engine1", "unsw", {"roc_auc": round(iso["roc_auc"], 3),
+                                    "prauc": round(iso["pr_auc"], 3),
+                                    "note": "2nd benchmark, official split"})
+    except Exception as e:
+        print(f"  [metrics_store skipped: {e}]")
     lift_random = results["IsolationForest"]["pr_auc"] / max(results["Random"]["pr_auc"], 1e-9)
     lift_rule = results["IsolationForest"]["pr_auc"] / max(results["Rule"]["pr_auc"], 1e-9)
     REPORT.parent.mkdir(parents=True, exist_ok=True)

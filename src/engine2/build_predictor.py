@@ -269,6 +269,21 @@ def main() -> None:
     mk_vs_kc = results["markov"][3] / max(results["killchain"][3], 1e-9)   # anti-circularity
     lstm_vs_mk = results["lstm"][3] / max(results["markov"][3], 1e-9)
 
+    # write the canonical numbers so the Metrics screen never drifts from this run
+    try:
+        from src.shared.metrics_store import update as _update
+        _update("engine2", "predictor", {
+            "most_frequent_top3": round(results["most_frequent"][3], 3),
+            "killchain_top3": round(results["killchain"][3], 3),
+            "lstm_top3": round(results["lstm"][3], 3),
+            "markov_top3": round(results["markov"][3], 3),
+            "note": f"Markov shipped; {mk_vs_kc:.1f}x the kill-chain baseline = anti-circularity",
+        })
+        if manual_res is not None:
+            _update("engine2", "manual_cert_in_top3", round(manual_res[3], 3))
+    except Exception as e:                       # reporting must never break the eval
+        print(f"  [metrics_store skipped: {e}]")
+
     lines = [
         "# Engine 2.4 — Next-Technique Predictor (honest eval)",
         "",

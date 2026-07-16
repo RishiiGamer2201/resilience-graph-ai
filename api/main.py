@@ -164,6 +164,7 @@ def threat_radar():
 class RadarRequest(BaseModel):
     technique_ids: list[str] = []      # the incident being investigated
     actors: list[str] = []             # its attributed actors
+    edges: list[dict] = []             # its graph edges (for the exposure bridge)
     refresh: bool = False              # re-fetch the feeds live?
 
 
@@ -192,9 +193,36 @@ def threat_radar_scored(req: RadarRequest):
         data = _cached("threat_radar")
         data.setdefault("meta", {})["source"] = "cache"
 
+    # Technique bridge: for each ATT&CK technique in a radar item, which of YOUR
+    # own movements use that same technique. Real on both sides — the external
+    # report and your graph edges — so "this is in the news, where am I exposed?"
+    # is answered without inventing anything.
+    edges = req.edges
+    if not edges:
+        try:
+            edges = _cached("graph").get("edges", [])   # default: the campaign graph
+        except HTTPException:
+            edges = []
+    from src.shared.osint import tactics_of
+    by_tech: dict[str, list[dict]] = {}
+    by_tactic: dict[str, list[dict]] = {}
+    for e in edges:
+        mv = {"from": e.get("from"), "to": e.get("to"), "score": e.get("score"),
+              "event_count": e.get("event_count", 1), "technique": e.get("technique")}
+        by_tech.setdefault(e.get("technique"), []).append(mv)
+        for tac in tactics_of([e.get("technique")]):
+            by_tactic.setdefault(tac, []).append(mv)
+
     for item in data.get("items", []):
-        item["relevance"] = relevance(item, req.technique_ids, req.actors)
-    # most relevant first, then most recent
+        rel = relevance(item, req.technique_ids, req.actors)
+        item["relevance"] = rel
+        # exact-technique exposure (strongest), else tactic-level (broader, honest)
+        exp = {t: by_tech.get(t, [])[:20] for t in rel["matched_techniques"] if by_tech.get(t)}
+        exp_tac = ({} if exp else
+                   {tac: by_tactic.get(tac, [])[:20] for tac in rel["matched_tactics"] if by_tactic.get(tac)})
+        item["your_exposure"] = exp
+        item["your_exposure_tactic"] = exp_tac
+
     data["items"].sort(key=lambda i: (i["relevance"]["score"], i.get("published", "")),
                        reverse=True)
     data["relevant_count"] = sum(1 for i in data["items"] if i["relevance"]["score"] > 0)

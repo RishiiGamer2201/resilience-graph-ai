@@ -36,8 +36,8 @@ export const getHealth = () => get("/health");
 // Scoring happens server-side (one implementation). `refresh` re-fetches the free
 // feeds live; the backend falls back to cache if no source responds, and reports
 // which via meta.source.
-export function getThreatRadar({ technique_ids = [], actors = [], refresh = false } = {}) {
-  return post("/threat-radar", { technique_ids, actors, refresh });
+export function getThreatRadar({ technique_ids = [], actors = [], edges = [], refresh = false } = {}) {
+  return post("/threat-radar", { technique_ids, actors, edges, refresh });
 }
 
 // ---- LIVE pipeline: analyze a whole event log ----

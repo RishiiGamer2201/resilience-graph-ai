@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-07-16 20:09 IST",
+  "fetched_at": "2026-07-16 20:15 IST",
   "items": [
     {
       "source": "ET CISO (India)",
@@ -152,6 +152,17 @@
       "published": "2026-07-16 19:17 IST",
       "url": "https://www.bleepingcomputer.com/news/security/23andme-to-pay-18-million-in-new-genetics-data-breach-settlement/",
       "text": "Genetic testing company 23andMe has agreed to pay $18 million to settle claims from a coalition of 43 attorneys general that it failed to protect customers' genetic data. [...]",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "n8n Token Exchange Flaw Could Let Attackers Log In as Users From Another Issuer",
+      "published": "2026-07-16 19:03 IST",
+      "url": "https://thehackernews.com/2026/07/n8n-token-exchange-flaw-could-let.html",
+      "text": "n8n, the workflow automation platform, handed out the wrong accounts at login. On Enterprise instances configured to trust more than one external token issuer, it matched an incoming JWT to a local user on the&nbsp;sub&nbsp;claim alone and ignored&nbsp;iss. A valid token from issuer A carrying a&nbsp;sub&nbsp;that belongs to someone under issuer B logged you in as them. Their password never",
       "tags": [],
       "iocs": [],
       "india": false,
@@ -343,19 +354,6 @@
       "iocs": [],
       "india": false,
       "techniques": []
-    },
-    {
-      "source": "The Hacker News",
-      "title": "TuxBot v3 Evolution Shows Signs of LLM-Assisted IoT Botnet Development",
-      "published": "2026-07-16 00:13 IST",
-      "url": "https://thehackernews.com/2026/07/tuxbot-v3-evolution-shows-signs-of-llm.html",
-      "text": "Cybersecurity researchers have disclosed details of a previously unreported Internet-of-Things (IoT) botnet framework dubbed TuxBot v3 Evolution that shows signs of being developed with assistance from a large language model (LLM), albeit with not so successful results. \"While the AI complied with their request to generate botnet code, it included a safety disclaimer that the developer failed",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1584.005"
-      ]
     },
     {
       "source": "BleepingComputer",

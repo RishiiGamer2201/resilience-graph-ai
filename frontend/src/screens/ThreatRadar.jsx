@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { RefreshCw, ExternalLink, ShieldAlert, Siren, Check, X, Waypoints } from 'lucide-react'
-import { getThreatRadar, getIncident, getThreatIntel } from '../api.js'
+import { RefreshCw, ExternalLink, ShieldAlert, Siren, Check, X, Waypoints, Crosshair } from 'lucide-react'
+import { getThreatRadar, getIncident, getThreatIntel, getGraph } from '../api.js'
 import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveBadge from '../components/LiveBadge.jsx'
@@ -103,6 +103,38 @@ function RadarItem({ item, names, onAlert, alerted }) {
           </button>
         </div>
       )}
+
+      {(() => {
+        const exact = item.your_exposure && Object.keys(item.your_exposure).length > 0
+        const bridge = exact ? item.your_exposure : (item.your_exposure_tactic || {})
+        if (Object.keys(bridge).length === 0) return null
+        return (
+          <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, marginBottom: 4 }}>
+              <Crosshair size={12} aria-hidden="true" style={{ verticalAlign: -2, color: 'var(--sev-high)' }} />
+              {' '}Where you're exposed — {exact ? 'same technique' : 'same tactic'} in your own incident
+            </div>
+            {Object.entries(bridge).map(([key, moves]) => (
+              <div key={key} style={{ marginBottom: 4 }}>
+                <span className="mono" style={{ fontSize: 11, color: 'var(--sev-high)' }}>{key}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-dim)' }}> — {moves.length} of your movements:</span>
+                <div className="chips" style={{ marginTop: 3 }}>
+                  {moves.slice(0, 8).map((m, k) => (
+                    <span key={k} className="chip mono" title={`${m.technique} · anomaly score ${m.score}`}>
+                      {m.from}→{m.to}{m.event_count > 1 ? ` ×${m.event_count}` : ''}
+                    </span>
+                  ))}
+                  {moves.length > 8 && <span className="chip">+{moves.length - 8}</span>}
+                </div>
+              </div>
+            ))}
+            <Link to="/graph" className="btn"
+              style={{ marginTop: 4, padding: '2px 8px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+              <Waypoints size={11} aria-hidden="true" /> Open these in the Attack Graph
+            </Link>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -112,6 +144,7 @@ export default function ThreatRadar() {
   // otherwise the sample. Drives the cross-reference.
   const { data: incident } = useScreenData('incident', getIncident)
   const { data: intel } = useScreenData('threat_intel', getThreatIntel)
+  const { data: graph } = useScreenData('graph', getGraph)
 
   const [radar, setRadar] = useState(null)
   const [error, setError] = useState(null)
@@ -128,18 +161,22 @@ export default function ThreatRadar() {
 
   const techniques = incident?.technique_ids || []
   const actors = (intel?.attribution || []).slice(0, 3).map((a) => a.actor)
+  // compact edges so the backend can map an external technique -> your movements
+  const edges = (graph?.edges || []).map((e) => ({
+    technique: e.technique, from: e.from, to: e.to, score: e.score, event_count: e.event_count,
+  }))
 
   const load = useCallback(async (refresh = false) => {
     setBusy(true); setError(null)
     try {
-      setRadar(await getThreatRadar({ technique_ids: techniques, actors, refresh }))
+      setRadar(await getThreatRadar({ technique_ids: techniques, actors, edges, refresh }))
     } catch (e) {
       setError(e)
     } finally {
       setBusy(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(techniques), JSON.stringify(actors)])
+  }, [JSON.stringify(techniques), JSON.stringify(actors), edges.length])
 
   useEffect(() => { load(false) }, [load])
 
