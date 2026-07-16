@@ -53,7 +53,7 @@ Correlation (215 events → 1 CRITICAL incident, U66@DOM1) → ATT&CK mapping (T
 Single-container Dockerfile (SPA baked in, slim deps), `render.yaml` blueprint, deploy artifacts force-added to git.
 
 ## Phase 8 — De-hardcode → live pipeline 🔄
-Teammate flagged the app "looks hardcoded." It wasn't fake data (cache came from real runs) but it *behaved* statically — one baked incident, only 2 live endpoints, plus a few genuinely fabricated UI bits. Fix: a live analysis pipeline + honest UI. Full task detail in the plan file `~/.claude/plans/why-have-you-added-parallel-pine.md`. Branch: `remove-hardcode`.
+Teammate flagged the app "looks hardcoded." It wasn't fake data (cache came from real runs) but it *behaved* statically — one baked incident, only 2 live endpoints, plus a few genuinely fabricated UI bits. Fix: a live analysis pipeline + honest UI. Full task detail + findings in [research/claude/dehardcode_plan.md](research/claude/dehardcode_plan.md). Branch: `remove-hardcode`.
 
 - [x] **8.1 Live engine** — `src/shared/live_analyze.analyze_events()` runs the whole spine on any event log; `views.py` shares transforms with the cache; MTTD computed from timestamps.
 - [x] **8.2 API** — `POST /api/analyze`, `/analyze/upload`, `GET /api/scenarios`; sample cache is now a real analysis of a shipped LANL log.
