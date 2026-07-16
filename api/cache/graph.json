@@ -1,12 +1,72 @@
 {
   "entry_host": "C17693",
   "critical_assets_at_risk": [
-    "C2388"
+    "C1015",
+    "C2106",
+    "C231",
+    "C3173",
+    "C457",
+    "C467",
+    "C528",
+    "C529",
+    "C585",
+    "C586",
+    "C625",
+    "C706",
+    "C801"
   ],
   "paths_to_critical": {
-    "C2388": [
+    "C231": [
       "C17693",
-      "C2388"
+      "C231"
+    ],
+    "C585": [
+      "C17693",
+      "C585"
+    ],
+    "C586": [
+      "C17693",
+      "C586"
+    ],
+    "C801": [
+      "C17693",
+      "C801"
+    ],
+    "C457": [
+      "C17693",
+      "C457"
+    ],
+    "C706": [
+      "C17693",
+      "C706"
+    ],
+    "C1015": [
+      "C17693",
+      "C1015"
+    ],
+    "C528": [
+      "C17693",
+      "C528"
+    ],
+    "C529": [
+      "C17693",
+      "C529"
+    ],
+    "C625": [
+      "C17693",
+      "C625"
+    ],
+    "C2106": [
+      "C17693",
+      "C2106"
+    ],
+    "C467": [
+      "C17693",
+      "C467"
+    ],
+    "C3173": [
+      "C17693",
+      "C3173"
     ]
   },
   "choke_points": [
@@ -56,7 +116,7 @@
     },
     {
       "id": "C1015",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -116,7 +176,7 @@
     },
     {
       "id": "C1065",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -591,7 +651,7 @@
     },
     {
       "id": "C1640",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -1061,7 +1121,7 @@
     },
     {
       "id": "C2106",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -1176,7 +1236,7 @@
     },
     {
       "id": "C231",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -1206,7 +1266,7 @@
     },
     {
       "id": "C2388",
-      "critical": true,
+      "critical": false,
       "pivot": false
     },
     {
@@ -1496,7 +1556,7 @@
     },
     {
       "id": "C3173",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -1836,7 +1896,7 @@
     },
     {
       "id": "C457",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -1861,7 +1921,7 @@
     },
     {
       "id": "C467",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -1986,12 +2046,12 @@
     },
     {
       "id": "C528",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
       "id": "C529",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -2051,12 +2111,12 @@
     },
     {
       "id": "C585",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
       "id": "C586",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -2066,12 +2126,12 @@
     },
     {
       "id": "C612",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
       "id": "C625",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -2121,7 +2181,7 @@
     },
     {
       "id": "C706",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -2156,7 +2216,7 @@
     },
     {
       "id": "C743",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {
@@ -2216,7 +2276,7 @@
     },
     {
       "id": "C801",
-      "critical": false,
+      "critical": true,
       "pivot": false
     },
     {

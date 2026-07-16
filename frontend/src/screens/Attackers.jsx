@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Crosshair, Loader2 } from 'lucide-react'
 import { getAttackers, getIncident, analyze } from '../api.js'
+import { useFetch } from '../lib/useFetch.js'
 import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import { fmtTime } from '../lib/format.js'
@@ -10,10 +11,12 @@ import { fmtTime } from '../lib/format.js'
 const CAMPAIGN_SCENARIO = 'lanl_campaign_all'
 
 export default function Attackers() {
-  const { data, error, loading } = useScreenData('attackers', () =>
-    getAttackers().then((d) => d.attackers))
+  // The roster is always the CAMPAIGN's accounts. Reading it from the live bundle
+  // would collapse the list to one row the moment you open a single account.
+  const { data: cached, error, loading } = useFetch(() => getAttackers().then((d) => d.attackers))
+  const { bundle, setBundle } = useAnalysis()
+  const data = (bundle?.attackers?.length > 1 ? bundle.attackers : null) || cached
   const { data: incident } = useScreenData('incident', getIncident)
-  const { setBundle } = useAnalysis()
   const navigate = useNavigate()
 
   const [q, setQ] = useState('')

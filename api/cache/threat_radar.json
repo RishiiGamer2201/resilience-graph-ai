@@ -1,6 +1,16 @@
 {
-  "fetched_at": "2026-07-16 19:28 IST",
+  "fetched_at": "2026-07-16 19:43 IST",
   "items": [
+    {
+      "source": "BleepingComputer",
+      "title": "AI Agents Broke the Security Playbook. Here's What Replaces It.",
+      "published": "2026-07-16 19:30 IST",
+      "url": "https://www.bleepingcomputer.com/news/security/ai-agents-broke-the-security-playbook-heres-what-replaces-it/",
+      "text": "Traditional security workflows were built for environments that changed at human speed. Token Security explains why AI agents require a new approach: building on a live identity foundation while giving security teams the flexibility to create workflows tailored to their own environments. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
     {
       "source": "BleepingComputer",
       "title": "23andMe to pay $18 million in new genetics data breach settlement",
@@ -205,16 +215,6 @@
       "techniques": [
         "T1584.005"
       ]
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "AsyncAPI npm packages infected with credential-stealing malware",
-      "published": "2026-07-15 21:07 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/-asyncapi-npm-packages-infected-with-credential-stealing-malware/",
-      "text": "Five malicious versions of AsyncAPI packages were published to the Node Package Manager (npm) in a supply-chain attack that delivered a remote access trojan with info-stealing capabilities. [...]",
-      "tags": [],
-      "iocs": [],
-      "techniques": []
     },
     {
       "source": "CISA advisories",

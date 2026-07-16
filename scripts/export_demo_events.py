@@ -11,6 +11,7 @@ Run (needs the local LANL parquet once; output is committed):
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -63,11 +64,53 @@ def lanl_campaign() -> pd.DataFrame:
     return sub[keep]
 
 
+def critical_assets(top_n: int = 20) -> dict:
+    """Derive the estate's crown jewels from the data.
+
+    ⚠️ LANL is anonymised and carries NO asset-criticality ground truth (every row
+    is 'medium'). The previous demo hard-coded a single "crown jewel" that
+    run_spine had picked as the MIDDLE ELEMENT of the reached-host list — an
+    arbitrary choice dressed up as a finding.
+
+    Instead we derive it from a real signal: the hosts the most distinct accounts
+    authenticate to are the ones the estate depends on (domain controllers, auth
+    and file servers). This is a stated heuristic, not a label from the dataset.
+    """
+    df = pd.read_parquet(PARQUET, columns=["destination_host", "user", "label"])
+    depend = df.groupby("destination_host")["user"].nunique().sort_values(ascending=False)
+    top = depend.head(top_n)
+    mal = df[df.label == 1]
+    reached = set(mal["destination_host"].unique())
+    assets = []
+    for host, n_accounts in top.items():
+        hits = mal[mal.destination_host == host]
+        assets.append({
+            "host": host,
+            "accounts_dependent": int(n_accounts),
+            "reached_by_redteam": host in reached,
+            "redteam_accounts": int(hits["user"].nunique()),
+            "redteam_events": int(len(hits)),
+        })
+    return {
+        "basis": "hosts the most distinct accounts authenticate to (domain "
+                 "controllers / auth / file servers)",
+        "caveat": "LANL is anonymised and has no asset-criticality labels; this is a "
+                  "derived heuristic, not ground truth from the dataset.",
+        "assets": assets,
+    }
+
+
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     if not PARQUET.exists():
         raise SystemExit(f"Missing {PARQUET} — this export needs the local LANL parquet "
                          "(run src.engine1.prep_lanl once). Output CSVs are committed.")
+
+    crit = critical_assets()
+    (OUT_DIR / "critical_assets.json").write_text(json.dumps(crit, indent=2), encoding="utf-8")
+    hit = [a["host"] for a in crit["assets"] if a["reached_by_redteam"]]
+    print(f"wrote critical_assets.json — {len(crit['assets'])} crown jewels, "
+          f"{len(hit)} reached by the red team: {', '.join(hit)}")
     for name, fn in (("lanl_campaign_all", lanl_campaign), ("lanl_redteam_u66", lanl_u66)):
         df = fn()
         out = OUT_DIR / f"{name}.csv"

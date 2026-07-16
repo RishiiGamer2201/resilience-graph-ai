@@ -66,7 +66,7 @@
     "last_seen": 2373132,
     "hosts_reached": 129,
     "critical_reached": [
-      "C2388"
+      "C1015"
     ],
     "severity": "critical"
   },
@@ -101,7 +101,11 @@
     "first_seen": 226825,
     "last_seen": 1081625,
     "hosts_reached": 15,
-    "critical_reached": [],
+    "critical_reached": [
+      "C231",
+      "C467",
+      "C625"
+    ],
     "severity": "critical"
   },
   {
@@ -157,7 +161,20 @@
     "first_seen": 464542,
     "last_seen": 2557047,
     "hosts_reached": 34,
-    "critical_reached": [],
+    "critical_reached": [
+      "C1065",
+      "C2106",
+      "C3173",
+      "C457",
+      "C467",
+      "C528",
+      "C529",
+      "C585",
+      "C586",
+      "C612",
+      "C625",
+      "C743"
+    ],
     "severity": "critical"
   },
   {
@@ -209,7 +226,11 @@
     "first_seen": 725983,
     "last_seen": 2296329,
     "hosts_reached": 33,
-    "critical_reached": [],
+    "critical_reached": [
+      "C231",
+      "C706",
+      "C801"
+    ],
     "severity": "critical"
   },
   {
@@ -371,7 +392,9 @@
     "first_seen": 151036,
     "last_seen": 561314,
     "hosts_reached": 22,
-    "critical_reached": [],
+    "critical_reached": [
+      "C625"
+    ],
     "severity": "critical"
   },
   {
@@ -405,7 +428,9 @@
     "first_seen": 1076086,
     "last_seen": 2365157,
     "hosts_reached": 15,
-    "critical_reached": [],
+    "critical_reached": [
+      "C1015"
+    ],
     "severity": "critical"
   },
   {
@@ -498,9 +523,7 @@
     "first_seen": 772728,
     "last_seen": 1079602,
     "hosts_reached": 14,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "critical"
   },
   {
@@ -533,7 +556,7 @@
     "last_seen": 2373636,
     "hosts_reached": 13,
     "critical_reached": [
-      "C2388"
+      "C3173"
     ],
     "severity": "critical"
   },
@@ -568,7 +591,11 @@
     "first_seen": 1077076,
     "last_seen": 2365187,
     "hosts_reached": 15,
-    "critical_reached": [],
+    "critical_reached": [
+      "C1015",
+      "C3173",
+      "C585"
+    ],
     "severity": "critical"
   },
   {
@@ -606,9 +633,7 @@
     "first_seen": 753122,
     "last_seen": 1175545,
     "hosts_reached": 20,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "high"
   },
   {
@@ -736,9 +761,7 @@
     "first_seen": 763947,
     "last_seen": 1165610,
     "hosts_reached": 16,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "critical"
   },
   {
@@ -793,7 +816,15 @@
     "first_seen": 830008,
     "last_seen": 2454979,
     "hosts_reached": 13,
-    "critical_reached": [],
+    "critical_reached": [
+      "C1065",
+      "C1640",
+      "C2106",
+      "C457",
+      "C467",
+      "C528",
+      "C529"
+    ],
     "severity": "high"
   },
   {
@@ -843,7 +874,10 @@
     "first_seen": 768006,
     "last_seen": 2305762,
     "hosts_reached": 8,
-    "critical_reached": [],
+    "critical_reached": [
+      "C231",
+      "C706"
+    ],
     "severity": "critical"
   },
   {
@@ -871,7 +905,9 @@
     "first_seen": 741190,
     "last_seen": 768685,
     "hosts_reached": 9,
-    "critical_reached": [],
+    "critical_reached": [
+      "C801"
+    ],
     "severity": "critical"
   },
   {
@@ -894,7 +930,9 @@
     "first_seen": 1075508,
     "last_seen": 2552687,
     "hosts_reached": 4,
-    "critical_reached": [],
+    "critical_reached": [
+      "C1015"
+    ],
     "severity": "critical"
   },
   {
@@ -1000,9 +1038,7 @@
     "first_seen": 768120,
     "last_seen": 1246653,
     "hosts_reached": 6,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "critical"
   },
   {
@@ -1131,7 +1167,14 @@
     "first_seen": 1180895,
     "last_seen": 2305421,
     "hosts_reached": 8,
-    "critical_reached": [],
+    "critical_reached": [
+      "C2106",
+      "C457",
+      "C528",
+      "C529",
+      "C586",
+      "C625"
+    ],
     "severity": "critical"
   },
   {
@@ -1155,7 +1198,9 @@
     "first_seen": 736013,
     "last_seen": 2363589,
     "hosts_reached": 5,
-    "critical_reached": [],
+    "critical_reached": [
+      "C801"
+    ],
     "severity": "critical"
   },
   {
@@ -1203,9 +1248,7 @@
     "first_seen": 1243498,
     "last_seen": 1361452,
     "hosts_reached": 6,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "critical"
   },
   {
@@ -1255,7 +1298,10 @@
     "first_seen": 725488,
     "last_seen": 830548,
     "hosts_reached": 6,
-    "critical_reached": [],
+    "critical_reached": [
+      "C231",
+      "C706"
+    ],
     "severity": "high"
   },
   {
@@ -1396,7 +1442,9 @@
     "first_seen": 729056,
     "last_seen": 2303870,
     "hosts_reached": 4,
-    "critical_reached": [],
+    "critical_reached": [
+      "C3173"
+    ],
     "severity": "critical"
   },
   {
@@ -1503,9 +1551,7 @@
     "first_seen": 1075114,
     "last_seen": 2303974,
     "hosts_reached": 4,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "high"
   },
   {
@@ -1545,9 +1591,7 @@
     "first_seen": 1075016,
     "last_seen": 1076812,
     "hosts_reached": 1,
-    "critical_reached": [
-      "C2388"
-    ],
+    "critical_reached": [],
     "severity": "critical"
   },
   {
@@ -2510,7 +2554,9 @@
     "first_seen": 741971,
     "last_seen": 741971,
     "hosts_reached": 1,
-    "critical_reached": [],
+    "critical_reached": [
+      "C1015"
+    ],
     "severity": "high"
   },
   {

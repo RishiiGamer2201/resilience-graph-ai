@@ -4,6 +4,7 @@ score→correlate→graph→SOAR→attribute→report pipeline breaks.
 
     ./.venv/Scripts/python.exe -m pytest tests/test_live_analyze.py -q
 """
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -19,7 +20,7 @@ SCENARIO = ROOT / "data" / "demo" / "scenarios" / "lanl_redteam_u66.csv"
 def bundle():
     if not SCENARIO.exists():
         pytest.skip("run scripts.export_demo_events first")
-    return analyze_events(pd.read_csv(SCENARIO), critical_assets={"C2388"},
+    return analyze_events(pd.read_csv(SCENARIO), critical_assets=set(CRIT),
                           incident_id="INC-TEST")
 
 
@@ -53,8 +54,8 @@ def test_mttd_computed_from_timestamps(bundle):
 
 
 def test_critical_asset_is_caller_supplied(bundle):
-    # C2388 was passed in; it should surface as at-risk (no auto-guessing)
-    assert bundle["meta"]["critical_assets"] == ["C2388"]
+    # crown jewels come from the caller — the engine never guesses one
+    assert bundle['meta']['critical_assets'] == sorted(CRIT)
 
 
 def test_rejects_oversized_and_empty():
@@ -63,6 +64,7 @@ def test_rejects_oversized_and_empty():
 
 
 # --- campaign: many accounts in one log ------------------------------------
+CRIT = [a["host"] for a in json.loads((ROOT / "data" / "demo" / "scenarios" / "critical_assets.json").read_text())["assets"]] if (ROOT / "data" / "demo" / "scenarios" / "critical_assets.json").exists() else []
 CAMPAIGN = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"
 
 
@@ -70,7 +72,7 @@ CAMPAIGN = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"
 def campaign():
     if not CAMPAIGN.exists():
         pytest.skip("run scripts.export_demo_events first")
-    return analyze_events(pd.read_csv(CAMPAIGN), critical_assets={"C2388"},
+    return analyze_events(pd.read_csv(CAMPAIGN), critical_assets=set(CRIT),
                           incident_id="INC-CAMPAIGN")
 
 
@@ -90,7 +92,7 @@ def test_campaign_edges_keep_every_account(campaign):
 
 
 def test_account_scoping_produces_its_own_incident(campaign):
-    scoped = analyze_events(pd.read_csv(CAMPAIGN), critical_assets={"C2388"},
+    scoped = analyze_events(pd.read_csv(CAMPAIGN), critical_assets=set(CRIT),
                             account="U1723@DOM1")
     assert scoped["incident"]["is_campaign"] is False
     assert scoped["incident"]["account"] == "U1723@DOM1"

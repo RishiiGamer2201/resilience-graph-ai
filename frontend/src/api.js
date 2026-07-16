@@ -46,11 +46,12 @@ export const getScenarios = () => get("/scenarios");
 // Analyze a shipped scenario or raw event rows → full bundle (overview,
 // incident, graph, threat_intel, report, meta). Errors bubble up so the
 // Analyze screen can show the backend's validation message.
-export async function analyze({ scenario, events, critical_assets = [], incident_id }) {
+// `account` scopes a campaign log to one compromised account's own incident.
+export async function analyze({ scenario, events, critical_assets = [], incident_id, account }) {
   const r = await fetch(`${BASE}/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scenario, events, critical_assets, incident_id }),
+    body: JSON.stringify({ scenario, events, critical_assets, incident_id, account }),
   });
   if (!r.ok) {
     let msg = `${r.status}`;

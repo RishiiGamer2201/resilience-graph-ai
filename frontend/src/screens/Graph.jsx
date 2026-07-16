@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Route, X, Search, Crosshair } from 'lucide-react'
-import { getGraph } from '../api.js'
-import { useScreenData } from '../lib/analysis.jsx'
+import { getGraph, getAttackers, analyze } from '../api.js'
+import { useFetch } from '../lib/useFetch.js'
+import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import { useTheme } from '../lib/theme.jsx'
 import { cssVar, fmtTime, severityFromScore } from '../lib/format.js'
@@ -104,15 +105,39 @@ function HostDetail({ id, data, onClose, onPick }) {
   )
 }
 
+const CAMPAIGN_SCENARIO = 'lanl_campaign_all'
+
 export default function Graph() {
   const { data, error, loading } = useScreenData('graph', getGraph)
+  const { bundle, setBundle, clear } = useAnalysis()
   const { theme } = useTheme()
   const [wrapRef, width] = useMeasuredWidth()
   const [showPath, setShowPath] = useState(false)
   const [selected, setSelected] = useState(null)   // host id
-  const [account, setAccount] = useState('all')
   const [q, setQ] = useState('')
+  const [busy, setBusy] = useState(false)
   const fgRef = useRef(null)
+  const fitted = useRef(null)
+
+  // Full campaign roster for the picker — the loaded graph may be scoped to one
+  // account, which would otherwise leave no way back to the others.
+  const { data: roster } = useFetch(() => getAttackers().then((d) => d.attackers))
+  const account = bundle?.meta?.account || 'all'
+
+  // Switching account runs a REAL analysis for that account. Client-side filtering
+  // could hide edges, but blast radius / choke points / SOAR are graph algorithms —
+  // they must be recomputed server-side or they'd silently stay campaign-wide.
+  async function pickAccount(value) {
+    setSelected(null); setBusy(true)
+    try {
+      if (value === 'all') clear()
+      else {
+        setBundle(await analyze({
+          scenario: CAMPAIGN_SCENARIO, account: value, critical_assets: ['C2388'],
+        }))
+      }
+    } finally { setBusy(false) }
+  }
 
   const highlight = useMemo(() => {
     const nodes = new Set(); const edges = new Set()
@@ -123,21 +148,13 @@ export default function Graph() {
     return { nodes, edges }
   }, [data])
 
-  const accounts = useMemo(() => {
-    const s = new Set((data?.edges || []).flatMap((e) => e.users || []))
-    return [...s].sort()
-  }, [data])
+  const accounts = useMemo(() => (roster || []).map((a) => a.user), [roster])
 
-  // Filtering by account keeps only that account's movements and the hosts they touch.
-  const view = useMemo(() => {
-    if (!data) return { nodes: [], edges: [] }
-    const edges = account === 'all'
-      ? data.edges
-      : data.edges.filter((e) => (e.users || []).includes(account))
-    const keep = new Set(edges.flatMap((e) => [e.from, e.to]))
-    const nodes = account === 'all' ? data.nodes : data.nodes.filter((n) => keep.has(n.id))
-    return { nodes, edges }
-  }, [data, account])
+  // The loaded analysis IS the view (campaign, or one account) — no client-side
+  // filtering, so every number on this screen comes from the same computation.
+  const view = useMemo(() => (
+    data ? { nodes: data.nodes, edges: data.edges } : { nodes: [], edges: [] }
+  ), [data])
 
   const graphData = useMemo(() => ({
     nodes: view.nodes.map((n) => ({ ...n })),
@@ -160,9 +177,13 @@ export default function Graph() {
 
   useEffect(() => {
     if (fgRef.current) {
-      fgRef.current.d3Force('charge')?.strength(-70)
+      // 479 nodes need a stronger spread + link distance or they pile up; the fit
+      // below then brings the whole layout inside the canvas.
+      fgRef.current.d3Force('charge')?.strength(-120)
+      fgRef.current.d3Force('link')?.distance(28)
       fgRef.current.d3ReheatSimulation?.()
     }
+    fitted.current = null            // refit when the graph changes
   }, [graphData, theme])
 
   const focus = (id) => {
@@ -208,11 +229,11 @@ export default function Graph() {
       <div className="grid2" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
         <Card>
           <CardHeader title="Attack-path graph"
-            meta={`${view.nodes.length} hosts · ${view.edges.length} movements`}>
-            <select value={account} onChange={(e) => { setAccount(e.target.value); setSelected(null) }}
-              aria-label="Filter by account"
+            meta={busy ? 'analyzing…' : `${view.nodes.length} hosts · ${view.edges.length} movements`}>
+            <select value={account} onChange={(e) => pickAccount(e.target.value)} disabled={busy}
+              aria-label="Analyze one account"
               style={{ fontSize: 12, padding: '4px 8px', marginRight: 8, maxWidth: 190 }}>
-              <option value="all">All accounts ({accounts.length})</option>
+              <option value="all">All accounts — full campaign</option>
               {accounts.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
             <button className="btn" onClick={() => setShowPath((v) => !v)}
@@ -241,6 +262,13 @@ export default function Graph() {
               linkDirectionalParticles={showPath ? 2 : 0}
               linkDirectionalParticleWidth={2}
               cooldownTicks={120}
+              onEngineStop={() => {
+                // keep every node inside the canvas (they used to drift off-screen)
+                if (fitted.current !== graphData.nodes.length) {
+                  fitted.current = graphData.nodes.length
+                  fgRef.current?.zoomToFit(400, 30)
+                }
+              }}
               onNodeClick={(n) => focus(n.id)}
               onBackgroundClick={() => setSelected(null)}
               enableNodeDrag={false}

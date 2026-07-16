@@ -28,8 +28,15 @@ SCENARIO = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
 CACHE = ROOT / "api" / "cache"
 
-# The demo scenario's designated crown-jewel (real host the red-team reached).
-DEMO_CRITICAL = {"C2388"}
+CRITICAL_JSON = ROOT / "data" / "demo" / "scenarios" / "critical_assets.json"
+
+
+def demo_critical() -> set[str]:
+    """The estate's crown jewels, derived in export_demo_events (hosts the most
+    accounts depend on). Falls back to nothing rather than inventing an asset."""
+    if CRITICAL_JSON.exists():
+        return {a["host"] for a in json.loads(CRITICAL_JSON.read_text())["assets"]}
+    return set()
 
 FEATURES = ["is_fail", "new_dst_for_user", "new_src_for_user",
             "user_distinct_dst_sofar", "user_fail_rate_sofar", "dst_rarity", "is_ntlm"]
@@ -97,7 +104,7 @@ def main() -> None:
     _write("score_ref", score_ref())
 
     print("  running live analysis on the full LANL campaign ...")
-    bundle = analyze_events(pd.read_csv(SCENARIO), critical_assets=DEMO_CRITICAL,
+    bundle = analyze_events(pd.read_csv(SCENARIO), critical_assets=demo_critical(),
                             incident_id="INC-PS7-LANL-CAMPAIGN")
     print(f"    {bundle['incident']['alert_count']} alerts · "
           f"{len(bundle['attackers'])} compromised accounts · "

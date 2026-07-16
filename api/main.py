@@ -31,6 +31,17 @@ MARKOV = ROOT / "models" / "next_technique_markov.pkl"
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
 SCENARIOS = ROOT / "data" / "demo" / "scenarios"
 
+
+def _default_critical() -> list[str]:
+    """Crown jewels derived in export_demo_events (hosts most accounts depend on).
+    LANL has no criticality labels, so this is a stated heuristic, not ground truth."""
+    f = SCENARIOS / "critical_assets.json"
+    if f.exists():
+        return [a["host"] for a in json.loads(f.read_text())["assets"]]
+    return []
+
+_DEFAULT_CRIT = _default_critical()
+
 # Human labels for the shipped demo scenarios (files live in SCENARIOS/).
 SCENARIO_META = {
     "lanl_campaign_all": {
@@ -38,13 +49,13 @@ SCENARIO_META = {
         "description": "The full campaign: 2,732 auth events covering every compromised "
                        "account (702 red-team events) from the attacker's 4 pivot hosts. "
                        "The default view.",
-        "critical_default": ["C2388"],
+        "critical_default": _DEFAULT_CRIT,
     },
     "lanl_redteam_u66": {
         "label": "LANL red-team — single account U66 (real)",
         "description": "215 events from one compromised account's pivot — the narrow "
                        "view, useful for a focused walkthrough.",
-        "critical_default": ["C2388"],
+        "critical_default": _DEFAULT_CRIT,
     },
 }
 

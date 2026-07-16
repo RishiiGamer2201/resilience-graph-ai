@@ -1,0 +1,146 @@
+{
+  "basis": "hosts the most distinct accounts authenticate to (domain controllers / auth / file servers)",
+  "caveat": "LANL is anonymised and has no asset-criticality labels; this is a derived heuristic, not ground truth from the dataset.",
+  "assets": [
+    {
+      "host": "C586",
+      "accounts_dependent": 17808,
+      "reached_by_redteam": true,
+      "redteam_accounts": 2,
+      "redteam_events": 3
+    },
+    {
+      "host": "C529",
+      "accounts_dependent": 17716,
+      "reached_by_redteam": true,
+      "redteam_accounts": 2,
+      "redteam_events": 3
+    },
+    {
+      "host": "C612",
+      "accounts_dependent": 17693,
+      "reached_by_redteam": true,
+      "redteam_accounts": 1,
+      "redteam_events": 3
+    },
+    {
+      "host": "C467",
+      "accounts_dependent": 17466,
+      "reached_by_redteam": true,
+      "redteam_accounts": 2,
+      "redteam_events": 3
+    },
+    {
+      "host": "C625",
+      "accounts_dependent": 17234,
+      "reached_by_redteam": true,
+      "redteam_accounts": 2,
+      "redteam_events": 3
+    },
+    {
+      "host": "C1065",
+      "accounts_dependent": 16938,
+      "reached_by_redteam": true,
+      "redteam_accounts": 1,
+      "redteam_events": 1
+    },
+    {
+      "host": "C457",
+      "accounts_dependent": 16933,
+      "reached_by_redteam": true,
+      "redteam_accounts": 3,
+      "redteam_events": 7
+    },
+    {
+      "host": "C528",
+      "accounts_dependent": 16661,
+      "reached_by_redteam": true,
+      "redteam_accounts": 1,
+      "redteam_events": 3
+    },
+    {
+      "host": "C2106",
+      "accounts_dependent": 13841,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "TGT",
+      "accounts_dependent": 8685,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "C2327",
+      "accounts_dependent": 4258,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "C1640",
+      "accounts_dependent": 4101,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "C706",
+      "accounts_dependent": 2927,
+      "reached_by_redteam": true,
+      "redteam_accounts": 3,
+      "redteam_events": 3
+    },
+    {
+      "host": "C231",
+      "accounts_dependent": 2884,
+      "reached_by_redteam": true,
+      "redteam_accounts": 4,
+      "redteam_events": 7
+    },
+    {
+      "host": "C743",
+      "accounts_dependent": 2757,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "C585",
+      "accounts_dependent": 2689,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "C3173",
+      "accounts_dependent": 1213,
+      "reached_by_redteam": true,
+      "redteam_accounts": 3,
+      "redteam_events": 3
+    },
+    {
+      "host": "C2162",
+      "accounts_dependent": 1057,
+      "reached_by_redteam": false,
+      "redteam_accounts": 0,
+      "redteam_events": 0
+    },
+    {
+      "host": "C801",
+      "accounts_dependent": 893,
+      "reached_by_redteam": true,
+      "redteam_accounts": 3,
+      "redteam_events": 3
+    },
+    {
+      "host": "C1015",
+      "accounts_dependent": 852,
+      "reached_by_redteam": true,
+      "redteam_accounts": 4,
+      "redteam_events": 15
+    }
+  ]
+}
