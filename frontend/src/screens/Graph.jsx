@@ -199,12 +199,10 @@ export default function Graph() {
       // stay together and fill the frame. Guarded — a missing d3 method must never
       // blank the page.
       try {
-        const small = graphData.nodes.length < 160
         const charge = fgRef.current.d3Force('charge')
-        charge?.strength?.(small ? -34 : -120)
-        charge?.distanceMax?.(small ? 180 : 400)
-        fgRef.current.d3Force('link')?.distance?.(small ? 18 : 28)
-        fgRef.current.d3Force('center')?.strength?.(small ? 0.4 : 0.08)
+        charge?.strength?.(-90)
+        charge?.distanceMax?.(500)
+        fgRef.current.d3Force('link')?.distance?.(32)
         fgRef.current.d3ReheatSimulation?.()
       } catch { /* keep default forces */ }
     }
