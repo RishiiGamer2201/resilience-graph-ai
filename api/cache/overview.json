@@ -1,20 +1,22 @@
 {
   "mttd": {
-    "value": "4 min",
+    "ours_seconds": 0,
+    "value": "immediate",
     "was": "weeks",
-    "traditional_days": 21,
-    "ours_minutes": 4,
-    "note": "dwell time collapsed"
+    "traditional_days": 10,
+    "ours_minutes": 0.0,
+    "citation": "Mandiant M-Trends 2024 - global median dwell ~10 days",
+    "note": "time to first correlated alert in this log (measured); industry dwell is a cited comparison, not our claim"
   },
   "active_incident": {
     "id": "INC-PS7-LANL-001",
     "severity": "critical",
     "account": "U66@DOM1",
-    "summary": "Pass-the-hash lateral movement across the domain"
+    "summary": "Lateral Movement centred on Pass the Hash; 209 anomaly alerts correlated from 215 events into one incident."
   },
-  "blast_radius_contained": 93,
+  "blast_radius_contained": 129,
   "alerts_correlated": {
-    "alerts": 131,
+    "alerts": 209,
     "events": 215
   },
   "scorecard": [
