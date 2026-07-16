@@ -264,7 +264,7 @@ export default function Graph() {
     if (showPath && highlight.nodes.has(n.id)) return cssVar('--sev-high')
     return cssVar('--sev-normal')
   }
-  const nodeVal = (n) => (n.bubble ? Math.min(28, 8 + n.count) : n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 3)
+  const nodeVal = (n) => (n.bubble ? 7 : n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 3)
   const touchesSel = (l) => selected &&
     ((l.source.id || l.source) === selected || (l.target.id || l.target) === selected)
   const linkColor = (l) => {
@@ -337,12 +337,12 @@ export default function Graph() {
               nodeCanvasObjectMode={(n) => (n.bubble || n.pivot || n.critical ? 'after' : undefined)}
               nodeCanvasObject={(n, ctx, scale) => {
                 const label = n.bubble ? `+${n.count} hosts` : n.id
-                const size = Math.max(9, 11 / scale)
+                const size = Math.min(5.5, Math.max(3, 4 / scale))   // stay small when zoomed out
                 ctx.font = `${size}px system-ui`
-                ctx.fillStyle = cssVar('--text')
+                ctx.fillStyle = cssVar('--text-dim')
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'top'
-                ctx.fillText(label, n.x, n.y + (n.bubble ? Math.sqrt(nodeVal(n)) * 4 : 6))
+                ctx.fillText(label, n.x, n.y + Math.sqrt(nodeVal(n)) * 4 + 1)
               }}
               linkColor={linkColor}
               linkWidth={linkWidth}

@@ -57,6 +57,13 @@ SCENARIO_META = {
                        "view, useful for a focused walkthrough.",
         "critical_default": _DEFAULT_CRIT,
     },
+    "aiims_ransomware": {
+        "label": "AIIMS-style hospital ransomware (India · synthetic)",
+        "description": "Synthetic auth log styled after the AIIMS Delhi 2022 ransomware "
+                       "attack: a phished ward PC pivots across the hospital to the patient "
+                       "database and domain controller. Concrete Indian-CNI scenario.",
+        "critical_default": ["PATIENT-DB-01", "DC-AIIMS-01"],
+    },
 }
 
 FEATURES = ["is_fail", "new_dst_for_user", "new_src_for_user",
