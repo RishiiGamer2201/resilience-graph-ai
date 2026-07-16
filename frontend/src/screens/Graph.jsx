@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Route } from 'lucide-react'
 import { getGraph } from '../api.js'
-import { useFetch } from '../lib/useFetch.js'
+import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import { useTheme } from '../lib/theme.jsx'
 import { cssVar } from '../lib/format.js'
@@ -23,7 +23,7 @@ function useMeasuredWidth() {
 }
 
 export default function Graph() {
-  const { data, error, loading } = useFetch(getGraph)
+  const { data, error, loading } = useScreenData('graph', getGraph)
   const { theme } = useTheme()
   const [wrapRef, width] = useMeasuredWidth()
   const [showPath, setShowPath] = useState(false)

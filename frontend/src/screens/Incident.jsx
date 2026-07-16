@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Play, Zap } from 'lucide-react'
 import { getIncident } from '../api.js'
-import { useFetch } from '../lib/useFetch.js'
+import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveScoreWidget from '../components/LiveScoreWidget.jsx'
 import IncidentReport from '../components/IncidentReport.jsx'
@@ -36,7 +36,7 @@ function TimelineRow({ step, animate }) {
 }
 
 export default function Incident() {
-  const { data, error, loading } = useFetch(getIncident)
+  const { data, error, loading } = useScreenData('incident', getIncident)
   const [visible, setVisible] = useState(Infinity)
   const [replaying, setReplaying] = useState(false)
   const timer = useRef(null)
@@ -109,9 +109,12 @@ export default function Incident() {
           <Card>
             <CardHeader title="What this proves" />
             <div className="card-b pad" style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.6 }}>
-              215 raw auth events collapsed into a single correlated incident. Pass-the-hash
-              ({data.technique_ids?.[0]}) fans out from pivot <b className="mono">{data.pivot}</b>,
-              escalating to brute force ({data.technique_ids?.[1]}) with anomaly scores hitting {data.max_anomaly_score}.
+              {data.event_count} raw auth events collapsed into a single correlated incident —
+              {' '}{data.alert_count} of them flagged anomalous. Activity fans out from pivot
+              {' '}<b className="mono">{data.pivot}</b>
+              {data.technique_ids?.length > 0 && <> across techniques{' '}
+                {data.technique_ids.slice(0, 3).map((t) => <span className="mono" key={t}>{t} </span>)}</>}
+              with anomaly scores reaching {data.max_anomaly_score}/100.
               The scoring panel above runs the same Isolation-Forest model live.
             </div>
           </Card>

@@ -1,10 +1,10 @@
 import { getThreatIntel } from '../api.js'
-import { useFetch } from '../lib/useFetch.js'
+import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import PredictNextWidget from '../components/PredictNextWidget.jsx'
 
 export default function ThreatIntel() {
-  const { data, error, loading } = useFetch(getThreatIntel)
+  const { data, error, loading } = useScreenData('threat_intel', getThreatIntel)
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 

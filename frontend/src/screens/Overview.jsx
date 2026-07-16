@@ -1,31 +1,23 @@
 import { getOverview } from '../api.js'
-import { useFetch } from '../lib/useFetch.js'
+import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import Sparkline from '../components/Sparkline.jsx'
 import MttdPanel from '../components/MttdPanel.jsx'
 
-const SPARKS = {
-  mttd: [40, 38, 33, 30, 22, 14, 9, 4],
-  roc: [82, 90, 93, 95, 97, 98.5, 98.8],
-  blast: [2, 9, 25, 44, 70, 88, 93],
-}
-
 export default function Overview() {
-  const { data, error, loading } = useFetch(getOverview)
+  const { data, error, loading } = useScreenData('overview', getOverview)
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 
-  const { mttd, active_incident, blast_radius_contained, alerts_correlated, scorecard } = data
-  const highlight = scorecard.find((s) => s.name?.includes('LANL')) || scorecard[0]
+  const { mttd, active_incident, blast_radius_contained, alerts_correlated, score_trend, scorecard } = data
 
   return (
     <>
       <div className="tiles">
         <div className="tile">
-          <div className="k">Mean time to detect</div>
+          <div className="k">Time to first alert</div>
           <div className="v">{mttd.value}</div>
-          <div className="sub"><span className="up">▼ from {mttd.was}</span> · {mttd.note}</div>
-          <Sparkline points={SPARKS.mttd} />
+          <div className="sub">measured from this log · vs {mttd.was} typical dwell</div>
         </div>
 
         <div className="tile crit">
@@ -38,14 +30,13 @@ export default function Overview() {
           <div className="k">Blast radius contained</div>
           <div className="v">{blast_radius_contained}</div>
           <div className="sub">hosts cut by isolating 1 node</div>
-          <Sparkline points={SPARKS.blast} />
         </div>
 
         <div className="tile">
-          <div className="k">{highlight.name}</div>
-          <div className="v">{highlight.value}</div>
-          <div className="sub">{highlight.metric} · {highlight.kind}</div>
-          <Sparkline points={SPARKS.roc} />
+          <div className="k">Anomaly-score trend</div>
+          <div className="v">{alerts_correlated.alerts}</div>
+          <div className="sub">correlated alerts · live scores</div>
+          {score_trend?.length > 1 && <Sparkline points={score_trend} />}
         </div>
       </div>
 

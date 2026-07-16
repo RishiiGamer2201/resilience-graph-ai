@@ -95,6 +95,12 @@ def _summary(full: dict) -> str:
 
 def overview(full: dict, scorecard: list[dict]) -> dict:
     inc = full["incident"]
+    # real anomaly-score trend across the correlated alerts (drives the sparkline;
+    # no invented arrays). Cap for display.
+    trend = [s["anomaly_score"] for s in inc["steps"] if s.get("is_alert")]
+    if len(trend) > 60:
+        step = len(trend) / 60
+        trend = [trend[int(i * step)] for i in range(60)]
     return {
         "mttd": compute_mttd(full),
         "active_incident": {"id": inc["incident_id"], "severity": inc["severity"],
@@ -102,6 +108,7 @@ def overview(full: dict, scorecard: list[dict]) -> dict:
                             "summary": _summary(full)},
         "blast_radius_contained": full["graph"]["blast_radius_size"],
         "alerts_correlated": {"alerts": inc["alert_count"], "events": inc["event_count"]},
+        "score_trend": trend,
         "scorecard": scorecard,
     }
 
