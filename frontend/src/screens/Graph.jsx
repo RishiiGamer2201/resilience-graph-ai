@@ -158,25 +158,25 @@ export default function Graph() {
 
   const accounts = useMemo(() => (roster || []).map((a) => a.user), [roster])
 
-  // The loaded analysis IS the view (campaign, or one account) — no client-side
-  // filtering, so every number on this screen comes from the same computation.
-  const view = useMemo(() => (
+  // Base view = the loaded analysis (campaign, or one account).
+  const base = useMemo(() => (
     data ? { nodes: data.nodes, edges: data.edges } : { nodes: [], edges: [] }
   ), [data])
+
+  // A technique drill-in from Threat Radar reduces the canvas to JUST those
+  // movements (and the hosts they touch) — a focused subgraph, not an overlay on
+  // the whole campaign.
+  const view = useMemo(() => {
+    if (!techFocus) return base
+    const edges = base.edges.filter((e) => techFocus.has(e.technique))
+    const keep = new Set(edges.flatMap((e) => [e.from, e.to]))
+    return { nodes: base.nodes.filter((n) => keep.has(n.id)), edges }
+  }, [base, techFocus])
 
   const graphData = useMemo(() => ({
     nodes: view.nodes.map((n) => ({ ...n })),
     links: view.edges.map((e) => ({ ...e, source: e.from, target: e.to })),
   }), [view])
-
-  // Host list beside the graph — 480 nodes are impossible to hunt visually.
-  // nodes touched by a technique-focused edge (from a Threat Radar drill-in)
-  const focusNodes = useMemo(() => {
-    if (!techFocus) return null
-    const s = new Set()
-    for (const e of view.edges) if (techFocus.has(e.technique)) { s.add(e.from); s.add(e.to) }
-    return s
-  }, [techFocus, view])
 
   const hostRows = useMemo(() => {
     const deg = new Map()
@@ -217,35 +217,33 @@ export default function Graph() {
         .flatMap((e) => [e.from, e.to]))
     : null
 
-  const dim = (id) => techFocus && !focusNodes.has(id)
   const nodeColor = (n) => {
     if (selected && n.id === selected) return cssVar('--accent')
-    if (dim(n.id)) return cssVar('--grid')                 // fade non-matching hosts
-    if (techFocus && focusNodes.has(n.id)) return cssVar('--sev-high')
     if (n.pivot) return cssVar('--accent')
     if (n.critical) return cssVar('--sev-critical')
+    if (techFocus) return cssVar('--sev-high')             // subgraph: all in-focus
     if (selected && neighbours.has(n.id)) return cssVar('--sev-high')
     if (showPath && highlight.nodes.has(n.id)) return cssVar('--sev-high')
     return cssVar('--sev-normal')
   }
-  const nodeVal = (n) => (n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 2)
+  const nodeVal = (n) => (n.id === selected ? 12 : n.pivot ? 9 : n.critical ? 7 : 3)
   const touchesSel = (l) => selected &&
     ((l.source.id || l.source) === selected || (l.target.id || l.target) === selected)
   const linkColor = (l) => {
-    if (techFocus) return techFocus.has(l.technique) ? cssVar('--sev-high') : cssVar('--grid')
+    if (techFocus) return cssVar('--sev-high')             // every edge here matches
     if (touchesSel(l)) return cssVar('--accent')
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     if (showPath && highlight.edges.has(key)) return cssVar('--sev-high')
     return cssVar('--grid')
   }
   const linkWidth = (l) => {
-    if (techFocus) return techFocus.has(l.technique) ? 3 : 0.5
+    if (techFocus) return 2
     if (touchesSel(l)) return 3
     const key = `${l.source.id || l.source}->${l.target.id || l.target}`
     return showPath && highlight.edges.has(key) ? 3 : 1
   }
 
-  const focusCount = techFocus ? view.edges.filter((e) => techFocus.has(e.technique)).length : 0
+  const focusCount = view.edges.length
 
   return (
     <>
@@ -255,8 +253,9 @@ export default function Graph() {
           borderLeft: '3px solid var(--sev-high)',
         }}>
           <Crosshair size={14} aria-hidden="true" style={{ color: 'var(--sev-high)' }} />
-          <span>Highlighting <b>{focusCount}</b> movement{focusCount !== 1 ? 's' : ''} using{' '}
-            <b className="mono">{[...techFocus].join(', ')}</b> — the technique from that threat-radar hit.</span>
+          <span>Focused subgraph: <b>{focusCount}</b> movement{focusCount !== 1 ? 's' : ''} using{' '}
+            <b className="mono">{[...techFocus].join(', ')}</b> across <b>{view.nodes.length}</b> hosts —
+            the technique from that threat-radar hit.</span>
           <button className="btn" onClick={() => setParams({})}
             style={{ marginLeft: 'auto', padding: '2px 8px', fontSize: 11 }}>Clear</button>
         </div>
