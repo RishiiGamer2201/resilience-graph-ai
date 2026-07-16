@@ -129,6 +129,34 @@ def report():
     return _cached("report")
 
 
+@app.get("/api/threat-radar")
+def threat_radar():
+    """External CTI (cached at build time) mapped to ATT&CK."""
+    data = _cached("threat_radar")
+    data.setdefault("meta", {})["source"] = "cache"
+    return data
+
+
+@app.post("/api/threat-radar/refresh")
+def threat_radar_refresh():
+    """Re-fetch the free CTI feeds live. Any failure falls back to the cached
+    payload (same never-break-the-demo contract as the model widgets)."""
+    from src.shared.osint import collect as collect_osint      # noqa: PLC0415
+    try:
+        data = collect_osint()
+        # collect() isolates each feed, so it succeeds even when EVERY source is
+        # down — that would render an empty radar labelled "live". Only accept a
+        # live result if at least one source actually returned something.
+        if any(s["ok"] for s in data.get("sources", [])) and data.get("items"):
+            data.setdefault("meta", {})["source"] = "live"
+            return data
+    except Exception:
+        pass
+    data = _cached("threat_radar")
+    data.setdefault("meta", {})["source"] = "cache"
+    return data
+
+
 # --- LIVE endpoint 1: score an event ---
 class EventFeatures(BaseModel):
     is_fail: int = 0

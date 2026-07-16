@@ -1,0 +1,521 @@
+{
+  "fetched_at": "2026-07-16 11:46 UTC",
+  "items": [
+    {
+      "source": "The Hacker News",
+      "title": "AI Can Find Bugs, But Human Knowledge Still Proves Them",
+      "published": "2026-07-16",
+      "url": "https://thehackernews.com/2026/07/ai-can-find-bugs-but-human-knowledge.html",
+      "text": "Artificial intelligence (AI) is changing offensive security, but it has not changed the standard that matters most: a finding has to be proven before it becomes useful. AI-assisted tools can read code quickly, generate payloads, summarize attack surfaces, explain unfamiliar APIs, and run repetitive testing workflows at impressive speed. That is a real advantage for security teams. It also",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Unpatched Shark Vacuum Flaw Could Let Attackers Control Other Vacuums Region-Wide",
+      "published": "2026-07-16",
+      "url": "https://thehackernews.com/2026/07/unpatched-shark-vacuum-flaw-could-let.html",
+      "text": "Pull the certificate off the flash of a Shark RV2320EDUS robot vacuum, and you can run root commands on other people's Shark vacuums across the same AWS region: watch the camera, drive the robot, read the map of the house, and take the Wi-Fi password in plaintext. A researcher publishing under the handle tokay0&nbsp;put the method online&nbsp;on Monday, having tested it only against vacuums he",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "OpenAI\u2019s GPT-Red Automates Prompt Injection Testing to Harden GPT-5.6 Sol",
+      "published": "2026-07-16",
+      "url": "https://thehackernews.com/2026/07/openais-gpt-red-automates-prompt.html",
+      "text": "OpenAI has disclosed details of GPT-Red, an internal automated red-teaming model that scales prompt injection vulnerability discovery with an aim to fix issues before the tools are deployed widely. \"GPT\u2011Red is a strong red-teamer, and our previous models are highly vulnerable to its prompt injection attacks,\" the artificial intelligence (AI) company said. \"We use GPT\u2011Red to adversarially train",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Zoom Patches Critical Windows Flaw That Could Enable Account Takeover",
+      "published": "2026-07-16",
+      "url": "https://thehackernews.com/2026/07/zoom-patches-critical-windows-flaw-that.html",
+      "text": "Zoom has released security updates for a critical security flaw impacting Zoom Workplace for Windows that could facilitate account takeover. The vulnerability, tracked as CVE-2026-53412 (CVSS score: 9.8), affects Zoom Desktop Client for Windows, Zoom VDI Client for Windows, and Zoom Meeting SDK for Windows. \"Improper Input Validation in Zoom Desktop Client for Windows, Zoom VDI Client for",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "CISA orders feds to patch actively exploited Oracle flaw by Saturday",
+      "published": "2026-07-16",
+      "url": "https://www.bleepingcomputer.com/news/security/cisa-orders-feds-to-patch-actively-exploited-oracle-flaw-by-saturday/",
+      "text": "CISA has ordered federal agencies to secure their systems by Saturday against ongoing attacks exploiting a critical vulnerability in the Oracle E-Business Suite financial application. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Russian hackers trojanize WebEx, Zoom apps to push Starland malware",
+      "published": "2026-07-16",
+      "url": "https://www.bleepingcomputer.com/news/security/russian-hackers-trojanize-webex-zoom-apps-to-push-starland-malware/",
+      "text": "A financially motivated Russian threat actor tracked as UAT-11795 is using trojanized software to steal credentials and cryptocurrency by deploying a new backdoor called Starland RAT. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1505",
+        "T1204.002"
+      ]
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "New Spirals ransomware encrypts victim network in under 24 hours",
+      "published": "2026-07-16",
+      "url": "https://www.bleepingcomputer.com/news/security/new-spirals-ransomware-encrypts-victim-network-in-under-24-hours/",
+      "text": "A new ransomware actor called Spirals completed a corporate intrusion, from initial access to data theft and encryption, in less than 24 hours. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1486"
+      ]
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-46817 \u2014 Oracle E-Business Suite",
+      "published": "2026-07-15",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-46817",
+      "text": "Oracle E-Business Suite Improper Privilege Management Vulnerability. Oracle E-Business Suite contains an improper privilege management vulnerability that allows an unauthenticated attacker with network access via HTTP to compromise Oracle Payments. Successful attacks of this vulnerability can result in takeover of Oracle Payments.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-46817"
+      ],
+      "techniques": [
+        "T1068"
+      ]
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2023-4346 \u2014 KNX Association KNX Protocol Connection Authorization Option 1",
+      "published": "2026-07-15",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-4346",
+      "text": "KNX Association KNX Protocol Connection Authorization Option 1 Overly Restrictive Account Lockout Mechanism Vulnerability. KNX Association KNX Protocol Connection Authorization Option 1 contains an overly restrictive account lockout mechanism vulnerability that could allow an attacker to purge all devices without additional security options enabled and set a BCU key to lock the device.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2023-4346"
+      ],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "Establishing a Coordinated Vulnerability Disclosure Program to Work With Security Researchers",
+      "published": "2026-07-15",
+      "url": "https://www.cisa.gov/resources-tools/resources/establishing-coordinated-vulnerability-disclosure-program-work-security-researchers",
+      "text": "Developed by CISA, the National Security Agency (NSA) and international partners, this joint guidance contains best practices for software manufacturers and online service providers to design and implement a coordinated vulnerability disclosure (CVD) program for working with external security researchers that includes a clear vulnerability disclosure policy (VDP) and process for triaging, remediating and assigning Common Vulnerabilities and Exposures (CVE) identifiers to reported vulnerabilities. The guidance also provides considerations for leveraging third-party intermediaries, like CISA or ",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds Two Known Exploited Vulnerabilities to Catalog",
+      "published": "2026-07-15",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/07/15/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+      "text": "CISA has added two new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. CVE-2023-4346 KNX Association KNX Protocol Connection Authorization Option 1 Overly Restrictive Account Lockout Mechanism Vulnerability CVE-2026-46817 Oracle E-Business Suite Improper Privilege Management Vulnerability &nbsp; These types of vulnerabilities are frequent attack vectors for malicious cyber actors and pose significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1068"
+      ]
+    },
+    {
+      "source": "The Hacker News",
+      "title": "TuxBot v3 Evolution Shows Signs of LLM-Assisted IoT Botnet Development",
+      "published": "2026-07-15",
+      "url": "https://thehackernews.com/2026/07/tuxbot-v3-evolution-shows-signs-of-llm.html",
+      "text": "Cybersecurity researchers have disclosed details of a previously unreported Internet-of-Things (IoT) botnet framework dubbed TuxBot v3 Evolution that shows signs of being developed with assistance from a large language model (LLM), albeit with not so successful results. \"While the AI complied with their request to generate botnet code, it included a safety disclaimer that the developer failed",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1584.005"
+      ]
+    },
+    {
+      "source": "The Hacker News",
+      "title": "OkoBot Malware Framework Injects Seed Phrase Phishing Into Ledger and Trezor Apps",
+      "published": "2026-07-15",
+      "url": "https://thehackernews.com/2026/07/okobot-malware-framework-injects-seed.html",
+      "text": "A malware framework called OkoBot has been running on Windows machines since April 2025, and one of its modules is built to con hardware wallet owners out of their recovery phrase. On an infected PC, the request comes from inside the wallet's own desktop software. Sometimes it waits until you plug the device in first. The page is malicious. The app around it is the real one you installed, and",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1566"
+      ]
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Firefox, Chrome, Adobe, and VMware Updates Fix Multiple Critical Security Flaws",
+      "published": "2026-07-15",
+      "url": "https://thehackernews.com/2026/07/firefox-chrome-adobe-and-vmware-updates.html",
+      "text": "Mozilla has released updates to address two critical flaws in Firefox for which it warned that exploit code has been published. The vulnerabilities are listed below - CVE-2026-15718, an invalid pointer in the JavaScript: WebAssembly component CVE-2026-15719, a site isolation in the DOM: Navigation component \"We are aware that exploit code for this is public, however we are not aware of",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "SASE Has An AI Blind Spot. Inspecting Packets Is No Longer Enough.",
+      "published": "2026-07-15",
+      "url": "https://thehackernews.com/2026/07/sase-has-ai-blind-spot-inspecting.html",
+      "text": "For years, routing traffic through cloud proxies was good enough. Then work moved to the browser, AI entered the workflow, and the inspection model stopped keeping up. Enterprise workflows now live across SaaS applications, browsers, and an expanding ecosystem of generative AI tools, unsanctioned browser extensions, and autonomous agents. Employees routinely paste intellectual property into",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1176.001"
+      ]
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Researcher Drops New Windows Zero-Day PoC Hours After Microsoft Patch Tuesday",
+      "published": "2026-07-15",
+      "url": "https://thehackernews.com/2026/07/researcher-drops-new-windows-zero-day.html",
+      "text": "Security researcher Chaotic Eclipse (aka Nightmare-Eclipse) has released a new proof-of-concept (PoC) exploit called LegacyHive. It has been described as a Windows User Profile Service arbitrary hive load elevation of privileges vulnerability. The Windows User Profile Service, also referred to as ProfSvc, is a core system component that manages user accounts and environments. \"The PoC requires",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "The Hacker News",
+      "title": "New Webinar: Closing the Approval Gap in AI-Era Ad Tech",
+      "published": "2026-07-15",
+      "url": "https://thehackernews.com/2026/07/new-webinar-closing-approval-gap-in-ai.html",
+      "text": "A single approved marketing tag can quietly load fourth-party code your security team has never seen, granting full access to your forms, customer data, and checkout pages. This on-demand webinar reveals how this Approval Gap forms, and gives your team the blueprint to close it before an auditor, regulator, or attacker finds it first. The Reality of the Approval Gap It's a pattern every",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Dutch police bust investment fraud ring stealing over \u20ac100 million",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/security/dutch-police-bust-investment-fraud-ring-stealing-over-100-million/",
+      "text": "The Dutch Police announced the arrest of multiple individuals suspected of being part of an international investment fraud scheme estimated to have tens of thousands of victims. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Zoom warns of critical account takeover vulnerability",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/security/zoom-warns-of-critical-account-takeover-vulnerability/",
+      "text": "Zoom is warning of a critical vulnerability in its desktop client and software development kit for Windows that could be exploited by an unauthenticated party to hijack accounts. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Google Gemini CLI abused as a hacking agent, malware botnet operator",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/security/google-gemini-cli-abused-as-a-hacking-agent-malware-botnet-operator/",
+      "text": "A Russian-speaking threat actor known as \"bandcampro\" used Google's open-source Gemini CLI AI tool as a hacking agent and to operate a small-scale botnet. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1584.005"
+      ]
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "AsyncAPI npm packages infected with credential-stealing malware",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/security/-asyncapi-npm-packages-infected-with-credential-stealing-malware/",
+      "text": "Five malicious versions of AsyncAPI packages were published to the Node Package Manager (npm) in a supply-chain attack that delivered a remote access trojan with info-stealing capabilities. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "We built a vulnerability vending machine: AI tokens in, zero-days out",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/security/we-built-a-vulnerability-vending-machine-ai-tokens-in-zero-days-out/",
+      "text": "Intruder built an AI-powered \"vulnerability vending machine\" that combines code slicing with LLMs to automatically discover complex software vulnerabilities. The company explains how the system found and exploited a previously unknown WordPress plugin zero-day, with additional discoveries already under responsible disclosure. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "CISA warns admins to patch actively exploited SharePoint flaws",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/security/cisa-warns-admins-to-patch-actively-exploited-sharepoint-flaws/",
+      "text": "The U.S. Cybersecurity and Infrastructure Security Agency (CISA) warned Tuesday that attackers are actively exploiting three vulnerabilities to hack Internet-exposed on-premises SharePoint Server instances. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Microsoft: Some Dell PCs shut down after recent Windows updates",
+      "published": "2026-07-15",
+      "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-some-dell-devices-shut-down-after-windows-update/",
+      "text": "Microsoft is blocking this month's Windows 11 security updates on some Dell devices because they are causing shutdowns and performance issues. [...]",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-56155 \u2014 Microsoft Active Directory Federation Services",
+      "published": "2026-07-14",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56155",
+      "text": "Microsoft Active Directory Federation Services Insufficient Granularity of Access Control Vulnerability . Microsoft Active Directory Federation Services contains an insufficient granularity of access control vulnerability that allows an authorized attacker to elevate privileges locally.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-56155"
+      ],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-56164 \u2014 Microsoft SharePoint Server",
+      "published": "2026-07-14",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56164",
+      "text": "Microsoft SharePoint Server Missing Authentication for Critical Function Vulnerability. Microsoft SharePoint contains a missing authentication for critical function vulnerability that allows an unauthorized attacker to elevate privileges over a network.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-56164"
+      ],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-15409 \u2014 SonicWall SMA1000 Appliances",
+      "published": "2026-07-14",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-15409",
+      "text": "SonicWall SMA1000 Appliances Server-Side Request Forgery Vulnerability. SonicWall SMA1000 Appliances contain a server-side request forgery vulnerability that could allow a remote unauthenticated attacker to potentially cause the appliance to make requests to unintended location.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-15409"
+      ],
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-15410 \u2014 SonicWall SMA1000 Appliances",
+      "published": "2026-07-14",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-15410",
+      "text": "SonicWall SMA1000 Appliances Code Injection Vulnerability. SonicWall SMA1000 Appliances contain a code injection vulnerability which in specific conditions could potentially enable a remote authenticated attacker as administrator to execute arbitrary OS commands.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-15410"
+      ],
+      "techniques": [
+        "T1055"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds Four Known Exploited Vulnerabilities to Catalog",
+      "published": "2026-07-14",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/07/14/cisa-adds-four-known-exploited-vulnerabilities-catalog",
+      "text": "CISA has added four new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. CVE-2026-15409 SonicWall SMA1000 Appliances Server-Side Request Forgery Vulnerability CVE-2026-15410 SonicWall SMA1000 Appliances Code Injection Vulnerability CVE-2026-56155 Microsoft Active Directory Federation Services Insufficient Granularity of Access Control Vulnerability CVE-2026-56164 Microsoft SharePoint Server Missing Authentication for Critical Function Vulnerability These types of vulnerabilities are a frequent attack vector for malicious cyber act",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1055",
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "ABB Ability Edgenius",
+      "published": "2026-07-14",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-195-02",
+      "text": "View CSAF Summary ABB is aware of public reports of a vulnerability CVE\u20112026\u201131431 (Copy Fail) in the product versions listed as affected in the advisory. An update is available that resolves a publicly reported vulnerability. CVE\u20112026\u201131431 (Copy Fail) is a Linux kernel vulnerability that may allow a locally authenticated user or compromised container workload to gain elevated (root) privileges on affected systems. Once root access is obtained, the attacker can effectively gain complete control of the system The following versions of ABB Ability Edgenius are affected: Ability Edgenius &gt;=3.",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "ABB Advant Master Online Builder",
+      "published": "2026-07-14",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-195-01",
+      "text": "View CSAF Summary ABB became aware of vulnerability in the products versions listed as affected in the advisory, where an incorrect version of Online Builder (ONB) was included in the media. An update is available that resolves the vulnerability, see details in Recommended immediate actions. The following versions of ABB Advant Master Online Builder are affected: Control Builder A &lt;=1.4/4 (CVE-2025-13162) 800xA for Advant Master &lt;=6.0.3-1, &lt;=6.1.1-1, 6.1.1-3, 6.2.0-1 (CVE-2025-13162, CVE-2025-13162, CVE-2025-13162, CVE-2025-13162) CVSS Vendor Equipment Vulnerabilities v3 4.4 ABB ABB A",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "ABB T-MAC Plus",
+      "published": "2026-07-14",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-195-03",
+      "text": "View CSAF Summary ABB became aware of vulnerability in the products versions listed as affected in the advisory. An update is available that resolves the reported vulnerabilities. An attacker who successfully exploited any of these vulnerabilities could potentially compromise the system in different ways. The following versions of ABB T-MAC Plus are affected: T-MAC Plus 4.0-24 (CVE-2025-14771, CVE-2025-14772, CVE-2025-14773, CVE-2025-14774) CVSS Vendor Equipment Vulnerabilities v3 9.9 ABB ABB T-MAC Plus Files or Directories Accessible to External Parties, Authorization Bypass Through User-Cont",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Urges SharePoint Hardening After New Exploitations",
+      "published": "2026-07-14",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/07/14/cisa-urges-sharepoint-hardening-after-new-exploitations",
+      "text": "CISA is aware of active exploitation of vulnerabilities CVE-2026-32201 , CVE-2026-45659 , and CVE-2026-56164 , enabling cyber threat actors to gain unauthorized access to on-premises SharePoint Server instances. These vulnerabilities affect all supported on-premises SharePoint Server versions (Subscription Edition, 2019, and 2016) and involve establishing remote code execution (RCE) and post-exploitation activities, such as stealing Internet Information Services (IIS) machine keys and performing deserialization techniques, to gain persistence and deploy malware. Organizations should monitor af",
+      "tags": [],
+      "iocs": [],
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "Rockwell Automation 1715-AENTR EtherNet/IP Adapter",
+      "published": "2026-07-14",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-195-04",
+      "text": "View CSAF Summary Successful exploitation of this vulnerability could allow an attacker to read or delete files, stop tasks, modify memory, and change I/O states, potentially impacting the confidentiality, integrity, and availability of the device. The following versions of Rockwell Automation 1715-AENTR EtherNet/IP Adapter are affected: 1715-AENTR EtherNet/IP Adapter &lt;=3.003 (CVE-2026-10577) CVSS Vendor Equipment Vulnerabilities v3 10 Rockwell Automation Rockwell Automation 1715-AENTR EtherNet/IP Adapter Missing Authentication for Critical Function Background Critical Infrastructure Sector",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2008-4128 \u2014 Cisco IOS",
+      "published": "2026-07-13",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2008-4128",
+      "text": "Cisco IOS Cross-Site Request Forgery Vulnerability. Cisco IOS 12.4 contains multiple cross-site forgery vulnerabilities that allows remote attackers to execute arbitrary commands via (1) a certain \"show privilege\" command to the /level/15/exec/- URI, and (2) a certain \"alias exec\" command to the /level/15/exec/-/configure/http URI.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2008-4128"
+      ],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
+      "published": "2026-07-13",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/07/13/cisa-adds-one-known-exploited-vulnerability-catalog",
+      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. CVE-2008-4128 Cisco IOS Cross-Site Request Forgery Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV Catalog and requires fede",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "Improve Router Hygiene to Protect Against Russian State-Sponsored Targeting",
+      "published": "2026-07-13",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-194a",
+      "text": "Russian Government-Sponsored Activity Targets Poorly Configured and Vulnerable Devices Across Critical Sectors Executive summary Russian Federal Security Service (FSB) Center 16 cyber actors continue to exploit poorly configured and vulnerable networking devices worldwide, opportunistically compromising multiple critical infrastructure sector networks. This joint Cybersecurity Advisory (CSA) builds on FBI\u2019s Russian Government Cyber Actors Targeting Networking Devices, Critical Infrastructure Public Service Announcement of the decade-plus FSB Center 16 cyber activity by providing additional tac",
+      "tags": [],
+      "iocs": [],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-56291 \u2014 Balbooa Forms",
+      "published": "2026-07-10",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56291",
+      "text": "Balbooa Forms Unrestricted Upload of File with Dangerous Type Vulnerability. Balbooa Forms contains an unrestricted upload of file with dangerous type vulnerability that allows an unauthenticated arbitrary file upload which could allow uploading of executable files leading to full RCE.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-56291"
+      ],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-48939 \u2014 iCagenda iCagenda",
+      "published": "2026-07-10",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939",
+      "text": "iCagenda Unrestricted Upload of File with Dangerous Type Vulnerability. iCagenda contains an unrestricted upload of file with dangerous type vulnerability that allows the upload of arbitrary files in the file attachment feature, ultimately resulting in PHP code upload and execution.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-48939"
+      ],
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-48908 \u2014 JoomShaper SP Page Builder",
+      "published": "2026-07-07",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48908",
+      "text": "JoomShaper SP Page Builder Unrestricted Upload of File with Dangerous Type Vulnerability. JoomShaper SP Page Builder contains an unrestricted upload of file with dangerous type vulnerability that allows unauthenticated users to upload arbitrary files, ultimately resulting in the upload and execution of PHP code.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-48908"
+      ],
+      "techniques": []
+    }
+  ],
+  "technique_names": {
+    "T1055": "Process Injection",
+    "T1068": "Exploitation for Privilege Escalation",
+    "T1176.001": "Browser Extensions",
+    "T1190": "Exploit Public-Facing Application",
+    "T1204.002": "Malicious File",
+    "T1486": "Data Encrypted for Impact",
+    "T1505": "Server Software Component",
+    "T1566": "Phishing",
+    "T1584.005": "Botnet"
+  },
+  "sources": [
+    {
+      "source": "CISA KEV",
+      "ok": true,
+      "items": 15
+    },
+    {
+      "source": "CISA advisories",
+      "ok": true,
+      "items": 10
+    },
+    {
+      "source": "The Hacker News",
+      "ok": true,
+      "items": 10
+    },
+    {
+      "source": "BleepingComputer",
+      "ok": true,
+      "items": 10
+    },
+    {
+      "source": "AlienVault OTX",
+      "ok": false,
+      "items": 0,
+      "note": "no OTX_API_KEY set"
+    },
+    {
+      "source": "ThreatFox",
+      "ok": false,
+      "items": 0,
+      "note": "no ABUSECH_AUTH_KEY set"
+    }
+  ],
+  "note": "Free, purpose-built CTI sources only (CISA KEV/advisories, security news RSS, optional OTX/ThreatFox with free keys). No social-media scraping. Intel is enrichment \u2014 alerts are simulated and human-gated."
+}

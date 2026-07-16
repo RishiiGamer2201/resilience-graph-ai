@@ -19,6 +19,7 @@ import joblib
 import pandas as pd
 
 from src.shared.live_analyze import analyze_events
+from src.shared.osint import collect as collect_osint
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIO = ROOT / "data" / "demo" / "scenarios" / "lanl_redteam_u66.csv"
@@ -101,6 +102,20 @@ def main() -> None:
 
     _write("metrics", metrics())
     _write("methodology", methodology())
+
+    # Threat Radar — fetch external CTI now so the deployed app has intel on day
+    # one without needing network at request time (refresh endpoint updates it live).
+    print("  fetching external threat intel (free CTI sources) ...")
+    try:
+        radar = collect_osint()
+        ok = [s["source"] for s in radar["sources"] if s["ok"]]
+        skipped = [s["source"] for s in radar["sources"] if not s["ok"]]
+        print(f"    {len(radar['items'])} items from {len(ok)} sources"
+              + (f" · skipped: {', '.join(skipped)}" if skipped else ""))
+        _write("threat_radar", radar)
+    except Exception as e:                       # offline build must still succeed
+        print(f"    [threat radar skipped: {e}] — keeping existing cache")
+
     print("Cache build complete.")
 
 
