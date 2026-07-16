@@ -16,7 +16,6 @@ frontend renders a live result through the exact same screens.
 from __future__ import annotations
 
 import pickle
-from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
@@ -28,6 +27,7 @@ from src.schema import coerce, validate
 from src.shared.attack_graph import analyze, build_graph
 from src.shared.correlate import correlate
 from src.shared.soar import recommend
+from src.shared.timeutil import fmt_ist
 from src.shared import views
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -100,7 +100,7 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     }
 
     meta = {"source": "live", "n_events": int(len(df)),
-            "analyzed_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            "analyzed_at": fmt_ist(),
             "critical_assets": sorted(critical_assets)}
 
     return {

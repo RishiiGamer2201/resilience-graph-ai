@@ -55,6 +55,19 @@ export function shortExplanation(explanation) {
   return firstSentence ? firstSentence[0].trim() : explanation
 }
 
+// Wall-clock timestamp in the operator's timezone (IST) — matches the backend's
+// src/shared/timeutil.fmt_ist so every timestamp in the product reads the same.
+export function nowIST() {
+  const parts = new Date().toLocaleString('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  })
+  const [date, time] = parts.split(', ')
+  const [dd, mm, yyyy] = date.split('/')
+  return `${yyyy}-${mm}-${dd} ${time} IST`
+}
+
 // Read a live CSS custom property off <html> (theme-aware).
 export function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim()

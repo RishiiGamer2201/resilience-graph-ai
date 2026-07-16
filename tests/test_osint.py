@@ -85,7 +85,7 @@ def test_rss_parsing_and_mapping():
     with patch.object(osint, "_get", return_value=RSS_FIXTURE):
         items = osint.fetch_rss("Test Feed", "http://x")
     assert len(items) == 2
-    assert items[0]["published"] == "2026-07-15 10:00 UTC"   # RSS carries a time
+    assert items[0]["published"] == "2026-07-15 15:30 IST"   # RSS time, shown in IST
     assert items[0]["url"] == "https://example.com/a"
     assert "<p>" not in items[0]["text"]              # HTML stripped
     assert "T1486" in items[0]["techniques"]

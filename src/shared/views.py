@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import pickle
 from collections import Counter
-from datetime import datetime, timezone
 from pathlib import Path
 
 from src.engine2.attribution import load_artifacts, rank_actors
 from src.shared.attack_mapper import explanation
+from src.shared.timeutil import fmt_ist
 
 ROOT = Path(__file__).resolve().parents[2]
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
@@ -197,7 +197,7 @@ def report_view(full: dict) -> dict:
     mttd = compute_mttd(full)
     return {
         "incident_id": inc["incident_id"],
-        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "generated_at": fmt_ist(),
         "severity": inc["severity"], "max_anomaly_score": inc["max_anomaly_score"],
         "account": full["victim"], "pivot": full["pivot"],
         "summary": summary,

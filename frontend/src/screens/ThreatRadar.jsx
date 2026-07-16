@@ -1,9 +1,35 @@
 import { useCallback, useEffect, useState } from 'react'
-import { RefreshCw, ExternalLink, ShieldAlert, Siren } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { RefreshCw, ExternalLink, ShieldAlert, Siren, Check, X, Waypoints } from 'lucide-react'
 import { getThreatRadar, getIncident, getThreatIntel } from '../api.js'
 import { useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveBadge from '../components/LiveBadge.jsx'
+import { nowIST } from '../lib/format.js'
+
+// The advisory text a SOC lead would review before anything left the building.
+// Generated from real fields only — no invented impact claims.
+function draftAdvisory(entry, incidentId) {
+  const r = entry.relevance
+  const why = [
+    r.matched_techniques.length ? `shares technique(s) ${r.matched_techniques.join(', ')}` : null,
+    !r.matched_techniques.length && r.matched_tactics.length
+      ? `shares ATT&CK tactic(s) ${r.matched_tactics.join(', ')}` : null,
+    r.matched_actors.length ? `names attributed actor ${r.matched_actors.join(', ')}` : null,
+  ].filter(Boolean).join('; ')
+  return [
+    `SECTOR ADVISORY (DRAFT — NOT DISPATCHED)`,
+    `Source: ${entry.item.source} · ${entry.item.published}`,
+    `Report: ${entry.item.title}`,
+    `Link: ${entry.item.url}`,
+    ``,
+    `Relevance to ${incidentId || 'the open incident'}: ${why || 'context only'}.`,
+    entry.item.techniques.length ? `Techniques in report: ${entry.item.techniques.join(', ')}` : '',
+    ``,
+    `Recommended action: review your own detections for the technique(s) above.`,
+    `This advisory is simulated. No recipient is contacted by this system.`,
+  ].filter((l) => l !== null).join('\n')
+}
 
 function SourceStatus({ sources }) {
   return (
@@ -70,10 +96,10 @@ function RadarItem({ item, names, onAlert, alerted }) {
           {rel.matched_techniques.length === 0 && rel.matched_tactics.length > 0 &&
             <>Same ATT&CK tactic as your incident: <b>{rel.matched_tactics.join(', ')}</b>. </>}
           {rel.matched_actors.length > 0 && <>Mentions attributed actor <b>{rel.matched_actors.join(', ')}</b>. </>}
-          <button className="btn" onClick={() => onAlert(item.url)} disabled={alerted}
+          <button className="btn" onClick={() => onAlert(item)} disabled={alerted}
             style={{ marginLeft: 6, padding: '2px 8px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
             <Siren size={11} aria-hidden="true" />
-            {alerted ? 'queued · awaiting human approval' : 'Queue sector alert (simulated)'}
+            {alerted ? 'queued — see Alert queue below' : 'Queue sector alert (simulated)'}
           </button>
         </div>
       )}
@@ -90,7 +116,15 @@ export default function ThreatRadar() {
   const [radar, setRadar] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [alerted, setAlerted] = useState({})
+  const [queue, setQueue] = useState([])          // simulated, human-gated alert queue
+
+  const enqueue = (item) => setQueue((q) => (
+    q.some((e) => e.item.url === item.url) ? q : [
+      { item, relevance: item.relevance, queued_at: nowIST(), status: 'pending' }, ...q,
+    ]
+  ))
+  const setStatus = (url, status) => setQueue((q) =>
+    q.map((e) => (e.item.url === url ? { ...e, status, decided_at: nowIST() } : e)))
 
   const techniques = incident?.technique_ids || []
   const actors = (intel?.attribution || []).slice(0, 3).map((a) => a.actor)
@@ -160,8 +194,8 @@ export default function ThreatRadar() {
               about the same techniques you are seeing.
             </div>
           ) : relevant.map((i) => (
-            <RadarItem key={i.url} item={i} names={names} alerted={!!alerted[i.url]}
-              onAlert={(u) => setAlerted((a) => ({ ...a, [u]: true }))} />
+            <RadarItem key={i.url} item={i} names={names}
+              alerted={queue.some((e) => e.item.url === i.url)} onAlert={enqueue} />
           ))}
         </div>
         <div className="note">
@@ -170,14 +204,101 @@ export default function ThreatRadar() {
         </div>
       </Card>
 
+      {queue.length > 0 && (
+        <>
+          <div className="section-label">Alert queue · {queue.filter((e) => e.status === 'pending').length} awaiting approval</div>
+          <Card>
+            <CardHeader title="Queued sector alerts"
+              meta="simulated · a SOC lead approves before anything would leave" />
+            <div className="card-b pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {queue.map((e) => (
+                <div key={e.item.url} className="tech" style={{
+                  borderLeft: `3px solid var(--sev-${e.status === 'approved' ? 'medium' : e.status === 'dismissed' ? 'normal' : 'high'})`,
+                  paddingLeft: 10, opacity: e.status === 'dismissed' ? 0.55 : 1,
+                }}>
+                  <div className="th" style={{ flexWrap: 'wrap', gap: 6 }}>
+                    <span className="chip">{e.item.source}</span>
+                    <span className="tag-pill" style={{
+                      background: e.status === 'pending'
+                        ? 'color-mix(in srgb, var(--sev-high) 16%, transparent)'
+                        : 'var(--surface-2)',
+                      color: e.status === 'pending' ? 'var(--sev-high)' : 'var(--text-dim)',
+                    }}>
+                      {e.status === 'pending' ? 'awaiting human approval'
+                        : e.status === 'approved' ? 'approved · simulated, not dispatched'
+                        : 'dismissed'}
+                    </span>
+                    <span className="mono" style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+                      queued {e.queued_at}{e.decided_at ? ` · decided ${e.decided_at}` : ''}
+                    </span>
+                  </div>
+
+                  <div style={{ fontWeight: 600, margin: '4px 0' }}>{e.item.title}</div>
+
+                  <div style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 6 }}>
+                    Would notify: <b>sector CERT / peer operators</b> (simulated recipient) ·
+                    Basis: {e.relevance.matched_techniques.length
+                      ? <>technique <b className="mono">{e.relevance.matched_techniques.join(', ')}</b></>
+                      : e.relevance.matched_tactics.length
+                        ? <>tactic <b>{e.relevance.matched_tactics.join(', ')}</b></>
+                        : 'context'}
+                    {e.relevance.matched_actors.length > 0 && <> · actor <b>{e.relevance.matched_actors.join(', ')}</b></>}
+                  </div>
+
+                  <details>
+                    <summary style={{ cursor: 'pointer', fontSize: 12, color: 'var(--accent)' }}>
+                      View draft advisory
+                    </summary>
+                    <pre className="mono" style={{
+                      whiteSpace: 'pre-wrap', fontSize: 11.5, background: 'var(--surface-2)',
+                      border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                      padding: 10, marginTop: 6, color: 'var(--text-dim)',
+                    }}>{draftAdvisory(e, incident?.incident_id)}</pre>
+                  </details>
+
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {e.status === 'pending' && (
+                      <>
+                        <button className="btn primary" onClick={() => setStatus(e.item.url, 'approved')}
+                          style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                          <Check size={12} aria-hidden="true" /> Approve (simulated)
+                        </button>
+                        <button className="btn" onClick={() => setStatus(e.item.url, 'dismissed')}
+                          style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                          <X size={12} aria-hidden="true" /> Dismiss
+                        </button>
+                      </>
+                    )}
+                    <Link to="/graph" className="btn"
+                      style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                      <Waypoints size={12} aria-hidden="true" /> Review your attack path
+                    </Link>
+                    <a className="btn" href={e.item.url} target="_blank" rel="noopener noreferrer"
+                      style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                      <ExternalLink size={12} aria-hidden="true" /> Source report
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="note">
+              <b>External intel has no attack path of its own</b> — we hold no telemetry for someone
+              else's breach, and inventing one would be fabrication. The path lives with <i>your</i>
+              {' '}incident: <Link to="/graph">Attack Graph</Link> · <Link to="/incident">Live Incident</Link>.
+              Approval here is a simulated gate; nothing is transmitted.
+            </div>
+          </Card>
+        </>
+      )}
+
       <div className="section-label">Everything the radar is watching · {rest.length}</div>
       <Card>
         <CardHeader title="Live threat feed" meta="newest first" />
         <div className="card-b pad" style={{ display: 'flex', flexDirection: 'column', gap: 14,
                                              maxHeight: 620, overflowY: 'auto' }}>
           {rest.map((i) => (
-            <RadarItem key={i.url} item={i} names={names} alerted={!!alerted[i.url]}
-              onAlert={(u) => setAlerted((a) => ({ ...a, [u]: true }))} />
+            <RadarItem key={i.url} item={i} names={names}
+              alerted={queue.some((e) => e.item.url === i.url)} onAlert={enqueue} />
           ))}
         </div>
       </Card>

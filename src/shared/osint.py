@@ -30,9 +30,11 @@ import re
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timezone as _tz
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+
+from src.shared.timeutil import fmt_ist, fmt_ist_date
 
 ROOT = Path(__file__).resolve().parents[2]
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
@@ -184,13 +186,14 @@ def _get(url: str, headers: dict | None = None, data: bytes | None = None) -> by
 
 
 def _iso(dt: datetime | None) -> str:
-    return (dt or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%d")
+    return fmt_ist_date(dt)
 
 
 def _iso_dt(dt: datetime | None) -> str:
-    """Date + time (UTC). Sorts correctly alongside date-only values from feeds
-    that publish no time (CISA KEV gives dateAdded only)."""
-    return (dt or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    """Date + time in IST (the operator's timezone). Sorts correctly alongside
+    date-only values from feeds that publish no time (CISA KEV gives dateAdded
+    only, so those items stay date-only rather than inventing a time)."""
+    return fmt_ist(dt)
 
 
 # --------------------------------------------------------------------------- #
@@ -331,6 +334,17 @@ def fetch_rss(source: str, url: str, limit: int = 10) -> list[dict]:
     return _parse_rss(_get(url), source, limit)
 
 
+def _otx_time(stamp: str) -> str:
+    """OTX returns naive-ish ISO UTC ('2026-07-16T09:12:33.123') -> IST."""
+    try:
+        dt = datetime.fromisoformat(stamp.replace("Z", "+00:00").split(".")[0])
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=_tz.utc)
+        return fmt_ist(dt)
+    except Exception:
+        return stamp[:10]
+
+
 def fetch_otx(limit: int = 15) -> list[dict]:
     """AlienVault OTX subscribed pulses. Needs a FREE key in OTX_API_KEY."""
     key = os.environ.get("OTX_API_KEY", "").strip()
@@ -349,7 +363,7 @@ def fetch_otx(limit: int = 15) -> list[dict]:
         items.append({
             "source": "AlienVault OTX",
             "title": p.get("name", "(untitled pulse)"),
-            "published": (p.get("modified") or p.get("created") or "")[:16].replace("T", " "),
+            "published": _otx_time(p.get("modified") or p.get("created") or ""),
             "url": f"https://otx.alienvault.com/pulse/{p.get('id','')}",
             "text": text, "tags": tags,
             "iocs": [i.get("indicator", "") for i in (p.get("indicators") or [])[:5]],
@@ -415,7 +429,7 @@ def collect(limit: int = 40) -> dict:
     names = technique_names(sorted({t for i in items for t in i["techniques"]}))
 
     return {
-        "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "fetched_at": fmt_ist(),
         "items": items,
         "technique_names": names,
         "sources": status,
