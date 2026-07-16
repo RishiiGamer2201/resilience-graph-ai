@@ -170,6 +170,14 @@ export default function Graph() {
   }), [view])
 
   // Host list beside the graph — 480 nodes are impossible to hunt visually.
+  // nodes touched by a technique-focused edge (from a Threat Radar drill-in)
+  const focusNodes = useMemo(() => {
+    if (!techFocus) return null
+    const s = new Set()
+    for (const e of view.edges) if (techFocus.has(e.technique)) { s.add(e.from); s.add(e.to) }
+    return s
+  }, [techFocus, view])
+
   const hostRows = useMemo(() => {
     const deg = new Map()
     for (const e of view.edges) {
@@ -208,14 +216,6 @@ export default function Graph() {
     ? new Set(view.edges.filter((e) => e.from === selected || e.to === selected)
         .flatMap((e) => [e.from, e.to]))
     : null
-
-  // nodes touched by a technique-focused edge (from a Threat Radar drill-in)
-  const focusNodes = useMemo(() => {
-    if (!techFocus) return null
-    const s = new Set()
-    for (const e of view.edges) if (techFocus.has(e.technique)) { s.add(e.from); s.add(e.to) }
-    return s
-  }, [techFocus, view])
 
   const dim = (id) => techFocus && !focusNodes.has(id)
   const nodeColor = (n) => {
