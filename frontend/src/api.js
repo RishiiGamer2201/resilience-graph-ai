@@ -37,11 +37,19 @@ export async function scoreEvent(features) {
     return { ...(await post("/score-event", features)), live: true };
   } catch {
     // deterministic fallback so the widget still responds if backend is down
+    const distinct = Number(features.user_distinct_dst_sofar || 0);
+    const failRate = Number(features.user_fail_rate_sofar || 0);
+    const rarity = Number(features.dst_rarity || 0);
+    const distinctPressure =
+      distinct <= 5 ? 8 : distinct >= 100 ? Math.min(15, (distinct - 100) / 20) : 0;
     const s =
-      (features.new_dst_for_user ? 35 : 0) +
-      (features.is_ntlm ? 35 : 0) +
-      (features.is_fail ? 15 : 0) +
-      Math.min(15, (features.dst_rarity || 0));
+      (features.new_dst_for_user ? 28 : 0) +
+      (features.is_ntlm ? 28 : 0) +
+      (features.is_fail ? 12 : 0) +
+      (features.new_src_for_user ? 10 : 0) +
+      Math.min(17, rarity * 1.4) +
+      Math.min(20, failRate * 40) +
+      distinctPressure;
     const score = Math.min(100, s);
     const severity =
       score >= 90 ? "critical" : score >= 70 ? "high" : score >= 45 ? "medium" : "low";

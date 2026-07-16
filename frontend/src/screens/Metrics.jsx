@@ -126,7 +126,7 @@ export default function Metrics() {
                 { label: 'Random pair similarity', value: embeddings.random_cos },
               ]} />
             </div>
-            <div className="note">Same-tactic techniques cluster above random — the embedding space is meaningful.</div>
+            <div className="note">Same-tactic techniques cluster above random, so the embedding space is meaningful.</div>
           </Card>
         </div>
       </div>

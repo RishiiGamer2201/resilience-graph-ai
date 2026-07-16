@@ -36,7 +36,7 @@ export default function Methodology() {
       </Card>
 
       <div className="foot">
-        Every metric is reported the way the data allows — <b>PR-AUC / TPR@FPR</b> for unsupervised
+        Every metric is reported the way the data allows: <b>PR-AUC / TPR@FPR</b> for unsupervised
         detectors, honest baselines, and unverified manual mappings clearly flagged.
       </div>
     </>
