@@ -187,6 +187,12 @@ def _iso(dt: datetime | None) -> str:
     return (dt or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%d")
 
 
+def _iso_dt(dt: datetime | None) -> str:
+    """Date + time (UTC). Sorts correctly alongside date-only values from feeds
+    that publish no time (CISA KEV gives dateAdded only)."""
+    return (dt or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+
 # --------------------------------------------------------------------------- #
 # ATT&CK mapping                                                               #
 # --------------------------------------------------------------------------- #
@@ -307,9 +313,9 @@ def _parse_rss(xml_bytes: bytes, source: str, limit: int) -> list[dict]:
         desc = re.sub(r"\s+", " ", desc).strip()[:600]
         pub = it.findtext("pubDate") or ""
         try:
-            published = _iso(parsedate_to_datetime(pub))
+            published = _iso_dt(parsedate_to_datetime(pub))     # RSS carries a time
         except Exception:
-            published = _iso(None)
+            published = _iso_dt(None)
         blob = f"{title}. {desc}"
         out.append({
             "source": source, "title": title, "published": published, "url": link,
@@ -343,7 +349,7 @@ def fetch_otx(limit: int = 15) -> list[dict]:
         items.append({
             "source": "AlienVault OTX",
             "title": p.get("name", "(untitled pulse)"),
-            "published": (p.get("modified") or p.get("created") or "")[:10],
+            "published": (p.get("modified") or p.get("created") or "")[:16].replace("T", " "),
             "url": f"https://otx.alienvault.com/pulse/{p.get('id','')}",
             "text": text, "tags": tags,
             "iocs": [i.get("indicator", "") for i in (p.get("indicators") or [])[:5]],
