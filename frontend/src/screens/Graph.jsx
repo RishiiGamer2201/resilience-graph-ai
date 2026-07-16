@@ -193,15 +193,24 @@ export default function Graph() {
 
   useEffect(() => {
     if (fgRef.current) {
-      // 479 nodes need a stronger spread + link distance or they pile up; the fit
-      // below then brings the whole layout inside the canvas.
-      fgRef.current.d3Force('charge')?.strength(-120)
-      fgRef.current.d3Force('link')?.distance(28)
-      fgRef.current.d3ReheatSimulation?.()
+      // Small subgraphs (a Threat-Radar drill-in) have disconnected components;
+      // strong repulsion flings them apart and zoomToFit then shows a mostly-empty
+      // canvas. Scale repulsion + link distance down for small graphs so the pieces
+      // stay together and fill the frame. Guarded — a missing d3 method must never
+      // blank the page.
+      try {
+        const small = graphData.nodes.length < 160
+        const charge = fgRef.current.d3Force('charge')
+        charge?.strength?.(small ? -34 : -120)
+        charge?.distanceMax?.(small ? 180 : 400)
+        fgRef.current.d3Force('link')?.distance?.(small ? 18 : 28)
+        fgRef.current.d3Force('center')?.strength?.(small ? 0.4 : 0.08)
+        fgRef.current.d3ReheatSimulation?.()
+      } catch { /* keep default forces */ }
     }
     fitted.current = null            // refit when the graph changes
     // fallback fit in case the sim settles before onEngineStop refires
-    const t = setTimeout(() => fgRef.current?.zoomToFit(500, 60), 700)
+    const t = setTimeout(() => fgRef.current?.zoomToFit(500, 55), 800)
     return () => clearTimeout(t)
   }, [graphData, theme])
 
