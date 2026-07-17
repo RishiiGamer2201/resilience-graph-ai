@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC001",
+    "title": "list_shipped_demo_scenarios",
+    "description": "Test GET /api/scenarios to verify it returns 200 with a list of shipped demo scenarios including names, labels, and event counts, and that the scenario metadata is correct for live analysis selection."
+  },
+  {
+    "id": "TC002",
+    "title": "analyze_named_scenario",
+    "description": "Test POST /api/analyze with a valid scenario name to receive a 200 response containing the full incident analysis bundle including overview, incident, graph, threat intel, report, attackers, and meta. Also test with an unknown scenario name to receive a 404 error, and test with no scenario and no events payload to receive a 422 validation error."
+  },
+  {
+    "id": "TC003",
+    "title": "analyze_raw_events",
+    "description": "Test POST /api/analyze with a valid events array to receive a 200 response with correlated incident outputs, attack graph, attribution, and report. Test with account scoping to verify scoped incident analysis. Test with empty events array, oversized input (>50k rows), and unknown account identifier to receive 422 validation errors."
+  },
+  {
+    "id": "TC004",
+    "title": "analyze_uploaded_csv_logs",
+    "description": "Test POST /api/analyze/upload with a valid CSV file containing event logs to receive a 200 response with live analysis results. Verify handling of CSV rows with epoch-integer and ISO-8601 timestamps. Test with malformed or unsupported uploads to receive 422 validation errors."
+  },
+  {
+    "id": "TC005",
+    "title": "score_single_event",
+    "description": "Test POST /api/score-event with a valid authentication event to receive a 200 response containing anomaly_score and severity. Test with an event missing required behavioral fields to receive a 422 validation error."
+  },
+  {
+    "id": "TC006",
+    "title": "predict_next_attack_technique",
+    "description": "Test POST /api/predict-next with a partial ATT&CK technique chain to receive a 200 response with next-technique predictions and ranking. Test with empty or invalid chain payload to receive a 422 validation error."
+  },
+  {
+    "id": "TC007",
+    "title": "threat_radar_enrichment_and_scoring",
+    "description": "Test GET /api/threat-radar to receive 200 with cached radar items and metadata. Test POST /api/threat-radar with incident context to receive 200 with scored radar items cross-referenced to the incident. Test POST requesting live refresh to receive 200 with refreshed or cached items. Test POST with insufficient incident context to receive 422 validation error."
+  }
+]

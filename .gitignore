@@ -46,3 +46,8 @@ Thumbs.db
 
 # ─── Claude Code local (personal, not shared) ─────────
 .claude/settings.local.json
+
+testsprite_tests\tmp\config.json
+
+# TestSprite generated logs/artifacts (noisy)
+testsprite_tests/tmp/

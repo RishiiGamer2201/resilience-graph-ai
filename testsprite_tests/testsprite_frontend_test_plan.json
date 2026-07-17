@@ -1,0 +1,1340 @@
+[
+  {
+    "id": "TC001",
+    "title": "Enter the demo environment",
+    "description": "Verifies that a user can enter the demo experience from the splash screen and reach the analysis page.",
+    "category": "Enter demo environment",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to enter the demo environment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the analysis page is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Run a shipped scenario and reach live analysis",
+    "description": "This verifies a user can select a shipped scenario, complete analysis, and arrive at the live analysis overview.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Select a shipped scenario"
+      },
+      {
+        "type": "action",
+        "description": "Start the analysis pipeline"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis overview is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Run a shipped scenario analysis to live overview",
+    "description": "Verifies that a user can start analysis on a shipped scenario and land on the live overview after processing completes.",
+    "category": "Live analysis of a scenario",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Click the analysis control for a shipped scenario"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the analysis pipeline to complete"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis overview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session is marked as live analysis"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Enter the demo environment and land on the analysis pipeline",
+    "description": "This verifies a user can enter the demo experience from the splash screen and reach the analysis flow.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Enter the demo environment"
+      },
+      {
+        "type": "action",
+        "description": "Continue to the analysis flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the analysis screen is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Enter the demo environment from the splash screen",
+    "description": "This verifies that a user can start the demo journey from the landing screen and reach the analysis area.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to enter the demo environment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the analysis screen is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Complete a shipped scenario analysis and reach the live overview",
+    "description": "This verifies that selecting a shipped scenario runs the analysis pipeline and lands the user in the live overview.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to enter the demo environment"
+      },
+      {
+        "type": "action",
+        "description": "Select a shipped scenario for analysis"
+      },
+      {
+        "type": "action",
+        "description": "Start the analysis pipeline"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis overview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a live incident context is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Upload a CSV and complete analysis",
+    "description": "Verifies that a user can upload an event-log CSV and complete the same analysis pipeline to reach the live overview.",
+    "category": "Upload a CSV to analyze",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Choose a valid CSV file for upload"
+      },
+      {
+        "type": "action",
+        "description": "Optionally add critical-asset host information"
+      },
+      {
+        "type": "action",
+        "description": "Start the upload analysis"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the analysis pipeline to complete"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis overview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the uploaded analysis is marked as live analysis"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Review the command center after analysis",
+    "description": "This verifies the overview page presents the active incident and command-center status after analysis completes.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /overview"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis context is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the active incident summary is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Review the live incident replay from the overview",
+    "description": "This verifies that a user can open the incident view after analysis and inspect the replay and audit-ready incident context.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the control to enter the demo environment"
+      },
+      {
+        "type": "action",
+        "description": "Select a shipped scenario for analysis"
+      },
+      {
+        "type": "action",
+        "description": "Start the analysis pipeline"
+      },
+      {
+        "type": "action",
+        "description": "Open the live incident view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify incident replay content is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an audit-ready incident report is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Upload a CSV and review the resulting incident overview",
+    "description": "This verifies that a user can analyze an uploaded CSV and see the resulting live analysis overview.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Upload a valid CSV file"
+      },
+      {
+        "type": "action",
+        "description": "Start the analysis pipeline"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis overview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify incident summary content is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Predict the next attacker technique",
+    "description": "Verifies that a user can assemble ATT&CK context in threat intel and see a next-technique prediction.",
+    "category": "Threat Intel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-intel"
+      },
+      {
+        "type": "action",
+        "description": "Add partial ATT&CK chain context"
+      },
+      {
+        "type": "action",
+        "description": "Request the next-technique prediction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a next-technique prediction is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the ATT&CK context remains visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Open a scoped account incident from the roster",
+    "description": "This verifies a user can open an account from the attackers list and land on the corresponding scoped incident view.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /attackers"
+      },
+      {
+        "type": "action",
+        "description": "Open an account incident from the roster"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the scoped incident view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected account is represented in the incident context"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Inspect the attack graph for a live incident",
+    "description": "Verifies that a user can open the attack graph and see relationship evidence for the current live analysis.",
+    "category": "Graph",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graph"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attack graph is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify host relationship evidence is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Score an event with a malicious preset",
+    "description": "This verifies a user can score an event using a high-risk preset and see a higher-severity anomaly result.",
+    "category": "Live event scoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /incident"
+      },
+      {
+        "type": "action",
+        "description": "Select a malicious-like event preset"
+      },
+      {
+        "type": "action",
+        "description": "Score the event"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the anomaly score is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the severity is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Build a partial ATT&CK chain and get the next-technique prediction",
+    "description": "This verifies that a user can assemble techniques, request prediction, and review the ranked next-step techniques.",
+    "category": "Next-technique prediction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-intel"
+      },
+      {
+        "type": "action",
+        "description": "Add technique chips to build a partial chain"
+      },
+      {
+        "type": "action",
+        "description": "Request the next-technique prediction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify ranked next-technique predictions are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the partial ATT&CK chain is reflected"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Review available shipped scenarios before analyzing",
+    "description": "Verifies that the analysis page shows the shipped scenario choices needed to begin investigation.",
+    "category": "Live analysis of a scenario",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify shipped scenarios are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify multiple scenario options are available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "View threat intelligence predictions for a partial ATT&CK chain",
+    "description": "This verifies a user can assemble partial technique context and see a next-technique prediction.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-intel"
+      },
+      {
+        "type": "action",
+        "description": "Provide partial ATT&CK technique context"
+      },
+      {
+        "type": "action",
+        "description": "Request a next-technique prediction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the next-technique prediction is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify related ATT&CK mapping is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Inspect a host from the attack graph and review its movements",
+    "description": "This verifies that a user can open the graph, select a host, and inspect the host movement details.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graph"
+      },
+      {
+        "type": "action",
+        "description": "Click a host node"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify host movement details are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify related host context is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "Search the attackers roster",
+    "description": "This verifies a user can filter the compromised accounts roster by search term and narrow the visible results.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /attackers"
+      },
+      {
+        "type": "action",
+        "description": "Filter the roster by a search term"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the roster is filtered to matching accounts"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Focus the graph on a path to the crown jewel",
+    "description": "This verifies that a user can enable the crown-jewel path view and inspect the focused exposure subgraph.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graph"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the path to crown jewel view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a focused exposure subgraph is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the crown-jewel path context is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC021",
+    "title": "Open a scoped account incident",
+    "description": "Verifies that a user can open an account from the attackers roster and view its scoped incident context.",
+    "category": "Attackers",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /attackers"
+      },
+      {
+        "type": "action",
+        "description": "Open a compromised account from the roster"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the scoped incident view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify account-specific incident details are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC022",
+    "title": "Refresh threat radar matches for the current incident",
+    "description": "Verifies that a user can refresh threat-radar matches and see incident-relevant CTI results when available.",
+    "category": "Threat Radar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-radar"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the threat radar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify CTI matches are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify incident cross-references are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC023",
+    "title": "Find a host by search and narrow the graph by account",
+    "description": "This verifies that a user can search the host roster and change the account filter to narrow the displayed graph context.",
+    "category": "Attack graph interaction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graph"
+      },
+      {
+        "type": "action",
+        "description": "Search for a host in the side list"
+      },
+      {
+        "type": "action",
+        "description": "Change the account filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the graph updates to the selected account context"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the matching host roster is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC024",
+    "title": "Open the compromised accounts roster",
+    "description": "Verifies that a user can reach the attackers roster and see compromised accounts available for scoped investigation.",
+    "category": "Attackers",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /attackers"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify compromised accounts are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the roster is searchable"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC025",
+    "title": "Trace attack spread from the incident into the graph",
+    "description": "This verifies a user can move from a scoped incident to the attack graph and inspect related host relationships.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /incident"
+      },
+      {
+        "type": "action",
+        "description": "Open the attack graph from the incident view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attack graph is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify related host relationships are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC026",
+    "title": "Filter the attack graph by account",
+    "description": "Verifies that a user can filter the attack graph to a specific account and see the scoped relationships update.",
+    "category": "Graph",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graph"
+      },
+      {
+        "type": "action",
+        "description": "Apply an account filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the graph updates to the filtered account scope"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only relevant relationship evidence is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC027",
+    "title": "Stream live incident scores",
+    "description": "This verifies a user can start the live stream and observe incoming scored events in the incident view.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /incident"
+      },
+      {
+        "type": "action",
+        "description": "Start the live stream"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify live event scores are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the incident view shows streaming activity"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC028",
+    "title": "Score an event with a benign preset",
+    "description": "This verifies a user can score an event using a low-risk preset and see a valid anomaly result.",
+    "category": "Live event scoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /incident"
+      },
+      {
+        "type": "action",
+        "description": "Select a benign-like event preset"
+      },
+      {
+        "type": "action",
+        "description": "Score the event"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the anomaly score is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the severity is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC029",
+    "title": "Search the compromised account roster",
+    "description": "Verifies that a user can search the attackers roster and get a filtered set of matching accounts.",
+    "category": "Attackers",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /attackers"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid account search term"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify matching compromised accounts are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify non-matching accounts are hidden"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC030",
+    "title": "Refresh threat radar and review incident cross-references",
+    "description": "This verifies a user can refresh threat radar and see CTI hits cross-referenced against the current incident.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-radar"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the threat radar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify CTI matches are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify incident cross-references are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC031",
+    "title": "Trace a technique-focused path in the attack graph",
+    "description": "Verifies that a user can open a technique-focused exposure view from the graph and inspect the resulting path context.",
+    "category": "Graph",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graph"
+      },
+      {
+        "type": "action",
+        "description": "Open a technique-focused exposure view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a technique-scoped subgraph is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the path context is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC032",
+    "title": "Remove a technique from the chain before predicting",
+    "description": "This verifies that a user can edit the ATT&CK chain composition and still obtain a prediction from the updated chain.",
+    "category": "Next-technique prediction",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-intel"
+      },
+      {
+        "type": "action",
+        "description": "Add technique chips to build a partial chain"
+      },
+      {
+        "type": "action",
+        "description": "Remove one technique from the chain"
+      },
+      {
+        "type": "action",
+        "description": "Request the next-technique prediction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the prediction results reflect the updated chain"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the removed technique is no longer included in the chain"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC033",
+    "title": "Validate threat intel against the incident context",
+    "description": "Verifies that a user can compare threat-intel results with the current incident and graph context for investigation.",
+    "category": "Threat Intel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-intel"
+      },
+      {
+        "type": "action",
+        "description": "Review the ranked actor context"
+      },
+      {
+        "type": "action",
+        "description": "Open the related incident context"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the incident context is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the related attack evidence is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC034",
+    "title": "Replay the incident timeline",
+    "description": "This verifies a user can start incident replay and see the correlated attack chain animate in the incident view.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /incident"
+      },
+      {
+        "type": "action",
+        "description": "Start the incident replay"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the incident timeline is displayed as replaying"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify correlated incident events are visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC035",
+    "title": "Queue, approve, and then dismiss a simulated sector alert",
+    "description": "This verifies that a user can queue a simulated alert and manage it through approval and dismissal in the local queue.",
+    "category": "Threat radar and simulated alert queue",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-radar"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the live feeds"
+      },
+      {
+        "type": "action",
+        "description": "Queue a simulated sector alert"
+      },
+      {
+        "type": "action",
+        "description": "Approve the queued simulated alert"
+      },
+      {
+        "type": "action",
+        "description": "Dismiss the queued simulated alert"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the alert queue is updated to reflect the local state changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no dispatch confirmation is shown"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC036",
+    "title": "Flag critical assets in an uploaded analysis",
+    "description": "Verifies that a user can provide critical-asset host information during CSV upload and still run the analysis pipeline successfully.",
+    "category": "Upload a CSV to analyze",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Choose a valid CSV file for upload"
+      },
+      {
+        "type": "action",
+        "description": "Fill in critical-asset host information"
+      },
+      {
+        "type": "action",
+        "description": "Start the upload analysis"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the analysis pipeline to complete"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis overview is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC037",
+    "title": "Open highlighted evidence from threat radar",
+    "description": "This verifies a user can navigate from threat radar to highlighted graph evidence or an attack path.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-radar"
+      },
+      {
+        "type": "action",
+        "description": "Open a highlighted piece of evidence"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the related graph evidence is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attack path context is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC038",
+    "title": "Keep the live analysis context while navigating",
+    "description": "Verifies that a user can move between overview, incident, graph, and threat intel while preserving the live analysis context.",
+    "category": "Live analysis of a scenario",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Click the analysis control for a shipped scenario"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the analysis pipeline to complete"
+      },
+      {
+        "type": "action",
+        "description": "Open the incident view"
+      },
+      {
+        "type": "action",
+        "description": "Open the attack graph"
+      },
+      {
+        "type": "action",
+        "description": "Open threat intelligence"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis context is still present"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected investigation context remains consistent"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC039",
+    "title": "Open graph evidence from a radar hit",
+    "description": "This verifies that a user can move from a matched radar item into the attack graph evidence view.",
+    "category": "Threat radar and simulated alert queue",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-radar"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the live feeds"
+      },
+      {
+        "type": "action",
+        "description": "Open the attack graph evidence for a matched item"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attack graph evidence view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the matched incident context is carried into the graph"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC040",
+    "title": "Open the attack graph from the live analysis context",
+    "description": "This verifies a user can switch from the analysis context into the graph without losing access to incident evidence.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /overview"
+      },
+      {
+        "type": "action",
+        "description": "Open the attack graph"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the attack graph is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the analysis context remains available"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC041",
+    "title": "Preserve live analysis context while switching views",
+    "description": "This verifies a user can move between overview, incident, graph, and threat intel while keeping the analysis context available.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /overview"
+      },
+      {
+        "type": "action",
+        "description": "Open the incident view"
+      },
+      {
+        "type": "action",
+        "description": "Open the attack graph"
+      },
+      {
+        "type": "action",
+        "description": "Open threat intelligence"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live analysis context is still available"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the current view is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC042",
+    "title": "Review model evidence in metrics",
+    "description": "Verifies that a user can open the metrics page and inspect the model evidence tables.",
+    "category": "Metrics",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify model evidence tables are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify evidence for multiple models is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC043",
+    "title": "Compare live and cached scoring results",
+    "description": "This verifies the incident scoring view clearly shows whether results are live or cached.",
+    "category": "Live event scoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /incident"
+      },
+      {
+        "type": "action",
+        "description": "Select an event preset"
+      },
+      {
+        "type": "action",
+        "description": "Score the event"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the result status is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC044",
+    "title": "Review datasets and methodology notes",
+    "description": "Verifies that a user can open the methodology page and inspect the datasets and honesty notes.",
+    "category": "Methodology",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /methodology"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dataset information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify methodology honesty notes are visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC045",
+    "title": "Review model evidence tables",
+    "description": "This verifies a user can inspect the model evidence tables used to explain detection outputs.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify model evidence tables are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC046",
+    "title": "Keep the selected theme after a browser refresh",
+    "description": "Verify that a user's chosen appearance mode remains active after reloading the overview page.",
+    "category": "Theme toggle",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /overview"
+      },
+      {
+        "type": "action",
+        "description": "Click the theme toggle in the top bar"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the page to reload"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected theme remains applied"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC047",
+    "title": "Keep the selected theme while navigating to another page",
+    "description": "Verify that a user's chosen appearance mode remains in effect when moving from the overview page to another app section.",
+    "category": "Theme toggle",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /overview"
+      },
+      {
+        "type": "action",
+        "description": "Click the theme toggle in the top bar"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to the incident view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected theme remains applied"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the incident view is displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC048",
+    "title": "Change theme from an analysis workflow page",
+    "description": "Verify that a user can toggle the appearance mode from a core workflow page without leaving the analysis context.",
+    "category": "Theme toggle",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Click the theme toggle in the top bar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the interface updates to the selected theme"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC049",
+    "title": "Queue a simulated sector alert",
+    "description": "Verifies that a user can approve a simulated sector alert in threat radar and see the local queued state change.",
+    "category": "Threat Radar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /threat-radar"
+      },
+      {
+        "type": "action",
+        "description": "Queue a simulated sector alert"
+      },
+      {
+        "type": "action",
+        "description": "Approve the queued alert"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the alert shows an approved local state"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the queued alert remains visible in the interface"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC050",
+    "title": "Handle an empty file during CSV upload",
+    "description": "This verifies the analysis flow rejects an empty CSV file and keeps the user on the upload screen with a validation message.",
+    "category": "Attackers roster and per-account drill-down",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /analyze"
+      },
+      {
+        "type": "action",
+        "description": "Upload an empty CSV file"
+      },
+      {
+        "type": "action",
+        "description": "Start the analysis pipeline"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a file validation error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the analysis has not started"
+      }
+    ],
+    "priority": "Low"
+  }
+]

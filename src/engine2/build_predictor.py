@@ -219,12 +219,16 @@ def lstm_topk(net, seqs, emb_of, dim, vocab_set, idx):
 # Main                                                                         #
 # --------------------------------------------------------------------------- #
 def save_markov(train, path):
-    """Persist the first-order transition table — the shipped predictor."""
+    """Persist the first-order transition table — the shipped predictor.
+
+    Stores [technique, count] pairs (ordered by count desc) so consumers can
+    report a real transition probability, not just a ranked list.
+    """
     trans = defaultdict(Counter)
     for s in train:
         for i in range(1, len(s)):
             trans[s[i - 1]][s[i]] += 1
-    table = {last: [t for t, _ in c.most_common()] for last, c in trans.items()}
+    table = {last: [[t, int(n)] for t, n in c.most_common()] for last, c in trans.items()}
     with path.open("wb") as f:
         pickle.dump(table, f)
 

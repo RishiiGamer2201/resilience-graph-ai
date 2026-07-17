@@ -70,7 +70,10 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
         if col not in df.columns:
             df[col] = default
     if not (df["user"].astype(str).str.len() > 0).any():
-        raise ValueError("events need a 'user' column (behavioral features are per-user)")
+        raise ValueError(
+            "events need a 'user' column (behavioral features are per-user). "
+            "Accepted names: user, username, account, principal, src_user. "
+            "Also need source_host/destination_host (aliases: src/dst, source/destination).")
     return df
 
 

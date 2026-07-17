@@ -63,6 +63,19 @@ def test_rejects_oversized_and_empty():
         analyze_events(pd.DataFrame())
 
 
+def test_column_aliases_resolved():
+    """Regression (TestSprite used generic headers): username/source/destination
+    should resolve to user/source_host/destination_host so a judge's own log works."""
+    import io
+    csv = ("timestamp,username,source,destination,status,protocol\n"
+           "2023-04-01T12:00:00Z,u1,WS1,SRV1,fail,NTLM\n"
+           "2023-04-01T12:00:30Z,u1,WS1,SRV1,success,NTLM\n"
+           "2023-04-01T12:01:00Z,u1,WS1,DC1,success,NTLM\n")
+    b = analyze_events(pd.read_csv(io.StringIO(csv)), critical_assets={"DC1"})
+    assert b["incident"]["event_count"] == 3
+    assert b["incident"]["pivot"] == "WS1"
+
+
 def test_iso8601_timestamps_accepted():
     """Regression (found by TestSprite): an uploaded CSV with ISO-8601 timestamp
     strings crashed with `invalid literal for int()`. Real logs use datetimes."""

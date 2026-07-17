@@ -98,12 +98,12 @@ def _markov():
         with LOOKUPS.open("rb") as f:
             lk = pickle.load(f)
         _state["names"] = lk["technique_to_name"]
-        # most-frequent fallback ordering from the transition table
+        # most-frequent fallback ordering, weighted by real transition counts
         from collections import Counter
         c = Counter()
         for succ in _state["markov"].values():
-            for i, t in enumerate(succ):
-                c[t] += len(succ) - i
+            for t, n in succ:                       # succ is [[technique, count], …]
+                c[t] += n
         _state["fallback"] = [t for t, _ in c.most_common()]
     return _state["markov"], _state["names"], _state["fallback"]
 
@@ -275,13 +275,18 @@ class Chain(BaseModel):
 def predict_next(c: Chain):
     trans, names, fallback = _markov()
     last = c.technique_ids[-1] if c.technique_ids else None
-    ranked = list(trans.get(last, [])) if last else []
-    seen = set(ranked)
-    ranked += [t for t in fallback if t not in seen]        # backoff to most-frequent
+    pairs = trans.get(last, []) if last else []             # [[technique, count], …]
+    total = sum(n for _, n in pairs) or 1
+    # real transition probability from the observed last technique; then back off
+    # to the most-frequent techniques (score 0 — no observed transition evidence)
+    ranked = [(t, n / total) for t, n in pairs]
+    seen = {t for t, _ in ranked}
+    ranked += [(t, 0.0) for t in fallback if t not in seen]
     top = ranked[: max(1, c.k)]
     return {"given": c.technique_ids,
-            "predictions": [{"rank": i + 1, "technique_id": t, "name": names.get(t, t)}
-                            for i, t in enumerate(top)],
+            "predictions": [{"rank": i + 1, "technique_id": t, "name": names.get(t, t),
+                             "score": round(p, 3)}
+                            for i, (t, p) in enumerate(top)],
             "source": "markov" if last in trans else "frequency-fallback"}
 
 

@@ -75,6 +75,8 @@ export default function PredictNextWidget() {
                 <span className="rk">{p.rank}</span>
                 <span className="pid">{p.technique_id}</span>
                 <span className="pn">{p.name}</span>
+                {p.score > 0 && <span className="pscore" title="Markov transition probability">
+                  {Math.round(p.score * 100)}%</span>}
               </div>
             ))}
           </div>

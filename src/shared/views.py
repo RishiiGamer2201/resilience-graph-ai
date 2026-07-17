@@ -278,7 +278,7 @@ def report_view(full: dict) -> dict:
     with MARKOV.open("rb") as f:
         trans = pickle.load(f)
     last = inc["technique_ids"][-1] if inc["technique_ids"] else None
-    nxt = (trans.get(last, []) or [])[:3]
+    nxt = [t for t, _ in (trans.get(last, []) or [])][:3]   # markov is [[tech, count], …]
 
     crit = ", ".join(g["critical_assets_at_risk"]) or "—"
     tac = Counter(inc["attack_chain"])

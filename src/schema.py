@@ -37,6 +37,38 @@ SCHEMA: Dict[str, str] = {
 
 COLUMNS = list(SCHEMA.keys())
 
+# Common column aliases → canonical schema name. Real logs / uploads use varied
+# headers (username, src, dst, proto…); we resolve them case-insensitively so a
+# judge's own CSV analyses without renaming columns by hand.
+ALIASES: Dict[str, list] = {
+    "timestamp": ["time", "ts", "datetime", "date", "event_time", "@timestamp", "eventtime"],
+    "user": ["username", "user_name", "account", "principal", "src_user", "user_id", "actor"],
+    "source_host": ["src", "src_host", "source", "srchost", "src_computer", "source_computer",
+                    "from_host", "src_host_name", "srchostname", "host_src"],
+    "destination_host": ["dst", "dest", "dst_host", "destination", "dsthost", "dst_computer",
+                         "destination_computer", "to_host", "target", "host_dst"],
+    "protocol": ["proto", "auth_type", "authentication_type"],
+    "status": ["result", "outcome", "auth_result", "logon_result"],
+    "bytes_out": ["bytes", "out_bytes", "bytes_sent"],
+    "event_type": ["type", "action", "operation"],
+}
+
+
+def resolve_aliases(df: pd.DataFrame) -> pd.DataFrame:
+    """Rename known alias / differently-cased columns to their canonical schema
+    name. Only fills a canonical column that isn't already present."""
+    lower = {str(c).lower(): c for c in df.columns}
+    renames = {}
+    for canon, alist in ALIASES.items():
+        if canon in df.columns:
+            continue
+        for cand in [canon, *alist]:
+            src = lower.get(cand)
+            if src is not None and src != canon and canon not in renames.values():
+                renames[src] = canon
+                break
+    return df.rename(columns=renames) if renames else df
+
 
 class Status(str, Enum):
     SUCCESS = "success"
@@ -81,7 +113,7 @@ def coerce(df: pd.DataFrame) -> pd.DataFrame:
     add any missing columns with sensible defaults, drop extras, cast dtypes,
     and return columns in canonical order. Use at the end of every normalizer.
     """
-    out = df.copy()
+    out = resolve_aliases(df.copy())
 
     defaults = {
         "timestamp": 0, "user": "", "source_host": "", "destination_host": "",
