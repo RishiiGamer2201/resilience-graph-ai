@@ -63,6 +63,19 @@ def test_rejects_oversized_and_empty():
         analyze_events(pd.DataFrame())
 
 
+def test_iso8601_timestamps_accepted():
+    """Regression (found by TestSprite): an uploaded CSV with ISO-8601 timestamp
+    strings crashed with `invalid literal for int()`. Real logs use datetimes."""
+    import io
+    csv = ("timestamp,user,source_host,destination_host,status,protocol\n"
+           "2026-07-16T10:00:00Z,a@CORP,WS-01,SRV-01,fail,NTLM\n"
+           "2026-07-16T10:00:20Z,a@CORP,WS-01,SRV-01,success,NTLM\n"
+           "2026-07-16T10:01:00Z,a@CORP,WS-01,DC-01,success,NTLM\n")
+    b = analyze_events(pd.read_csv(io.StringIO(csv)), critical_assets={"DC-01"})
+    assert b["incident"]["event_count"] == 3
+    assert b["incident"]["pivot"] == "WS-01"
+
+
 # --- campaign: many accounts in one log ------------------------------------
 CRIT = [a["host"] for a in json.loads((ROOT / "data" / "demo" / "scenarios" / "critical_assets.json").read_text())["assets"]] if (ROOT / "data" / "demo" / "scenarios" / "critical_assets.json").exists() else []
 CAMPAIGN = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"

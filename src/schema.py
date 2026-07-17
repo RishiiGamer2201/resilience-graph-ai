@@ -95,6 +95,18 @@ def coerce(df: pd.DataFrame) -> pd.DataFrame:
 
     out = out[COLUMNS]  # canonical order, drop extras
 
+    # timestamp may arrive as epoch ints OR ISO-8601 / datetime strings (real logs
+    # and uploads use the latter). Normalize to epoch seconds before the int cast,
+    # otherwise `int("2026-07-16T10:00:00Z")` crashes the whole analysis.
+    ts_num = pd.to_numeric(out["timestamp"], errors="coerce")
+    if ts_num.isna().any():                       # some values aren't plain numbers
+        ts_dt = pd.to_datetime(out["timestamp"], errors="coerce", utc=True)
+        epoch = (ts_dt.astype("int64") // 1_000_000_000).where(ts_dt.notna(), 0)
+        out["timestamp"] = ts_num.where(ts_num.notna(), epoch)
+    else:
+        out["timestamp"] = ts_num
+    out["timestamp"] = out["timestamp"].fillna(0)
+
     for col, dt in SCHEMA.items():
         try:
             out[col] = out[col].astype(dt)
