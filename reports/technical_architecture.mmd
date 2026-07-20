@@ -1,8 +1,8 @@
 flowchart TB
 
-U(["Analyst / Judge — browser"]):::client
+U(["Analyst / Judge · browser"]):::client
 
-subgraph FE["FRONTEND · React 19 + Vite 8 SPA — SOC Command Center"]
+subgraph FE["FRONTEND · React 19 + Vite 8 SPA · SOC Command Center"]
   direction LR
   RT["react-router 7<br/>Login → Analyze → 8 screens"]:::fe
   AP["AnalysisProvider · useScreenData<br/>live bundle overrides sample"]:::fe
@@ -12,7 +12,7 @@ subgraph FE["FRONTEND · React 19 + Vite 8 SPA — SOC Command Center"]
   AP --> VIZ
 end
 
-subgraph API["BACKEND · FastAPI + uvicorn — api/main.py"]
+subgraph API["BACKEND · FastAPI + uvicorn · api/main.py"]
   direction LR
   LIVE["LIVE POST<br/>/analyze · /analyze/upload<br/>/score-event · /predict-next"]:::api
   STREAM["SSE GET<br/>/analyze/stream<br/>event-by-event replay"]:::api
@@ -20,10 +20,10 @@ subgraph API["BACKEND · FastAPI + uvicorn — api/main.py"]
   STATIC["serves built SPA · prod<br/>same origin · no CORS"]:::api
 end
 
-subgraph SPINE["SHARED SPINE · src/shared/live_analyze.py — analyze_events() runs the WHOLE pipeline per request"]
+subgraph SPINE["SHARED SPINE · src/shared/live_analyze.py · analyze_events() runs the WHOLE pipeline per request"]
   direction LR
   P1["schema.py<br/>normalize<br/>+ col-alias"]:::spine
-  P2["score every<br/>event 0–100"]:::spine
+  P2["score every<br/>event 0-100"]:::spine
   P3["correlate.py<br/>alerts → ONE<br/>incident"]:::spine
   P4["attack_mapper<br/>ATT&CK map<br/>no fake IDs"]:::spine
   P5["attack_graph<br/>networkx path<br/>blast radius · ALL pivots"]:::spine
@@ -35,13 +35,13 @@ end
 
 subgraph ENG["AI ENGINES · unsupervised, benign-trained"]
   direction LR
-  E1["ENGINE 1 — Detection<br/>IsolationForest / autoencoder<br/>LANL ROC 0.988 · CICIDS PR-AUC 0.57"]:::eng
-  E2["ENGINE 2 — Predict + Attribute<br/>MiniLM embeddings → Markov · 5.2× baseline<br/>transparent actor attribution"]:::eng
+  E1["ENGINE 1 · Detection<br/>IsolationForest / autoencoder<br/>LANL ROC 0.988 · CICIDS PR-AUC 0.57"]:::eng
+  E2["ENGINE 2 · Predict + Attribute<br/>MiniLM embeddings → Markov · 5.2× baseline<br/>transparent actor attribution"]:::eng
 end
 
 RADAR["THREAT RADAR · src/shared/osint.py<br/>free CTI feeds, India-first → ATT&amp;CK map<br/>→ relevance vs your incident · gated alerts"]:::radar
 
-subgraph STATE["PERSISTED ARTIFACTS · force-added to git — app runs from a fresh clone, no data download"]
+subgraph STATE["PERSISTED ARTIFACTS · force-added to git · app runs from a fresh clone, no data download"]
   direction LR
   M1["models/<br/>iforest_lanl.joblib<br/>next_technique_markov.pkl"]:::state
   M2["data/processed/<br/>attack_lookups.pkl<br/>technique_embeddings.pkl"]:::state
@@ -50,7 +50,7 @@ subgraph STATE["PERSISTED ARTIFACTS · force-added to git — app runs from a fr
   M5["reports/metrics.json<br/>drift-proof metrics"]:::state
 end
 
-subgraph BUILD["OFFLINE BUILD · build-time only — NOT in the request path"]
+subgraph BUILD["OFFLINE BUILD · build-time only · NOT in the request path"]
   direction LR
   DS["Datasets ~11 GB · regenerable, gitignored<br/>CIC-IDS2017 · LANL 11.2M auth / 702 red-team<br/>UNSW-NB15 · MITRE ATT&amp;CK 918 tech · CERT-In 4 seq"]:::build
   TR["src/engine1,2 training<br/>parse_attack · build_embeddings · build_predictor"]:::build
@@ -58,7 +58,7 @@ subgraph BUILD["OFFLINE BUILD · build-time only — NOT in the request path"]
   DS --> TR
 end
 
-DEPLOY["DEPLOY · single Docker container, 2-stage, on Render free tier — slim deps · NO torch at runtime · one URL"]:::deploy
+DEPLOY["DEPLOY · single Docker container, 2-stage, on Render free tier · slim deps · NO torch at runtime · one URL"]:::deploy
 
 %% ---- live request path (solid) ----
 U -->|HTTPS| FE

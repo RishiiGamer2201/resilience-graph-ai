@@ -90,7 +90,7 @@
 
   <div class="head">
     <h1>Technical Architecture</h1>
-    <span class="sub">Resilience Graph AI — one repo, one container, genuinely live per request</span>
+    <span class="sub">Resilience Graph AI · one repo, one container, genuinely live per request</span>
     <span class="legend">
       <span><span class="sw" style="background:var(--sp)"></span>request path</span>
       <span><span class="sw" style="background:var(--st)"></span>persisted state</span>
@@ -130,7 +130,7 @@
     <div class="pipe">
       <div class="stage"><div class="n">1 · normalize</div><div class="s">schema.py<br>12-field + col-alias</div></div>
       <div class="arw">›</div>
-      <div class="stage"><div class="n">2 · score</div><div class="s">every event 0–100<br><b>Engine 1</b></div></div>
+      <div class="stage"><div class="n">2 · score</div><div class="s">every event 0-100<br><b>Engine 1</b></div></div>
       <div class="arw">›</div>
       <div class="stage"><div class="n">3 · correlate</div><div class="s">correlate.py<br>alerts → ONE incident</div></div>
       <div class="arw">›</div>
@@ -161,7 +161,7 @@
     </div>
   </div>
 
-  <div class="flow"><em>△&nbsp;&nbsp;<span>artifacts produced offline — never in the request path</span>&nbsp;&nbsp;△</em></div>
+  <div class="flow"><em>△&nbsp;&nbsp;<span>artifacts produced offline · never in the request path</span>&nbsp;&nbsp;△</em></div>
 
   <!-- OFFLINE BUILD -->
   <div class="band L-bd">
