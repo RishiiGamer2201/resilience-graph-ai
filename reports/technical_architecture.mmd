@@ -1,0 +1,106 @@
+flowchart TB
+
+U(["Analyst / Judge — browser"]):::client
+
+subgraph FE["FRONTEND · React 19 + Vite 8 SPA — SOC Command Center"]
+  direction LR
+  RT["react-router 7<br/>Login → Analyze → 8 screens"]:::fe
+  AP["AnalysisProvider · useScreenData<br/>live bundle overrides sample"]:::fe
+  APIJS["api.js client<br/>live→cached fallback · LIVE/SAMPLE pill"]:::fe
+  VIZ["recharts · react-force-graph-2d<br/>lucide-react · lazy-split"]:::fe
+  RT --> AP --> APIJS
+  AP --> VIZ
+end
+
+subgraph API["BACKEND · FastAPI + uvicorn — api/main.py"]
+  direction LR
+  LIVE["LIVE POST<br/>/analyze · /analyze/upload<br/>/score-event · /predict-next"]:::api
+  STREAM["SSE GET<br/>/analyze/stream<br/>event-by-event replay"]:::api
+  CACHED["CACHED GET<br/>/overview /incident /graph /report<br/>/threat-intel /attackers /metrics"]:::api
+  STATIC["serves built SPA · prod<br/>same origin · no CORS"]:::api
+end
+
+subgraph SPINE["SHARED SPINE · src/shared/live_analyze.py — analyze_events() runs the WHOLE pipeline per request"]
+  direction LR
+  P1["schema.py<br/>normalize<br/>+ col-alias"]:::spine
+  P2["score every<br/>event 0–100"]:::spine
+  P3["correlate.py<br/>alerts → ONE<br/>incident"]:::spine
+  P4["attack_mapper<br/>ATT&CK map<br/>no fake IDs"]:::spine
+  P5["attack_graph<br/>networkx path<br/>blast radius · ALL pivots"]:::spine
+  P6["soar.py<br/>gated<br/>response"]:::spine
+  P7["attribute<br/>+ predict<br/>next move"]:::spine
+  P8["views.py<br/>per-screen<br/>payloads · MTTD"]:::spine
+  P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8
+end
+
+subgraph ENG["AI ENGINES · unsupervised, benign-trained"]
+  direction LR
+  E1["ENGINE 1 — Detection<br/>IsolationForest / autoencoder<br/>LANL ROC 0.988 · CICIDS PR-AUC 0.57"]:::eng
+  E2["ENGINE 2 — Predict + Attribute<br/>MiniLM embeddings → Markov · 5.2× baseline<br/>transparent actor attribution"]:::eng
+end
+
+RADAR["THREAT RADAR · src/shared/osint.py<br/>free CTI feeds, India-first → ATT&amp;CK map<br/>→ relevance vs your incident · gated alerts"]:::radar
+
+subgraph STATE["PERSISTED ARTIFACTS · force-added to git — app runs from a fresh clone, no data download"]
+  direction LR
+  M1["models/<br/>iforest_lanl.joblib<br/>next_technique_markov.pkl"]:::state
+  M2["data/processed/<br/>attack_lookups.pkl<br/>technique_embeddings.pkl"]:::state
+  M3["api/cache/*.json<br/>sample = a REAL analysis"]:::state
+  M4["data/demo/scenarios/*.csv<br/>LANL · AIIMS · CBSE"]:::state
+  M5["reports/metrics.json<br/>drift-proof metrics"]:::state
+end
+
+subgraph BUILD["OFFLINE BUILD · build-time only — NOT in the request path"]
+  direction LR
+  DS["Datasets ~11 GB · regenerable, gitignored<br/>CIC-IDS2017 · LANL 11.2M auth / 702 red-team<br/>UNSW-NB15 · MITRE ATT&amp;CK 918 tech · CERT-In 4 seq"]:::build
+  TR["src/engine1,2 training<br/>parse_attack · build_embeddings · build_predictor"]:::build
+  BC["scripts/build_cache.py<br/>runs the spine offline → cache json"]:::build
+  DS --> TR
+end
+
+DEPLOY["DEPLOY · single Docker container, 2-stage, on Render free tier — slim deps · NO torch at runtime · one URL"]:::deploy
+
+%% ---- live request path (solid) ----
+U -->|HTTPS| FE
+APIJS -->|"/api/* · Vite proxy in dev"| API
+LIVE --> SPINE
+STREAM --> SPINE
+E1 -->|"anomaly score"| P2
+E2 -->|"next technique + actor"| P7
+P4 -.->|technique context| E2
+SPINE -->|per-screen JSON| CACHED
+RADAR --> API
+STATIC --> FE
+
+%% ---- load-at-boot / data (dashed) ----
+M1 -.->|load at boot| ENG
+M2 -.-> SPINE
+M3 -.-> CACHED
+M4 -.-> LIVE
+M5 -.-> CACHED
+
+%% ---- offline build (dashed) ----
+TR -.-> STATE
+BC -.-> M3
+SPINE -.-> BC
+
+%% ---- deploy wraps runtime ----
+DEPLOY -.contains.-> FE
+DEPLOY -.contains.-> API
+
+classDef client fill:#EEF2F7,stroke:#334155,stroke-width:2px,color:#16202E;
+classDef fe fill:#DBEAFE,stroke:#2563EB,stroke-width:1.5px,color:#16202E;
+classDef api fill:#CFF3FB,stroke:#0E9BBF,stroke-width:1.5px,color:#16202E;
+classDef spine fill:#DCFCE7,stroke:#16A34A,stroke-width:1.5px,color:#16202E;
+classDef eng fill:#FFE8D4,stroke:#EA7317,stroke-width:1.5px,color:#16202E;
+classDef radar fill:#EDE0FB,stroke:#8B5CF6,stroke-width:1.5px,color:#16202E;
+classDef state fill:#FEF3C7,stroke:#D97706,stroke-width:1.5px,color:#16202E;
+classDef build fill:#EAEEF3,stroke:#64748B,stroke-width:1.5px,color:#16202E;
+classDef deploy fill:#E0F2FE,stroke:#0369A1,stroke-width:2px,color:#16202E;
+
+style FE fill:#F5F9FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF;
+style API fill:#F0FCFF,stroke:#0E9BBF,stroke-width:2px,color:#0B6C86;
+style SPINE fill:#F2FEF6,stroke:#16A34A,stroke-width:2px,color:#146C3A;
+style ENG fill:#FFF7F0,stroke:#EA7317,stroke-width:2px,color:#A9530F;
+style STATE fill:#FFFBEB,stroke:#D97706,stroke-width:2px,color:#9A5B08;
+style BUILD fill:#F6F8FA,stroke:#64748B,stroke-width:2px,color:#475569;
