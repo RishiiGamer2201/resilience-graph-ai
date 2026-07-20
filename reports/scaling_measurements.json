@@ -1,0 +1,56 @@
+[
+  {
+    "events": 250,
+    "seconds": 0.041,
+    "alerts": 149,
+    "hosts": 38
+  },
+  {
+    "events": 500,
+    "seconds": 0.047,
+    "alerts": 232,
+    "hosts": 50
+  },
+  {
+    "events": 1000,
+    "seconds": 0.072,
+    "alerts": 623,
+    "hosts": 300
+  },
+  {
+    "events": 2000,
+    "seconds": 0.116,
+    "alerts": 1117,
+    "hosts": 474
+  },
+  {
+    "events": 2732,
+    "seconds": 0.14,
+    "alerts": 1192,
+    "hosts": 479
+  },
+  {
+    "events": 5000,
+    "seconds": 0.222,
+    "alerts": 2161,
+    "hosts": 479
+  },
+  {
+    "events": 10000,
+    "seconds": 0.535,
+    "alerts": 4202,
+    "hosts": 479
+  },
+  {
+    "events": 20000,
+    "seconds": 1.021,
+    "alerts": 8090,
+    "hosts": 479
+  },
+  {
+    "events": 50000,
+    "seconds": 2.493,
+    "alerts": 20185,
+    "hosts": 479
+  }
+]

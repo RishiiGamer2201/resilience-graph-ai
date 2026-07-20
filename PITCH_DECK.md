@@ -234,6 +234,23 @@ flowchart TB
 
 **Title:** Built, deployed, and ready to grow
 
+> **Put this chart on the slide:** `reports/scaling_chart.png` (dark-deck version: `reports/scaling_chart_dark.png`).
+> Measured, not asserted — regenerate any time with `./.venv/Scripts/python.exe -m scripts.make_scaling_chart`.
+> Raw numbers land in `reports/scaling_measurements.json`.
+
+![Pipeline scaling](reports/scaling_chart.png)
+
+**What the chart proves:** the *full* pipeline (score → correlate → ATT&CK map → attack graph → SOAR → attribute → predict) on one laptop CPU, no GPU:
+
+| Events in one request | End-to-end | Alerts raised |
+|---|---|---|
+| 2,732 (shipped demo campaign) | **0.14 s** | 1,192 |
+| 10,000 | 0.54 s | 4,202 |
+| 20,000 | 1.02 s | 8,090 |
+| 50,000 (our documented cap) | **2.49 s** | 20,185 |
+
+Best of 3 runs after warm-up. Runs above 2,732 replay the real campaign with offset timestamps. Cost per event stays flat to 20k and rises only mildly at the cap — so the 50k ceiling below is a deliberate design boundary, not a wall we hit.
+
 ```mermaid
 flowchart LR
   A["Today<br/>one container<br/>Docker + Render"] --> B["Per-site<br/>SOC deployment"]
@@ -250,7 +267,7 @@ flowchart LR
 | **Engineering rigour** | **29 automated tests** · browser E2E **14/15 flows** · `docker build` verified |
 | **Metric integrity** | Eval scripts write `reports/metrics.json`; the UI reads it — **drift impossible** |
 
-**Honest limit:** graph analytics are in-memory networkx — fine to ~50k events per analysis. Beyond that: shard by tenant/time window, or move to a graph DB. We know the next step.
+**Honest limit:** graph analytics are in-memory networkx — fine to ~50k events per analysis (measured above at 2.49 s). Beyond that: shard by tenant/time window, or move to a graph DB. We know the next step.
 
 **Roadmap:** 30 days — SIEM connectors (Splunk/ELK/Wazuh) · 90 days — OT/ICS coverage, graph DB · 6 months — sector-CERT fleet view, real SOAR behind change control.
 
@@ -301,6 +318,7 @@ flowchart LR
 | PR-curve image (optional) | `reports/pr_curve_cicids.png` | 7 |
 | Threat Intel screenshot | `/threat-intel` | 8 |
 | Scalability diagram PNG | Mermaid, Slide 9 | 9 |
+| **Pipeline scaling chart** | `reports/scaling_chart.png` (dark: `_dark.png`) — ready to drop in | 9 |
 
 **Screenshot tips:** present in **dark mode** (graph + severity colours pop hardest) · make sure the topbar shows **LIVE ANALYSIS** in every post-analysis capture — that badge *is* the proof · crop out browser chrome and bookmarks.
 
