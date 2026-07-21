@@ -9,7 +9,7 @@ function MetricTable({ rows }) {
       <thead><tr><th>Metric</th><th style={{ textAlign: 'right' }}>Value</th></tr></thead>
       <tbody>
         {rows.map((r) => (
-          <tr key={r.label}>
+          <tr key={r.label} style={r.dim ? { opacity: 0.6 } : undefined}>
             <td>{r.label}</td>
             <td className={`num${r.hl ? ' hl' : ''}`}>{r.value}</td>
           </tr>
@@ -47,16 +47,25 @@ export default function Metrics() {
       <div className="section-label">Engine 1 · Anomaly detection</div>
       <div className="grid2" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
         <Card>
-          <CardHeader title="LANL · lateral movement" meta="the moat" />
+          <CardHeader title="LANL · lateral movement" meta={lanl.detector ? `${lanl.detector} shipped` : 'the moat'} />
           <div className="card-b pad">
             <MetricTable rows={[
               { label: 'ROC-AUC', value: lanl.roc_auc, hl: true },
-              { label: 'TPR @ 1% FPR', value: lanl.tpr_at_1pct_fpr },
+              { label: 'TPR @ 1% FPR', value: lanl.tpr_at_1pct_fpr, hl: true },
               { label: 'TPR @ 5% FPR', value: lanl.tpr_at_5pct_fpr },
               { label: 'Behavioral-only ROC', value: lanl.behavioral_only_roc },
+              // show the upgrade: the previous detector at the same operating point
+              ...(lanl.iforest_tpr_at_1pct_fpr != null
+                ? [{ label: 'IsolationForest TPR @ 1% (prev)', value: lanl.iforest_tpr_at_1pct_fpr, dim: true }]
+                : []),
             ]} />
           </div>
-          <div className="note"><b>Real red-team labels.</b> {lanl.note}</div>
+          <div className="note"><b>Real red-team labels.</b> {lanl.note}
+            {lanl.iforest_tpr_at_1pct_fpr != null && (
+              <> The autoencoder catches <b>{Math.round(lanl.tpr_at_1pct_fpr * 702)}/702</b> red-team
+              events at the 1% false-positive point, up from <b>{Math.round(lanl.iforest_tpr_at_1pct_fpr * 702)}/702</b> for the IsolationForest it replaced.</>
+            )}
+          </div>
         </Card>
 
         <Card>
