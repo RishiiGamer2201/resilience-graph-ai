@@ -1,0 +1,81 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#fff;}
+  .wrap{ width:1500px; background:#fff; padding:34px 38px;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif; color:#000; }
+  h2{ font-size:24px; font-weight:800; margin-bottom:4px; }
+  .sub{ font-size:14px; margin-bottom:22px; }
+  .stage{ display:flex; align-items:stretch; margin-bottom:0; }
+  .num{ width:52px; min-width:52px; border:1.5px solid #000; border-radius:8px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:22px; font-weight:800; }
+  .body{ flex:1; border:1.5px solid #000; border-radius:8px; margin-left:14px; padding:12px 16px; }
+  .body .t{ font-size:17px; font-weight:800; }
+  .body .d{ font-size:13.5px; margin-top:4px; line-height:1.45; }
+  .body .m{ font-size:12.5px; margin-top:5px; font-family:Consolas,monospace; }
+  .owner{ width:150px; min-width:150px; margin-left:14px; border:1.5px solid #000;
+          border-radius:8px; display:flex; align-items:center; justify-content:center;
+          text-align:center; font-size:12px; font-weight:800; padding:6px; line-height:1.3; }
+  .arrow{ margin:7px 0 7px 25px; font-size:16px; font-weight:800; }
+  .note{ margin-top:20px; border:1.5px solid #000; border-radius:8px; padding:11px 15px; font-size:13px; }
+</style></head><body>
+<div class="wrap">
+  <h2>The analysis pipeline: seven stages, one function call</h2>
+  <div class="sub">Every stage runs live on whatever log is submitted. Nothing is pre-computed at request time.</div>
+
+  <div class="stage"><div class="num">1</div>
+    <div class="body"><div class="t">Feature engineering</div>
+      <div class="d">Turn each raw login record into seven behavioural measurements that describe how this account normally moves through the network.</div>
+      <div class="m">src/engine1/lanl_detect.py :: engineer()</div></div>
+    <div class="owner">ENGINE 1<br>Detection</div></div>
+  <div class="arrow">|</div>
+
+  <div class="stage"><div class="num">2</div>
+    <div class="body"><div class="t">Anomaly scoring</div>
+      <div class="d">An IsolationForest trained only on normal behaviour scores every event from 0 to 100. Scores use fixed calibration anchors, so a score means the same thing on every upload.</div>
+      <div class="m">models/iforest_lanl.joblib · api/cache/score_ref.json</div></div>
+    <div class="owner">ENGINE 1<br>Detection</div></div>
+  <div class="arrow">|</div>
+
+  <div class="stage"><div class="num">3</div>
+    <div class="body"><div class="t">Correlation</div>
+      <div class="d">Every event scoring 50 or above becomes an alert. Alerts are grouped into a single incident with a timeline, a severity and an ordered chain of techniques, instead of thousands of separate rows.</div>
+      <div class="m">src/shared/correlate.py · ALERT_THRESHOLD = 50 · SESSION_GAP = 3600 s</div></div>
+    <div class="owner">SHARED SPINE</div></div>
+  <div class="arrow">|</div>
+
+  <div class="stage"><div class="num">4</div>
+    <div class="body"><div class="t">MITRE ATT&amp;CK mapping</div>
+      <div class="d">Each behaviour is matched to an official technique identifier. Names and descriptions are read from the parsed MITRE bundles, never generated, so an invented technique is structurally impossible.</div>
+      <div class="m">src/shared/attack_mapper.py · 918 techniques</div></div>
+    <div class="owner">SHARED SPINE</div></div>
+  <div class="arrow">|</div>
+
+  <div class="stage"><div class="num">5</div>
+    <div class="body"><div class="t">Attack path graph</div>
+      <div class="d">Alerts become edges in a directed graph of machine to machine movement. From it we compute total exposure, which valuable machines are reachable, and which single machine to isolate first.</div>
+      <div class="m">src/shared/attack_graph.py · networkx · reachability from every pivot</div></div>
+    <div class="owner">SHARED SPINE</div></div>
+  <div class="arrow">|</div>
+
+  <div class="stage"><div class="num">6</div>
+    <div class="body"><div class="t">Gated response (SOAR)</div>
+      <div class="d">Containment steps are drawn from the real MITRE mitigations for the observed techniques. Anything touching a critical asset requires human approval. All actions are simulated and labelled as such.</div>
+      <div class="m">src/shared/soar.py</div></div>
+    <div class="owner">SHARED SPINE</div></div>
+  <div class="arrow">|</div>
+
+  <div class="stage"><div class="num">7</div>
+    <div class="body"><div class="t">Prediction and attribution</div>
+      <div class="d">A first order Markov model ranks the attacker's likely next technique with a real transition probability. A transparent weighted retrieval ranks which known threat group the behaviour resembles, with a written justification.</div>
+      <div class="m">src/engine2/build_predictor.py · src/engine2/attribution.py</div></div>
+    <div class="owner">ENGINE 2<br>Predict and attribute</div></div>
+
+  <div class="note"><b>One bundle out.</b> All seven stages are a single function,
+    <span style="font-family:Consolas,monospace">analyze_events()</span>, which returns one result object containing the
+    payload for every screen in the application. The sample data shipped with the app is produced by calling the same
+    function on a shipped log, so there is no separate demonstration path that could diverge from the real one.</div>
+</div>
+</body></html>

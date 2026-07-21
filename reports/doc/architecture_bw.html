@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#16202E; --dim:#5A6678; --faint:#8894A6;
+    --fe:#2563EB;  --feBg:#EFF5FF;  --feEdge:#BFD6FB;
+    --api:#0E9BBF; --apiBg:#EDFBFF; --apiEdge:#B7E7F2;
+    --sp:#16A34A;  --spBg:#EDFCF2;  --spEdge:#BDEBCC;
+    --e1:#EA7317;  --e1Bg:#FFF6EE;  --e1Edge:#F7D6B4;
+    --e2:#C2410C;
+    --rd:#8B5CF6;  --rdBg:#F6F0FF;  --rdEdge:#DDCDF7;
+    --st:#D97706;  --stBg:#FFFBEC;  --stEdge:#F3E0AE;
+    --bd:#64748B;  --bdBg:#F4F6F9;  --bdEdge:#D7DEE7;
+  }
+  html,body{ background:#fff; }
+  .slide{
+    width:1900px; height:1069px; background:#fff; position:relative;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif; color:var(--ink);
+    padding:38px 44px 30px; overflow:hidden;
+  }
+  .head{ display:flex; align-items:baseline; gap:16px; margin-bottom:10px; }
+  .head h1{ font-size:33px; font-weight:800; letter-spacing:.2px; }
+  .head .sub{ font-size:16px; color:var(--dim); font-weight:600; }
+  .legend{ margin-left:auto; display:flex; gap:20px; font-size:13px; color:var(--dim); align-items:center; }
+  .legend b{ font-weight:700; color:var(--ink); }
+  .sw{ display:inline-block; width:11px; height:11px; border-radius:3px; vertical-align:-1px; margin-right:5px; }
+
+  .band{ position:relative; border-radius:14px; padding:17px 18px 19px 132px; margin-top:15px; }
+  .band > .tag{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    width:100px; font-size:12.5px; font-weight:800; line-height:1.25; letter-spacing:.3px;
+  }
+  .band .tagsub{ display:block; font-size:10.5px; font-weight:600; color:var(--dim); margin-top:3px; }
+  .row{ display:flex; gap:12px; align-items:stretch; }
+  .card{ flex:1; border-radius:10px; padding:12px 14px; background:#fff; display:flex; flex-direction:column; justify-content:center; }
+  .card .t{ font-size:15px; font-weight:700; }
+  .card .d{ font-size:12.5px; color:var(--dim); margin-top:5px; line-height:1.42; }
+  .card .code{ font-family:"Cascadia Code",Consolas,monospace; }
+
+  /* layer palettes */
+  .L-fe{ background:var(--feBg); border:2px solid var(--fe); }
+  .L-fe .tag{ color:var(--fe); }
+  .L-fe .card{ border:1.5px solid var(--feEdge); }
+  .L-api{ background:var(--apiBg); border:2px solid var(--api); }
+  .L-api .tag{ color:var(--api); }
+  .L-api .card{ border:1.5px solid var(--apiEdge); }
+  .L-sp{ background:var(--spBg); border:2px solid var(--sp); }
+  .L-sp .tag{ color:var(--sp); }
+  .L-int{ background:#FBFCFE; border:2px dashed #C7D0DB; }
+  .L-int .tag{ color:var(--dim); }
+  .L-bd{ background:var(--bdBg); border:2px dashed var(--bdEdge); }
+  .L-bd .tag{ color:var(--bd); }
+
+  /* spine pipeline */
+  .pipe{ display:flex; align-items:stretch; gap:0; }
+  .stage{ flex:1; background:#fff; border:1.5px solid var(--spEdge); border-radius:9px; padding:12px 6px; text-align:center; }
+  .stage .n{ font-size:13px; font-weight:800; color:var(--sp); }
+  .stage .s{ font-size:11.5px; color:var(--dim); margin-top:5px; line-height:1.34; }
+  .arw{ align-self:center; color:var(--sp); font-size:18px; font-weight:800; padding:0 4px; }
+
+  /* intelligence row cards */
+  .icard{ flex:1; border-radius:10px; padding:13px 15px; }
+  .icard .t{ font-size:14.5px; font-weight:800; }
+  .icard .d{ font-size:12px; color:var(--dim); margin-top:5px; line-height:1.4; }
+  .icard.e1{ background:var(--e1Bg); border:1.5px solid var(--e1); } .icard.e1 .t{ color:var(--e1); }
+  .icard.e2{ background:var(--e1Bg); border:1.5px solid var(--e2); } .icard.e2 .t{ color:var(--e2); }
+  .icard.rd{ background:var(--rdBg); border:1.5px solid var(--rd); } .icard.rd .t{ color:var(--rd); }
+  .icard.st{ background:var(--stBg); border:1.5px solid var(--st); } .icard.st .t{ color:var(--st); }
+  .icard .chips{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+  .chip{ font-size:11px; background:#fff; border:1px solid var(--stEdge); border-radius:6px; padding:3px 7px; color:var(--dim); font-family:Consolas,monospace; }
+
+  /* connectors */
+  .flow{ text-align:center; color:var(--faint); font-size:15px; font-weight:800; line-height:.6; margin:9px 0; position:relative; }
+  .flow span{ background:#fff; padding:0 10px; font-size:12px; color:var(--faint); font-weight:700; }
+  .flow:before{ content:""; position:absolute; left:12%; right:12%; top:50%; border-top:1.5px dashed #D3DAE3; z-index:0; }
+  .flow em{ position:relative; z-index:1; font-style:normal; }
+
+  .deploy{ margin-top:15px; background:#E8F4FD; border:2px solid #0369A1; border-radius:12px;
+    padding:14px 18px; font-size:14px; color:#0B4A6F; display:flex; align-items:center; gap:14px; }
+  .deploy b{ font-weight:800; }
+  .deploy .pill{ background:#0369A1; color:#fff; font-weight:800; font-size:12.5px; padding:4px 12px; border-radius:20px; letter-spacing:.3px; }
+  .honest{ margin-left:auto; font-size:12.5px; color:#0B4A6F; }
+</style>
+
+<style>
+  /* black-only, narrow document edition: cards wrap to two columns so the
+     diagram is taller and its text renders larger on a portrait A4 page */
+  *{ color:#000 !important; }
+  .slide,.card,.stage,.icard,.band,.deploy,.chip{ background:#fff !important; }
+  .slide{ width:1180px !important; height:auto !important; padding:26px 26px 26px !important; }
+  .band{ border:1.5px solid #000 !important; padding:14px 14px 16px 120px !important; }
+  .card,.stage,.icard{ border:1px solid #000 !important; }
+  .deploy{ border:1.5px solid #000 !important; }
+  .deploy .pill{ background:#000 !important; color:#fff !important; }
+  .chip{ border:1px solid #000 !important; }
+  .flow:before{ border-top:1px dashed #000 !important; }
+  .legend{ display:none !important; }
+  .row{ flex-wrap:wrap !important; }
+  .card{ min-width:490px !important; }
+  .icard{ min-width:490px !important; }
+  .pipe{ flex-wrap:wrap !important; }
+  .stage{ min-width:255px !important; margin:3px !important; }
+  .arw{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <div class="head">
+    <h1>Technical Architecture</h1>
+    <span class="sub">Resilience Graph AI · one repo, one container, genuinely live per request</span>
+    <span class="legend">
+      <span><span class="sw" style="background:var(--sp)"></span>request path</span>
+      <span><span class="sw" style="background:var(--st)"></span>persisted state</span>
+      <span><span class="sw" style="background:var(--bd)"></span>offline build</span>
+    </span>
+  </div>
+
+  <!-- CLIENT + FRONTEND -->
+  <div class="band L-fe">
+    <div class="tag">FRONTEND<span class="tagsub">React 19 · Vite 8<br>SOC Command Center</span></div>
+    <div class="row">
+      <div class="card"><div class="t">Analyst / Judge · browser</div><div class="d">Login → Analyze → 8 live screens · one HTTPS origin</div></div>
+      <div class="card"><div class="t">react-router 7</div><div class="d">Overview · Attackers · Incident · Graph · Threat Intel · Radar · Metrics · Methodology</div></div>
+      <div class="card"><div class="t">AnalysisProvider · useScreenData</div><div class="d">live analysis bundle overrides the sample · <b>LIVE / SAMPLE</b> pill always visible</div></div>
+      <div class="card"><div class="t">api.js · viz</div><div class="d">live→cached fallback · recharts · react-force-graph-2d · lucide (lazy-split)</div></div>
+    </div>
+  </div>
+
+  <div class="flow"><em>▼&nbsp;&nbsp;<span>/api/* &nbsp;·&nbsp; Vite proxy in dev &nbsp;·&nbsp; same-origin in prod</span>&nbsp;&nbsp;▼</em></div>
+
+  <!-- BACKEND API -->
+  <div class="band L-api">
+    <div class="tag">BACKEND<span class="tagsub">FastAPI + uvicorn<br>api/main.py</span></div>
+    <div class="row">
+      <div class="card"><div class="t">LIVE · POST</div><div class="d code">/analyze · /analyze/upload<br>/score-event · /predict-next · /threat-radar</div></div>
+      <div class="card"><div class="t">STREAM · SSE</div><div class="d code">GET /analyze/stream<br>event-by-event incident replay</div></div>
+      <div class="card"><div class="t">CACHED · GET</div><div class="d code">/overview /incident /graph /report<br>/threat-intel /attackers /metrics</div></div>
+      <div class="card"><div class="t">STATIC</div><div class="d">serves the built React SPA in prod · same origin · no CORS</div></div>
+    </div>
+  </div>
+
+  <div class="flow"><em>▼&nbsp;&nbsp;<span>live endpoints invoke the spine · cached GETs read a pre-run analysis</span>&nbsp;&nbsp;▼</em></div>
+
+  <!-- SHARED SPINE -->
+  <div class="band L-sp">
+    <div class="tag">SHARED SPINE<span class="tagsub">live_analyze.py<br>analyze_events()<br>whole pipeline / request</span></div>
+    <div class="pipe">
+      <div class="stage"><div class="n">1 · normalize</div><div class="s">schema.py<br>12-field + col-alias</div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">2 · score</div><div class="s">every event 0-100<br><b>Engine 1</b></div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">3 · correlate</div><div class="s">correlate.py<br>alerts → ONE incident</div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">4 · ATT&CK map</div><div class="s">attack_mapper<br>no hallucinated IDs</div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">5 · graph</div><div class="s">attack_graph · networkx<br>blast radius · ALL pivots</div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">6 · SOAR</div><div class="s">soar.py<br>gated response</div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">7 · attribute + predict</div><div class="s">next move<br><b>Engine 2</b></div></div>
+      <div class="arw">›</div>
+      <div class="stage"><div class="n">8 · views</div><div class="s">views.py<br>per-screen JSON · MTTD</div></div>
+    </div>
+  </div>
+
+  <div class="flow"><em>▲&nbsp;&nbsp;<span>models loaded at boot feed the scoring &amp; prediction stages · external intel joins at the API</span>&nbsp;&nbsp;▲</em></div>
+
+  <!-- INTELLIGENCE / MODELS / STATE -->
+  <div class="band L-int">
+    <div class="tag">INTELLIGENCE<span class="tagsub">AI engines · CTI<br>persisted artifacts</span></div>
+    <div class="row">
+      <div class="icard e1"><div class="t">ENGINE 1 · Detection</div><div class="d">benign-only IsolationForest / autoencoder → anomaly score. <b>LANL ROC 0.988 · CICIDS PR-AUC 0.57</b></div></div>
+      <div class="icard e2"><div class="t">ENGINE 2 · Predict + Attribute</div><div class="d">MiniLM embeddings → Markov next-technique (<b>5.2× kill-chain baseline</b>) + transparent actor attribution</div></div>
+      <div class="icard rd"><div class="t">THREAT RADAR · osint.py</div><div class="d">free CTI feeds, India-first → ATT&CK map → relevance vs your incident · gated (simulated) alerts</div></div>
+      <div class="icard st"><div class="t">PERSISTED ARTIFACTS · git-tracked</div><div class="d">runs from a fresh clone, no data download</div>
+        <div class="chips"><span class="chip">iforest_lanl.joblib</span><span class="chip">markov.pkl</span><span class="chip">attack_lookups.pkl</span><span class="chip">technique_embeddings.pkl</span><span class="chip">api/cache/*.json</span><span class="chip">scenarios/*.csv</span><span class="chip">metrics.json</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow"><em>△&nbsp;&nbsp;<span>artifacts produced offline · never in the request path</span>&nbsp;&nbsp;△</em></div>
+
+  <!-- OFFLINE BUILD -->
+  <div class="band L-bd">
+    <div class="tag">OFFLINE BUILD<span class="tagsub">build-time only</span></div>
+    <div class="row">
+      <div class="card"><div class="t">Datasets · ~11 GB (regenerable, gitignored)</div><div class="d">CIC-IDS2017 2.3M flows · LANL 11.2M auth / 702 red-team · UNSW-NB15 · MITRE ATT&CK Ent+ICS+Mobile 918 tech · CERT-In 4 verified India sequences</div></div>
+      <div class="arw" style="color:var(--bd)">›</div>
+      <div class="card"><div class="t">Training · src/engine1,2</div><div class="d code">prep_* · anomaly · parse_attack<br>build_embeddings · build_predictor</div></div>
+      <div class="arw" style="color:var(--bd)">›</div>
+      <div class="card"><div class="t">build_cache.py</div><div class="d">runs the <b>same spine</b> offline → api/cache/*.json <br>(the sample IS a real analysis)</div></div>
+    </div>
+  </div>
+
+  <div class="deploy">
+    <span class="pill">DEPLOY</span>
+    <span><b>Single Docker container</b> (2-stage build) on Render free tier · slim deps (<b>no torch at runtime</b>, embeddings shipped as pkl) · one URL serving <b>/api + SPA</b></span>
+    <span class="honest">Real: detection · correlation · ATT&CK · graph · attribution · prediction &nbsp;|&nbsp; Simulated + human-gated: SOAR containment · sector alerts</span>
+  </div>
+
+</div>
+</body>
+</html>

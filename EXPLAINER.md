@@ -331,9 +331,9 @@ transitions from **201 real attack sequences** (145 MITRE groups + 56 campaigns,
 
 | Method | Top-3 accuracy |
 |---|---|
-| Most-frequent baseline | 5.3% |
+| Most-frequent baseline | 4.9% |
 | Kill-chain-order baseline ⚠️ | 7.1% |
-| LSTM over MiniLM embeddings | 28.4% |
+| LSTM over MiniLM embeddings | 27.2% |
 | **Markov 1st-order — what we ship** | **36.5%** |
 
 **Two things here matter more than the number:**
@@ -346,7 +346,7 @@ it. **Markov beats it 5.2×** (36.5% vs 7.1%), which is evidence we're predictin
 technique-to-technique transitions.
 
 **We shipped the model that won, not the impressive one.** The LSTM (a neural network over
-sentence-transformer embeddings) scored **28.4%** — it *lost* to a first-order Markov chain at
+sentence-transformer embeddings) scored **27.2%** — it *lost* to a first-order Markov chain at
 this data scale. We ship the Markov model and publish the neural result as a documented
 negative. Honest beats fancy.
 
@@ -524,7 +524,7 @@ because it's exactly why simple thresholds fail.
 |---|---|
 | Markov top-3 (auto sequences) | **36.5%** |
 | Anti-circularity: Markov ÷ kill-chain baseline | **5.2×** |
-| LSTM top-3 (documented negative) | 28.4% |
+| LSTM top-3 (documented negative) | 27.2% |
 | CERT-In verified sequences, top-3 | **10.0%** |
 | Technique embeddings: same-tactic vs random cosine | **0.412** vs 0.327 |
 | ATT&CK group profiles | 172 |
