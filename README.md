@@ -81,7 +81,7 @@ flowchart TB
   end
 
   subgraph E1["ENGINE 1 — Real detection"]
-    IF["benign-only IsolationForest / autoencoder<br/>LANL ROC 0.988 · CICIDS PR-AUC 0.57"]
+    IF["benign-only autoencoder (shipped)<br/>LANL ROC 0.992 · TPR@1%FPR 87.7%"]
   end
   subgraph E2["ENGINE 2 — Predict + attribute"]
     PRED["MiniLM embeddings → Markov predictor<br/>+ transparent actor attribution"]
@@ -123,8 +123,8 @@ Full detail (folder tree, request topology, tech-stack table): **[architecture.m
 
 | Engine | Scores | What it does |
 |---|---|---|
-| **Engine 1 — Real Detection** | Technical Excellence | Unsupervised anomaly / lateral-movement detection on **real data** (CIC-IDS2017, LANL, UNSW-NB15), scored against LANL's red-team ground truth (ROC-AUC **0.988**) |
-| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (Markov, **5.2×** the kill-chain baseline) and ranks the likely actor by transparent profile retrieval |
+| **Engine 1 — Real Detection** | Technical Excellence | Unsupervised anomaly / lateral-movement detection on **real data** (CIC-IDS2017, LANL, UNSW-NB15), scored against LANL's red-team ground truth (ROC-AUC **0.992**, TPR **87.7%** at 1% FPR) |
+| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (Markov, **5.4×** the kill-chain baseline) and ranks the likely actor by transparent profile retrieval |
 
 Both feed a **shared spine** that runs live per request: normalize → correlate into one
 incident → ATT&CK map → attack-path graph (choke points, blast radius across all pivots) →

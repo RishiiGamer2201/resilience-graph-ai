@@ -42,15 +42,15 @@ they go undetected for a median of ~10 days.
 **Resilience Graph AI reads the boring login logs an organisation already collects and finds
 the story hidden across them.** On real red-team attack data it:
 
-- scores **2,732** authentication events, flags **1,192** as anomalous, and collapses them
-  into **one** incident instead of 1,192 separate alerts;
-- draws the attacker's movement across **479 machines**, identifies **4 attacker-controlled
+- scores **2,732** authentication events, flags **1,243** as anomalous, and collapses them
+  into **one** incident instead of 1,243 separate alerts;
+- draws the attacker's movement across **473 machines**, identifies **4 attacker-controlled
   hosts**, and finds that isolating just **one** of them severs **463 machines** of exposure;
 - maps each step to the industry-standard MITRE ATT&CK catalogue, predicts the attacker's
   likely next move, ranks which known threat group it resembles, and recommends containment
   that a human must approve.
 
-It detects with **ROC-AUC 0.988** against 702 real labelled attack events — and it never
+It detects with **ROC-AUC 0.992** against 702 real labelled attack events — and it never
 saw a single attack label during training.
 
 ---
@@ -235,7 +235,7 @@ labels, and works well in high dimensions.
   canonical malicious one). Fixed anchors, not per-batch min/max, so scores mean the same thing
   across different uploads and match the single-event `/api/score-event` endpoint exactly.
 - **Labels are used for evaluation only.** They never enter training. This is what makes the
-  0.988 defensible rather than circular.
+  0.992 defensible rather than circular.
 
 We also trained a small PyTorch autoencoder on CIC-IDS2017 as a comparison (reconstruction
 error as the anomaly score). It won there (PR-AUC 0.570 vs 0.473) and is reported — but the
@@ -247,9 +247,9 @@ LANL detector is IsolationForest, and we say which is which.
 
 This is the part that turns a pile of alerts into something a human can act on.
 
-### 6.1 Correlation: 1,192 alerts → 1 incident
+### 6.1 Correlation: 1,243 alerts → 1 incident
 
-Any event scoring ≥ 50 becomes an "alert". Rather than emitting 1,192 alerts, we group them
+Any event scoring ≥ 50 becomes an "alert". Rather than emitting 1,243 alerts, we group them
 into a single incident with a timeline, a severity, an account list, and an ordered chain of
 ATT&CK techniques.
 
@@ -284,15 +284,15 @@ graph we compute what a responder actually needs:
 | Question | Graph answer | Live result |
 |---|---|---|
 | Where did the attacker operate from? | Nodes with outbound movement | **4 pivots**; `C17693` alone carries **670 of 702** red-team events |
-| How far can they reach? | Reachable set from **any** pivot | **475 hosts** |
-| Which valuable machines are exposed? | Shortest path to each crown jewel | **18 crown jewels** reachable |
+| How far can they reach? | Reachable set from **any** pivot | **469 hosts** |
+| Which valuable machines are exposed? | Shortest path to each crown jewel | **16 crown jewels** reachable |
 | What do we unplug first? | Betweenness centrality | Isolating `C17693` **cuts 463 hosts** |
 
 🔬 **Under the hood** (`src/shared/attack_graph.py`). `networkx.DiGraph`; blast radius is the
 union of `descendants()` over **every** pivot (an earlier single-entry version under-reported
-463 vs the true 475 and wrongly cleared four crown jewels — fixed, with a regression test).
+457 vs the true 469 and wrongly cleared four crown jewels — fixed, with a regression test).
 Choke points are the top-3 by `betweenness_centrality`. We deliberately report two distinct
-numbers: **total exposure** (475) and **what isolating one host actually severs** (463).
+numbers: **total exposure** (469) and **what isolating one host actually severs** (463).
 
 **On "crown jewels":** LANL is anonymised and has **no asset-criticality labels** — every row
 says `medium`. So we derive them from a stated heuristic: *the hosts the most distinct accounts
@@ -334,7 +334,7 @@ transitions from **201 real attack sequences** (145 MITRE groups + 56 campaigns,
 | Most-frequent baseline | 4.9% |
 | Kill-chain-order baseline ⚠️ | 7.1% |
 | LSTM over MiniLM embeddings | 27.2% |
-| **Markov 1st-order — what we ship** | **36.5%** |
+| **Markov 1st-order — what we ship** | **38.1%** |
 
 **Two things here matter more than the number:**
 
@@ -342,7 +342,7 @@ transitions from **201 real attack sequences** (145 MITRE groups + 56 campaigns,
 kill-chain tactic order (recon → … → impact). A model could score well by simply re-learning
 *that ordering* rather than learning anything about attacks. So we built a **kill-chain-order
 baseline** whose entire strategy is to exploit that ordering — and required our model to beat
-it. **Markov beats it 5.2×** (36.5% vs 7.1%), which is evidence we're predicting real
+it. **Markov beats it 5.4×** (38.1% vs 7.1%), which is evidence we're predicting real
 technique-to-technique transitions.
 
 **We shipped the model that won, not the impressive one.** The LSTM (a neural network over
@@ -359,8 +359,8 @@ Unseen states back off to a frequency-ranked list, and those predictions are exp
 
 **The non-circular India test.** The 4 CERT-In sequences are ordered by the *real reported
 timeline*, not our heuristic, and live only in the test set. Markov scores **10.0%** top-3 on
-them versus 36.5% on the auto-ordered set. That gap is a finding, not a failure: **real
-attacker orderings are harder**, which proves part of the 36.5% was ordering-driven. We publish
+them versus 38.1% on the auto-ordered set. That gap is a finding, not a failure: **real
+attacker orderings are harder**, which proves part of the 38.1% was ordering-driven. We publish
 both numbers.
 
 ### 7.2 Attributing the actor
@@ -496,10 +496,10 @@ is mobile-heavy.
 
 | Dataset | Metric | Result |
 |---|---|---|
-| LANL | **ROC-AUC** | **0.988** |
-| LANL | TPR @ 5% FPR | **96.9%** (680/702 caught) |
-| LANL | TPR @ 1% FPR | 51.4% |
-| LANL | Behavioural-only ROC (NTLM removed) | **0.929** |
+| LANL | **ROC-AUC** | **0.992** |
+| LANL | TPR @ 5% FPR | **96.6%** (678/702 caught) |
+| LANL | TPR @ 1% FPR | 87.7% |
+| LANL | Behavioural-only ROC (NTLM removed) | **0.906** |
 | CIC-IDS2017 | PR-AUC — autoencoder | **0.570** |
 | CIC-IDS2017 | PR-AUC — IsolationForest | 0.473 (**3.1× random**, **4.8× rule**) |
 | CIC-IDS2017 | PR-AUC — random baseline | 0.155 |
@@ -510,9 +510,9 @@ is mobile-heavy.
 
 *The NTLM ablation.* 100% of the red-team logins used the older NTLM protocol versus ~6% of
 benign ones — a powerful but **dataset-specific and evadable** signal (the attacker could just
-switch protocols). So we deleted that feature and re-ran: **ROC-AUC 0.929**. The detection is
+switch protocols). So we deleted that feature and re-ran: **ROC-AUC 0.906**. The detection is
 driven by generalisable behaviour, not one brittle artifact. Most teams would have kept the
-0.988 quietly.
+0.992 quietly.
 
 *The rule baseline is worse than random.* A naive "high packet rate" rule scores PR-AUC 0.098
 against a random floor of 0.155 — because stealthy attacks have *low* volume. We report this
@@ -522,8 +522,8 @@ because it's exactly why simple thresholds fail.
 
 | Metric | Result |
 |---|---|
-| Markov top-3 (auto sequences) | **36.5%** |
-| Anti-circularity: Markov ÷ kill-chain baseline | **5.2×** |
+| Markov top-3 (auto sequences) | **38.1%** |
+| Anti-circularity: Markov ÷ kill-chain baseline | **5.4×** |
 | LSTM top-3 (documented negative) | 27.2% |
 | CERT-In verified sequences, top-3 | **10.0%** |
 | Technique embeddings: same-tactic vs random cosine | **0.412** vs 0.327 |
@@ -533,11 +533,11 @@ because it's exactly why simple thresholds fail.
 
 | Output | Value |
 |---|---|
-| Events analysed → alerts → incidents | 2,732 → **1,192** → **1** |
+| Events analysed → alerts → incidents | 2,732 → **1,243** → **1** |
 | Compromised accounts | 104 |
-| Attack graph | 479 hosts, 502 movements, 4 pivots |
+| Attack graph | 473 hosts, 484 movements, 4 pivots |
 | Crown jewels reachable | 18 |
-| Total exposure | 475 hosts |
+| Total exposure | 469 hosts |
 | Isolating one choke point | cuts **463** hosts |
 
 ---
@@ -555,7 +555,7 @@ real model, so we couldn't tune toward a flattering comparison. When the rule ba
 worse than random, we published that.
 
 **3. Build the baseline designed to beat you.** The kill-chain-order baseline exists purely to
-test whether our predictor was cheating. We report the 5.2× margin — and when the LSTM lost to
+test whether our predictor was cheating. We report the 5.4× margin — and when the LSTM lost to
 Markov, we shipped Markov.
 
 **4. Nothing fabricated on screen.** Every displayed number traces to the current analysis or a
@@ -631,7 +631,7 @@ number in this document.
 |---|---|
 | **Only 3 ATT&CK techniques in the demo incident** | LANL is *authentication logs only* — no process, file or network telemetry. Auth behaviour can honestly evidence pass-the-hash, brute force and remote services. We refuse to invent techniques the data can't support; richer telemetry deepens the chain automatically. |
 | **Attribution's 100% eval is near-trivial** | It retrieves a public profile from a piece of itself. Never headlined. It's transparent retrieval with a printed rationale, not a classifier. |
-| **CERT-In prediction is only 10%** | The honest, non-circular number — and the gap versus 36.5% is itself the finding. Prediction is a *supporting* feature; the pitch leans on detection and correlation. |
+| **CERT-In prediction is only 10%** | The honest, non-circular number — and the gap versus 38.1% is itself the finding. Prediction is a *supporting* feature; the pitch leans on detection and correlation. |
 | **Crown jewels are a heuristic** | LANL has no criticality labels. We state the heuristic; real deployments supply a CMDB asset list, which is already an input parameter. |
 | **SOAR is simulated** | There's no live network to act on. Every action is labelled simulated and human-gated. |
 | **India scenarios are synthetic** | AIIMS/CBSE scenarios are generated logs *styled* after real reported incidents, labelled as synthetic in the UI. The LANL campaign is the real data. |

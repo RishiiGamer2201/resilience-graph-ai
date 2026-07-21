@@ -218,19 +218,83 @@ def lstm_topk(net, seqs, emb_of, dim, vocab_set, idx):
 # --------------------------------------------------------------------------- #
 # Main                                                                         #
 # --------------------------------------------------------------------------- #
-def save_markov(train, path):
-    """Persist the first-order transition table — the shipped predictor.
+def baseline_markov_interp(train, val, vocab):
+    """Interpolated Markov — the SHIPPED predictor.
 
-    Stores [technique, count] pairs (ordered by count desc) so consumers can
-    report a real transition probability, not just a ranked list.
+    Blends second-order, first-order and unigram estimates:
+        P = l2*P(next|prev,last) + l1*P(next|last) + l0*P(next)
+    with the weights chosen on the validation split. On a small corpus a pure
+    second-order model is sharp when it has seen the exact bigram and useless
+    when it has not; interpolation keeps the higher-order signal without
+    collapsing to zero on unseen context.
     """
-    trans = defaultdict(Counter)
+    t2, t1 = defaultdict(Counter), defaultdict(Counter)
+    uni = Counter(t for s in train for t in s)
+    n_uni = sum(uni.values()) or 1
     for s in train:
         for i in range(1, len(s)):
-            trans[s[i - 1]][s[i]] += 1
-    table = {last: [[t, int(n)] for t, n in c.most_common()] for last, c in trans.items()}
+            t1[s[i - 1]][s[i]] += 1
+            if i >= 2:
+                t2[(s[i - 2], s[i - 1])][s[i]] += 1
+
+    def make(l2, l1, l0):
+        def predict(last, prefix):
+            a = prefix[-2] if len(prefix) >= 2 else None
+            b = prefix[-1] if prefix else last
+            d2 = t2.get((a, b)) if a is not None else None
+            d1 = t1.get(b)
+            n2 = sum(d2.values()) if d2 else 1
+            n1 = sum(d1.values()) if d1 else 1
+            scored = []
+            for c in vocab:
+                p = l0 * (uni.get(c, 0) / n_uni)
+                if d1:
+                    p += l1 * (d1.get(c, 0) / n1)
+                if d2:
+                    p += l2 * (d2.get(c, 0) / n2)
+                if p > 0:
+                    scored.append((p, c))
+            scored.sort(reverse=True)
+            return [c for _, c in scored]
+        return predict
+
+    grid = [(a, b, round(1 - a - b, 2))
+            for a in (0.2, 0.4, 0.6, 0.8) for b in (0.1, 0.3, 0.5)
+            if 0.0 < 1 - a - b < 1.0]
+    vs = set(vocab)
+    best_w, best_v = (0.2, 0.3, 0.5), -1.0
+    for w in grid:
+        r, _, _ = eval_ranker(make(*w), val, vs)
+        if r[3] > best_v:
+            best_v, best_w = r[3], w
+    return make(*best_w), best_w, (t2, t1, uni)
+
+
+def save_markov(train, path, lambdas=(0.2, 0.3, 0.5), tables=None):
+    """Persist the interpolated transition model — the shipped predictor.
+
+    Stores [technique, count] pairs so consumers report a real probability, not
+    just a ranked list. Read by src/shared/predictor.py at runtime.
+    """
+    if tables is None:
+        t2, t1 = defaultdict(Counter), defaultdict(Counter)
+        uni = Counter(t for s in train for t in s)
+        for s in train:
+            for i in range(1, len(s)):
+                t1[s[i - 1]][s[i]] += 1
+                if i >= 2:
+                    t2[(s[i - 2], s[i - 1])][s[i]] += 1
+    else:
+        t2, t1, uni = tables
+    payload = {
+        "version": 2,
+        "order2": {k: [[t, int(n)] for t, n in c.most_common()] for k, c in t2.items()},
+        "order1": {k: [[t, int(n)] for t, n in c.most_common()] for k, c in t1.items()},
+        "unigram": [[t, int(n)] for t, n in uni.most_common()],
+        "lambdas": list(lambdas),
+    }
     with path.open("wb") as f:
-        pickle.dump(table, f)
+        pickle.dump(payload, f)
 
 
 def main() -> None:
@@ -251,14 +315,16 @@ def main() -> None:
 
     results = {}
     markov_predict = baseline_markov(train, vocab)
+    interp_predict, interp_w, interp_tables = baseline_markov_interp(train, val, vocab)
     results["most_frequent"], n_test, oov = eval_ranker(baseline_most_frequent(train, vocab), test, vocab_set)
     results["markov"], _, _ = eval_ranker(markov_predict, test, vocab_set)
+    results["markov_interp"], _, _ = eval_ranker(interp_predict, test, vocab_set)
     results["killchain"], _, _ = eval_ranker(baseline_killchain(train, vocab, lk), test, vocab_set)
 
-    # non-circular headline: shipped Markov model on the manual CERT-In sequences
+    # non-circular headline: the SHIPPED model on the manual CERT-In sequences
     manual_res = manual_n = manual_oov = None
     if manual:
-        manual_res, manual_n, manual_oov = eval_ranker(markov_predict, manual, vocab_set)
+        manual_res, manual_n, manual_oov = eval_ranker(interp_predict, manual, vocab_set)
 
     print("Training LSTM ...")
     net, emb_of, dim = train_lstm(train, val, emb, vocab, idx)
@@ -266,11 +332,13 @@ def main() -> None:
 
     import torch
     torch.save({"state": net.state_dict(), "vocab": vocab, "dim": dim}, MODEL_OUT)
-    save_markov(train, ROOT / "models" / "next_technique_markov.pkl")
+    save_markov(train, ROOT / "models" / "next_technique_markov.pkl",
+                lambdas=interp_w, tables=interp_tables)
 
     # honest model selection: best method by top-3 accuracy
     best = max(results, key=lambda m: results[m][3])
-    mk_vs_kc = results["markov"][3] / max(results["killchain"][3], 1e-9)   # anti-circularity
+    # anti-circularity is measured against the SHIPPED model
+    mk_vs_kc = results["markov_interp"][3] / max(results["killchain"][3], 1e-9)
     lstm_vs_mk = results["lstm"][3] / max(results["markov"][3], 1e-9)
 
     # write the canonical numbers so the Metrics screen never drifts from this run
@@ -281,7 +349,12 @@ def main() -> None:
             "killchain_top3": round(results["killchain"][3], 3),
             "lstm_top3": round(results["lstm"][3], 3),
             "markov_top3": round(results["markov"][3], 3),
-            "note": f"Markov shipped; {mk_vs_kc:.1f}x the kill-chain baseline = anti-circularity",
+            "markov_interp_top3": round(results["markov_interp"][3], 3),
+            "shipped": "markov_interp",
+            "shipped_top3": round(results["markov_interp"][3], 3),
+            "lambdas": list(interp_w),
+            "note": f"Interpolated Markov shipped; {mk_vs_kc:.1f}x the kill-chain "
+                    f"baseline = anti-circularity",
         })
         if manual_res is not None:
             _update("engine2", "manual_cert_in_top3", round(manual_res[3], 3))
@@ -299,10 +372,11 @@ def main() -> None:
         "|---|---|---|---|",
     ]
     label = {"most_frequent": "Most-frequent (baseline)",
-             "markov": "Markov 1st-order (baseline)",
+             "markov": "Markov 1st-order (previous)",
+             "markov_interp": f"Markov interpolated λ={tuple(interp_w)} (SHIPPED)",
              "killchain": "Kill-chain order (baseline ⚠️)",
              "lstm": "LSTM (embeddings)"}
-    for m in ["most_frequent", "markov", "killchain", "lstm"]:
+    for m in ["most_frequent", "markov", "markov_interp", "killchain", "lstm"]:
         r = results[m]
         lines.append(f"| {label[m]} | {r[1]*100:.1f}% | {r[3]*100:.1f}% | {r[5]*100:.1f}% |")
 
@@ -350,7 +424,7 @@ def main() -> None:
 
     print("\n=== top-k accuracy (test) ===")
     print(f"{'method':<26}{'top-1':>8}{'top-3':>8}{'top-5':>8}")
-    for m in ["most_frequent", "markov", "killchain", "lstm"]:
+    for m in ["most_frequent", "markov", "markov_interp", "killchain", "lstm"]:
         r = results[m]
         print(f"{label[m]:<26}{r[1]*100:>7.1f}%{r[3]*100:>7.1f}%{r[5]*100:>7.1f}%")
     print(f"\nShipped: {label[best]} (top-3 {results[best][3]*100:.1f}%). "

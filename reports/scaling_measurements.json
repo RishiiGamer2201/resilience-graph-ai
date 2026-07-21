@@ -1,56 +1,56 @@
 [
   {
     "events": 250,
-    "seconds": 0.041,
-    "alerts": 149,
-    "hosts": 38
+    "seconds": 0.037,
+    "alerts": 147,
+    "hosts": 37
   },
   {
     "events": 500,
     "seconds": 0.047,
-    "alerts": 232,
-    "hosts": 50
+    "alerts": 226,
+    "hosts": 49
   },
   {
     "events": 1000,
-    "seconds": 0.072,
-    "alerts": 623,
-    "hosts": 300
+    "seconds": 0.07,
+    "alerts": 613,
+    "hosts": 294
   },
   {
     "events": 2000,
-    "seconds": 0.116,
-    "alerts": 1117,
-    "hosts": 474
+    "seconds": 0.112,
+    "alerts": 1182,
+    "hosts": 469
   },
   {
     "events": 2732,
-    "seconds": 0.14,
-    "alerts": 1192,
-    "hosts": 479
+    "seconds": 0.131,
+    "alerts": 1243,
+    "hosts": 473
   },
   {
     "events": 5000,
-    "seconds": 0.222,
-    "alerts": 2161,
-    "hosts": 479
+    "seconds": 0.211,
+    "alerts": 2393,
+    "hosts": 473
   },
   {
     "events": 10000,
-    "seconds": 0.535,
-    "alerts": 4202,
-    "hosts": 479
+    "seconds": 0.508,
+    "alerts": 4808,
+    "hosts": 473
   },
   {
     "events": 20000,
-    "seconds": 1.021,
-    "alerts": 8090,
-    "hosts": 479
+    "seconds": 0.956,
+    "alerts": 9458,
+    "hosts": 473
   },
   {
     "events": 50000,
-    "seconds": 2.493,
-    "alerts": 20185,
-    "hosts": 479
+    "seconds": 2.186,
+    "alerts": 22661,
+    "hosts": 473
   }
 ]

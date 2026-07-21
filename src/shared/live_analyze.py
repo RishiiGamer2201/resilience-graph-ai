@@ -29,6 +29,7 @@ from src.shared.correlate import correlate
 from src.shared.soar import recommend
 from src.shared.timeutil import fmt_ist
 from src.shared import views
+from src.shared import detector
 
 ROOT = Path(__file__).resolve().parents[2]
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
@@ -39,23 +40,21 @@ MAX_ROWS = 50_000          # trust boundary: reject oversized uploads
 _state: dict = {}
 
 
-def _model():
-    if "model" not in _state:
+def _ref():
+    if "ref" not in _state:
         import json
-        _state["model"] = joblib.load(LANL_MODEL)
         _state["ref"] = json.loads(SCORE_REF.read_text())
-    return _state["model"], _state["ref"]
+    return _state["ref"]
 
 
 def _score(df: pd.DataFrame) -> np.ndarray:
-    """Score every row 0-100 with the real LANL IsolationForest, calibrated with
-    the FIXED score_ref anchors (not batch min/max) so scores are comparable
-    across uploads and consistent with the /score-event endpoint."""
-    bundle, ref = _model()
-    X = df[FEATURES].to_numpy("float32")
-    raw = -bundle["model"].score_samples(bundle["scaler"].transform(X))
-    lo, hi = ref["lo"], ref["hi"]
-    return np.clip((raw - lo) / (hi - lo + 1e-9), 0, 1) * 100
+    """Score every row 0-100 with the shipped LANL detector (benign-trained
+    autoencoder, NumPy inference), calibrated with the FIXED score_ref anchors
+    (not batch min/max) so scores are comparable across uploads and consistent
+    with the /score-event endpoint."""
+    ref = _ref()
+    X = df[FEATURES].to_numpy("float64")
+    return detector.scores_0_100(X, ref["lo"], ref["hi"])
 
 
 def _prepare(df: pd.DataFrame) -> pd.DataFrame:

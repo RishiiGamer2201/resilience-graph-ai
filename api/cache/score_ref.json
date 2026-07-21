@@ -1,6 +1,6 @@
 {
-  "lo": 0.3473003389597789,
-  "hi": 0.7937592750066822,
+  "lo": 9.518410753407862e-05,
+  "hi": 0.08405586152799362,
   "features": [
     "is_fail",
     "new_dst_for_user",
@@ -9,5 +9,7 @@
     "user_fail_rate_sofar",
     "dst_rarity",
     "is_ntlm"
-  ]
+  ],
+  "basis": "benign p50/p99 (score 50 = 1% FPR operating point)",
+  "detector": "autoencoder"
 }

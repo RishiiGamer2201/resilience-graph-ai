@@ -95,12 +95,32 @@ def methodology() -> dict:
 
 
 def score_ref() -> dict:
-    """Calibration anchors so scoring maps raw IsolationForest score → 0-100."""
-    b = joblib.load(LANL_MODEL)
-    benign = [0, 0, 0, 50, 0.001, 4.0, 0]      # seen host, low fail, common dst, not NTLM
-    mal = [0, 1, 1, 20, 0.05, 10.0, 1]         # new host, NTLM, rare dst, some fails
-    raw = lambda v: float(-b["model"].score_samples(b["scaler"].transform([v]))[0])
-    return {"lo": raw(benign), "hi": raw(mal), "features": FEATURES}
+    """Calibration anchors so the shipped detector maps to 0-100.
+
+    Two canonical feature vectors, not batch min/max, so a score means the same
+    thing on every upload and matches /api/score-event exactly.
+    """
+    from src.shared import detector
+    band = detector.benign_band()
+    if band is not None:
+        # Anchor to the benign score distribution measured at training time:
+        # lo = median benign (routine behaviour -> 0), and hi chosen so the
+        # 99th percentile of benign lands on 50. An alert (score >= 50) is then
+        # exactly the 1% false-positive operating point the detector was
+        # selected on, rather than an arbitrary point on a raw error scale.
+        p50, p99 = band
+        lo, hi = float(p50), float(p50 + 2.0 * (p99 - p50))
+        basis = "benign p50/p99 (score 50 = 1% FPR operating point)"
+    else:
+        benign = [0, 0, 0, 50, 0.001, 4.0, 0]  # seen host, low fail, common dst, not NTLM
+        mal = [0, 1, 1, 20, 0.05, 10.0, 1]     # new host, NTLM, rare dst, some fails
+        raw = detector.raw_scores([benign, mal])
+        lo, hi = float(raw[0]), float(raw[1])
+        basis = "canonical benign/malicious feature vectors"
+    if not hi > lo:                            # calibration would invert or divide by ~0
+        raise SystemExit(f"score_ref anchors are not ordered: lo={lo}, hi={hi}")
+    return {"lo": lo, "hi": hi, "features": FEATURES, "basis": basis,
+            "detector": "autoencoder" if detector.available() else "iforest"}
 
 
 def main() -> None:

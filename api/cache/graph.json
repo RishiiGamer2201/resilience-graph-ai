@@ -2,18 +2,16 @@
   "entry_host": "C17693",
   "attacker_pivots": [
     "C17693",
+    "C18025",
     "C19932",
-    "C22409",
-    "C18025"
+    "C22409"
   ],
   "n_pivots": 4,
   "critical_assets_at_risk": [
     "C1015",
     "C1065",
-    "C1640",
     "C2106",
     "C231",
-    "C2553",
     "C3173",
     "C457",
     "C467",
@@ -28,17 +26,61 @@
     "C801"
   ],
   "paths_to_critical": {
-    "C1065": [
-      "C19932",
-      "C1065"
-    ],
     "C612": [
       "C19932",
       "C612"
     ],
+    "C743": [
+      "C18025",
+      "C743"
+    ],
+    "C3173": [
+      "C17693",
+      "C3173"
+    ],
+    "C1065": [
+      "C18025",
+      "C1065"
+    ],
+    "C457": [
+      "C17693",
+      "C457"
+    ],
+    "C625": [
+      "C17693",
+      "C625"
+    ],
+    "C801": [
+      "C17693",
+      "C801"
+    ],
+    "C1015": [
+      "C17693",
+      "C1015"
+    ],
+    "C528": [
+      "C17693",
+      "C528"
+    ],
+    "C585": [
+      "C17693",
+      "C585"
+    ],
     "C467": [
       "C17693",
       "C467"
+    ],
+    "C529": [
+      "C17693",
+      "C529"
+    ],
+    "C231": [
+      "C17693",
+      "C231"
+    ],
+    "C2106": [
+      "C17693",
+      "C2106"
     ],
     "C706": [
       "C17693",
@@ -47,58 +89,6 @@
     "C586": [
       "C17693",
       "C586"
-    ],
-    "C2106": [
-      "C17693",
-      "C2106"
-    ],
-    "C1640": [
-      "C22409",
-      "C1640"
-    ],
-    "C743": [
-      "C18025",
-      "C743"
-    ],
-    "C1015": [
-      "C17693",
-      "C1015"
-    ],
-    "C585": [
-      "C17693",
-      "C585"
-    ],
-    "C457": [
-      "C17693",
-      "C457"
-    ],
-    "C528": [
-      "C17693",
-      "C528"
-    ],
-    "C3173": [
-      "C17693",
-      "C3173"
-    ],
-    "C801": [
-      "C17693",
-      "C801"
-    ],
-    "C529": [
-      "C17693",
-      "C529"
-    ],
-    "C625": [
-      "C17693",
-      "C625"
-    ],
-    "C231": [
-      "C17693",
-      "C231"
-    ],
-    "C2553": [
-      "C22409",
-      "C2553"
     ]
   },
   "choke_points": [
@@ -106,11 +96,11 @@
     "C1759",
     "C1003"
   ],
-  "blast_radius_size": 475,
+  "blast_radius_size": 469,
   "recommended_isolation": "C17693",
   "isolation_cuts": 463,
-  "n_nodes": 479,
-  "n_edges": 502,
+  "n_nodes": 473,
+  "n_edges": 484,
   "nodes": [
     {
       "id": "C1",
@@ -797,12 +787,6 @@
       "entry": false
     },
     {
-      "id": "C1640",
-      "critical": true,
-      "pivot": false,
-      "entry": false
-    },
-    {
       "id": "C16401",
       "critical": false,
       "pivot": false,
@@ -1068,12 +1052,6 @@
     },
     {
       "id": "C18720",
-      "critical": false,
-      "pivot": false,
-      "entry": false
-    },
-    {
-      "id": "C1877",
       "critical": false,
       "pivot": false,
       "entry": false
@@ -1457,12 +1435,6 @@
       "entry": false
     },
     {
-      "id": "C22408",
-      "critical": false,
-      "pivot": false,
-      "entry": false
-    },
-    {
       "id": "C22409",
       "critical": false,
       "pivot": true,
@@ -1585,12 +1557,6 @@
     {
       "id": "C2519",
       "critical": false,
-      "pivot": false,
-      "entry": false
-    },
-    {
-      "id": "C2553",
-      "critical": true,
       "pivot": false,
       "entry": false
     },
@@ -1776,12 +1742,6 @@
     },
     {
       "id": "C2944",
-      "critical": false,
-      "pivot": false,
-      "entry": false
-    },
-    {
-      "id": "C2963",
       "critical": false,
       "pivot": false,
       "entry": false
@@ -2501,12 +2461,6 @@
       "entry": false
     },
     {
-      "id": "C5463",
-      "critical": false,
-      "pivot": false,
-      "entry": false
-    },
-    {
       "id": "C5489",
       "critical": false,
       "pivot": false,
@@ -2994,7 +2948,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U620@DOM1",
@@ -3002,7 +2956,7 @@
       ],
       "first_seen": 150786,
       "last_seen": 230300,
-      "event_count": 2,
+      "event_count": 3,
       "user": "2 accounts"
     },
     {
@@ -3011,7 +2965,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U620@DOM1",
@@ -3029,7 +2983,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3045,7 +2999,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3061,7 +3015,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U6115@DOM1"
@@ -3077,7 +3031,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U636@DOM1",
@@ -3085,7 +3039,7 @@
       ],
       "first_seen": 153792,
       "last_seen": 491747,
-      "event_count": 6,
+      "event_count": 7,
       "user": "2 accounts"
     },
     {
@@ -3094,7 +3048,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3110,7 +3064,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3126,7 +3080,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3142,7 +3096,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3158,14 +3112,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 156060,
-      "last_seen": 156060,
-      "event_count": 1,
+      "last_seen": 205356,
+      "event_count": 2,
       "user": "U748@DOM1"
     },
     {
@@ -3174,7 +3128,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3190,14 +3144,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 208024,
-      "last_seen": 208024,
-      "event_count": 1,
+      "last_seen": 215359,
+      "event_count": 2,
       "user": "U748@DOM1"
     },
     {
@@ -3206,14 +3160,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 210086,
-      "last_seen": 210086,
-      "event_count": 1,
+      "last_seen": 210312,
+      "event_count": 3,
       "user": "U748@DOM1"
     },
     {
@@ -3238,7 +3192,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
@@ -3254,14 +3208,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 218418,
-      "last_seen": 218418,
-      "event_count": 1,
+      "last_seen": 234667,
+      "event_count": 2,
       "user": "U748@DOM1"
     },
     {
@@ -3270,14 +3224,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 226048,
-      "last_seen": 226048,
-      "event_count": 1,
+      "last_seen": 226938,
+      "event_count": 2,
       "user": "U748@DOM1"
     },
     {
@@ -3302,14 +3256,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 227052,
-      "last_seen": 227052,
-      "event_count": 1,
+      "last_seen": 228150,
+      "event_count": 6,
       "user": "U748@DOM1"
     },
     {
@@ -3318,7 +3272,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1",
@@ -3354,14 +3308,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 460197,
-      "last_seen": 460197,
-      "event_count": 1,
+      "last_seen": 460991,
+      "event_count": 3,
       "user": "U748@DOM1"
     },
     {
@@ -3370,14 +3324,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U748@DOM1"
       ],
       "first_seen": 461842,
-      "last_seen": 461842,
-      "event_count": 1,
+      "last_seen": 464260,
+      "event_count": 4,
       "user": "U748@DOM1"
     },
     {
@@ -3386,30 +3340,14 @@
       "technique": "T1021",
       "technique_name": "Remote Services",
       "tactic": "Lateral Movement",
-      "score": 54,
+      "score": 60,
       "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
       "users": [
         "U737@DOM1"
       ],
       "first_seen": 464542,
-      "last_seen": 464542,
-      "event_count": 1,
-      "user": "U737@DOM1"
-    },
-    {
-      "from": "C19932",
-      "to": "C1065",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 51,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 464544,
-      "last_seen": 464544,
-      "event_count": 1,
+      "last_seen": 1758223,
+      "event_count": 25,
       "user": "U737@DOM1"
     },
     {
@@ -3418,14 +3356,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 73,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
       ],
       "first_seen": 464545,
-      "last_seen": 1931925,
-      "event_count": 3,
+      "last_seen": 464545,
+      "event_count": 1,
       "user": "U737@DOM1"
     },
     {
@@ -3434,14 +3372,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 71,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
       ],
       "first_seen": 466195,
-      "last_seen": 2468211,
-      "event_count": 3,
+      "last_seen": 466195,
+      "event_count": 1,
       "user": "U737@DOM1"
     },
     {
@@ -3510,7 +3448,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1723@DOM1"
@@ -3561,14 +3499,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1723@DOM1"
       ],
       "first_seen": 561264,
-      "last_seen": 562573,
-      "event_count": 19,
+      "last_seen": 562563,
+      "event_count": 16,
       "user": "U1723@DOM1"
     },
     {
@@ -3586,7 +3524,7 @@
       ],
       "first_seen": 561285,
       "last_seen": 1181709,
-      "event_count": 41,
+      "event_count": 40,
       "user": "3 accounts"
     },
     {
@@ -3595,47 +3533,15 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 89,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1723@DOM1"
       ],
       "first_seen": 561286,
-      "last_seen": 561638,
-      "event_count": 42,
+      "last_seen": 561414,
+      "event_count": 28,
       "user": "U1723@DOM1"
-    },
-    {
-      "from": "C19932",
-      "to": "C625",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 61,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 578437,
-      "last_seen": 2536085,
-      "event_count": 5,
-      "user": "U737@DOM1"
-    },
-    {
-      "from": "C19932",
-      "to": "C467",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 60,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 578484,
-      "last_seen": 1758226,
-      "event_count": 3,
-      "user": "U737@DOM1"
     },
     {
       "from": "C17693",
@@ -3643,7 +3549,7 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 95,
+      "score": 100,
       "explanation": "Expected activity.",
       "users": [
         "U825@DOM1",
@@ -3651,7 +3557,7 @@
       ],
       "first_seen": 584551,
       "last_seen": 1241392,
-      "event_count": 3,
+      "event_count": 4,
       "user": "2 accounts"
     },
     {
@@ -3660,15 +3566,15 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1",
         "U1653@DOM1"
       ],
       "first_seen": 725274,
-      "last_seen": 725640,
-      "event_count": 2,
+      "last_seen": 2363202,
+      "event_count": 5,
       "user": "2 accounts"
     },
     {
@@ -3677,7 +3583,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1653@DOM1",
@@ -3714,14 +3620,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
       ],
       "first_seen": 725983,
       "last_seen": 739214,
-      "event_count": 3,
+      "event_count": 6,
       "user": "U293@DOM1"
     },
     {
@@ -3730,7 +3636,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8946@DOM1"
@@ -3746,14 +3652,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U10379@C3521"
       ],
       "first_seen": 726137,
-      "last_seen": 726137,
-      "event_count": 1,
+      "last_seen": 2303788,
+      "event_count": 2,
       "user": "U10379@C3521"
     },
     {
@@ -3762,7 +3668,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8946@DOM1"
@@ -3778,7 +3684,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8946@DOM1"
@@ -3811,7 +3717,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8946@DOM1"
@@ -3827,7 +3733,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 74,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1",
@@ -3852,7 +3758,7 @@
       ],
       "first_seen": 727131,
       "last_seen": 2296175,
-      "event_count": 3,
+      "event_count": 5,
       "user": "2 accounts"
     },
     {
@@ -3870,7 +3776,7 @@
       ],
       "first_seen": 727702,
       "last_seen": 728800,
-      "event_count": 3,
+      "event_count": 6,
       "user": "3 accounts"
     },
     {
@@ -3879,7 +3785,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
@@ -3961,7 +3867,7 @@
       "technique": "T1110",
       "technique_name": "Brute Force",
       "tactic": "Credential Access",
-      "score": 90,
+      "score": 100,
       "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
       "users": [
         "U737@DOM1",
@@ -3978,7 +3884,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U995@DOM1"
@@ -4027,14 +3933,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 76,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
       ],
       "first_seen": 730430,
-      "last_seen": 730430,
-      "event_count": 1,
+      "last_seen": 1090929,
+      "event_count": 5,
       "user": "U8601@DOM1"
     },
     {
@@ -4043,14 +3949,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 78,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
       ],
       "first_seen": 730889,
-      "last_seen": 730889,
-      "event_count": 1,
+      "last_seen": 731101,
+      "event_count": 2,
       "user": "U8601@DOM1"
     },
     {
@@ -4059,7 +3965,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U288@DOM1"
@@ -4127,7 +4033,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U349@DOM1",
@@ -4135,7 +4041,7 @@
       ],
       "first_seen": 736013,
       "last_seen": 2363589,
-      "event_count": 3,
+      "event_count": 4,
       "user": "2 accounts"
     },
     {
@@ -4225,7 +4131,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2837@DOM1"
@@ -4241,7 +4147,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2837@DOM1"
@@ -4257,7 +4163,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U349@DOM1"
@@ -4273,7 +4179,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2837@DOM1"
@@ -4289,7 +4195,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8946@DOM1"
@@ -4305,7 +4211,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8946@DOM1"
@@ -4321,7 +4227,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
@@ -4337,7 +4243,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -4386,7 +4292,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -4402,7 +4308,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U250@DOM1",
@@ -4419,7 +4325,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -4486,7 +4392,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -4538,7 +4444,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U349@DOM1"
@@ -4554,14 +4460,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
       ],
       "first_seen": 741010,
-      "last_seen": 741010,
-      "event_count": 1,
+      "last_seen": 2296449,
+      "event_count": 2,
       "user": "U8601@DOM1"
     },
     {
@@ -4570,7 +4476,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4353@DOM1"
@@ -4586,7 +4492,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U349@DOM1",
@@ -4640,7 +4546,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U5087@DOM1",
@@ -4673,14 +4579,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U795@DOM1"
       ],
       "first_seen": 744215,
-      "last_seen": 744215,
-      "event_count": 1,
+      "last_seen": 2305081,
+      "event_count": 2,
       "user": "U795@DOM1"
     },
     {
@@ -4724,7 +4630,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -4740,7 +4646,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -4772,7 +4678,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -4788,7 +4694,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U882@DOM1",
@@ -4805,14 +4711,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U882@DOM1"
       ],
       "first_seen": 746353,
-      "last_seen": 746353,
-      "event_count": 1,
+      "last_seen": 746595,
+      "event_count": 2,
       "user": "U882@DOM1"
     },
     {
@@ -4821,14 +4727,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8777@C583"
       ],
       "first_seen": 746387,
-      "last_seen": 746387,
-      "event_count": 1,
+      "last_seen": 2365209,
+      "event_count": 3,
       "user": "U8777@C583"
     },
     {
@@ -4837,7 +4743,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -4853,7 +4759,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -4869,14 +4775,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1450@DOM1"
       ],
       "first_seen": 747001,
-      "last_seen": 747001,
-      "event_count": 1,
+      "last_seen": 747653,
+      "event_count": 4,
       "user": "U1450@DOM1"
     },
     {
@@ -4885,14 +4791,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8777@C1500"
       ],
       "first_seen": 747247,
-      "last_seen": 747247,
-      "event_count": 1,
+      "last_seen": 1355106,
+      "event_count": 2,
       "user": "U8777@C1500"
     },
     {
@@ -4901,7 +4807,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -4917,14 +4823,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8777@C3388"
       ],
       "first_seen": 747478,
-      "last_seen": 747478,
-      "event_count": 1,
+      "last_seen": 1355036,
+      "event_count": 5,
       "user": "U8777@C3388"
     },
     {
@@ -4933,7 +4839,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1450@DOM1"
@@ -4949,14 +4855,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U374@DOM1"
       ],
       "first_seen": 747939,
-      "last_seen": 747939,
-      "event_count": 1,
+      "last_seen": 2370254,
+      "event_count": 3,
       "user": "U374@DOM1"
     },
     {
@@ -4965,7 +4871,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1450@DOM1"
@@ -5014,7 +4920,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1450@DOM1"
@@ -5063,7 +4969,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -5079,7 +4985,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -5095,7 +5001,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -5118,8 +5024,8 @@
         "U342@DOM1"
       ],
       "first_seen": 749319,
-      "last_seen": 750307,
-      "event_count": 2,
+      "last_seen": 750419,
+      "event_count": 3,
       "user": "2 accounts"
     },
     {
@@ -5128,14 +5034,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3718@DOM1"
       ],
       "first_seen": 749816,
-      "last_seen": 749816,
-      "event_count": 1,
+      "last_seen": 2461523,
+      "event_count": 2,
       "user": "U3718@DOM1"
     },
     {
@@ -5144,7 +5050,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9947@DOM1"
@@ -5176,7 +5082,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2575@DOM1"
@@ -5210,7 +5116,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 90,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5226,14 +5132,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U6572@DOM1"
       ],
       "first_seen": 752606,
-      "last_seen": 752606,
-      "event_count": 1,
+      "last_seen": 2306980,
+      "event_count": 2,
       "user": "U6572@DOM1"
     },
     {
@@ -5242,7 +5148,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2575@DOM1"
@@ -5258,15 +5164,15 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 90,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1",
         "U737@DOM1"
       ],
       "first_seen": 753122,
-      "last_seen": 2366077,
-      "event_count": 2,
+      "last_seen": 2366096,
+      "event_count": 3,
       "user": "2 accounts"
     },
     {
@@ -5275,7 +5181,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -5291,7 +5197,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -5307,7 +5213,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -5323,14 +5229,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 78,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
       ],
       "first_seen": 753695,
-      "last_seen": 753695,
-      "event_count": 1,
+      "last_seen": 765655,
+      "event_count": 2,
       "user": "U162@DOM1"
     },
     {
@@ -5339,7 +5245,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -5438,7 +5344,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 90,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5488,7 +5394,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1",
@@ -5505,7 +5411,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1",
@@ -5554,7 +5460,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5634,7 +5540,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5650,7 +5556,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5666,14 +5572,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U642@DOM1"
       ],
       "first_seen": 757625,
-      "last_seen": 757625,
-      "event_count": 1,
+      "last_seen": 757755,
+      "event_count": 2,
       "user": "U642@DOM1"
     },
     {
@@ -5682,7 +5588,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5698,7 +5604,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -5714,7 +5620,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5730,7 +5636,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5746,7 +5652,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5796,7 +5702,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5812,14 +5718,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U342@DOM1"
       ],
       "first_seen": 760388,
-      "last_seen": 760388,
-      "event_count": 1,
+      "last_seen": 760473,
+      "event_count": 2,
       "user": "U342@DOM1"
     },
     {
@@ -5828,7 +5734,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U342@DOM1"
@@ -5844,7 +5750,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5860,7 +5766,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U342@DOM1"
@@ -5876,7 +5782,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5892,7 +5798,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5908,7 +5814,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U342@DOM1"
@@ -5924,7 +5830,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5940,7 +5846,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5956,7 +5862,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -5989,7 +5895,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -6005,7 +5911,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -6037,14 +5943,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
       ],
       "first_seen": 763947,
-      "last_seen": 763947,
-      "event_count": 1,
+      "last_seen": 1160656,
+      "event_count": 3,
       "user": "U1480@DOM1"
     },
     {
@@ -6053,7 +5959,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
@@ -6069,7 +5975,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -6085,7 +5991,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6104,7 +6010,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6120,7 +6026,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6161,7 +6067,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 78,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6178,7 +6084,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6194,7 +6100,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6210,7 +6116,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6227,7 +6133,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6245,7 +6151,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6261,7 +6167,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
@@ -6277,7 +6183,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6293,14 +6199,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 78,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
       ],
       "first_seen": 764570,
-      "last_seen": 764570,
-      "event_count": 1,
+      "last_seen": 764943,
+      "event_count": 2,
       "user": "U1480@DOM1"
     },
     {
@@ -6309,7 +6215,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
@@ -6325,7 +6231,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6341,7 +6247,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6357,7 +6263,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6373,7 +6279,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
@@ -6389,7 +6295,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6405,7 +6311,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6422,7 +6328,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1",
@@ -6441,7 +6347,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6457,7 +6363,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1"
@@ -6489,7 +6395,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -6505,7 +6411,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1",
@@ -6523,7 +6429,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -6539,7 +6445,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -6555,7 +6461,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -6571,7 +6477,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -6587,7 +6493,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -6603,7 +6509,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U293@DOM1",
@@ -6660,7 +6566,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1",
@@ -6669,7 +6575,7 @@
       ],
       "first_seen": 766534,
       "last_seen": 1355621,
-      "event_count": 3,
+      "event_count": 4,
       "user": "3 accounts"
     },
     {
@@ -6678,7 +6584,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -6710,7 +6616,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -6727,7 +6633,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -6743,7 +6649,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -6760,7 +6666,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7394@DOM1"
@@ -6776,14 +6682,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7394@DOM1"
       ],
       "first_seen": 767300,
-      "last_seen": 767300,
-      "event_count": 1,
+      "last_seen": 767320,
+      "event_count": 2,
       "user": "U7394@DOM1"
     },
     {
@@ -6798,8 +6704,8 @@
         "U737@DOM1"
       ],
       "first_seen": 767563,
-      "last_seen": 1350551,
-      "event_count": 5,
+      "last_seen": 1073447,
+      "event_count": 4,
       "user": "U737@DOM1"
     },
     {
@@ -6808,7 +6714,7 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 63,
+      "score": 94,
       "explanation": "Expected activity.",
       "users": [
         "U737@DOM1"
@@ -6824,7 +6730,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 89,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -6840,7 +6746,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -6856,7 +6762,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4353@DOM1"
@@ -6872,7 +6778,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1048@DOM1",
@@ -6889,7 +6795,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4353@DOM1"
@@ -6940,7 +6846,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4353@DOM1"
@@ -6956,7 +6862,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -6972,7 +6878,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4353@DOM1"
@@ -6988,14 +6894,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
       ],
       "first_seen": 768556,
-      "last_seen": 768556,
-      "event_count": 1,
+      "last_seen": 768634,
+      "event_count": 2,
       "user": "U66@DOM1"
     },
     {
@@ -7004,7 +6910,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4353@DOM1"
@@ -7020,7 +6926,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -7037,7 +6943,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U995@DOM1",
@@ -7055,7 +6961,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U995@DOM1"
@@ -7087,7 +6993,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1",
@@ -7095,8 +7001,8 @@
         "U7375@DOM1"
       ],
       "first_seen": 769022,
-      "last_seen": 770601,
-      "event_count": 3,
+      "last_seen": 1090503,
+      "event_count": 4,
       "user": "3 accounts"
     },
     {
@@ -7121,7 +7027,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7137,7 +7043,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7153,7 +7059,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1048@DOM1"
@@ -7169,7 +7075,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7185,7 +7091,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1048@DOM1"
@@ -7201,7 +7107,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7217,7 +7123,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7233,7 +7139,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1048@DOM1"
@@ -7249,7 +7155,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7265,7 +7171,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7281,7 +7187,7 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 62,
+      "score": 93,
       "explanation": "Expected activity.",
       "users": [
         "U737@DOM1"
@@ -7297,7 +7203,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7375@DOM1"
@@ -7313,14 +7219,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
       ],
       "first_seen": 770651,
-      "last_seen": 770651,
-      "event_count": 1,
+      "last_seen": 773961,
+      "event_count": 2,
       "user": "U66@DOM1"
     },
     {
@@ -7329,7 +7235,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7375@DOM1"
@@ -7361,7 +7267,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7375@DOM1"
@@ -7377,7 +7283,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7375@DOM1"
@@ -7393,7 +7299,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7409,7 +7315,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7375@DOM1"
@@ -7441,7 +7347,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7457,7 +7363,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9763@DOM1"
@@ -7473,7 +7379,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U9763@DOM1"
@@ -7522,7 +7428,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7554,7 +7460,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 77,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7570,7 +7476,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7586,7 +7492,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 83,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7619,14 +7525,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
       ],
       "first_seen": 772570,
-      "last_seen": 772570,
-      "event_count": 1,
+      "last_seen": 772593,
+      "event_count": 2,
       "user": "U66@DOM1"
     },
     {
@@ -7651,7 +7557,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7667,7 +7573,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7683,7 +7589,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U218@DOM1",
@@ -7703,7 +7609,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U218@DOM1",
@@ -7771,7 +7677,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4112@DOM1",
@@ -7806,7 +7712,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4978@DOM1"
@@ -7822,7 +7728,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4978@DOM1",
@@ -7836,7 +7742,7 @@
       ],
       "first_seen": 773387,
       "last_seen": 1094497,
-      "event_count": 11,
+      "event_count": 9,
       "user": "8 accounts"
     },
     {
@@ -7863,7 +7769,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 83,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -7891,91 +7797,11 @@
     },
     {
       "from": "C22409",
-      "to": "C22408",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 56,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 830008,
-      "last_seen": 830008,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C22409",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 71,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 830008,
-      "last_seen": 1261579,
-      "event_count": 3,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C5463",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 51,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 830013,
-      "last_seen": 830013,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C1877",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 50,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 830026,
-      "last_seen": 830026,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C2553",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 50,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 830026,
-      "last_seen": 830026,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C22409",
       "to": "C754",
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 75,
+      "score": 100,
       "explanation": "Expected activity.",
       "users": [
         "U1653@DOM1"
@@ -8005,22 +7831,6 @@
       "user": "4 accounts"
     },
     {
-      "from": "C22409",
-      "to": "C2651",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 53,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 1066400,
-      "last_seen": 1066400,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
       "from": "C17693",
       "to": "C1036",
       "technique": "T1110",
@@ -8042,7 +7852,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8058,7 +7868,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8074,7 +7884,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8090,7 +7900,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8106,7 +7916,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8122,7 +7932,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8138,7 +7948,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U12@DOM1"
@@ -8154,7 +7964,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8170,7 +7980,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8186,7 +7996,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8202,7 +8012,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U12@DOM1",
@@ -8211,7 +8021,7 @@
       ],
       "first_seen": 1068887,
       "last_seen": 2305203,
-      "event_count": 6,
+      "event_count": 7,
       "user": "3 accounts"
     },
     {
@@ -8220,7 +8030,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8236,7 +8046,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8252,7 +8062,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8268,7 +8078,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 89,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -8284,7 +8094,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8300,7 +8110,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8316,7 +8126,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -8333,7 +8143,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U13@DOM1"
@@ -8400,7 +8210,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -8417,7 +8227,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U13@DOM1",
@@ -8435,7 +8245,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8451,7 +8261,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8467,7 +8277,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8483,7 +8293,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -8501,7 +8311,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8517,7 +8327,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8533,7 +8343,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8549,7 +8359,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8565,7 +8375,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8648,7 +8458,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8680,7 +8490,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8696,7 +8506,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -8730,7 +8540,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -8747,7 +8557,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -8781,7 +8591,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8797,7 +8607,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8813,7 +8623,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8829,7 +8639,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8845,7 +8655,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8903,7 +8713,7 @@
       ],
       "first_seen": 1076005,
       "last_seen": 2304842,
-      "event_count": 2,
+      "event_count": 4,
       "user": "2 accounts"
     },
     {
@@ -8912,7 +8722,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -8960,7 +8770,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9009,7 +8819,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7507@DOM1",
@@ -9026,7 +8836,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1145@DOM1"
@@ -9042,7 +8852,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U415@DOM1"
@@ -9058,7 +8868,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U78@DOM1",
@@ -9066,8 +8876,8 @@
         "U415@DOM1"
       ],
       "first_seen": 1077222,
-      "last_seen": 1077512,
-      "event_count": 3,
+      "last_seen": 1077607,
+      "event_count": 4,
       "user": "3 accounts"
     },
     {
@@ -9076,7 +8886,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 97,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1145@DOM1"
@@ -9092,7 +8902,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1145@DOM1"
@@ -9108,7 +8918,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1145@DOM1"
@@ -9124,7 +8934,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1145@DOM1",
@@ -9145,7 +8955,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1145@DOM1",
@@ -9162,7 +8972,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U415@DOM1"
@@ -9178,7 +8988,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9210,7 +9020,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9226,7 +9036,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9242,7 +9052,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9258,7 +9068,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9274,7 +9084,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 96,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U415@DOM1"
@@ -9308,7 +9118,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U415@DOM1"
@@ -9324,7 +9134,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9340,7 +9150,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9356,7 +9166,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9372,7 +9182,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9388,7 +9198,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9404,7 +9214,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9420,7 +9230,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9436,7 +9246,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 90,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U415@DOM1"
@@ -9452,7 +9262,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1",
@@ -9486,7 +9296,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7507@DOM1"
@@ -9502,7 +9312,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9566,14 +9376,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1289@DOM1"
       ],
       "first_seen": 1081727,
-      "last_seen": 1081727,
-      "event_count": 1,
+      "last_seen": 1081813,
+      "event_count": 2,
       "user": "U1289@DOM1"
     },
     {
@@ -9582,7 +9392,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -9598,7 +9408,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U342@DOM1"
@@ -9614,7 +9424,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 78,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U78@DOM1",
@@ -9622,7 +9432,7 @@
       ],
       "first_seen": 1086678,
       "last_seen": 1178388,
-      "event_count": 2,
+      "event_count": 3,
       "user": "2 accounts"
     },
     {
@@ -9631,7 +9441,7 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 62,
+      "score": 86,
       "explanation": "Expected activity.",
       "users": [
         "U737@DOM1"
@@ -9642,76 +9452,12 @@
       "user": "U737@DOM1"
     },
     {
-      "from": "C19932",
-      "to": "C2106",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 70,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 1089635,
-      "last_seen": 2020750,
-      "event_count": 2,
-      "user": "U737@DOM1"
-    },
-    {
-      "from": "C19932",
-      "to": "C3173",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 76,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 1090024,
-      "last_seen": 1090024,
-      "event_count": 1,
-      "user": "U737@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C2106",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 52,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 1090133,
-      "last_seen": 1090133,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C529",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 55,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 1090157,
-      "last_seen": 1090157,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
       "from": "C17693",
       "to": "C2634",
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
@@ -9727,7 +9473,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8601@DOM1"
@@ -9743,7 +9489,7 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 62,
+      "score": 77,
       "explanation": "Expected activity.",
       "users": [
         "U737@DOM1"
@@ -9759,7 +9505,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -9775,14 +9521,14 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 61,
+      "score": 63,
       "explanation": "Expected activity.",
       "users": [
         "U737@DOM1"
       ],
       "first_seen": 1092358,
-      "last_seen": 1167462,
-      "event_count": 4,
+      "last_seen": 1092393,
+      "event_count": 2,
       "user": "U737@DOM1"
     },
     {
@@ -9791,7 +9537,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 75,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3486@DOM1"
@@ -9802,28 +9548,12 @@
       "user": "U3486@DOM1"
     },
     {
-      "from": "C22409",
-      "to": "C1640",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 57,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 1092452,
-      "last_seen": 1092452,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
       "from": "C17693",
       "to": "C1224",
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4448@DOM1"
@@ -9839,7 +9569,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 76,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3486@DOM1"
@@ -9855,7 +9585,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2231@DOM1"
@@ -9871,7 +9601,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2231@DOM1"
@@ -9919,7 +9649,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -9935,7 +9665,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -9951,7 +9681,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -9967,7 +9697,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -9983,7 +9713,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -9999,7 +9729,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -10015,7 +9745,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2575@DOM1",
@@ -10032,7 +9762,7 @@
       "technique": "-",
       "technique_name": "",
       "tactic": "Normal",
-      "score": 61,
+      "score": 73,
       "explanation": "Expected activity.",
       "users": [
         "U737@DOM1"
@@ -10048,7 +9778,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 94,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -10081,7 +9811,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1592@DOM1"
@@ -10097,7 +9827,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1592@DOM1"
@@ -10113,7 +9843,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1592@DOM1"
@@ -10146,14 +9876,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1025@DOM1"
       ],
       "first_seen": 1152460,
-      "last_seen": 1152460,
-      "event_count": 1,
+      "last_seen": 1152644,
+      "event_count": 2,
       "user": "U1025@DOM1"
     },
     {
@@ -10162,14 +9892,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 78,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1025@DOM1"
       ],
       "first_seen": 1153024,
-      "last_seen": 1153024,
-      "event_count": 1,
+      "last_seen": 1153716,
+      "event_count": 3,
       "user": "U1025@DOM1"
     },
     {
@@ -10178,7 +9908,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1025@DOM1",
@@ -10195,7 +9925,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1480@DOM1"
@@ -10211,7 +9941,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -10227,7 +9957,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -10243,7 +9973,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 93,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1"
@@ -10259,15 +9989,15 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 92,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3005@DOM1",
         "U3549@DOM1"
       ],
       "first_seen": 1162004,
-      "last_seen": 1251013,
-      "event_count": 3,
+      "last_seen": 1251033,
+      "event_count": 4,
       "user": "2 accounts"
     },
     {
@@ -10329,7 +10059,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -10345,7 +10075,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -10429,7 +10159,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3635@DOM1"
@@ -10445,7 +10175,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U2575@DOM1"
@@ -10493,7 +10223,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 83,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -10509,7 +10239,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 83,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U162@DOM1"
@@ -10525,7 +10255,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
@@ -10541,7 +10271,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 91,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1",
@@ -10558,7 +10288,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U24@DOM1"
@@ -10574,7 +10304,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U24@DOM1"
@@ -10590,7 +10320,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U24@DOM1"
@@ -10606,7 +10336,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U24@DOM1"
@@ -10639,7 +10369,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U24@DOM1"
@@ -10655,7 +10385,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U24@DOM1"
@@ -10688,7 +10418,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1569@DOM1"
@@ -10704,7 +10434,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 99,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U4448@DOM1"
@@ -10720,7 +10450,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 82,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3549@DOM1"
@@ -10736,7 +10466,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 73,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3549@DOM1"
@@ -10752,7 +10482,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 73,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3549@DOM1"
@@ -10768,7 +10498,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 72,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3549@DOM1"
@@ -10784,7 +10514,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 71,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3549@DOM1"
@@ -10808,8 +10538,8 @@
         "U8170@DOM1"
       ],
       "first_seen": 1184053,
-      "last_seen": 1184399,
-      "event_count": 3,
+      "last_seen": 1242383,
+      "event_count": 5,
       "user": "3 accounts"
     },
     {
@@ -10818,7 +10548,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 98,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8168@C19038",
@@ -10851,7 +10581,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U7594@DOM1"
@@ -10883,7 +10613,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1106@DOM1"
@@ -10899,7 +10629,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 81,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1106@DOM1"
@@ -10915,7 +10645,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3575@DOM1"
@@ -10931,7 +10661,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U3206@DOM1"
@@ -10942,19 +10672,35 @@
       "user": "U3206@DOM1"
     },
     {
+      "from": "C22409",
+      "to": "C22409",
+      "technique": "T1110",
+      "technique_name": "Brute Force",
+      "tactic": "Credential Access",
+      "score": 100,
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "users": [
+        "U3486@DOM1"
+      ],
+      "first_seen": 1261574,
+      "last_seen": 1261579,
+      "event_count": 2,
+      "user": "U3486@DOM1"
+    },
+    {
       "from": "C17693",
       "to": "C685",
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 86,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U8168@C685"
       ],
       "first_seen": 1351641,
-      "last_seen": 1351641,
-      "event_count": 1,
+      "last_seen": 1351845,
+      "event_count": 3,
       "user": "U8168@C685"
     },
     {
@@ -10963,14 +10709,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U679@DOM1"
       ],
       "first_seen": 1352110,
-      "last_seen": 1352110,
-      "event_count": 1,
+      "last_seen": 1356094,
+      "event_count": 2,
       "user": "U679@DOM1"
     },
     {
@@ -10979,7 +10725,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U679@DOM1",
@@ -10996,14 +10742,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 79,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U679@DOM1"
       ],
       "first_seen": 1353512,
-      "last_seen": 1353512,
-      "event_count": 1,
+      "last_seen": 1353549,
+      "event_count": 2,
       "user": "U679@DOM1"
     },
     {
@@ -11020,7 +10766,7 @@
       ],
       "first_seen": 1357892,
       "last_seen": 2383153,
-      "event_count": 3,
+      "event_count": 4,
       "user": "2 accounts"
     },
     {
@@ -11029,7 +10775,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -11062,14 +10808,14 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 87,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U524@DOM1"
       ],
       "first_seen": 1361921,
-      "last_seen": 1361921,
-      "event_count": 1,
+      "last_seen": 1362045,
+      "event_count": 2,
       "user": "U524@DOM1"
     },
     {
@@ -11078,7 +10824,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 88,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U1306@DOM1"
@@ -11089,28 +10835,12 @@
       "user": "U1306@DOM1"
     },
     {
-      "from": "C22409",
-      "to": "C1065",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 65,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 1419846,
-      "last_seen": 1419846,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
       "from": "C17693",
       "to": "C2725",
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 95,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U66@DOM1"
@@ -11119,22 +10849,6 @@
       "last_seen": 1847922,
       "event_count": 3,
       "user": "U66@DOM1"
-    },
-    {
-      "from": "C19932",
-      "to": "C528",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
-      "score": 58,
-      "explanation": "Expected activity.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 2277791,
-      "last_seen": 2277791,
-      "event_count": 1,
-      "user": "U737@DOM1"
     },
     {
       "from": "C17693",
@@ -11158,7 +10872,7 @@
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 80,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U453@DOM1"
@@ -11170,65 +10884,17 @@
     },
     {
       "from": "C19932",
-      "to": "C529",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
-      "score": 57,
-      "explanation": "Expected activity.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 2383984,
-      "last_seen": 2383992,
-      "event_count": 2,
-      "user": "U737@DOM1"
-    },
-    {
-      "from": "C22409",
-      "to": "C528",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 64,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U3486@DOM1"
-      ],
-      "first_seen": 2454979,
-      "last_seen": 2454979,
-      "event_count": 1,
-      "user": "U3486@DOM1"
-    },
-    {
-      "from": "C19932",
       "to": "C108",
       "technique": "T1550.002",
       "technique_name": "Pass the Hash",
       "tactic": "Lateral Movement",
-      "score": 89,
+      "score": 100,
       "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls.",
       "users": [
         "U737@DOM1"
       ],
       "first_seen": 2550137,
-      "last_seen": 2557047,
-      "event_count": 6,
-      "user": "U737@DOM1"
-    },
-    {
-      "from": "C19932",
-      "to": "C2963",
-      "technique": "T1021",
-      "technique_name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "score": 74,
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
-      "users": [
-        "U737@DOM1"
-      ],
-      "first_seen": 2551540,
-      "last_seen": 2551540,
+      "last_seen": 2550137,
       "event_count": 1,
       "user": "U737@DOM1"
     }

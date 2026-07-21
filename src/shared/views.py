@@ -275,10 +275,8 @@ def report_view(full: dict) -> dict:
 
     profiles, emb = load_artifacts()
     top = rank_actors(inc["technique_ids"], profiles, emb)[0] if inc["technique_ids"] else None
-    with MARKOV.open("rb") as f:
-        trans = pickle.load(f)
-    last = inc["technique_ids"][-1] if inc["technique_ids"] else None
-    nxt = [t for t, _ in (trans.get(last, []) or [])][:3]   # markov is [[tech, count], …]
+    from src.shared import predictor
+    nxt = predictor.top_ids(inc["technique_ids"], 3) if inc["technique_ids"] else []
 
     crit = ", ".join(g["critical_assets_at_risk"]) or "—"
     tac = Counter(inc["attack_chain"])

@@ -84,28 +84,22 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 _state: dict = {}
 
 
-def _model():
-    if "model" not in _state:
-        _state["model"] = joblib.load(LANL_MODEL)
+def _score_ref():
+    """Fixed 0-100 calibration anchors. The detector itself lives in
+    src/shared/detector.py (NumPy inference over the exported autoencoder)."""
+    if "ref" not in _state:
         _state["ref"] = json.loads((CACHE / "score_ref.json").read_text())
-    return _state["model"], _state["ref"]
+    return _state["ref"]
 
 
 def _markov():
-    if "markov" not in _state:
-        with MARKOV.open("rb") as f:
-            _state["markov"] = pickle.load(f)
+    """Technique display names. The transition model itself is served by
+    src/shared/predictor.py, which owns the artifact format."""
+    if "names" not in _state:
         with LOOKUPS.open("rb") as f:
             lk = pickle.load(f)
         _state["names"] = lk["technique_to_name"]
-        # most-frequent fallback ordering, weighted by real transition counts
-        from collections import Counter
-        c = Counter()
-        for succ in _state["markov"].values():
-            for t, n in succ:                       # succ is [[technique, count], …]
-                c[t] += n
-        _state["fallback"] = [t for t, _ in c.most_common()]
-    return _state["markov"], _state["names"], _state["fallback"]
+    return None, _state["names"], None
 
 
 def _severity(score: float) -> str:
@@ -256,9 +250,10 @@ class EventFeatures(BaseModel):
 
 @app.post("/api/score-event")
 def score_event(f: EventFeatures):
-    bundle, ref = _model()
+    from src.shared import detector
+    ref = _score_ref()
     x = [[getattr(f, k) for k in FEATURES]]
-    raw = float(-bundle["model"].score_samples(bundle["scaler"].transform(x))[0])
+    raw = float(detector.raw_scores(x)[0])
     lo, hi = ref["lo"], ref["hi"]
     score = float(np.clip((raw - lo) / (hi - lo + 1e-9), 0, 1) * 100)
     return {"anomaly_score": round(score, 1), "severity": _severity(score),
@@ -273,21 +268,19 @@ class Chain(BaseModel):
 
 @app.post("/api/predict-next")
 def predict_next(c: Chain):
-    trans, names, fallback = _markov()
-    last = c.technique_ids[-1] if c.technique_ids else None
-    pairs = trans.get(last, []) if last else []             # [[technique, count], …]
-    total = sum(n for _, n in pairs) or 1
-    # real transition probability from the observed last technique; then back off
-    # to the most-frequent techniques (score 0 — no observed transition evidence)
-    ranked = [(t, n / total) for t, n in pairs]
-    seen = {t for t, _ in ranked}
-    ranked += [(t, 0.0) for t in fallback if t not in seen]
-    top = ranked[: max(1, c.k)]
+    """Next-technique ranking from the shipped interpolated Markov model.
+
+    Scores are real interpolated transition probabilities
+    (l2*order2 + l1*order1 + l0*unigram), not a bare ranked list.
+    """
+    from src.shared import predictor
+    _, names, _ = _markov()                    # technique_id -> display name
+    top, source = predictor.rank_next(list(c.technique_ids), max(1, c.k))
     return {"given": c.technique_ids,
             "predictions": [{"rank": i + 1, "technique_id": t, "name": names.get(t, t),
                              "score": round(p, 3)}
                             for i, (t, p) in enumerate(top)],
-            "source": "markov" if last in trans else "frequency-fallback"}
+            "source": source}
 
 
 # --- LIVE endpoint 3: full pipeline analysis of an event log ---------------

@@ -79,7 +79,7 @@ flowchart LR
 | Failure | Why it happens |
 |---|---|
 | **Low-and-slow evades signatures** | APTs use *valid* credentials — nothing matches a known-bad rule |
-| **Alert fatigue** | Every event scored alone; no notion that 1,192 alerts are **one** attack |
+| **Alert fatigue** | Every event scored alone; no notion that 1,243 alerts are **one** attack |
 | **No blast-radius view** | Analysts see rows, not the path from a workstation to the patient database |
 
 **Speaker notes:** "The signal is there. It's scattered across thousands of individually-boring events."
@@ -98,10 +98,10 @@ flowchart LR
 ```mermaid
 flowchart LR
   A["2,732 raw<br/>auth events"] --> B["Score every event<br/>IsolationForest"]
-  B --> C["1,192 anomaly<br/>alerts"]
+  B --> C["1,243 anomaly<br/>alerts"]
   C --> D["ONE correlated<br/>incident"]
   D --> E["ATT&CK chain<br/>T1550.002 · T1110 · T1021"]
-  E --> F["Attack graph<br/>479 hosts · 4 pivots"]
+  E --> F["Attack graph<br/>473 hosts · 4 pivots"]
   F --> G["Gated SOAR<br/>human approval"]
 ```
 
@@ -109,12 +109,12 @@ flowchart LR
 |---|---|
 | Compromised accounts in one campaign | **104** |
 | Attacker pivots | **4** — but **C17693 alone carries 670 of 702 red-team events** |
-| Crown jewels reachable | **18** · total exposure **475 hosts** |
+| Crown jewels reachable | **16** · total exposure **469 hosts** |
 | **Isolate one host (C17693)** | **cuts 463 hosts of blast radius** |
 
 **Killer line:** "One machine ran almost the entire campaign. Isolate it, sever 463 hosts."
 
-📸 **SCREENSHOT:** **Attack Graph** (full campaign) — 479-node graph with pivots, crown jewels and the blast-radius panel.
+📸 **SCREENSHOT:** **Attack Graph** (full campaign) — 473-node graph with pivots, crown jewels and the blast-radius panel.
 
 ---
 
@@ -156,7 +156,7 @@ flowchart TB
   end
 
   subgraph E1["ENGINE 1 — Real detection"]
-    IF["Benign-only IsolationForest / autoencoder<br/>LANL ROC-AUC 0.988"]
+    IF["Benign-only autoencoder (shipped)<br/>LANL ROC-AUC 0.992 - TPR@1%FPR 87.7%"]
   end
   subgraph E2["ENGINE 2 — Predict + attribute"]
     PRED["MiniLM embeddings → Markov predictor<br/>+ transparent actor attribution"]
@@ -188,10 +188,10 @@ flowchart TB
 
 | Dataset | Metric | Result | Note |
 |---|---|---|---|
-| **LANL** (the moat) | **ROC-AUC** | **0.988** | vs **702 real red-team events** |
-| LANL | TPR @ 5% FPR | **96.9%** | 680 / 702 caught |
-| LANL | TPR @ 1% FPR | 51.4% | strict operating point |
-| LANL | Behavioural-only ROC (NTLM ablated) | **0.929** | not a protocol crutch |
+| **LANL** (the moat) | **ROC-AUC** | **0.992** | vs **702 real red-team events** |
+| LANL | TPR @ 5% FPR | **96.6%** | 678 / 702 caught |
+| LANL | TPR @ 1% FPR | 87.7% | strict operating point |
+| LANL | Behavioural-only ROC (NTLM ablated) | **0.906** | not a protocol crutch |
 | CIC-IDS2017 | PR-AUC (autoencoder) | **0.570** | best model |
 | CIC-IDS2017 | PR-AUC (IsolationForest) | 0.473 | **3.1× random**, **4.8× rule** |
 | UNSW-NB15 | ROC-AUC | **0.829** | 2nd benchmark, official split |
@@ -212,19 +212,19 @@ flowchart TB
 
 | Method | Top-3 accuracy |
 |---|---|
-| Most-frequent baseline | 5.3% |
+| Most-frequent baseline | 4.9% |
 | Kill-chain-order baseline ⚠️ | 7.1% |
-| LSTM over MiniLM embeddings | 28.4% |
-| **Markov 1st-order — SHIPPED** | **36.5%** |
+| LSTM over MiniLM embeddings | 27.2% |
+| **Markov 1st-order — SHIPPED** | **38.1%** |
 
-**Anti-circularity proof (say it out loud):** our sequences are ordered by a kill-chain heuristic, so a model could cheat by re-learning that ordering. **Markov beats the kill-chain baseline 5.2×** → it learns *real* technique-to-technique transitions.
+**Anti-circularity proof (say it out loud):** our sequences are ordered by a kill-chain heuristic, so a model could cheat by re-learning that ordering. **Markov beats the kill-chain baseline 5.4×** → it learns *real* technique-to-technique transitions.
 **Honest negative result:** the LSTM **lost** to Markov at this data scale — so we shipped Markov. Honest > fancy.
 
 **B. Actor attribution** — transparent profile retrieval over **172 ATT&CK groups**: coverage (55%) + Jaccard (20%) + semantic similarity (25%), with a printed justification. **Not** a trained classifier — and we say so.
 
 **C. Live confidence** — `/predict-next` returns a true first-order transition probability (e.g. `T1566.001 → T1566.002 @ 52.5%`).
 
-**D. Non-circular India test** — **4/4 analyst-verified CERT-In advisories**, report-ordered: top-3 **10.0%** vs 36.5% on heuristic-ordered sets. Real orderings are harder — we publish both.
+**D. Non-circular India test** — **4/4 analyst-verified CERT-In advisories**, report-ordered: top-3 **10.0%** vs 38.1% on heuristic-ordered sets. Real orderings are harder — we publish both.
 
 📸 **SCREENSHOT:** **Threat Intel & Attribution** — technique mapping, ranked actors, predict-next widget with % scores.
 
@@ -244,7 +244,7 @@ flowchart TB
 
 | Events in one request | End-to-end | Alerts raised |
 |---|---|---|
-| 2,732 (shipped demo campaign) | **0.14 s** | 1,192 |
+| 2,732 (shipped demo campaign) | **0.14 s** | 1,243 |
 | 10,000 | 0.54 s | 4,202 |
 | 20,000 | 1.02 s | 8,090 |
 | 50,000 (our documented cap) | **2.49 s** | 20,185 |
@@ -280,8 +280,8 @@ flowchart LR
 | Dimension | Today | With Resilience Graph AI |
 |---|---|---|
 | **Detection** | ~10-day median dwell | First correlated alert within the log window |
-| **Analyst load** | 1,192 alerts to triage | **1 incident** with a narrative |
-| **Containment** | "Which of 479 hosts?" | **Isolate 1 → cut 463** |
+| **Analyst load** | 1,243 alerts to triage | **1 incident** with a narrative |
+| **Containment** | "Which of 473 hosts?" | **Isolate 1 → cut 463** |
 | **Attribution** | Manual CTI reading | Ranked actor + auditable justification |
 | **External intel** | Separate portal | Cross-referenced to *your* techniques |
 
@@ -291,7 +291,7 @@ flowchart LR
 **Our four honesty rules (ask us about any):**
 1. **No accuracy theatre** — PR-AUC / TPR@FPR only.
 2. **Always show baseline lift** — baselines built first; we report when a baseline beats us.
-3. **Anti-circularity, out loud** — Markov 5.2× the kill-chain baseline; the LSTM lost and we shipped the simpler model.
+3. **Anti-circularity, out loud** — Markov 5.4× the kill-chain baseline; the LSTM lost and we shipped the simpler model.
 4. **Nothing fabricated on screen** — every number traces to the live analysis or a labelled citation.
 
 **Real vs simulated (stated up front):** detection, correlation, ATT&CK mapping, graph, attribution and prediction are **real**. SOAR containment and sector alerts are **simulated + human-gated** — there is no live network to isolate hosts on. India scenarios are **synthetic logs** styled after real incidents, labelled in the UI.
@@ -329,7 +329,7 @@ flowchart LR
 - **Palette:** deep navy/charcoal background, one accent blue (`#4C8DFF`); red reserved **only** for genuine severity — never decoration.
 - **Typography:** one clean sans for prose; **monospace for every identifier** (C17693, T1550.002, U66@DOM1) — it's the product's signature and reads as "real system".
 - **Density:** one idea per slide. Split any table over ~6 rows across two columns if cramped.
-- **Numbers:** big and bare (`0.988`, `1,192 → 1`, `463`). Let them carry the slide.
+- **Numbers:** big and bare (`0.992`, `1,243 → 1`, `463`). Let them carry the slide.
 - **Do not** use stock hacker imagery (hoodies, matrix code). The screenshots are the credibility.
 
 ---
@@ -340,7 +340,7 @@ flowchart LR
 
 **"Why only 3 ATT&CK techniques?"** LANL is **authentication logs only** — no process/file/network telemetry. Auth behaviour honestly evidences pass-the-hash, brute force and remote services. We refuse to invent techniques the data can't support; richer telemetry deepens the chain automatically.
 
-**"Your India sequences score only 10% — bad?"** It's the honest number and it proves the method: real report-ordered timelines are *harder* than heuristic-ordered ones, which shows our 36.5% was partly ordering-driven. Prediction is a supporting feature; we lean on Engine 1 + correlation.
+**"Your India sequences score only 10% — bad?"** It's the honest number and it proves the method: real report-ordered timelines are *harder* than heuristic-ordered ones, which shows our 38.1% was partly ordering-driven. Prediction is a supporting feature; we lean on Engine 1 + correlation.
 
 **"How do you know the crown jewels are critical?"** We don't claim ground truth — LANL is anonymised with no criticality labels. We derive them from a stated heuristic (hosts the most distinct accounts authenticate to). The red team reached **13 of the top-20**, including one **17,808 accounts** depend on. In production the operator supplies the CMDB list — it's already an input.
 

@@ -10,11 +10,14 @@
       "note": "benign-only, PR-AUC not accuracy"
     },
     "lanl": {
-      "roc_auc": 0.988,
-      "tpr_at_1pct_fpr": 0.514,
-      "tpr_at_5pct_fpr": 0.969,
-      "behavioral_only_roc": 0.929,
-      "note": "702 real red-team events; NTLM ablation"
+      "roc_auc": 0.992,
+      "tpr_at_1pct_fpr": 0.877,
+      "tpr_at_5pct_fpr": 0.966,
+      "behavioral_only_roc": 0.906,
+      "detector": "Autoencoder",
+      "iforest_roc_auc": 0.988,
+      "iforest_tpr_at_1pct_fpr": 0.514,
+      "note": "702 real red-team events; Autoencoder shipped; NTLM ablation"
     },
     "unsw": {
       "roc_auc": 0.829,
@@ -28,7 +31,15 @@
       "killchain_top3": 0.071,
       "lstm_top3": 0.272,
       "markov_top3": 0.365,
-      "note": "Markov shipped; 5.2x the kill-chain baseline = anti-circularity"
+      "markov_interp_top3": 0.381,
+      "shipped": "markov_interp",
+      "shipped_top3": 0.381,
+      "lambdas": [
+        0.2,
+        0.3,
+        0.5
+      ],
+      "note": "Interpolated Markov shipped; 5.4x the kill-chain baseline = anti-circularity"
     },
     "manual_cert_in_top3": 0.1,
     "embeddings": {

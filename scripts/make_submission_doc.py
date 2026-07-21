@@ -446,11 +446,11 @@ def build(B):
     B.table([
         ["What the system does", "Measured result"],
         ["Scores every authentication event and flags the anomalies",
-         "2,732 events scored, 1,192 flagged"],
+         "2,732 events scored, 1,243 flagged"],
         ["Collapses those alerts into a single narrated incident",
-         "1,192 alerts become 1 incident"],
+         "1,243 alerts become 1 incident"],
         ["Reconstructs the attacker's movement across the estate",
-         "479 machines, 502 movements, 4 attacker controlled hosts"],
+         "473 machines, 484 movements, 4 attacker controlled hosts"],
         ["Identifies the single best machine to isolate first",
          "Isolating 1 host severs 463 machines of exposure"],
         ["Detects the attack without ever seeing an attack label in training",
@@ -676,24 +676,32 @@ def build(B):
               "detection.")
 
     B.heading("6.3 The model and its exact configuration", 2)
-    B.para("The shipped detector is an Isolation Forest. It isolates outliers by splitting the "
-              "data at random. Anomalies are isolated in fewer splits because they sit apart from "
-              "the crowd. It is fast, it requires no labels, and it behaves well in higher "
-              "dimensions.")
+    B.para("The shipped detector is an autoencoder: a small neural network trained to compress "
+              "each event down to four numbers and then rebuild it. Trained only on normal "
+              "behaviour, it rebuilds normal events accurately and unusual ones badly, so the "
+              "size of the rebuilding error is itself the anomaly score. We selected it over an "
+              "Isolation Forest by measurement, and section 12 gives that comparison in full.")
     B.table([
         ["Setting", "Value and reasoning"],
-        ["Estimators", "200 trees"],
-        ["Maximum samples", "4,096 per tree"],
-        ["Contamination", "Set automatically"],
-        ["Random seed", "42, fixed so results reproduce exactly"],
+        ["Architecture", "7 inputs, then 16, then a 4-unit bottleneck, then 16, then 7 outputs. "
+                         "The bottleneck is the point: it is too small to memorise, so the "
+                         "network must learn what normal behaviour looks like."],
         ["Training data", "A random sample of 800,000 rows labelled benign. Attack rows are "
                           "excluded from training entirely."],
+        ["Optimiser and schedule", "Adam, learning rate 0.001, 20 passes, batches of 4,096."],
+        ["Random seed", "42, fixed so results reproduce exactly"],
         ["Normalisation", "Standard scaling, fitted on the training sample only, so no "
                           "information from the evaluation data reaches the model."],
-        ["Score calibration", "Raw scores are mapped to a 0 to 100 range using fixed anchor "
-                              "vectors stored in the repository, not the minimum and maximum of "
-                              "the current batch. A score therefore means the same thing across "
-                              "different uploads, and matches the single event endpoint exactly."],
+        ["Score calibration", "Raw errors are mapped to a 0 to 100 scale using anchors measured "
+                              "from the benign score distribution at training time, not the "
+                              "minimum and maximum of the current batch. The anchors are chosen "
+                              "so that a score of 50, our alert threshold, lands exactly on the "
+                              "1 percent false-positive operating point. A score therefore means "
+                              "the same thing across different uploads and matches the single "
+                              "event endpoint exactly."],
+        ["Runtime cost", "The trained weights are exported to a plain NumPy file, so the "
+                         "deployed service scores events with matrix multiplication and needs no "
+                         "deep-learning framework and no GPU."],
         ["Use of labels", "Evaluation only. Labels never enter training. This is what makes the "
                           "reported detection score defensible rather than circular."],
     ], widths=[4.2, 12.8], size=9.5)
@@ -708,8 +716,8 @@ def build(B):
     B.para("This is the part of the system that converts a pile of anomalies into something a "
               "human being can act on within minutes.")
 
-    B.heading("7.1 Correlation: 1,192 alerts become 1 incident", 2)
-    B.para("Any event scoring 50 or above becomes an alert. Rather than emitting 1,192 "
+    B.heading("7.1 Correlation: 1,243 alerts become 1 incident", 2)
+    B.para("Any event scoring 50 or above becomes an alert. Rather than emitting 1,243 "
               "separate alerts, the system groups them into one incident carrying a timeline, a "
               "severity, the list of affected accounts, and an ordered chain of techniques that "
               "reads as a narrative. An hour of silence starts a new session. Severity is taken "
@@ -745,15 +753,15 @@ def build(B):
         ["Where is the attacker operating from", "Machines with outbound attack movement",
          "4 footholds. One machine, C17693, carries 670 of the 702 red team events."],
         ["How far can they reach", "Reachable set from every foothold, combined",
-         "475 machines"],
+         "469 machines"],
         ["Which valuable machines are exposed", "Shortest path to each critical asset",
-         "18 critical assets reachable"],
+         "16 critical assets reachable"],
         ["What do we disconnect first", "Ranking by betweenness centrality",
          "Isolating C17693 alone severs 463 machines"],
     ], widths=[4.4, 5.2, 7.4], size=9)
     B.para("", space_after=2)
     B.para("We deliberately report two different numbers rather than one flattering one. Total "
-              "exposure is 475 machines. What isolating a single choke point actually severs is "
+              "exposure is 469 machines. What isolating a single choke point actually severs is "
               "463. Presenting only the larger figure would overstate what one containment action "
               "achieves.")
     B.para("This distinction came out of a real defect we found and fixed. An earlier version "
@@ -799,7 +807,13 @@ def build(B):
          "Baseline built specifically to beat us"],
         ["Recurrent neural network over sentence embeddings", pct(E2P["lstm_top3"]),
          "Lost. Published as a documented negative result."],
-        ["First order Markov chain", pct(E2P["markov_top3"]), "Shipped"],
+        ["Bidirectional recurrent network", "20.0%",
+         "Lost, and by the widest margin. Pooling the whole history dilutes the most "
+         "recent technique, which is the signal that predicts the next one."],
+        ["Second order Markov chain", "33.2%",
+         "Lost. Too sparse: it has often never seen the exact pair of preceding techniques."],
+        ["First order Markov chain", pct(E2P["markov_top3"]), "Previous shipped model"],
+        ["Interpolated Markov chain", pct(E2P["markov_interp_top3"]), "Shipped"],
     ], widths=[6.4, 3.2, 7.4], size=9.5)
     B.para("", space_after=2)
 
@@ -809,16 +823,20 @@ def build(B):
                 "reconnaissance through to impact. A model could score well simply by re-learning "
                 "that ordering, while learning nothing whatsoever about attacks. So we built a "
                 "baseline whose entire strategy is to exploit that ordering, and we required our "
-                "model to beat it. The Markov model beats it by a factor of 5.2, which is "
+                "model to beat it. The shipped model beats it by a factor of 5.4, which is "
                 "evidence that it is predicting genuine technique to technique transitions "
                 "rather than re-deriving a sort order.", False, False)])
     B.rich([("We shipped the model that won, not the impressive one. ", True, False),
-               (f"The neural network scored {pct(E2P['lstm_top3'])} and lost to a first order "
-                "Markov chain at this data scale. We ship the Markov model and publish the "
-                "neural result as a negative finding. At 205 sequences, a simple model is the "
-                "correct engineering answer, and reporting the loss is more useful to a reader "
-                "than hiding it.", False, False)])
-    B.para("The prediction returned by the interface is a genuine first order transition "
+               (f"The recurrent network scored {pct(E2P['lstm_top3'])} and the bidirectional one "
+                "20.0 percent, both losing to a simple transition model at this data scale. The "
+                "shipped model is an interpolated Markov chain, which blends the last two "
+                "techniques, the last technique alone, and overall frequency, with the blend "
+                "weights chosen on validation data. That blend is what wins: a pure second order "
+                "model is sharper when it has seen the exact pair before and useless when it has "
+                "not, and interpolation keeps the sharper signal without collapsing to nothing on "
+                "unseen context. We publish every losing model rather than only the winner. At "
+                "205 sequences, a simple model is the correct engineering answer.", False, False)])
+    B.para("The prediction returned by the interface is a genuine interpolated transition "
               "probability, computed as the observed count of a transition divided by the total "
               "from that state. An example from the shipped model is a transition observed at "
               "52.5 percent. Where a state has never been seen, the system falls back to a "
@@ -993,17 +1011,21 @@ def build(B):
          "Supervised classification. It needs labelled attacks, which real organisations do not "
          "have, and it can only recognise attack types present in its training set. Our whole "
          "problem is the attack nobody has catalogued."],
-        ["Detection model", "Isolation Forest",
-         "One class support vector machines, which scale poorly to millions of rows. A deep "
-         "autoencoder was also built and did beat Isolation Forest on the network dataset, at "
-         f"{E1C['autoencoder_prauc']:.3f} against {E1C['iforest_prauc']:.3f} precision recall area. We "
-         "report that openly, and still ship Isolation Forest for the authentication task, where "
-         "it performs strongly and needs no GPU."],
-        ["Prediction model", "First order Markov chain",
-         f"A recurrent neural network over sentence embeddings, which scored "
-         f"{pct(E2P['lstm_top3'])} against the Markov model's {pct(E2P['markov_top3'])}. At 205 "
-         "sequences the simpler model is genuinely better. We shipped the winner and published "
-         "the loss."],
+        ["Detection model", "Benign-trained autoencoder",
+         "An Isolation Forest, which we shipped first and replaced on measurement. Both are "
+         "unsupervised and benign-trained, and their headline ROC-AUC is nearly identical "
+         f"({E1L['roc_auc']} against {E1L['iforest_roc_auc']}). The deciding number is the strict "
+         "1 percent false-positive operating point an analyst actually runs at, where the "
+         f"autoencoder catches {E1L['tpr_at_1pct_fpr']*100:.1f} percent of the red-team events "
+         f"against {E1L['iforest_tpr_at_1pct_fpr']*100:.1f} percent, or 616 of 702 against 361. "
+         "One class support vector machines were rejected outright: they scale poorly to "
+         "millions of rows."],
+        ["Prediction model", "Interpolated Markov chain",
+         f"A recurrent network ({pct(E2P['lstm_top3'])}), a bidirectional recurrent network "
+         f"(20.0 percent), a second order Markov chain (33.2 percent) and the plain first order "
+         f"chain ({pct(E2P['markov_top3'])}), against the shipped interpolated model's "
+         f"{pct(E2P['markov_interp_top3'])}. At 205 sequences the simple transition models beat "
+         "both neural ones. We shipped the winner and published every loss."],
         ["Attribution method", "Transparent weighted retrieval with a printed rationale",
          "A trained classifier. With 172 groups and few labelled campaigns it would overfit, and "
          "it could not explain itself. An analyst must be able to audit an attribution claim."],
@@ -1093,8 +1115,9 @@ def build(B):
     B.heading("13.2 Prediction and attribution", 2)
     B.table([
         ["Metric", "Result"],
-        ["Markov top 3 accuracy, automatically ordered sequences", pct(E2P["markov_top3"])],
-        ["Anti circularity margin over the kill chain baseline", "5.2 times"],
+        ["Shipped interpolated Markov, top 3, automatically ordered sequences", pct(E2P["markov_interp_top3"])],
+        ["Previous first order Markov, top 3", pct(E2P["markov_top3"])],
+        ["Anti circularity margin over the kill chain baseline", "5.4 times"],
         ["Neural network top 3 accuracy, documented negative result", pct(E2P["lstm_top3"])],
         ["CERT-In verified sequences, top 3 accuracy",
          pct(M["engine2"]["manual_cert_in_top3"])],
@@ -1106,11 +1129,11 @@ def build(B):
     B.heading("13.3 Operational output on the live campaign", 2)
     B.table([
         ["Output", "Value"],
-        ["Events analysed, alerts raised, incidents produced", "2,732, then 1,192, then 1"],
+        ["Events analysed, alerts raised, incidents produced", "2,732, then 1,243, then 1"],
         ["Compromised accounts identified", "104"],
-        ["Attack graph size", "479 machines, 502 movements, 4 attacker footholds"],
-        ["Critical assets reachable by the attacker", "18"],
-        ["Total exposure", "475 machines"],
+        ["Attack graph size", "473 machines, 484 movements, 4 attacker footholds"],
+        ["Critical assets reachable by the attacker", "16"],
+        ["Total exposure", "469 machines"],
         ["Effect of isolating the single best choke point", "463 machines severed"],
         ["Events concentrated on the primary foothold", "670 of 702 red team events on C17693"],
     ], widths=[10.5, 6.5], size=9.5)
@@ -1241,8 +1264,8 @@ def build(B):
         ["Dimension", "Situation today", "With Resilience Graph AI"],
         ["Detection", "About 10 days median dwell time",
          "First correlated alert within the log window"],
-        ["Analyst load", "1,192 alerts to triage", "1 incident carrying a narrative"],
-        ["Containment", "Which of 479 machines do we isolate",
+        ["Analyst load", "1,243 alerts to triage", "1 incident carrying a narrative"],
+        ["Containment", "Which of 473 machines do we isolate",
          "Isolate 1 machine, sever 463 machines of exposure"],
         ["Attribution", "Manual reading of threat intelligence",
          "A ranked group with an auditable justification"],

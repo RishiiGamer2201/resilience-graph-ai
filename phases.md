@@ -31,7 +31,7 @@ venv (Python 3.10.11), `requirements.txt`, repo skeleton, `src/schema.py` frozen
 
 ## Phase 2 — Engine 1: real detection ✅
 - Baselines first (random + packet-rate rule) → IsolationForest (PR-AUC 0.473, 3.1× random) → autoencoder (best, PR-AUC 0.570).
-- LANL lateral movement: ROC-AUC **0.988**, TPR@5%FPR 96.9%, NTLM ablation 0.929.
+- LANL lateral movement: ROC-AUC **0.988**, TPR@5%FPR 96.6%, NTLM ablation 0.906.
 - UNSW-NB15 second benchmark: ROC-AUC 0.829.
 
 ## Phase 3 — Engine 2: prediction & attribution ✅ (one loose end)

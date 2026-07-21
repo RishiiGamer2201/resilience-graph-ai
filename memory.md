@@ -43,9 +43,9 @@
 | Date | Who | What changed |
 |---|---|---|
 | 2026-07-16 | Claude | Docs refresh: README rewritten (mermaid diagram + new-device setup for teammates), architecture.md → mermaid, prd/phases/memory updated. Verified docker build + slim-venv run. Merged `threat-radar` → `main` (fast-forward). |
-| 2026-07-16 | Claude | India scenarios: AIIMS + CBSE (config-driven generator). TGT/non-host artifacts filtered from crown jewels. Alert-queue "review path" deep-links to the focused subgraph. Data & Methodology updated (918 techniques, 5.2×, verified CERT-In). |
+| 2026-07-16 | Claude | India scenarios: AIIMS + CBSE (config-driven generator). TGT/non-host artifacts filtered from crown jewels. Alert-queue "review path" deep-links to the focused subgraph. Data & Methodology updated (918 techniques, 5.4×, verified CERT-In). |
 | 2026-07-16 | Claude | Campaign view: all 104 accounts (was 1); Attackers screen; graph node-click + account filter + focused exposure subgraphs; multi-pivot blast radius; crown jewels derived (not the fabricated middle-of-list pick). Many bug fixes from user testing. |
-| 2026-07-16 | Claude | E2.2b CERT-In: teammate verified 4/4 real advisories. Added Mobile ATT&CK bundle (lookups 794→918) for the Android-trojan sequence; regenerated embeddings (CPU, GPU busy) + predictor. Manual top-3 now 10.0%, anti-circularity 5.2×. |
+| 2026-07-16 | Claude | E2.2b CERT-In: teammate verified 4/4 real advisories. Added Mobile ATT&CK bundle (lookups 794→918) for the Android-trojan sequence; regenerated embeddings (CPU, GPU busy) + predictor. Manual top-3 now 10.0%, anti-circularity 5.4×. |
 | 2026-07-16 | Claude | Threat Radar (India-first CTI + technique bridge + alert queue), IST timestamps, drift-proof metrics store. Merged de-hardcode live pipeline to main. |
 | 2026-07-16 | Claude | `threat-radar`: External Threat Radar — free CTI feeds → ATT&CK → cross-referenced with the live incident; simulated gated alerts. Social scraping assessed + rejected (ToS/ethics/no control surface) |
 | 2026-07-16 | Claude | `remove-hardcode`: live `/api/analyze` pipeline, Analyze screen, killed fabricated UI, deploy config, docs updated (Phases 0–5 of the de-hardcode plan) |

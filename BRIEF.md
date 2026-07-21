@@ -45,7 +45,7 @@ share one root cause.
 | Failure | Why it happens |
 |---|---|
 | Low-and-slow evades signatures | Valid credentials match no known-bad rule. Antivirus, firewalls and threshold rules all look for something unauthorised, and nothing here is. |
-| Alert fatigue | Every event is scored alone, so one intrusion becomes thousands of disconnected alerts. On our real campaign that is 1,192 alerts for 1 attack. Analysts triage rows, miss the pattern, burn out. |
+| Alert fatigue | Every event is scored alone, so one intrusion becomes thousands of disconnected alerts. On our real campaign that is 1,243 alerts for 1 attack. Analysts triage rows, miss the pattern, burn out. |
 | No blast-radius view | Even when one alert is investigated, nobody can see the path from a compromised workstation to the patient database, or answer the only question that matters mid-incident: which single machine do we unplug first? |
 
 **The root cause and our thesis:** the data needed to catch these attacks already
@@ -89,7 +89,7 @@ flowchart LR
 ```
 
 - **Stages 1 and 2 are Engine 1 (detection):** turn each raw login into 7 behavioural
-  features, then score every event 0 to 100 with a benign-trained IsolationForest.
+  features, then score every event 0 to 100 with a benign-trained autoencoder.
 - **Stages 3 to 6 are the shared spine (understanding and response):** group alerts
   into ONE incident, map each behaviour to a real MITRE ATT&CK technique, build the
   attack-path graph, and recommend human-gated containment.
@@ -104,13 +104,13 @@ prediction), **detect** (Engine 1), **understand** (correlation and graph),
 
 | Output | Value |
 |---|---|
-| Events analysed, alerts, incidents | 2,732, then 1,192, then 1 |
+| Events analysed, alerts, incidents | 2,732, then 1,243, then 1 |
 | Compromised accounts | 104 |
-| Attack graph | 479 hosts, 502 movements, 4 attacker pivots |
+| Attack graph | 473 hosts, 484 movements, 4 attacker pivots |
 | Concentration | C17693 alone carries 670 of 702 red-team events |
-| Crown jewels reachable, total exposure | 18 reachable, 475 hosts |
+| Crown jewels reachable, total exposure | 16 reachable, 469 hosts |
 | Isolate one host (C17693) | cuts 463 hosts of blast radius |
-| Detection | ROC-AUC 0.988 against 702 real labelled attack events, zero attack labels in training |
+| Detection | ROC-AUC 0.992 against 702 real labelled attack events, zero attack labels in training. At the 1 percent false-positive operating point it catches 616 of 702 |
 
 ---
 
@@ -131,7 +131,7 @@ they already have, with no integration project needed.
 all 104 compromised accounts in one correlated incident.
 **How it solves the problem:** This is the direct antidote to alert fatigue. A real
 intrusion touches many accounts; a per-victim view fragments the story. The campaign
-view is what turns 1,192 scattered alerts into the one thing an analyst can act on.
+view is what turns 1,243 scattered alerts into the one thing an analyst can act on.
 
 ### 3. Per-account drill-down
 **What it is:** Open any single account and get its own scoped incident, graph and
@@ -153,8 +153,8 @@ jewels; reachability is now unioned over every pivot.
 
 ### 5. Live event scoring
 **What it is:** Score a single authentication event on demand, on stage, using the real
-trained IsolationForest, returning a 0 to 100 anomaly score with fixed calibration
-anchors, so a score means the same thing on every input.
+trained autoencoder, returning a 0 to 100 anomaly score with fixed calibration
+anchors, so a score of 50 is exactly the 1 percent false-positive operating point.
 **How it solves the problem:** It makes the detection engine tangible and auditable in
 real time. A skeptic can hand it one event and watch the model react, proving the
 scores are computed, not canned.
@@ -165,7 +165,7 @@ technique with a genuine transition probability (for example `T1566.001 to T1566
 52.5 percent`), learned from 205 real attack sequences.
 **How it solves the problem:** This is the anticipate half of resilience, getting ahead
 of the attacker instead of only reacting. It is deliberately honest: it beats a
-purpose-built kill-chain baseline 5.2 times (proving it learns real transitions, not
+purpose-built kill-chain baseline 5.4 times (proving it learns real transitions, not
 just an ordering), and we shipped Markov over an LSTM that lost at this data scale.
 
 ### 7. Actor attribution
@@ -245,11 +245,11 @@ heavy machine-learning libraries are needed only at build time.
 
 | Library | Used for | Runtime or build-time |
 |---|---|---|
-| scikit-learn (1.7.2 pinned) | IsolationForest (the shipped detector), StandardScaler, and every evaluation metric: PR-AUC, ROC-AUC, precision, recall, F1 | Runtime |
+| scikit-learn (1.7.2 pinned) | IsolationForest (the previous detector, kept as the published comparison), StandardScaler, and every evaluation metric: PR-AUC, ROC-AUC, precision, recall, F1 | Runtime |
 | NumPy | All numeric work, scoring, bootstrap significance testing | Runtime |
 | pandas | Log loading, the 12-field schema, feature engineering, CSV and parquet handling | Runtime |
 | PyArrow | Parquet input and output for processed datasets | Build-time |
-| PyTorch | Autoencoder and LSTM comparison models, and the model bake-off experiments | Build-time only |
+| PyTorch | Training the shipped autoencoder, plus the LSTM and biLSTM comparison models and the model bake-off | Build-time only, exported to NumPy for the runtime |
 | sentence-transformers (all-MiniLM-L6-v2) | 384-dimension embeddings of ATT&CK technique descriptions, used for semantic similarity in attribution | Build-time only, shipped as a precomputed pickle |
 | networkx | The attack-path graph: reachability, blast radius, betweenness centrality, shortest path | Runtime |
 | joblib | Serialising the trained detector and scaler | Runtime |
@@ -262,10 +262,11 @@ pickled `models/iforest_lanl.joblib`, or loading the shipped model fails.
 
 | Model | Type | Where it is used | Status |
 |---|---|---|---|
-| IsolationForest | Unsupervised ensemble, 200 trees, 4,096 max samples, trained on 800,000 benign-only rows | Engine 1, scores every authentication event 0 to 100 | Shipped |
-| Autoencoder | Encoder-decoder neural network, benign-trained, reconstruction error as the anomaly score | Engine 1 comparison on CIC-IDS2017 and LANL | Evaluated, documented |
-| First-order Markov chain | Technique-to-technique transition table with frequency backoff | Engine 2, next-technique prediction with a real probability | Shipped |
-| Interpolated Markov | Deleted interpolation of order-2, order-1 and unigram, weights tuned on validation | Engine 2 candidate | Evaluated, see `reports/model_experiments.md` |
+| Autoencoder | Encoder-decoder neural network, 7-16-4-16-7, benign-trained, reconstruction error is the anomaly score | Engine 1, scores every authentication event 0 to 100 | **Shipped.** Trained with PyTorch offline, exported to NumPy weights so the runtime needs no deep-learning framework |
+| IsolationForest | Unsupervised ensemble, 200 trees, 4,096 max samples, trained on 800,000 benign-only rows | Engine 1, previous detector | Replaced. Kept as the published comparison |
+| Autoencoder (CIC-IDS2017) | Same recipe on network flows | Engine 1 second benchmark | Evaluated, documented |
+| Interpolated Markov | Blends order-2, order-1 and unigram transitions, weights tuned on validation | Engine 2, next-technique prediction with a real probability | **Shipped** |
+| First-order Markov chain | Technique-to-technique transition table with frequency backoff | Engine 2, previous predictor | Replaced, 36.5 percent against 38.1 percent |
 | Second-order Markov | Conditions on the last two techniques, backs off to first order | Engine 2 candidate | Evaluated, lost |
 | LSTM | Recurrent network over frozen MiniLM embeddings | Engine 2 candidate | Evaluated, lost, published as a negative result |
 | Bidirectional LSTM | BiLSTM with masked mean-pooling over the observed prefix | Engine 2 candidate | Evaluated, lost |
@@ -323,7 +324,7 @@ pickled `models/iforest_lanl.joblib`, or loading the shipped model fails.
 
 | Not used | Why |
 |---|---|
-| PyTorch at runtime | Embeddings are precomputed and shipped as a pickle, so the deployed image needs no deep-learning framework and no GPU |
+| PyTorch at runtime | Both neural components are exported to plain arrays: sentence embeddings ship as a pickle, and the detector's weights ship as a NumPy `.npz` that we run with matrix multiplies. The deployed image needs no deep-learning framework and no GPU, even though the shipped detector is a neural network |
 | A GPU in production | Nothing in the request path requires one. The full pipeline runs on a laptop CPU |
 | A graph database | networkx in memory is comfortable to about 50,000 events per analysis, which we measured. A graph database is the documented next step, not a present need |
 | A large language model | Technique text is read verbatim from official MITRE files, so a fabricated technique identifier is structurally impossible |

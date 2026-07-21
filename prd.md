@@ -28,7 +28,7 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 
 ### Detection (Engine 1)
 - Benign-only IsolationForest + autoencoder on CIC-IDS2017 flows (PR-AUC 0.570 best, lift over random + rule baselines).
-- LANL lateral-movement detector: 7 behavioral auth features, **ROC-AUC 0.988** vs 702 real red-team events; NTLM-ablation robustness (0.929 behavioral-only).
+- LANL lateral-movement detector: 7 behavioral auth features, **ROC-AUC 0.988** vs 702 real red-team events; NTLM-ablation robustness (0.906 behavioral-only).
 - UNSW-NB15 second benchmark (ROC-AUC 0.829, official split preserved).
 
 ### Prediction & attribution (Engine 2)

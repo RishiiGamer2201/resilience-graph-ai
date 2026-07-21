@@ -15,7 +15,7 @@ flowchart TB
   end
 
   subgraph E1["ENGINE 1 — Real detection"]
-    IF["benign-only IsolationForest / autoencoder<br/>LANL ROC 0.988 · CICIDS PR-AUC 0.57"]
+    IF["benign-only autoencoder (shipped, NumPy runtime)<br/>LANL ROC 0.992 · TPR@1%FPR 87.7%"]
   end
   subgraph E2["ENGINE 2 — Predict + attribute"]
     PRED["MiniLM embeddings → Markov predictor<br/>+ transparent actor attribution"]
