@@ -44,7 +44,7 @@ CHROME = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
 BLACK = RGBColor(0, 0, 0)
 BODY_FONT = "Calibri"
 MONO_FONT = "Consolas"
-CONTENT_W = Cm(17.0)
+CONTENT_W = Cm(18.0)
 
 M = json.loads((ROOT / "reports" / "metrics.json").read_text(encoding="utf-8"))
 SCALING = json.loads((ROOT / "reports" / "scaling_measurements.json").read_text(encoding="utf-8"))
@@ -95,13 +95,13 @@ class DocxBackend:
         doc = Document()
         st = doc.styles["Normal"]
         st.font.name = BODY_FONT
-        st.font.size = Pt(10.5)
+        st.font.size = Pt(9.8)
         st.font.color.rgb = BLACK
         st.element.rPr.rFonts.set(qn("w:eastAsia"), BODY_FONT)
         for s in doc.sections:
             s.page_width, s.page_height = Cm(21.0), Cm(29.7)
-            s.left_margin = s.right_margin = Cm(2.0)
-            s.top_margin = s.bottom_margin = Cm(2.0)
+            s.left_margin = s.right_margin = Cm(1.5)
+            s.top_margin = s.bottom_margin = Cm(1.5)
         self.doc = doc
 
     def _run(self, run, size=10.5, bold=False, italic=False, mono=False):
@@ -113,8 +113,8 @@ class DocxBackend:
         rPr = run._element.get_or_add_rPr()
         rPr.get_or_add_rFonts().set(qn("w:eastAsia"), MONO_FONT if mono else BODY_FONT)
 
-    def para(self, text="", size=10.5, bold=False, italic=False, mono=False,
-             align=None, space_after=6, space_before=0, indent=None):
+    def para(self, text="", size=9.8, bold=False, italic=False, mono=False,
+             align=None, space_after=4, space_before=0, indent=None):
         self.texts.append(text)
         p = self.doc.add_paragraph()
         pf = p.paragraph_format
@@ -127,7 +127,7 @@ class DocxBackend:
             self._run(p.add_run(text), size, bold, italic, mono)
         return p
 
-    def rich(self, parts, size=10.5, space_after=6, indent=None):
+    def rich(self, parts, size=9.8, space_after=4, indent=None):
         p = self.doc.add_paragraph()
         p.paragraph_format.space_after = Pt(space_after)
         p.paragraph_format.line_spacing = 1.15
@@ -140,16 +140,16 @@ class DocxBackend:
 
     def heading(self, text, level=1):
         self.texts.append(text)
-        sizes = {1: 15, 2: 12.5, 3: 11}
-        before = {1: 16, 2: 12, 3: 9}
+        sizes = {1: 13.5, 2: 11.5, 3: 10.3}
+        before = {1: 10, 2: 8, 3: 6}
         p = self.doc.add_paragraph()
         p.paragraph_format.space_before = Pt(before[level])
-        p.paragraph_format.space_after = Pt(5)
+        p.paragraph_format.space_after = Pt(3)
         p.paragraph_format.keep_with_next = True
         self._run(p.add_run(text), sizes[level], bold=True)
         return p
 
-    def bullets(self, items, size=10.5):
+    def bullets(self, items, size=9.8):
         for it in items:
             p = self.doc.add_paragraph(style="List Bullet")
             p.paragraph_format.space_after = Pt(3)
@@ -162,7 +162,7 @@ class DocxBackend:
                 self.texts.append(it)
                 self._run(p.add_run(it), size)
 
-    def table(self, rows, widths=None, size=9.5, header=True, mono_cols=()):
+    def table(self, rows, widths=None, size=8.6, header=True, mono_cols=()):
         t = self.doc.add_table(rows=len(rows), cols=len(rows[0]))
         t.alignment = WD_TABLE_ALIGNMENT.CENTER
         t.autofit = False
@@ -200,13 +200,13 @@ class DocxBackend:
             self._run(p.add_run(ln), 8.5, mono=True)
         self.para("", space_after=4)
 
-    def figure(self, path, caption, width_cm=17.0):
+    def figure(self, path, caption, width_cm=18.0):
         p = self.doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(6)
         p.paragraph_format.space_after = Pt(3)
         p.add_run().add_picture(str(path), width=Cm(width_cm))
-        self.para(caption, size=9, italic=True, align="center", space_after=10)
+        self.para(caption, size=8.4, italic=True, align="center", space_after=6)
 
     def page_break(self):
         self.doc.add_page_break()
@@ -219,27 +219,27 @@ class DocxBackend:
 # HTML backend (printed to PDF by headless Chrome)
 # ==========================================================================
 CSS = """
-@page { size: A4; margin: 20mm; }
+@page { size: A4; margin: 15mm; }
 * { box-sizing: border-box; }
-body { font-family: Calibri, "Segoe UI", Arial, sans-serif; font-size: 10.5pt;
+body { font-family: Calibri, "Segoe UI", Arial, sans-serif; font-size: 9.8pt;
        color: #000; line-height: 1.15; margin: 0; background: #fff; }
-p { margin: 0 0 6pt 0; }
-h1 { font-size: 15pt; margin: 16pt 0 5pt 0; page-break-after: avoid; }
-h2 { font-size: 12.5pt; margin: 12pt 0 5pt 0; page-break-after: avoid; }
-h3 { font-size: 11pt; margin: 9pt 0 5pt 0; page-break-after: avoid; }
+p { margin: 0 0 4pt 0; }
+h1 { font-size: 13.5pt; margin: 10pt 0 3pt 0; page-break-after: avoid; }
+h2 { font-size: 11.5pt; margin: 8pt 0 3pt 0; page-break-after: avoid; }
+h3 { font-size: 10.3pt; margin: 6pt 0 3pt 0; page-break-after: avoid; }
 ul { margin: 0 0 6pt 0; padding-left: 16pt; }
-li { margin-bottom: 3pt; line-height: 1.12; }
-table { border-collapse: collapse; width: 100%; margin: 0 0 6pt 0;
-        page-break-inside: avoid; }
-td { border: 1px solid #000; padding: 3pt 5pt; font-size: 9.5pt;
+li { margin-bottom: 2pt; line-height: 1.1; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 4pt 0; }
+td { border: 1px solid #000; padding: 2pt 4pt; font-size: 8.6pt;
      vertical-align: top; background: #fff; }
+thead { display: table-header-group; }
 tr:first-child td { font-weight: bold; }
 table.plain tr:first-child td { font-weight: normal; }
 table.code tr:first-child td { font-weight: normal; font-family: Consolas, monospace;
      font-size: 8.5pt; white-space: pre; line-height: 1.0; }
-figure { margin: 6pt 0 10pt 0; text-align: center; page-break-inside: avoid; }
+figure { margin: 4pt 0 6pt 0; text-align: center; page-break-inside: avoid; }
 figure img { width: 100%; }
-figcaption { font-size: 9pt; font-style: italic; margin-top: 3pt; }
+figcaption { font-size: 8.4pt; font-style: italic; margin-top: 2pt; }
 .pb { page-break-before: always; }
 """
 
@@ -255,8 +255,8 @@ class HtmlBackend:
         self._pb = False
         return (" class='" + " ".join(names) + "'") if names else ""
 
-    def para(self, text="", size=10.5, bold=False, italic=False, mono=False,
-             align=None, space_after=6, space_before=0, indent=None):
+    def para(self, text="", size=9.8, bold=False, italic=False, mono=False,
+             align=None, space_after=4, space_before=0, indent=None):
         self.texts.append(text)
         st = ["font-size:%gpt" % size,
               "margin-bottom:%gpt" % space_after,
@@ -274,7 +274,7 @@ class HtmlBackend:
         self.parts.append("<p%s style='%s'>%s</p>"
                           % (self._cls(), ";".join(st), html.escape(text)))
 
-    def rich(self, parts, size=10.5, space_after=6, indent=None):
+    def rich(self, parts, size=9.8, space_after=4, indent=None):
         inner = ""
         for text, bold, mono in parts:
             self.texts.append(text)
@@ -293,7 +293,7 @@ class HtmlBackend:
         self.texts.append(text)
         self.parts.append("<h%d%s>%s</h%d>" % (level, self._cls(), html.escape(text), level))
 
-    def bullets(self, items, size=10.5):
+    def bullets(self, items, size=9.8):
         lis = ""
         for it in items:
             if isinstance(it, list):
@@ -312,7 +312,7 @@ class HtmlBackend:
                 lis += "<li style='font-size:%gpt'>%s</li>" % (size, html.escape(it))
         self.parts.append("<ul%s>%s</ul>" % (self._cls(), lis))
 
-    def table(self, rows, widths=None, size=9.5, header=True, mono_cols=()):
+    def table(self, rows, widths=None, size=8.6, header=True, mono_cols=()):
         total = float(sum(widths)) if widths else None
         out = "<table%s>" % self._cls("" if header else "plain")
         for r, row in enumerate(rows):
@@ -335,7 +335,7 @@ class HtmlBackend:
         self.parts.append("<table%s><tr><td>%s</td></tr></table>"
                           % (self._cls("code"), body))
 
-    def figure(self, path, caption, width_cm=17.0):
+    def figure(self, path, caption, width_cm=18.0):
         self.texts.append(caption)
         self.parts.append(
             "<figure%s><img style='width:%gcm' src='%s'>"
@@ -376,7 +376,7 @@ def build(B):
     B.table([
         ["Team members", "Rishii Kumar Singh, Sarthak Tomar, Aman Kumar, Aarushi Aanand"],
     ], widths=[4.4, 12.6], size=10, header=False)
-    B.para("", space_after=14)
+    B.para("", space_after=5)
 
     B.para("Project links", size=10.5, bold=True, space_after=4)
     B.table([
@@ -392,7 +392,7 @@ def build(B):
                         "crp-et-ai-hackathon-20-economic-times-1675680"],
     ], widths=[4.4, 12.6], size=8.5)
 
-    B.para("", space_after=10)
+    B.para("", space_after=3)
     B.para("A note on the numbers in this document: every figure is measured, and each one "
               "traces to an evaluation report or a measurement file in the repository. Where a "
               "number comes from outside our own work it is attributed to its source. Where a "
@@ -428,7 +428,6 @@ def build(B):
         ["20", "Glossary"],
     ], widths=[2.0, 15.0], size=10)
 
-    B.page_break()
 
     # ---------------- 1 executive summary ----------------
     B.heading("1. Executive summary", 1)
@@ -457,7 +456,7 @@ def build(B):
         ["Detects the attack without ever seeing an attack label in training",
          f"ROC-AUC {E1L['roc_auc']} against 702 real red team events"],
     ], widths=[9.0, 8.0])
-    B.para("", space_after=8)
+    B.para("", space_after=2)
 
     B.para("The system additionally maps every step to the MITRE ATT&CK catalogue, the "
               "industry standard naming scheme for attacker techniques, predicts the likely next "
@@ -483,7 +482,7 @@ def build(B):
          "PS-7 problem brief"],
         ["Global median attacker dwell time", "About 10 days", "Mandiant M-Trends 2024"],
     ], widths=[8.2, 4.6, 4.2])
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("Two Indian precedents shaped this project directly. The ransomware attack on AIIMS "
               "Delhi in 2022 took the country's premier hospital offline for days. The breaches "
               "at the Central Board of Secondary Education affected the national school "
@@ -505,7 +504,7 @@ def build(B):
          "One intrusion becomes thousands of disconnected alerts, and the pattern across them "
          "is never assembled."],
     ], widths=[3.6, 5.2, 8.2])
-    B.para("", space_after=8)
+    B.para("", space_after=2)
 
     B.heading("2.3 The three failures we set out to fix", 2)
     B.bullets([
@@ -527,7 +526,6 @@ def build(B):
               "That is what we built, and it is why the system needs no new sensors, no new "
               "agents on endpoints, and no change to existing infrastructure.")
 
-    B.page_break()
 
     # ---------------- 3 solution ----------------
     B.heading("3. Our solution", 1)
@@ -558,7 +556,7 @@ def build(B):
         ["Guided containment", "Recommended response steps. Anything touching a critical asset "
                                "requires human approval.", "Simulated by design"],
     ], widths=[4.0, 9.6, 3.4])
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("The final row is deliberate. There is no live production network attached to this "
               "system, so no containment action is actually executed. Every such action is "
               "labelled as simulated in the interface. We consider stating this plainly to be "
@@ -573,7 +571,6 @@ def build(B):
     B.figure(DOC_ASSETS / "pipeline_bw.png",
            "Figure 1. The seven stage analysis pipeline. Every stage executes on each request.")
 
-    B.page_break()
 
     # ---------------- 5 architecture ----------------
     B.heading("5. System architecture", 1)
@@ -582,7 +579,7 @@ def build(B):
               "programming interface and, in production, the built frontend from the same origin. "
               "The analysis spine sits behind the live endpoints. Trained models and lookup "
               "tables are loaded once at start up.")
-    B.figure(ROOT / "reports" / "technical_architecture_final.png",
+    B.figure(DOC_ASSETS / "architecture_mono.png",
              "Figure 2. Technical architecture. Inputs, the single container runtime across four "
              "planes, and the outcomes delivered to a security team. A full resolution copy is in "
              "the repository at reports/technical_architecture_final.png.",
@@ -606,7 +603,7 @@ def build(B):
          "the same pipeline offline."],
         ["Static", "GET /", "Serves the built frontend in production."],
     ], widths=[3.0, 5.4, 8.6], size=9)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("The last two rows matter for a specific reason. There is no separate mock data "
               "path in this system. The sample content that loads before a user runs their own "
               "analysis was generated by running the real pipeline over a real log and saving "
@@ -631,7 +628,6 @@ def build(B):
                                     "download."],
     ], widths=[4.2, 12.8])
 
-    B.page_break()
 
     # ---------------- 6 engine 1 ----------------
     B.heading("6. Engine 1: behavioural detection", 1)
@@ -663,7 +659,7 @@ def build(B):
         ["is_ntlm", "Whether an older authentication protocol was used",
          "Pass the hash attacks depend on it"],
     ], widths=[4.4, 6.2, 6.4], size=9, mono_cols=(0,))
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("These are not chosen by intuition alone. Measured on the real labelled data, the "
               "separation between benign and attacker behaviour is as follows.", space_after=6)
     B.table([
@@ -674,7 +670,7 @@ def build(B):
         ["dst_rarity", "4.8715", "9.8256", "2.0 times"],
         ["is_ntlm", "0.0580", "1.0000", "Present in 100 percent of attack events"],
     ], widths=[4.4, 3.4, 3.4, 5.8], size=9, mono_cols=(0,))
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("An attacker is 13.8 times more likely to touch a machine that the account they "
               "stole has never visited. That single behavioural fact carries most of the "
               "detection.")
@@ -701,12 +697,11 @@ def build(B):
         ["Use of labels", "Evaluation only. Labels never enter training. This is what makes the "
                           "reported detection score defensible rather than circular."],
     ], widths=[4.2, 12.8], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("There is no look ahead leakage. Every running statistic, such as the count of "
               "distinct machines an account has reached, is computed using only that account's "
               "prior events, so the score of any given event never depends on the future.")
 
-    B.page_break()
 
     # ---------------- 7 spine ----------------
     B.heading("7. The shared spine: turning alerts into a story", 1)
@@ -733,7 +728,7 @@ def build(B):
         ["New machine reached", "T1021", "Remote services, legitimate remote login tools"],
         ["Neither condition met", "No technique", "Treated as normal activity"],
     ], widths=[5.6, 3.4, 8.0], size=9.5, mono_cols=(1,))
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("Technique names, descriptions and recommended mitigations are read from the "
               "official MITRE data files, which we parse ourselves into a lookup table covering "
               "918 techniques and 175 groups. The explanation text shown to the user is MITRE's "
@@ -756,7 +751,7 @@ def build(B):
         ["What do we disconnect first", "Ranking by betweenness centrality",
          "Isolating C17693 alone severs 463 machines"],
     ], widths=[4.4, 5.2, 7.4], size=9)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("We deliberately report two different numbers rather than one flattering one. Total "
               "exposure is 475 machines. What isolating a single choke point actually severs is "
               "463. Presenting only the larger figure would overstate what one containment action "
@@ -783,12 +778,11 @@ def build(B):
         ["Medium severity", "Raise a ticket and enrich it"],
         ["Low severity", "Monitor only"],
     ], widths=[8.5, 8.5])
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("Recommended containment steps are seeded from the real MITRE mitigations "
               "associated with the observed techniques, so the advice is MITRE's rather than "
               "ours. Every action is simulated, and labelled as such wherever it appears.")
 
-    B.page_break()
 
     # ---------------- 8 engine 2 ----------------
     B.heading("8. Engine 2: prediction and attribution", 1)
@@ -807,7 +801,7 @@ def build(B):
          "Lost. Published as a documented negative result."],
         ["First order Markov chain", pct(E2P["markov_top3"]), "Shipped"],
     ], widths=[6.4, 3.2, 7.4], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
 
     B.para("Two things here matter more than the headline number.", bold=False)
     B.rich([("The circularity trap, and how we escaped it. ", True, False),
@@ -900,7 +894,6 @@ def build(B):
           "connection to look impressive.", False, False)],
     ])
 
-    B.page_break()
 
     # ---------------- 10 application ----------------
     B.heading("10. The application", 1)
@@ -919,7 +912,7 @@ def build(B):
         ["Models and Metrics, Data and Methodology", "The evidence tables, dataset descriptions "
                                                      "and honesty notes."],
     ], widths=[5.0, 12.0], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.rich([("The single most important element in the interface ", True, False),
                ("is the badge in the top bar, which reads either LIVE ANALYSIS or SAMPLE DATA. "
                 "A viewer can always tell whether what they are looking at was computed moments "
@@ -957,7 +950,7 @@ def build(B):
         ["CERT-In advisories", "4 analyst verified sequences",
          "Real Indian attack timelines, used as the non circular test set for prediction."],
     ], widths=[3.8, 4.0, 9.2], size=9)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
 
     B.heading("11.1 Why the LANL dataset matters most", 2)
     B.para("It is a real 58 day capture from Los Alamos National Laboratory that includes an "
@@ -987,7 +980,6 @@ def build(B):
               "techniques. This matters for the problem statement, because India's threat "
               "landscape is heavily mobile.")
 
-    B.page_break()
 
     # ---------------- 12 tech choices ----------------
     B.heading("12. Technology choices, and what we rejected", 1)
@@ -1060,7 +1052,6 @@ def build(B):
          "and person level attribution from public posts risks naming innocent people."],
     ], widths=[3.2, 4.6, 9.2], size=9)
 
-    B.page_break()
 
     # ---------------- 13 results ----------------
     B.heading("13. Results in full", 1)
@@ -1083,7 +1074,7 @@ def build(B):
         ["UNSW-NB15", "ROC area under curve", str(E1U["roc_auc"])],
         ["UNSW-NB15", "Precision recall area", f"{E1U['prauc']:.3f}"],
     ], widths=[3.2, 8.4, 5.4], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
 
     B.rich([("The protocol ablation, and why we ran it. ", True, False),
                ("Every red team login in the dataset used the older NTLM protocol, against about "
@@ -1124,13 +1115,12 @@ def build(B):
         ["Events concentrated on the primary foothold", "670 of 702 red team events on C17693"],
     ], widths=[10.5, 6.5], size=9.5)
 
-    B.page_break()
 
     # ---------------- 14 performance ----------------
     B.heading("14. Performance and scalability", 1)
     B.para("Rather than assert that the system scales, we measured it. The complete pipeline "
               "was timed at nine input sizes on an ordinary laptop processor with no GPU.")
-    B.figure(ROOT / "reports" / "scaling_chart_detailed.png",
+    B.figure(DOC_ASSETS / "scaling_mono.png",
              "Figure 3. Measured end to end analysis time against input size, with the "
              "measurement table and verification notes.",
              width_cm=17.0)
@@ -1181,7 +1171,7 @@ def build(B):
          "The interface claimed a margin our own report contradicted. We found it in a self "
          "audit, corrected it, and then fixed the underlying cause."],
     ], widths=[5.4, 11.6], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("That last item produced a structural change rather than a patch. Evaluation "
               "scripts now write a single metrics file, which the interface reads directly. Hand "
               "copied numbers can no longer go stale, because numbers are no longer hand copied.")
@@ -1199,7 +1189,7 @@ def build(B):
         ["Deployment", "The container build is verified, and the running container is smoke "
                        "tested including a live external intelligence fetch from inside it."],
     ], widths=[4.2, 12.8], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("The browser testing earned its place. It uploaded a file with ISO-8601 timestamps "
               "and found a crash, because every fixture we had written happened to use epoch "
               "integers, and real logs do not. That is a defect a judge would have triggered "
@@ -1210,7 +1200,6 @@ def build(B):
               "technique itself, and a graph edge must remember every account that used a machine "
               "pair rather than only the first.")
 
-    B.page_break()
 
     # ---------------- 17 limitations ----------------
     B.heading("17. Limitations we state before you find them", 1)
@@ -1260,7 +1249,7 @@ def build(B):
         ["External intelligence", "A separate portal, read separately",
          "Cross referenced against your own techniques"],
     ], widths=[3.4, 6.4, 7.2], size=9.5)
-    B.para("", space_after=8)
+    B.para("", space_after=2)
     B.para("No new sensors are required. The system makes the logs an organisation already "
               "collects tell the story that is already in them. That is what makes it deployable "
               "at the organisations that need it most: hospitals, examination boards, grid "
@@ -1336,7 +1325,7 @@ def build(B):
                                   "like and flags deviation from it."],
     ], widths=[4.4, 12.6], size=9)
 
-    B.para("", space_after=12)
+    B.para("", space_after=4)
     B.para("Resilience Graph AI, Team rishiikumarsingh2201, ET AI Hackathon 2026, Problem "
               "Statement 7.", size=9, italic=True, align="center")
 
