@@ -1,6 +1,6 @@
-# Resilience Graph AI — Problem, Approach, and Every Feature
+# Resilience Graph AI: Problem, Approach, and Every Feature
 
-> **Living document — update every working session.** Last updated: 2026-07-22.
+> **Living document, update every working session.** Last updated: 2026-07-22.
 >
 > A judge-facing brief: what PS-7 asks for, the specific problem we solve, how we
 > solve it, and every feature with the failure it attacks. Companion to
@@ -10,7 +10,7 @@
 
 ---
 
-## Part 1 — The problem
+## Part 1: The problem
 
 ### 1a. What PS-7 actually asks for
 
@@ -32,7 +32,7 @@ The context PS-7 sets is specifically Indian CNI:
 
 The common thread in those precedents is the important part: they were **not** exotic
 zero-days. They were quiet intrusions using **valid stolen credentials** and **lateral
-movement** — the attacker logs in legitimately, machine by machine, until they reach
+movement**, where the attacker logs in legitimately, machine by machine, until they reach
 something valuable.
 
 ### 1b. The specific problem we solve
@@ -53,12 +53,12 @@ exists, in the authentication logs organisations already collect and pay to stor
 missing piece is not more sensors, it is **the layer that connects those
 individually-boring events into one story, in time.** That layer is what we built. It
 is why the system needs **no new sensors, no endpoint agents, and no infrastructure
-change** — a decisive advantage for the 70 percent of entities that cannot fund a
+change**, a decisive advantage for the 70 percent of entities that cannot fund a
 24 by 7 SOC.
 
 ---
 
-## Part 2 — How we solve it
+## Part 2: How we solve it
 
 ### The core idea: behavioural intelligence, not signature intelligence
 
@@ -114,7 +114,7 @@ prediction), **detect** (Engine 1), **understand** (correlation and graph),
 
 ---
 
-## Part 3 — Every feature, and how it attacks the problem
+## Part 3: Every feature, and how it attacks the problem
 
 ### 1. Analyze any log (scenario pick or CSV upload), live per request
 **What it is:** Choose a shipped scenario or upload your own authentication CSV; the
@@ -227,7 +227,7 @@ human can follow, which is the concrete form of turning alerts into a story.
 
 ---
 
-## Part 4 — Technologies used
+## Part 4: Technologies used
 
 Everything below is actually in the repository. The deployed image deliberately
 carries a **smaller** dependency set than the development environment, because the
