@@ -55,7 +55,7 @@ export default function Analyze() {
           LIVE PIPELINE
         </span>
         <h2>Analyze an event log</h2>
-        <p className="mono">Every event is scored by the real IsolationForest, correlated into one incident,
+        <p className="mono">Every event is scored by the real benign-trained autoencoder, correlated into one incident,
           mapped to ATT&amp;CK, graphed, attributed and projected — computed on the spot.</p>
       </div>
 

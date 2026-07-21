@@ -28,13 +28,19 @@ export default function Metrics() {
   const { cicids, lanl, unsw } = engine1
   const { predictor, embeddings } = engine2
 
-  const predData = [
-    { name: 'most_frequent', v: predictor.most_frequent_top3 },
-    { name: 'kill-chain', v: predictor.killchain_top3 },
-    { name: 'LSTM', v: predictor.lstm_top3 },
-    { name: 'Markov', v: predictor.markov_top3 },
-  ]
+  // Driven off metrics.json so a model promotion can't leave this screen stale:
+  // `shipped` names the winning method, and rows appear only if the eval wrote them.
+  const shipped = predictor.shipped || 'markov'
+  const METHODS = [
+    { key: 'most_frequent', name: 'most_frequent', label: 'Most-frequent', v: predictor.most_frequent_top3 },
+    { key: 'killchain', name: 'kill-chain', label: 'Kill-chain baseline', v: predictor.killchain_top3 },
+    { key: 'lstm', name: 'LSTM', label: 'LSTM', v: predictor.lstm_top3 },
+    { key: 'markov', name: 'Markov 1st', label: 'Markov 1st-order', v: predictor.markov_top3 },
+    { key: 'markov_interp', name: 'Markov interp', label: 'Markov interpolated', v: predictor.markov_interp_top3 },
+  ].filter((m) => typeof m.v === 'number')
+  const predData = METHODS.map((m) => ({ ...m, shipped: m.key === shipped }))
   const maxPred = Math.max(...predData.map((d) => d.v))
+  const shippedLabel = (METHODS.find((m) => m.key === shipped) || {}).label || 'Markov'
 
   return (
     <>
@@ -82,7 +88,7 @@ export default function Metrics() {
       <div className="section-label">Engine 2 · Prediction &amp; attribution</div>
       <div className="grid2">
         <Card>
-          <CardHeader title="Next-technique predictor · top-3 accuracy" meta="Markov shipped" />
+          <CardHeader title="Next-technique predictor · top-3 accuracy" meta={`${shippedLabel} shipped`} />
           <div className="card-b pad" style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={predData} margin={{ top: 8, right: 8, left: -12, bottom: 4 }}>
@@ -95,7 +101,7 @@ export default function Metrics() {
                   formatter={(v) => [v, 'top-3']} />
                 <Bar dataKey="v" radius={[5, 5, 0, 0]}>
                   {predData.map((d) => (
-                    <Cell key={d.name} fill={d.v === maxPred ? 'var(--accent)' : 'var(--sev-normal)'} />
+                    <Cell key={d.name} fill={d.shipped ? 'var(--accent)' : 'var(--sev-normal)'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -109,10 +115,11 @@ export default function Metrics() {
             <CardHeader title="Predictor methods" />
             <div className="card-b pad">
               <MetricTable rows={[
-                { label: 'Markov (shipped)', value: predictor.markov_top3, hl: true },
-                { label: 'LSTM', value: predictor.lstm_top3 },
-                { label: 'Kill-chain baseline', value: predictor.killchain_top3 },
-                { label: 'Most-frequent', value: predictor.most_frequent_top3 },
+                ...[...METHODS].reverse().map((m) => ({
+                  label: m.key === shipped ? `${m.label} (shipped)` : m.label,
+                  value: m.v,
+                  hl: m.key === shipped,
+                })),
                 { label: 'CERT-In manual (top-3)', value: engine2.manual_cert_in_top3 },
               ]} />
             </div>
