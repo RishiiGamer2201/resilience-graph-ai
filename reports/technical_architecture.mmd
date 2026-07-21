@@ -35,8 +35,8 @@ end
 
 subgraph ENG["AI ENGINES · unsupervised, benign-trained"]
   direction LR
-  E1["ENGINE 1 · Detection<br/>IsolationForest / autoencoder<br/>LANL ROC 0.988 · CICIDS PR-AUC 0.57"]:::eng
-  E2["ENGINE 2 · Predict + Attribute<br/>MiniLM embeddings → Markov · 5.2× baseline<br/>transparent actor attribution"]:::eng
+  E1["ENGINE 1 · Detection<br/>benign-only autoencoder<br/>LANL ROC 0.992 · TPR@1%FPR 87.7%"]:::eng
+  E2["ENGINE 2 · Predict + Attribute<br/>MiniLM embeddings → interpolated Markov · 5.4× baseline<br/>transparent actor attribution"]:::eng
 end
 
 RADAR["THREAT RADAR · src/shared/osint.py<br/>free CTI feeds, India-first → ATT&amp;CK map<br/>→ relevance vs your incident · gated alerts"]:::radar

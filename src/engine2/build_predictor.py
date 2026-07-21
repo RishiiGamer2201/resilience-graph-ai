@@ -389,7 +389,7 @@ def main() -> None:
            "beats the LSTM — so we ship Markov (honest > fancy)."
            if best == "markov" else
            "on this data."),
-        f"- ✅ **Anti-circularity proof:** Markov top-3 ({results['markov'][3]*100:.1f}%) is "
+        f"- ✅ **Anti-circularity proof:** shipped predictor top-3 ({results['markov_interp'][3]*100:.1f}%) is "
         f"**{mk_vs_kc:.1f}× the kill-chain-order baseline** ({results['killchain'][3]*100:.1f}%). "
         f"Since sequences are tactic-ordered, a model that only re-learned that ordering "
         f"would score like the kill-chain baseline. Beating it {mk_vs_kc:.1f}× means we are "

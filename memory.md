@@ -16,7 +16,7 @@
 ## What has been completed
 - ✅ **M0–M1** env + data foundation (CICIDS 2.30M flows · LANL 11.2M-row red-team window · ATT&CK lookups · frozen schema).
 - ✅ **M2 Engine 1**: CICIDS anomaly (AE PR-AUC 0.570 best) · LANL lateral movement **ROC 0.988** (the moat) · UNSW 0.829.
-- ✅ **M3 Engine 2**: 199+4 sequences · embeddings · **Markov shipped** (top-3 38.6%, 4.7× kill-chain baseline; LSTM honest negative) · attribution over 172 profiles.
+- ✅ **M3 Engine 2**: 199+4 sequences · embeddings · **interpolated Markov shipped** (top-3 38.1%, 5.4× kill-chain baseline; LSTM/biLSTM/2nd-order honest negatives) · attribution over 172 profiles.
 - ✅ **M4 spine**: 215 events → 1 CRITICAL incident (U66@DOM1) · 94-host graph, pivot C17693 → C2388 · gated SOAR. `run_spine.py` end-to-end.
 - ✅ **M5 app**: FastAPI (7 cached GETs + 2 live POSTs) · React 6 screens + splash · live widgets with cached fallback · incident report (.md/print) + MTTD panel · full stack verified running.
 - ✅ **Deploy**: single-container Dockerfile + `render.yaml`; runtime artifacts force-added to git.

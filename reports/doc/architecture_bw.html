@@ -173,8 +173,8 @@
   <div class="band L-int">
     <div class="tag">INTELLIGENCE<span class="tagsub">AI engines · CTI<br>persisted artifacts</span></div>
     <div class="row">
-      <div class="icard e1"><div class="t">ENGINE 1 · Detection</div><div class="d">benign-only IsolationForest / autoencoder → anomaly score. <b>LANL ROC 0.988 · CICIDS PR-AUC 0.57</b></div></div>
-      <div class="icard e2"><div class="t">ENGINE 2 · Predict + Attribute</div><div class="d">MiniLM embeddings → Markov next-technique (<b>5.2× kill-chain baseline</b>) + transparent actor attribution</div></div>
+      <div class="icard e1"><div class="t">ENGINE 1 · Detection</div><div class="d">benign-only autoencoder → anomaly score. <b>LANL ROC 0.992 · TPR@1%FPR 87.7%</b></div></div>
+      <div class="icard e2"><div class="t">ENGINE 2 · Predict + Attribute</div><div class="d">MiniLM embeddings → interpolated Markov (<b>5.4× kill-chain baseline</b>) + transparent actor attribution</div></div>
       <div class="icard rd"><div class="t">THREAT RADAR · osint.py</div><div class="d">free CTI feeds, India-first → ATT&CK map → relevance vs your incident · gated (simulated) alerts</div></div>
       <div class="icard st"><div class="t">PERSISTED ARTIFACTS · git-tracked</div><div class="d">runs from a fresh clone, no data download</div>
         <div class="chips"><span class="chip">iforest_lanl.joblib</span><span class="chip">markov.pkl</span><span class="chip">attack_lookups.pkl</span><span class="chip">technique_embeddings.pkl</span><span class="chip">api/cache/*.json</span><span class="chip">scenarios/*.csv</span><span class="chip">metrics.json</span></div>

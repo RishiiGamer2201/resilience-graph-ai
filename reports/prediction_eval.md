@@ -12,7 +12,7 @@ Predict the next ATT&CK technique from a partial sequence. Test = 780 prediction
 
 ## Interpretation (data-driven)
 - **Shipped predictor: Markov interpolated λ=(0.2, 0.3, 0.5) (SHIPPED)** — best top-3 (38.1%) on this data.
-- ✅ **Anti-circularity proof:** Markov top-3 (36.5%) is **5.4× the kill-chain-order baseline** (7.1%). Since sequences are tactic-ordered, a model that only re-learned that ordering would score like the kill-chain baseline. Beating it 5.4× means we are predicting **real technique-to-technique transitions**, not the imposed order.
+- ✅ **Anti-circularity proof:** shipped predictor top-3 (38.1%) is **5.4× the kill-chain-order baseline** (7.1%). Since sequences are tactic-ordered, a model that only re-learned that ordering would score like the kill-chain baseline. Beating it 5.4× means we are predicting **real technique-to-technique transitions**, not the imposed order.
 - **Neural is not justified here (honest negative result):** the LSTM (27.2% top-3) is 0.74× Markov — it beats the naive baselines but not the transition model at this data scale. Kept as a documented comparison, not the deliverable.
 - Top-1 is a hard bar with a 566-way vocabulary and 140 training sequences; **top-3/top-5 are the honest headline** — they match how an analyst uses a ranked list of 'likely next moves'.
 

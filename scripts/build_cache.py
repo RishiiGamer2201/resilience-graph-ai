@@ -79,9 +79,9 @@ def methodology() -> dict:
         "honesty_notes": [
             "Engine 1 trains benign-only (unsupervised) — we never report accuracy, only PR-AUC / TPR@FPR.",
             "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
-            "LANL NTLM signal ablated: behavioral-only still ROC 0.929 — not a protocol crutch.",
-            "Next-technique: Markov beats the LSTM at this data scale, so we ship Markov (honest > fancy).",
-            "Anti-circularity: Markov beats the kill-chain-order baseline 5.2x → real transitions.",
+            "LANL NTLM signal ablated: behavioral-only still ROC 0.906 — not a protocol crutch.",
+            "Next-technique: interpolated Markov beats the LSTM and biLSTM at this data scale, so we ship it (honest > fancy).",
+            "Anti-circularity: interpolated Markov beats the kill-chain-order baseline 5.4x → real transitions.",
             f"CERT-In manual sequences now analyst-verified ({n_verified}/{n_manual}); real report-ordered "
             "timelines score top-3 10% vs 37% on kill-chain-ordered auto sets — real orderings are harder.",
             "Mobile ATT&CK added so India's mobile-heavy threats (banking trojans) map to real technique IDs.",
