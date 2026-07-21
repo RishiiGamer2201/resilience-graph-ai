@@ -227,6 +227,111 @@ human can follow, which is the concrete form of turning alerts into a story.
 
 ---
 
+## Part 4 — Technologies used
+
+Everything below is actually in the repository. The deployed image deliberately
+carries a **smaller** dependency set than the development environment, because the
+heavy machine-learning libraries are needed only at build time.
+
+### 4.1 Languages and runtimes
+
+| Layer | Technology | Version | Why this one |
+|---|---|---|---|
+| Backend and ML | Python | 3.10 (pinned, `python:3.10-slim` base image) | Library compatibility across scikit-learn, torch and the ATT&CK STIX tooling |
+| Frontend | JavaScript with JSX | ES2022 | No TypeScript build step to maintain under hackathon time pressure |
+| Container | Docker, two-stage build | - | A Node stage builds the frontend, a slim Python stage serves everything |
+
+### 4.2 Machine learning and data science
+
+| Library | Used for | Runtime or build-time |
+|---|---|---|
+| scikit-learn (1.7.2 pinned) | IsolationForest (the shipped detector), StandardScaler, and every evaluation metric: PR-AUC, ROC-AUC, precision, recall, F1 | Runtime |
+| NumPy | All numeric work, scoring, bootstrap significance testing | Runtime |
+| pandas | Log loading, the 12-field schema, feature engineering, CSV and parquet handling | Runtime |
+| PyArrow | Parquet input and output for processed datasets | Build-time |
+| PyTorch | Autoencoder and LSTM comparison models, and the model bake-off experiments | Build-time only |
+| sentence-transformers (all-MiniLM-L6-v2) | 384-dimension embeddings of ATT&CK technique descriptions, used for semantic similarity in attribution | Build-time only, shipped as a precomputed pickle |
+| networkx | The attack-path graph: reachability, blast radius, betweenness centrality, shortest path | Runtime |
+| joblib | Serialising the trained detector and scaler | Runtime |
+| Matplotlib | Precision-recall curves and the measured scaling chart | Build-time |
+
+The version pin on scikit-learn is deliberate: it must match the version that
+pickled `models/iforest_lanl.joblib`, or loading the shipped model fails.
+
+### 4.3 Models we built
+
+| Model | Type | Where it is used | Status |
+|---|---|---|---|
+| IsolationForest | Unsupervised ensemble, 200 trees, 4,096 max samples, trained on 800,000 benign-only rows | Engine 1, scores every authentication event 0 to 100 | Shipped |
+| Autoencoder | Encoder-decoder neural network, benign-trained, reconstruction error as the anomaly score | Engine 1 comparison on CIC-IDS2017 and LANL | Evaluated, documented |
+| First-order Markov chain | Technique-to-technique transition table with frequency backoff | Engine 2, next-technique prediction with a real probability | Shipped |
+| Interpolated Markov | Deleted interpolation of order-2, order-1 and unigram, weights tuned on validation | Engine 2 candidate | Evaluated, see `reports/model_experiments.md` |
+| Second-order Markov | Conditions on the last two techniques, backs off to first order | Engine 2 candidate | Evaluated, lost |
+| LSTM | Recurrent network over frozen MiniLM embeddings | Engine 2 candidate | Evaluated, lost, published as a negative result |
+| Bidirectional LSTM | BiLSTM with masked mean-pooling over the observed prefix | Engine 2 candidate | Evaluated, lost |
+| Attribution scorer | Transparent weighted retrieval, 0.55 coverage plus 0.20 Jaccard plus 0.25 semantic similarity | Engine 2, ranks 172 MITRE groups | Shipped, deliberately not a trained classifier |
+
+### 4.4 Backend and API
+
+| Technology | Used for |
+|---|---|
+| FastAPI | The whole programming interface: live analysis, model calls, cached reads, and serving the built frontend |
+| Uvicorn | ASGI server, port 8000 |
+| python-multipart | Multipart CSV upload on `/api/analyze/upload` |
+| Server-Sent Events (native) | `/api/analyze/stream`, event-by-event incident replay |
+| httpx | Endpoint testing |
+| Python standard library `urllib` and `xml.etree` | All Threat Radar network and feed parsing, chosen specifically so the deployed image gains zero new dependencies |
+
+### 4.5 Frontend
+
+| Package | Used for |
+|---|---|
+| React 19 | The single page application, eight screens |
+| Vite 8 | Build tool and development server with an API proxy |
+| react-router-dom 7 | Client-side routing |
+| recharts | Charts and score visualisations |
+| react-force-graph-2d | The interactive attack-path graph |
+| lucide-react | Icon set |
+| oxlint | Linting |
+| React Context (`AnalysisProvider`, `useScreenData`) | State flow, so a live analysis bundle overrides the cached sample across every screen |
+
+### 4.6 Security data and standards
+
+| Source | What we take from it |
+|---|---|
+| MITRE ATT&CK, Enterprise plus ICS plus Mobile, via STIX bundles | 918 techniques, 175 groups, official mitigations and descriptions |
+| mitreattack-python and stix2 | Parsing those STIX bundles into our lookup table |
+| LANL Cyber Security Events | 11.2 million authentication events with 702 labelled red-team events |
+| CIC-IDS2017 | 2.3 million labelled network flows |
+| UNSW-NB15 | Second benchmark, official train and test split |
+| CISA KEV, CISA advisories, security RSS feeds | Threat Radar external intelligence, all free and no key required |
+| CERT-In advisories | Four analyst-verified Indian attack sequences for the non-circular test |
+
+### 4.7 Infrastructure, testing and tooling
+
+| Technology | Used for |
+|---|---|
+| Docker, two-stage build | One deployable container holding the interface and the frontend |
+| Render | Hosting, free tier, one URL, deployed from `render.yaml` |
+| Git and GitHub | Version control, with runtime artifacts committed so the app runs from a fresh clone |
+| pytest | 29 automated tests covering the pipeline, graph, scoping and intelligence mapping |
+| TestSprite | Browser end-to-end testing across 15 user flows |
+| Headless Chrome | Rendering diagrams and the submission PDF |
+| python-docx | Generating the submission document |
+
+### 4.8 What we deliberately did not use
+
+| Not used | Why |
+|---|---|
+| PyTorch at runtime | Embeddings are precomputed and shipped as a pickle, so the deployed image needs no deep-learning framework and no GPU |
+| A GPU in production | Nothing in the request path requires one. The full pipeline runs on a laptop CPU |
+| A graph database | networkx in memory is comfortable to about 50,000 events per analysis, which we measured. A graph database is the documented next step, not a present need |
+| A large language model | Technique text is read verbatim from official MITRE files, so a fabricated technique identifier is structurally impossible |
+| Third-party HTTP and feed libraries | The standard library covers it and keeps the deployed image dependency-free for this feature |
+| Social media APIs and scrapers | Rejected on terms-of-service grounds and because person-level attribution from public posts risks naming the wrong people |
+
+---
+
 ## The through-line for a judge
 
 Every feature is one link in PS-7's resilience loop, and each attacks one of the three
