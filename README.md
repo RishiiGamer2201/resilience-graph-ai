@@ -10,6 +10,8 @@
 An AI-augmented **SOC Command Center**: a FastAPI backend + React SPA where every screen
 renders a **live analysis** of an event log you choose or upload — no hardcoded demo data.
 
+**Links:** [Live demo](https://resilience-graph-ai.onrender.com) · [Demo video](https://youtu.be/vouw0dOcj2k) · [Presentation (Canva)](https://canva.link/f4gesmsduelihuz)
+
 ---
 
 ## Quick start (new device, ~5 min)

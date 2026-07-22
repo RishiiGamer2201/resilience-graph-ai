@@ -382,6 +382,7 @@ def build(B):
     B.table([
         ["Resource", "Link"],
         ["Live application (Render)", "https://resilience-graph-ai.onrender.com"],
+        ["Demo video (YouTube)", "https://youtu.be/vouw0dOcj2k"],
         ["Source code (GitHub)", "https://github.com/RishiiGamer2201/resilience-graph-ai"],
         ["Presentation (Canva)", "https://canva.link/f4gesmsduelihuz"],
         ["Submission document", "https://docs.google.com/document/d/"
