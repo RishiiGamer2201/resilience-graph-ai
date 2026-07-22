@@ -49,18 +49,41 @@ def _load():
     return _state["ae"]
 
 
-def benign_band() -> tuple[float, float] | None:
-    """(median, 99th percentile) of the BENIGN score distribution, measured at
-    training time and stored with the weights. Used to anchor the 0-100 scale to
-    a real operating point. None if unavailable (old artifact or no autoencoder).
-    """
+def anchors() -> dict | None:
+    """The three calibration anchors stored with the weights:
+    benign p50 (-> 0), benign p99 (-> 50, the 1% FPR line), hi (-> 100).
+    None if unavailable (old artifact or no autoencoder)."""
     if not AE_PATH.exists():
         return None
     z = np.load(AE_PATH)
     if "benign_p99" not in z:
         return None
     p50, p99 = float(z["benign_p50"]), float(z["benign_p99"])
-    return (p50, p99) if p99 > p50 else None
+    hi = float(z["hi_anchor"]) if "hi_anchor" in z else p99 * 4
+    if not (p99 > p50 and hi > p99):
+        return None
+    return {"p50": p50, "p99": p99, "hi": hi}
+
+
+def calibrate(raw, ref: dict) -> np.ndarray:
+    """Map raw reconstruction error to 0-100 with a PIECEWISE-LOG scale.
+
+    benign p50 -> 0, benign p99 -> 50 (the 1% false-positive alert threshold),
+    hi -> 100. Log within each segment because the error is heavy-tailed, so a
+    real attack spreads across 50-100 by severity instead of pegging at 100.
+
+    Accepts either the 3-anchor ref {p50,p99,hi} or a legacy {lo,hi} linear ref
+    (older score_ref.json), so an out-of-date cache still scores sanely.
+    """
+    raw = np.asarray(raw, dtype="float64")
+    if "p99" in ref:                             # piecewise-log (current)
+        p50, p99, hi = ref["p50"], ref["p99"], ref["hi"]
+        lr, l50, l99, lhi = np.log1p(raw), np.log1p(p50), np.log1p(p99), np.log1p(hi)
+        lo_seg = 50.0 * np.clip((lr - l50) / (l99 - l50 + 1e-12), 0, 1)
+        hi_seg = 50.0 + 50.0 * np.clip((lr - l99) / (lhi - l99 + 1e-12), 0, 1)
+        return np.where(raw <= p99, lo_seg, hi_seg)
+    lo, hi = ref["lo"], ref["hi"]                # legacy linear
+    return np.clip((raw - lo) / (hi - lo + 1e-9), 0, 1) * 100
 
 
 def _iforest():
@@ -96,20 +119,27 @@ def raw_scores(X: np.ndarray) -> np.ndarray:
     return ((a - h) ** 2).mean(axis=1)
 
 
-def scores_0_100(X: np.ndarray, lo: float, hi: float) -> np.ndarray:
-    """Calibrate raw scores to 0-100 with FIXED anchors, so a score means the
-    same thing across uploads and matches the single-event endpoint exactly."""
-    raw = raw_scores(X)
-    return np.clip((raw - lo) / (hi - lo + 1e-9), 0, 1) * 100
+def scores_0_100(X: np.ndarray, ref: dict) -> np.ndarray:
+    """Calibrate raw scores to 0-100 with the fixed anchors in `ref`, so a score
+    means the same thing across uploads and matches the single-event endpoint."""
+    return calibrate(raw_scores(X), ref)
 
 
 def demo() -> None:
-    """Self-check: unusual behaviour must score above routine behaviour."""
+    """Self-check: unusual behaviour scores above routine, and the calibrated
+    scale keeps benign low, the alert line near 50, and attacks high."""
     benign = [0, 0, 0, 50, 0.001, 4.0, 0]     # seen host, low fails, common dst
     mal = [0, 1, 1, 20, 0.05, 10.0, 1]        # new host + new source, NTLM, rare dst
     r = raw_scores(np.array([benign, mal], dtype="float64"))
     assert r[1] > r[0], f"malicious vector must score higher: {r}"
-    print(f"detector ok (ae={available()}): benign {r[0]:.5f} < malicious {r[1]:.5f}")
+    ref = anchors()
+    if ref:
+        s = calibrate(r, ref)
+        assert 0 <= s[0] < 50 <= s[1] <= 100, f"calibration off: {s}"
+        print(f"detector ok (ae={available()}): benign score {s[0]:.0f} < malicious {s[1]:.0f} "
+              f"| anchors p50={ref['p50']:.4f} p99={ref['p99']:.4f} hi={ref['hi']:.3f}")
+    else:
+        print(f"detector ok (ae={available()}): benign {r[0]:.5f} < malicious {r[1]:.5f}")
 
 
 if __name__ == "__main__":

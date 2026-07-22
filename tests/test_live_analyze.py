@@ -32,6 +32,34 @@ def test_incident_has_alerts(bundle):
     assert inc["technique_ids"], "expected mapped ATT&CK techniques"
 
 
+def test_scores_spread_not_all_pegged(bundle):
+    """Regression: the calibration once pinned the 1% FPR line to score 50, so
+    every real attack event (far past it) saturated to exactly 100 — the replay
+    was a wall of '100'. The piecewise-log scale must spread scores instead."""
+    scores = [s["anomaly_score"] for s in bundle["incident"]["steps"]]
+    assert scores, "expected per-event steps"
+    pegged = sum(s >= 100 for s in scores)
+    assert pegged < len(scores) * 0.5, f"too many scores pegged at 100: {pegged}/{len(scores)}"
+    assert len(set(scores)) >= 5, f"scores must vary, got {sorted(set(scores))}"
+
+
+def test_calibration_monotonic_and_bounded():
+    """The 0-100 scale must be monotonic and keep the anchors in place:
+    routine behaviour near 0, a mildly-unusual event below the malicious one,
+    and the malicious vector at the top."""
+    from src.shared import detector
+    ref = detector.anchors()
+    if ref is None:
+        pytest.skip("autoencoder artifact not built")
+    benign = [0, 0, 0, 50, 0.001, 4.0, 0]
+    mild = [0, 1, 0, 10, 0.0, 6.0, 0]
+    mal = [0, 1, 1, 20, 0.05, 10.0, 1]
+    raw = detector.raw_scores([benign, mild, mal])
+    s = detector.calibrate(raw, ref)
+    assert 0 <= s[0] < s[1] < s[2] <= 100, f"not monotonic/bounded: {list(s)}"
+    assert s[0] < 45, f"routine behaviour should be well below the alert line: {s[0]}"
+
+
 def test_graph_reflects_pivot(bundle):
     g = bundle["graph"]
     assert g["n_nodes"] > 1 and g["n_edges"] > 0

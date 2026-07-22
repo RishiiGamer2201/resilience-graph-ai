@@ -491,7 +491,7 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
+    "max_score": 92,
     "first_seen": 753122,
     "last_seen": 2366096,
     "hosts_reached": 20,
@@ -663,34 +663,6 @@
     "severity": "critical"
   },
   {
-    "user": "U8601@DOM1",
-    "alerts": 19,
-    "hosts": [
-      "C10171",
-      "C10817",
-      "C18626",
-      "C18872",
-      "C1893",
-      "C2043",
-      "C20819",
-      "C2634",
-      "C636",
-      "C754"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 725274,
-    "last_seen": 2363202,
-    "hosts_reached": 10,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U1480@DOM1",
     "alerts": 19,
     "hosts": [
@@ -725,6 +697,34 @@
     "hosts_reached": 16,
     "critical_reached": [],
     "severity": "critical"
+  },
+  {
+    "user": "U8601@DOM1",
+    "alerts": 19,
+    "hosts": [
+      "C10171",
+      "C10817",
+      "C18626",
+      "C18872",
+      "C1893",
+      "C2043",
+      "C20819",
+      "C2634",
+      "C636",
+      "C754"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 87,
+    "first_seen": 725274,
+    "last_seen": 2363202,
+    "hosts_reached": 10,
+    "critical_reached": [],
+    "severity": "high"
   },
   {
     "user": "U2837@DOM1",
@@ -1022,59 +1022,6 @@
     "severity": "critical"
   },
   {
-    "user": "U1653@DOM1",
-    "alerts": 9,
-    "hosts": [
-      "C1893",
-      "C231",
-      "C2669",
-      "C395",
-      "C706",
-      "C754"
-    ],
-    "pivots": [
-      "C17693",
-      "C22409"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 725488,
-    "last_seen": 830548,
-    "hosts_reached": 6,
-    "critical_reached": [
-      "C231",
-      "C706"
-    ],
-    "severity": "critical"
-  },
-  {
-    "user": "U342@DOM1",
-    "alerts": 9,
-    "hosts": [
-      "C113",
-      "C1789",
-      "C2519",
-      "C3586",
-      "C458",
-      "C6487",
-      "C7503"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 750307,
-    "last_seen": 1086284,
-    "hosts_reached": 7,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U86@DOM1",
     "alerts": 9,
     "hosts": [
@@ -1092,33 +1039,6 @@
     "first_seen": 1167177,
     "last_seen": 1328481,
     "hosts_reached": 2,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U24@DOM1",
-    "alerts": 9,
-    "hosts": [
-      "C1581",
-      "C1697",
-      "C1770",
-      "C1971",
-      "C2378",
-      "C3434",
-      "C3435",
-      "C3491",
-      "C4934"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1177653,
-    "last_seen": 1355621,
-    "hosts_reached": 9,
     "critical_reached": [],
     "severity": "critical"
   },
@@ -1155,6 +1075,86 @@
       "C625"
     ],
     "severity": "critical"
+  },
+  {
+    "user": "U24@DOM1",
+    "alerts": 9,
+    "hosts": [
+      "C1581",
+      "C1697",
+      "C1770",
+      "C1971",
+      "C2378",
+      "C3434",
+      "C3435",
+      "C3491",
+      "C4934"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 1177653,
+    "last_seen": 1355621,
+    "hosts_reached": 9,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U342@DOM1",
+    "alerts": 9,
+    "hosts": [
+      "C113",
+      "C1789",
+      "C2519",
+      "C3586",
+      "C458",
+      "C6487",
+      "C7503"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 92,
+    "first_seen": 750307,
+    "last_seen": 1086284,
+    "hosts_reached": 7,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U1653@DOM1",
+    "alerts": 9,
+    "hosts": [
+      "C1893",
+      "C231",
+      "C2669",
+      "C395",
+      "C706",
+      "C754"
+    ],
+    "pivots": [
+      "C17693",
+      "C22409"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 77,
+    "first_seen": 725488,
+    "last_seen": 830548,
+    "hosts_reached": 6,
+    "critical_reached": [
+      "C231",
+      "C706"
+    ],
+    "severity": "high"
   },
   {
     "user": "U349@DOM1",
@@ -1232,52 +1232,6 @@
     "severity": "critical"
   },
   {
-    "user": "U7375@DOM1",
-    "alerts": 7,
-    "hosts": [
-      "C1415",
-      "C143",
-      "C1626",
-      "C21946",
-      "C2519",
-      "C636",
-      "C7782"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 770115,
-    "last_seen": 771133,
-    "hosts_reached": 7,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U12@DOM1",
-    "alerts": 7,
-    "hosts": [
-      "C366",
-      "C368"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002",
-      "T1110"
-    ],
-    "max_score": 100,
-    "first_seen": 1068312,
-    "last_seen": 2305324,
-    "hosts_reached": 2,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U1506@DOM1",
     "alerts": 7,
     "hosts": [
@@ -1303,6 +1257,52 @@
     "severity": "critical"
   },
   {
+    "user": "U12@DOM1",
+    "alerts": 7,
+    "hosts": [
+      "C366",
+      "C368"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002",
+      "T1110"
+    ],
+    "max_score": 96,
+    "first_seen": 1068312,
+    "last_seen": 2305324,
+    "hosts_reached": 2,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U7375@DOM1",
+    "alerts": 7,
+    "hosts": [
+      "C1415",
+      "C143",
+      "C1626",
+      "C21946",
+      "C2519",
+      "C636",
+      "C7782"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 67,
+    "first_seen": 770115,
+    "last_seen": 771133,
+    "hosts_reached": 7,
+    "critical_reached": [],
+    "severity": "medium"
+  },
+  {
     "user": "U4112@DOM1",
     "alerts": 6,
     "hosts": [
@@ -1324,28 +1324,6 @@
     "first_seen": 773121,
     "last_seen": 1070204,
     "hosts_reached": 6,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U453@DOM1",
-    "alerts": 6,
-    "hosts": [
-      "C2083",
-      "C2388",
-      "C2457",
-      "C3244"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1075114,
-    "last_seen": 2304353,
-    "hosts_reached": 4,
     "critical_reached": [],
     "severity": "critical"
   },
@@ -1374,27 +1352,6 @@
     "severity": "critical"
   },
   {
-    "user": "U1025@DOM1",
-    "alerts": 6,
-    "hosts": [
-      "C1046",
-      "C338",
-      "C3597"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1152460,
-    "last_seen": 1155729,
-    "hosts_reached": 3,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U9407@DOM1",
     "alerts": 6,
     "hosts": [
@@ -1416,6 +1373,49 @@
     "hosts_reached": 4,
     "critical_reached": [],
     "severity": "critical"
+  },
+  {
+    "user": "U1025@DOM1",
+    "alerts": 6,
+    "hosts": [
+      "C1046",
+      "C338",
+      "C3597"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 1152460,
+    "last_seen": 1155729,
+    "hosts_reached": 3,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U453@DOM1",
+    "alerts": 6,
+    "hosts": [
+      "C2083",
+      "C2388",
+      "C2457",
+      "C3244"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 71,
+    "first_seen": 1075114,
+    "last_seen": 2304353,
+    "hosts_reached": 4,
+    "critical_reached": [],
+    "severity": "high"
   },
   {
     "user": "U212@DOM1",
@@ -1464,25 +1464,6 @@
     "severity": "critical"
   },
   {
-    "user": "U8777@C3388",
-    "alerts": 5,
-    "hosts": [
-      "C3388"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 747478,
-    "last_seen": 1355036,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U8840@DOM1",
     "alerts": 5,
     "hosts": [
@@ -1503,6 +1484,46 @@
     "severity": "critical"
   },
   {
+    "user": "U679@DOM1",
+    "alerts": 5,
+    "hosts": [
+      "C1703",
+      "C1980",
+      "C3953"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 1352110,
+    "last_seen": 1356094,
+    "hosts_reached": 3,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U8777@C3388",
+    "alerts": 5,
+    "hosts": [
+      "C3388"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 87,
+    "first_seen": 747478,
+    "last_seen": 1355036,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
     "user": "U1592@DOM1",
     "alerts": 5,
     "hosts": [
@@ -1518,54 +1539,12 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
+    "max_score": 87,
     "first_seen": 1099689,
     "last_seen": 1100280,
     "hosts_reached": 5,
     "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U679@DOM1",
-    "alerts": 5,
-    "hosts": [
-      "C1703",
-      "C1980",
-      "C3953"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1352110,
-    "last_seen": 1356094,
-    "hosts_reached": 3,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U882@DOM1",
-    "alerts": 4,
-    "hosts": [
-      "C11039",
-      "C1616",
-      "C2733"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 746151,
-    "last_seen": 2305330,
-    "hosts_reached": 3,
-    "critical_reached": [],
-    "severity": "critical"
+    "severity": "high"
   },
   {
     "user": "U6691@DOM1",
@@ -1591,52 +1570,6 @@
     "severity": "critical"
   },
   {
-    "user": "U1289@DOM1",
-    "alerts": 4,
-    "hosts": [
-      "C2195",
-      "C2519",
-      "C3758"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1072316,
-    "last_seen": 1082081,
-    "hosts_reached": 3,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U3486@DOM1",
-    "alerts": 4,
-    "hosts": [
-      "C22409",
-      "C457",
-      "C467"
-    ],
-    "pivots": [
-      "C22409"
-    ],
-    "techniques": [
-      "T1550.002",
-      "T1110"
-    ],
-    "max_score": 100,
-    "first_seen": 1092406,
-    "last_seen": 1261579,
-    "hosts_reached": 3,
-    "critical_reached": [
-      "C457",
-      "C467"
-    ],
-    "severity": "critical"
-  },
-  {
     "user": "U86@C10",
     "alerts": 4,
     "hosts": [
@@ -1656,6 +1589,27 @@
     "severity": "critical"
   },
   {
+    "user": "U882@DOM1",
+    "alerts": 4,
+    "hosts": [
+      "C11039",
+      "C1616",
+      "C2733"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 746151,
+    "last_seen": 2305330,
+    "hosts_reached": 3,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
     "user": "U8170@DOM1",
     "alerts": 4,
     "hosts": [
@@ -1668,19 +1622,45 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
+    "max_score": 87,
     "first_seen": 1184399,
     "last_seen": 1361496,
     "hosts_reached": 2,
     "critical_reached": [],
-    "severity": "critical"
+    "severity": "high"
   },
   {
-    "user": "U620@DOM1",
-    "alerts": 3,
+    "user": "U3486@DOM1",
+    "alerts": 4,
     "hosts": [
-      "C1003",
-      "C1759"
+      "C22409",
+      "C457",
+      "C467"
+    ],
+    "pivots": [
+      "C22409"
+    ],
+    "techniques": [
+      "T1550.002",
+      "T1110"
+    ],
+    "max_score": 77,
+    "first_seen": 1092406,
+    "last_seen": 1261579,
+    "hosts_reached": 3,
+    "critical_reached": [
+      "C457",
+      "C467"
+    ],
+    "severity": "high"
+  },
+  {
+    "user": "U1289@DOM1",
+    "alerts": 4,
+    "hosts": [
+      "C2195",
+      "C2519",
+      "C3758"
     ],
     "pivots": [
       "C17693"
@@ -1688,71 +1668,12 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
-    "first_seen": 150786,
-    "last_seen": 150885,
-    "hosts_reached": 2,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U4978@DOM1",
-    "alerts": 3,
-    "hosts": [
-      "C12116",
-      "C1438",
-      "C1448"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 728106,
-    "last_seen": 773387,
+    "max_score": 67,
+    "first_seen": 1072316,
+    "last_seen": 1082081,
     "hosts_reached": 3,
     "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U8777@C583",
-    "alerts": 3,
-    "hosts": [
-      "C583"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 746387,
-    "last_seen": 2365209,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U374@DOM1",
-    "alerts": 3,
-    "hosts": [
-      "C1461"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 747939,
-    "last_seen": 2370254,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
+    "severity": "medium"
   },
   {
     "user": "U7394@DOM1",
@@ -1775,27 +1696,6 @@
     "severity": "critical"
   },
   {
-    "user": "U5254@DOM1",
-    "alerts": 3,
-    "hosts": [
-      "C12320",
-      "C1438",
-      "C636"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 768636,
-    "last_seen": 1070100,
-    "hosts_reached": 3,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U207@DOM1",
     "alerts": 3,
     "hosts": [
@@ -1810,67 +1710,6 @@
     "max_score": 100,
     "first_seen": 1075016,
     "last_seen": 1076812,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U78@DOM1",
-    "alerts": 3,
-    "hosts": [
-      "C1581",
-      "C500"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1077222,
-    "last_seen": 1086690,
-    "hosts_reached": 2,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U1581@DOM1",
-    "alerts": 3,
-    "hosts": [
-      "C1006",
-      "C115",
-      "C3019"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1078155,
-    "last_seen": 1179121,
-    "hosts_reached": 3,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U737@C10",
-    "alerts": 3,
-    "hosts": [
-      "C10"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002",
-      "T1110"
-    ],
-    "max_score": 100,
-    "first_seen": 1166916,
-    "last_seen": 1166946,
     "hosts_reached": 1,
     "critical_reached": [],
     "severity": "critical"
@@ -1898,6 +1737,85 @@
     "severity": "critical"
   },
   {
+    "user": "U620@DOM1",
+    "alerts": 3,
+    "hosts": [
+      "C1003",
+      "C1759"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 92,
+    "first_seen": 150786,
+    "last_seen": 150885,
+    "hosts_reached": 2,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U8777@C583",
+    "alerts": 3,
+    "hosts": [
+      "C583"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 92,
+    "first_seen": 746387,
+    "last_seen": 2365209,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U374@DOM1",
+    "alerts": 3,
+    "hosts": [
+      "C1461"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 92,
+    "first_seen": 747939,
+    "last_seen": 2370254,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U5254@DOM1",
+    "alerts": 3,
+    "hosts": [
+      "C12320",
+      "C1438",
+      "C636"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 92,
+    "first_seen": 768636,
+    "last_seen": 1070100,
+    "hosts_reached": 3,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
     "user": "U655@DOM1",
     "alerts": 3,
     "hosts": [
@@ -1911,7 +1829,7 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
+    "max_score": 92,
     "first_seen": 1179553,
     "last_seen": 2552687,
     "hosts_reached": 3,
@@ -1930,12 +1848,32 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
+    "max_score": 92,
     "first_seen": 1351641,
     "last_seen": 1351845,
     "hosts_reached": 1,
     "critical_reached": [],
     "severity": "critical"
+  },
+  {
+    "user": "U78@DOM1",
+    "alerts": 3,
+    "hosts": [
+      "C1581",
+      "C500"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 89,
+    "first_seen": 1077222,
+    "last_seen": 1086690,
+    "hosts_reached": 2,
+    "critical_reached": [],
+    "severity": "high"
   },
   {
     "user": "U7311@DOM1",
@@ -1950,18 +1888,20 @@
       "T1550.002",
       "T1110"
     ],
-    "max_score": 100,
+    "max_score": 89,
     "first_seen": 1358383,
     "last_seen": 2383153,
     "hosts_reached": 1,
     "critical_reached": [],
-    "severity": "critical"
+    "severity": "high"
   },
   {
-    "user": "U636@DOM1",
-    "alerts": 2,
+    "user": "U1581@DOM1",
+    "alerts": 3,
     "hosts": [
-      "C294"
+      "C1006",
+      "C115",
+      "C3019"
     ],
     "pivots": [
       "C17693"
@@ -1969,18 +1909,20 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
-    "first_seen": 153792,
-    "last_seen": 486443,
-    "hosts_reached": 1,
+    "max_score": 84,
+    "first_seen": 1078155,
+    "last_seen": 1179121,
+    "hosts_reached": 3,
     "critical_reached": [],
-    "severity": "critical"
+    "severity": "high"
   },
   {
-    "user": "U10379@C3521",
-    "alerts": 2,
+    "user": "U4978@DOM1",
+    "alerts": 3,
     "hosts": [
-      "C3521"
+      "C12116",
+      "C1438",
+      "C1448"
     ],
     "pivots": [
       "C17693"
@@ -1988,12 +1930,32 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
-    "first_seen": 726137,
-    "last_seen": 2303788,
+    "max_score": 82,
+    "first_seen": 728106,
+    "last_seen": 773387,
+    "hosts_reached": 3,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U737@C10",
+    "alerts": 3,
+    "hosts": [
+      "C10"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002",
+      "T1110"
+    ],
+    "max_score": 82,
+    "first_seen": 1166916,
+    "last_seen": 1166946,
     "hosts_reached": 1,
     "critical_reached": [],
-    "severity": "critical"
+    "severity": "high"
   },
   {
     "user": "U3764@DOM1",
@@ -2010,101 +1972,6 @@
     "max_score": 100,
     "first_seen": 736846,
     "last_seen": 1852419,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U795@DOM1",
-    "alerts": 2,
-    "hosts": [
-      "C10005"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 744215,
-    "last_seen": 2305081,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U8777@C1500",
-    "alerts": 2,
-    "hosts": [
-      "C1500"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 747247,
-    "last_seen": 1355106,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U3718@DOM1",
-    "alerts": 2,
-    "hosts": [
-      "C9692"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 749816,
-    "last_seen": 2461523,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U6572@DOM1",
-    "alerts": 2,
-    "hosts": [
-      "C90"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 752606,
-    "last_seen": 2306980,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U642@DOM1",
-    "alerts": 2,
-    "hosts": [
-      "C2648"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 757625,
-    "last_seen": 757755,
     "hosts_reached": 1,
     "critical_reached": [],
     "severity": "critical"
@@ -2151,26 +2018,6 @@
     "severity": "critical"
   },
   {
-    "user": "U1569@DOM1",
-    "alerts": 2,
-    "hosts": [
-      "C1632",
-      "C3019"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1078070,
-    "last_seen": 1179228,
-    "hosts_reached": 2,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U1106@DOM1",
     "alerts": 2,
     "hosts": [
@@ -2187,25 +2034,6 @@
     "first_seen": 1245222,
     "last_seen": 1245398,
     "hosts_reached": 2,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U524@DOM1",
-    "alerts": 2,
-    "hosts": [
-      "C15"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1361921,
-    "last_seen": 1362045,
-    "hosts_reached": 1,
     "critical_reached": [],
     "severity": "critical"
   },
@@ -2231,6 +2059,178 @@
     "severity": "critical"
   },
   {
+    "user": "U10379@C3521",
+    "alerts": 2,
+    "hosts": [
+      "C3521"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 726137,
+    "last_seen": 2303788,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U795@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C10005"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 744215,
+    "last_seen": 2305081,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U8777@C1500",
+    "alerts": 2,
+    "hosts": [
+      "C1500"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 747247,
+    "last_seen": 1355106,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U3718@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C9692"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 749816,
+    "last_seen": 2461523,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U6572@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C90"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 752606,
+    "last_seen": 2306980,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U642@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C2648"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 757625,
+    "last_seen": 757755,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U524@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C15"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 1361921,
+    "last_seen": 1362045,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U636@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C294"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 84,
+    "first_seen": 153792,
+    "last_seen": 486443,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U1569@DOM1",
+    "alerts": 2,
+    "hosts": [
+      "C1632",
+      "C3019"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 84,
+    "first_seen": 1078070,
+    "last_seen": 1179228,
+    "hosts_reached": 2,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
     "user": "U6115@DOM1",
     "alerts": 1,
     "hosts": [
@@ -2250,25 +2250,6 @@
     "severity": "critical"
   },
   {
-    "user": "U3905@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C9945"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 728800,
-    "last_seen": 728800,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U288@DOM1",
     "alerts": 1,
     "hosts": [
@@ -2283,198 +2264,6 @@
     "max_score": 100,
     "first_seen": 731492,
     "last_seen": 731492,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U250@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C2849"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 738916,
-    "last_seen": 738916,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U4856@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C1015"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 741971,
-    "last_seen": 741971,
-    "hosts_reached": 1,
-    "critical_reached": [
-      "C1015"
-    ],
-    "severity": "critical"
-  },
-  {
-    "user": "U3277@C2519",
-    "alerts": 1,
-    "hosts": [
-      "C2519"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1072660,
-    "last_seen": 1072660,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U1519@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C849"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1072952,
-    "last_seen": 1072952,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U7761@C2519",
-    "alerts": 1,
-    "hosts": [
-      "C2519"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1072998,
-    "last_seen": 1072998,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U7004@C2519",
-    "alerts": 1,
-    "hosts": [
-      "C2519"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1073778,
-    "last_seen": 1073778,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U20@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C368"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1075884,
-    "last_seen": 1075884,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U6764@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C3019"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1078163,
-    "last_seen": 1078163,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U1789@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C3019"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1078582,
-    "last_seen": 1078582,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
-    "user": "U8168@C19038",
-    "alerts": 1,
-    "hosts": [
-      "C19038"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1233528,
-    "last_seen": 1233528,
     "hosts_reached": 1,
     "critical_reached": [],
     "severity": "critical"
@@ -2537,25 +2326,6 @@
     "severity": "critical"
   },
   {
-    "user": "U227@DOM1",
-    "alerts": 1,
-    "hosts": [
-      "C177"
-    ],
-    "pivots": [
-      "C17693"
-    ],
-    "techniques": [
-      "T1550.002"
-    ],
-    "max_score": 100,
-    "first_seen": 1254446,
-    "last_seen": 1254446,
-    "hosts_reached": 1,
-    "critical_reached": [],
-    "severity": "critical"
-  },
-  {
     "user": "U1306@DOM1",
     "alerts": 1,
     "hosts": [
@@ -2575,6 +2345,44 @@
     "severity": "critical"
   },
   {
+    "user": "U250@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C2849"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 738916,
+    "last_seen": 738916,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U8168@C19038",
+    "alerts": 1,
+    "hosts": [
+      "C19038"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 96,
+    "first_seen": 1233528,
+    "last_seen": 1233528,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
     "user": "U1467@C3597",
     "alerts": 1,
     "hosts": [
@@ -2586,11 +2394,203 @@
     "techniques": [
       "T1550.002"
     ],
-    "max_score": 100,
+    "max_score": 96,
     "first_seen": 2300154,
     "last_seen": 2300154,
     "hosts_reached": 1,
     "critical_reached": [],
     "severity": "critical"
+  },
+  {
+    "user": "U1519@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C849"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 92,
+    "first_seen": 1072952,
+    "last_seen": 1072952,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "critical"
+  },
+  {
+    "user": "U227@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C177"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 87,
+    "first_seen": 1254446,
+    "last_seen": 1254446,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U3905@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C9945"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 86,
+    "first_seen": 728800,
+    "last_seen": 728800,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U20@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C368"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 84,
+    "first_seen": 1075884,
+    "last_seen": 1075884,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U6764@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C3019"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 84,
+    "first_seen": 1078163,
+    "last_seen": 1078163,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U1789@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C3019"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 84,
+    "first_seen": 1078582,
+    "last_seen": 1078582,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "high"
+  },
+  {
+    "user": "U4856@DOM1",
+    "alerts": 1,
+    "hosts": [
+      "C1015"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 75,
+    "first_seen": 741971,
+    "last_seen": 741971,
+    "hosts_reached": 1,
+    "critical_reached": [
+      "C1015"
+    ],
+    "severity": "high"
+  },
+  {
+    "user": "U3277@C2519",
+    "alerts": 1,
+    "hosts": [
+      "C2519"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 67,
+    "first_seen": 1072660,
+    "last_seen": 1072660,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "medium"
+  },
+  {
+    "user": "U7761@C2519",
+    "alerts": 1,
+    "hosts": [
+      "C2519"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 67,
+    "first_seen": 1072998,
+    "last_seen": 1072998,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "medium"
+  },
+  {
+    "user": "U7004@C2519",
+    "alerts": 1,
+    "hosts": [
+      "C2519"
+    ],
+    "pivots": [
+      "C17693"
+    ],
+    "techniques": [
+      "T1550.002"
+    ],
+    "max_score": 67,
+    "first_seen": 1073778,
+    "last_seen": 1073778,
+    "hosts_reached": 1,
+    "critical_reached": [],
+    "severity": "medium"
   }
 ]

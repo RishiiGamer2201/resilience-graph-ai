@@ -101,26 +101,21 @@ def score_ref() -> dict:
     thing on every upload and matches /api/score-event exactly.
     """
     from src.shared import detector
-    band = detector.benign_band()
-    if band is not None:
-        # Anchor to the benign score distribution measured at training time:
-        # lo = median benign (routine behaviour -> 0), and hi chosen so the
-        # 99th percentile of benign lands on 50. An alert (score >= 50) is then
-        # exactly the 1% false-positive operating point the detector was
-        # selected on, rather than an arbitrary point on a raw error scale.
-        p50, p99 = band
-        lo, hi = float(p50), float(p50 + 2.0 * (p99 - p50))
-        basis = "benign p50/p99 (score 50 = 1% FPR operating point)"
+    ref = detector.anchors()
+    if ref is not None:
+        # Piecewise-log anchors measured at training time (see detector.calibrate):
+        # benign median -> 0, benign p99 -> 50 (the 1% FPR alert line), hi -> 100.
+        out = {"p50": ref["p50"], "p99": ref["p99"], "hi": ref["hi"],
+               "basis": "piecewise-log: benign p50->0, p99->50 (1% FPR), attack range->100"}
     else:
         benign = [0, 0, 0, 50, 0.001, 4.0, 0]  # seen host, low fail, common dst, not NTLM
         mal = [0, 1, 1, 20, 0.05, 10.0, 1]     # new host, NTLM, rare dst, some fails
         raw = detector.raw_scores([benign, mal])
-        lo, hi = float(raw[0]), float(raw[1])
-        basis = "canonical benign/malicious feature vectors"
-    if not hi > lo:                            # calibration would invert or divide by ~0
-        raise SystemExit(f"score_ref anchors are not ordered: lo={lo}, hi={hi}")
-    return {"lo": lo, "hi": hi, "features": FEATURES, "basis": basis,
-            "detector": "autoencoder" if detector.available() else "iforest"}
+        out = {"lo": float(raw[0]), "hi": float(raw[1]),
+               "basis": "canonical benign/malicious feature vectors (linear fallback)"}
+    out["features"] = FEATURES
+    out["detector"] = "autoencoder" if detector.available() else "iforest"
+    return out
 
 
 def main() -> None:

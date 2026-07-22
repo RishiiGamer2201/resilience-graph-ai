@@ -52,9 +52,8 @@ def _score(df: pd.DataFrame) -> np.ndarray:
     autoencoder, NumPy inference), calibrated with the FIXED score_ref anchors
     (not batch min/max) so scores are comparable across uploads and consistent
     with the /score-event endpoint."""
-    ref = _ref()
     X = df[FEATURES].to_numpy("float64")
-    return detector.scores_0_100(X, ref["lo"], ref["hi"])
+    return detector.scores_0_100(X, _ref())
 
 
 def _prepare(df: pd.DataFrame) -> pd.DataFrame:

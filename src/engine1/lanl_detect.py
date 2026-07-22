@@ -131,7 +131,8 @@ def train_export_autoencoder(X: np.ndarray, fit_idx: np.ndarray,
     arrays = {"n_layers": np.int64(len(linears)),
               "mean": scaler.mean_.astype("float32"),
               "scale": scaler.scale_.astype("float32"),
-              "benign_p50": np.float64(0.0), "benign_p99": np.float64(1.0)}
+              "benign_p50": np.float64(0.0), "benign_p99": np.float64(1.0),
+              "hi_anchor": np.float64(1.0)}
     for i, lin in enumerate(linears):
         arrays[f"W{i}"] = lin.weight.detach().numpy().astype("float32")
         arrays[f"b{i}"] = lin.bias.detach().numpy().astype("float32")
@@ -144,14 +145,27 @@ def train_export_autoencoder(X: np.ndarray, fit_idx: np.ndarray,
     detector._state.pop("ae", None)            # force reload of what we just wrote
     scores = detector.raw_scores(X)
 
-    # Store the BENIGN score distribution alongside the weights. The 0-100 scale
-    # is anchored to it so that a score of 50 lands exactly on the 1% false-
-    # positive operating point — the same operating point this detector was
-    # selected on. Without this the scale is arbitrary and the alert threshold
-    # drifts with whatever the raw error range happens to be.
-    benign = scores[y_for_percentiles == 0] if y_for_percentiles is not None else scores
+    # Store three calibration anchors alongside the weights, so the 0-100 display
+    # scale is a PIECEWISE-LOG map (see detector.calibrate):
+    #   benign_p50 -> 0        (routine behaviour)
+    #   benign_p99 -> 50       (the 1% false-positive alert threshold)
+    #   hi_anchor  -> 100      (top of the real attack-severity range)
+    # Reconstruction error is heavy-tailed (benign ~0.03, attacks 0.2-9), so a
+    # single linear anchor either saturates every attack to 100 or under-scores
+    # them. The log map keeps the 1% FPR line at 50 AND spreads attacks across
+    # 50-100 by severity. hi_anchor uses the attack score range; it affects the
+    # DISPLAY scale only, never detection or the ROC/TPR metrics (those rank raw
+    # scores). Falls back to the benign distribution if labels are absent.
+    if y_for_percentiles is not None:
+        benign = scores[y_for_percentiles == 0]
+        attack = scores[y_for_percentiles == 1]
+        hi = float(np.percentile(attack, 90)) if len(attack) else float(np.percentile(benign, 99.99))
+    else:
+        benign = scores
+        hi = float(np.percentile(benign, 99.99))
     arrays["benign_p50"] = np.float64(np.percentile(benign, 50))
     arrays["benign_p99"] = np.float64(np.percentile(benign, 99))
+    arrays["hi_anchor"] = np.float64(hi)
     np.savez(AE_PATH, **arrays)
     detector._state.pop("ae", None)
     return scores

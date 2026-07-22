@@ -10,8 +10,12 @@ export function severityFromScore(score) {
 
 // Severity for a timeline step: "Normal" tactic reads as normal regardless of score.
 export function severityFromStep(step) {
-  if (!step.tactic || step.tactic === 'Normal') return 'normal'
-  return severityFromScore(step.anomaly_score)
+  const sev = severityFromScore(step.anomaly_score)
+  // An event with no mapped ATT&CK tactic is shown as "normal" ONLY when its
+  // score agrees (low). Never label a high-scoring event normal just because no
+  // technique mapped — the number and the label must never contradict.
+  if ((!step.tactic || step.tactic === 'Normal') && sev === 'low') return 'normal'
+  return sev
 }
 
 export const sevClass = (sev) => `s-${sev}`

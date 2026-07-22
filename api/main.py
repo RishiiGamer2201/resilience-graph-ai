@@ -251,11 +251,9 @@ class EventFeatures(BaseModel):
 @app.post("/api/score-event")
 def score_event(f: EventFeatures):
     from src.shared import detector
-    ref = _score_ref()
     x = [[getattr(f, k) for k in FEATURES]]
     raw = float(detector.raw_scores(x)[0])
-    lo, hi = ref["lo"], ref["hi"]
-    score = float(np.clip((raw - lo) / (hi - lo + 1e-9), 0, 1) * 100)
+    score = float(detector.calibrate([raw], _score_ref())[0])
     return {"anomaly_score": round(score, 1), "severity": _severity(score),
             "raw": round(raw, 4)}
 

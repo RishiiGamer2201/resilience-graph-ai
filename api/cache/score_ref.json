@@ -1,6 +1,8 @@
 {
-  "lo": 9.518410753407862e-05,
-  "hi": 0.08405586152799362,
+  "p50": 9.518410753407862e-05,
+  "p99": 0.04207552281776385,
+  "hi": 2.7504225560699203,
+  "basis": "piecewise-log: benign p50->0, p99->50 (1% FPR), attack range->100",
   "features": [
     "is_fail",
     "new_dst_for_user",
@@ -10,6 +12,5 @@
     "dst_rarity",
     "is_ntlm"
   ],
-  "basis": "benign p50/p99 (score 50 = 1% FPR operating point)",
   "detector": "autoencoder"
 }
