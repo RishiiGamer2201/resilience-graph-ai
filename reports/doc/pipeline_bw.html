@@ -34,8 +34,8 @@
 
   <div class="stage"><div class="num">2</div>
     <div class="body"><div class="t">Anomaly scoring</div>
-      <div class="d">An IsolationForest trained only on normal behaviour scores every event from 0 to 100. Scores use fixed calibration anchors, so a score means the same thing on every upload.</div>
-      <div class="m">models/iforest_lanl.joblib · api/cache/score_ref.json</div></div>
+      <div class="d">A benign-trained autoencoder scores every event from 0 to 100 by how badly it reconstructs the behaviour. Fixed calibration anchors keep a score meaning the same thing on every upload, with the alert line at the 1% false-positive point.</div>
+      <div class="m">models/ae_lanl.npz (NumPy inference, no torch) · api/cache/score_ref.json</div></div>
     <div class="owner">ENGINE 1<br>Detection</div></div>
   <div class="arrow">|</div>
 
@@ -69,7 +69,7 @@
 
   <div class="stage"><div class="num">7</div>
     <div class="body"><div class="t">Prediction and attribution</div>
-      <div class="d">A first order Markov model ranks the attacker's likely next technique with a real transition probability. A transparent weighted retrieval ranks which known threat group the behaviour resembles, with a written justification.</div>
+      <div class="d">An interpolated Markov model ranks the attacker's likely next technique with a real transition probability. A transparent weighted retrieval ranks which known threat group the behaviour resembles, with a written justification.</div>
       <div class="m">src/engine2/build_predictor.py · src/engine2/attribution.py</div></div>
     <div class="owner">ENGINE 2<br>Predict and attribute</div></div>
 

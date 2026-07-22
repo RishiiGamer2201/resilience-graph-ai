@@ -579,10 +579,10 @@ def build(B):
               "programming interface and, in production, the built frontend from the same origin. "
               "The analysis spine sits behind the live endpoints. Trained models and lookup "
               "tables are loaded once at start up.")
-    B.figure(DOC_ASSETS / "architecture_mono.png",
+    B.figure(ROOT / "reports" / "technical_architecture_final.png",
              "Figure 2. Technical architecture. Inputs, the single container runtime across four "
-             "planes, and the outcomes delivered to a security team. A full resolution copy is in "
-             "the repository at reports/technical_architecture_final.png.",
+             "planes (experience, FastAPI service, live analysis spine, intelligence and state), "
+             "and the outcomes delivered to a security team.",
              width_cm=17.0)
 
     B.heading("5.1 The programming interface", 2)
@@ -1143,12 +1143,12 @@ def build(B):
     B.heading("14. Performance and scalability", 1)
     B.para("Rather than assert that the system scales, we measured it. The complete pipeline "
               "was timed at nine input sizes on an ordinary laptop processor with no GPU.")
-    B.figure(DOC_ASSETS / "scaling_mono.png",
+    B.figure(ROOT / "reports" / "scaling_chart_detailed.png",
              "Figure 3. Measured end to end analysis time against input size, with the "
              "measurement table and verification notes.",
              width_cm=17.0)
-    B.para("The shipped demonstration campaign completes in 0.140 seconds. The documented "
-              "upper limit of 50,000 events in a single analysis completes in 2.493 seconds. "
+    B.para("The shipped demonstration campaign completes in 0.131 seconds. The documented "
+              "upper limit of 50,000 events in a single analysis completes in 2.186 seconds. "
               "Cost per event stays effectively flat to 20,000 events and rises modestly at the "
               "cap, so we describe the result as fast rather than claiming perfect linearity. "
               "Measurements are the best of three runs after a warm up call, because the first "

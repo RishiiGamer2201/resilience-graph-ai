@@ -70,7 +70,8 @@ def main() -> None:
             continue
         rel = p.relative_to(ROOT).as_posix()
         if (rel.startswith("reports/model_experiments") or rel == "scripts/audit_stale.py"
-                or rel.endswith("package-lock.json")):
+                or rel.endswith("package-lock.json")
+                or rel == "PPT_CHANGES.md"):  # a change-list; it cites old->new on purpose
             continue                                  # the bake-off must cite old numbers
         try:
             txt = p.read_text(encoding="utf-8", errors="ignore")
