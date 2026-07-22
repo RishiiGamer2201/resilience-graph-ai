@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[2]
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
 
 TIMEOUT = 15
-UA = "ResilienceGraphAI-ThreatRadar/1.0 (hackathon research; contact: repo owner)"
+UA = "nextATTACKs-ThreatRadar/1.0 (hackathon research; contact: repo owner)"
 
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 # India-first: PS7 protects Indian critical infrastructure, so the operator's own

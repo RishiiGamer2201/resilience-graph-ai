@@ -7,7 +7,7 @@ export default function Login() {
     <div className="login">
       <div className="login-card">
         <div className="mark">R</div>
-        <h1>Resilience Graph AI</h1>
+        <h1>{'nextATT&CKs'}</h1>
         <div className="tagline">SOC Command Center · PS7 Cyber Resilience</div>
         <p className="desc">
           Real-time anomaly detection, attack-path reasoning and ATT&amp;CK-driven

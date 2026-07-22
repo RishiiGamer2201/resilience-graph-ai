@@ -1,4 +1,4 @@
-# Resilience Graph AI — Pitch Deck Content (10 slides)
+# nextATT&CKs — Pitch Deck Content (10 slides)
 
 > **Living document — update every working session.** Last updated: 2026-07-19.
 >
@@ -35,7 +35,7 @@
 
 ## Slide 1 — Title
 
-**Title:** Resilience Graph AI
+**Title:** nextATT&CKs
 **Subtitle:** AI-Driven Cyber Resilience for Critical National Infrastructure
 **Tag line (large):** *From weeks of attacker dwell time to a correlated incident in minutes.*
 
@@ -277,7 +277,7 @@ flowchart LR
 
 **Title:** What changes for an Indian CNI operator
 
-| Dimension | Today | With Resilience Graph AI |
+| Dimension | Today | With nextATT&CKs |
 |---|---|---|
 | **Detection** | ~10-day median dwell | First correlated alert within the log window |
 | **Analyst load** | 1,243 alerts to triage | **1 incident** with a narrative |

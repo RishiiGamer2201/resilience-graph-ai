@@ -1,5 +1,5 @@
 """
-M5.1 — Resilience Graph AI · SOC Command Center API (FastAPI).
+M5.1 — nextATT&CKs · SOC Command Center API (FastAPI).
 
 Serves the pre-computed cache (fast, reliable) plus two genuinely LIVE endpoints:
   POST /api/score-event    — behavioral features → live anomaly score + severity
@@ -76,7 +76,7 @@ SCENARIO_META = {
 FEATURES = ["is_fail", "new_dst_for_user", "new_src_for_user",
             "user_distinct_dst_sofar", "user_fail_rate_sofar", "dst_rarity", "is_ntlm"]
 
-app = FastAPI(title="Resilience Graph AI — SOC Command Center", version="1.0")
+app = FastAPI(title="nextATT&CKs — SOC Command Center", version="1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 

@@ -1,4 +1,4 @@
-# Resilience Graph AI: Problem, Approach, and Every Feature
+# nextATT&CKs: Problem, Approach, and Every Feature
 
 > **Living document, update every working session.** Last updated: 2026-07-22.
 >
@@ -346,7 +346,7 @@ failures.
 | Respond | Gated SOAR, Audit-ready report | Turns understanding into contained, documented action |
 | Trust throughout | LIVE and SAMPLE badge, honesty rules | Makes it credible to a regulated operator |
 
-**One-line summary:** the logs already know an attack is happening. Resilience Graph AI
+**One-line summary:** the logs already know an attack is happening. nextATT&CKs
 is the layer that listens, connects the weak signals into one story, and turns weeks of
 undetected dwell into a contained incident in minutes, using only the data an operator
 already has.

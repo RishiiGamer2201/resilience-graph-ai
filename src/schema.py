@@ -1,5 +1,5 @@
 """
-Common event schema — the single source of truth for Resilience Graph AI (PS7).
+Common event schema — the single source of truth for nextATT&CKs (PS7).
 
 Every dataset (CIC-IDS2017, LANL, UNSW-NB15) is normalized into ONE event schema
 so the rest of the pipeline (anomaly detection, correlation, ATT&CK mapping,

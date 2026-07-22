@@ -56,7 +56,7 @@ s = [f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBo
 ''']
 
 s += [text(1280, 92, "TECHNICAL ARCHITECTURE", 54, 800, "#071827", "middle"),
-      text(1280, 129, "Resilience Graph AI | Live analysis, explainable intelligence, one deployable system", 22, 600, "#28536B", "middle")]
+      text(1280, 129, "nextATT&CKs | Live analysis, explainable intelligence, one deployable system", 22, 600, "#28536B", "middle")]
 
 # Legend
 s += [f'<circle cx="2040" cy="91" r="9" fill="#2586C4"/>', text(2058, 98, "live request", 18, 600, "#38556A"),

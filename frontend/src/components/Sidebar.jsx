@@ -31,7 +31,7 @@ export default function Sidebar() {
       <div className="brand">
         <div className="mark">R</div>
         <div>
-          <b>Resilience Graph AI</b>
+          <b>{'nextATT&CKs'}</b>
           <span>SOC Command Center</span>
         </div>
       </div>

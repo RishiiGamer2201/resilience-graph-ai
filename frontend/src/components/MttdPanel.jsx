@@ -29,7 +29,7 @@ export default function MttdPanel({ mttd }) {
       <div className="card-b pad">
         <Row label={`Industry median dwell`} value={`≈ ${days} d`}
              width="100%" color="var(--sev-critical)" />
-        <Row label="Resilience Graph AI" value={oursLabel}
+        <Row label={'nextATT&CKs'} value={oursLabel}
              width="3%" color="var(--accent)" />
         <div style={{ marginTop: 6, fontSize: 13, color: 'var(--text)' }}>
           {factor

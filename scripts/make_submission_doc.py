@@ -36,9 +36,9 @@ from docx.shared import Cm, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC_ASSETS = ROOT / "reports" / "doc"
-OUT_DOCX = ROOT / "outputs" / "Resilience_Graph_AI_Submission.docx"
-OUT_HTML = ROOT / "outputs" / "Resilience_Graph_AI_Submission.html"
-OUT_PDF = ROOT / "outputs" / "Resilience_Graph_AI_Submission.pdf"
+OUT_DOCX = ROOT / "outputs" / "nextATTACKs_Submission.docx"
+OUT_HTML = ROOT / "outputs" / "nextATTACKs_Submission.html"
+OUT_PDF = ROOT / "outputs" / "nextATTACKs_Submission.pdf"
 CHROME = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
 
 BLACK = RGBColor(0, 0, 0)
@@ -347,7 +347,7 @@ class HtmlBackend:
 
     def save(self, path):
         doc = ("<!doctype html><html><head><meta charset='utf-8'>"
-               "<title>Resilience Graph AI Submission</title>"
+               "<title>nextATT&CKs Submission</title>"
                "<style>" + CSS + "</style></head><body>"
                + "".join(self.parts) + "</body></html>")
         Path(path).write_text(doc, encoding="utf-8")
@@ -359,7 +359,7 @@ class HtmlBackend:
 def build(B):
     # ---------------- cover ----------------
     B.para("", space_after=40)
-    B.para("RESILIENCE GRAPH AI", size=26, bold=True, align="center",
+    B.para("nextATT&CKs", size=26, bold=True, align="center",
          space_after=6)
     B.para("Behavioural detection, attack path reconstruction and guided response "
               "for critical national infrastructure",
@@ -436,7 +436,7 @@ def build(B):
               "for the patient database. Every one of those logins looks completely normal on its "
               "own. That is why intrusions of this kind go undetected for a global median of "
               "about ten days.")
-    B.para("Resilience Graph AI reads the ordinary authentication logs an organisation already "
+    B.para("nextATT&CKs reads the ordinary authentication logs an organisation already "
               "collects, and finds the story hidden across them. It does not look for known bad "
               "software. It learns what normal behaviour looks like for each account, then "
               "measures deviation from it.")
@@ -529,7 +529,7 @@ def build(B):
 
     # ---------------- 3 solution ----------------
     B.heading("3. Our solution", 1)
-    B.para("Resilience Graph AI is a working web application backed by two AI engines joined "
+    B.para("nextATT&CKs is a working web application backed by two AI engines joined "
               "by a shared analysis pipeline. It accepts an authentication log, either one of the "
               "scenarios shipped with the product or a file uploaded by the user, and returns a "
               "complete incident investigation.")
@@ -1261,7 +1261,7 @@ def build(B):
     # ---------------- 18 impact ----------------
     B.heading("18. Impact, deployment path and roadmap", 1)
     B.table([
-        ["Dimension", "Situation today", "With Resilience Graph AI"],
+        ["Dimension", "Situation today", "With nextATT&CKs"],
         ["Detection", "About 10 days median dwell time",
          "First correlated alert within the log window"],
         ["Analyst load", "1,243 alerts to triage", "1 incident carrying a narrative"],
@@ -1349,7 +1349,7 @@ def build(B):
     ], widths=[4.4, 12.6], size=9)
 
     B.para("", space_after=4)
-    B.para("Resilience Graph AI, Team rishiikumarsingh2201, ET AI Hackathon 2026, Problem "
+    B.para("nextATT&CKs, Team rishiikumarsingh2201, ET AI Hackathon 2026, Problem "
               "Statement 7.", size=9, italic=True, align="center")
 
 

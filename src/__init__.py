@@ -1,1 +1,1 @@
-"""Resilience Graph AI — PS7 source package."""
+"""nextATT&CKs — PS7 source package."""

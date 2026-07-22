@@ -1,4 +1,4 @@
-# Resilience Graph AI — The Complete Explainer
+# nextATT&CKs — The Complete Explainer
 
 > **Living document — update every working session.** Last updated: 2026-07-19.
 >
@@ -39,7 +39,7 @@ employee's password and quietly log into machine after machine, looking for the 
 database. Every single one of those logins looks *completely normal* on its own. That's why
 they go undetected for a median of ~10 days.
 
-**Resilience Graph AI reads the boring login logs an organisation already collects and finds
+**nextATT&CKs reads the boring login logs an organisation already collects and finds
 the story hidden across them.** On real red-team attack data it:
 
 - scores **2,732** authentication events, flags **1,243** as anomalous, and collapses them

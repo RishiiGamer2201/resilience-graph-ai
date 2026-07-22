@@ -1,4 +1,4 @@
-# Resilience Graph AI
+# nextATT&CKs
 
 **ET AI Hackathon 2026 · PS7 — AI-Driven Cyber Resilience for Critical National Infrastructure**
 

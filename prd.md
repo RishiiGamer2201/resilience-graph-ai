@@ -1,4 +1,4 @@
-# PRD — Resilience Graph AI
+# PRD — nextATT&CKs
 
 > **Living document — update every working session.** Last updated: 2026-07-16.
 
