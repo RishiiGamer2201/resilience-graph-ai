@@ -1,0 +1,206 @@
+{
+  "_comment": "SAMPLE asset inventories for the shipped demo scenarios. This is the input a real operator would supply from their CMDB: host -> business criticality, owner, and the software actually installed. We never infer a host's software from its name — an operator uploading their own log supplies their own inventory, and without one the vulnerability screen says so instead of guessing.",
+  "schema": {
+    "host": "must match source_host/destination_host in the event log",
+    "name": "human label",
+    "criticality": "critical | high | medium | low",
+    "owner": "accountable team",
+    "environment": "production | test",
+    "software": "[{vendor, product, version}] — matched against the CISA KEV catalogue"
+  },
+  "inventories": {
+    "aiims_ransomware": {
+      "provenance": "SAMPLE",
+      "note": "Synthetic hospital estate that accompanies the AIIMS-style scenario. Host names and criticality are ours; the CVEs matched against it are real CISA KEV entries.",
+      "assets": [
+        {
+          "host": "PATIENT-DB-01",
+          "name": "Patient records database",
+          "criticality": "critical",
+          "owner": "Health Informatics",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2019"},
+            {"vendor": "Oracle", "product": "E-Business Suite", "version": "12.2"}
+          ]
+        },
+        {
+          "host": "DC-AIIMS-01",
+          "name": "Domain controller",
+          "criticality": "critical",
+          "owner": "Infrastructure",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2019"}
+          ]
+        },
+        {
+          "host": "EMR-SRV-01",
+          "name": "Electronic medical records application",
+          "criticality": "critical",
+          "owner": "Health Informatics",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2016"},
+            {"vendor": "Apache", "product": "Tomcat", "version": "9.0"}
+          ]
+        },
+        {
+          "host": "PACS-RADIOLOGY-01",
+          "name": "Radiology imaging (PACS)",
+          "criticality": "high",
+          "owner": "Radiology",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2016"},
+            {"vendor": "Adobe", "product": "Acrobat and Reader", "version": "2020"}
+          ]
+        },
+        {
+          "host": "PHARMACY-SRV-01",
+          "name": "Pharmacy dispensing system",
+          "criticality": "high",
+          "owner": "Pharmacy",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2016"}
+          ]
+        },
+        {
+          "host": "BILLING-SRV-01",
+          "name": "Patient billing",
+          "criticality": "medium",
+          "owner": "Finance",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2019"},
+            {"vendor": "SAP", "product": "NetWeaver", "version": "7.5"}
+          ]
+        },
+        {
+          "host": "WARD-PC-041",
+          "name": "Ward workstation 041 (phishing entry point)",
+          "criticality": "low",
+          "owner": "Ward Operations",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "10"},
+            {"vendor": "Microsoft", "product": "Office", "version": "2019"},
+            {"vendor": "Google", "product": "Chromium", "version": "120"}
+          ]
+        },
+        {
+          "host": "WARD-PC-044",
+          "name": "Ward workstation 044",
+          "criticality": "low",
+          "owner": "Ward Operations",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "10"},
+            {"vendor": "Microsoft", "product": "Office", "version": "2019"}
+          ]
+        }
+      ]
+    },
+    "cbse_exam_breach": {
+      "provenance": "SAMPLE",
+      "note": "Synthetic exam-board estate that accompanies the CBSE-style scenario.",
+      "assets": [
+        {
+          "host": "EXAM-PAPERS-SRV-01",
+          "name": "Question-paper vault",
+          "criticality": "critical",
+          "owner": "Examinations",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2019"},
+            {"vendor": "Microsoft", "product": "SharePoint", "version": "2019"}
+          ]
+        },
+        {
+          "host": "RESULTS-DB-01",
+          "name": "Results database",
+          "criticality": "critical",
+          "owner": "Examinations",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2019"}
+          ]
+        },
+        {
+          "host": "STUDENT-DATA-DB-01",
+          "name": "Student personal-data store",
+          "criticality": "critical",
+          "owner": "Data Protection Office",
+          "environment": "production",
+          "software": [
+            {"vendor": "Linux", "product": "Kernel", "version": "5.15"},
+            {"vendor": "Apache", "product": "Tomcat", "version": "10.1"}
+          ]
+        },
+        {
+          "host": "DC-CBSE-01",
+          "name": "Domain controller",
+          "criticality": "critical",
+          "owner": "Infrastructure",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2022"}
+          ]
+        },
+        {
+          "host": "PORTAL-SRV-01",
+          "name": "Public results portal",
+          "criticality": "high",
+          "owner": "Digital Services",
+          "environment": "production",
+          "software": [
+            {"vendor": "WordPress", "product": "Core", "version": "6.4"},
+            {"vendor": "Linux", "product": "Kernel", "version": "5.15"}
+          ]
+        },
+        {
+          "host": "MAIL-SRV-01",
+          "name": "Mail server",
+          "criticality": "high",
+          "owner": "Infrastructure",
+          "environment": "production",
+          "software": [
+            {"vendor": "Synacor", "product": "Zimbra Collaboration Suite (ZCS)", "version": "9.0"}
+          ]
+        },
+        {
+          "host": "FILESHARE-01",
+          "name": "Departmental file share",
+          "criticality": "medium",
+          "owner": "Infrastructure",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "Server 2016"}
+          ]
+        },
+        {
+          "host": "OFFICE-PC-004",
+          "name": "Office workstation 004 (phishing entry point)",
+          "criticality": "low",
+          "owner": "Administration",
+          "environment": "production",
+          "software": [
+            {"vendor": "Microsoft", "product": "Windows", "version": "10"},
+            {"vendor": "Microsoft", "product": "Office", "version": "2021"}
+          ]
+        }
+      ]
+    },
+    "lanl_campaign_all": {
+      "provenance": "NOT_AVAILABLE",
+      "note": "The LANL dataset is anonymised: hosts are opaque identifiers (C586, C2388) with no product, owner or criticality metadata. We deliberately publish no vulnerability findings for it rather than invent a plausible software estate. Crown-jewel designation for LANL is a documented dependency heuristic (data/demo/scenarios/critical_assets.json), not ground truth.",
+      "assets": []
+    },
+    "lanl_redteam_u66": {
+      "provenance": "NOT_AVAILABLE",
+      "note": "See lanl_campaign_all — the dataset carries no asset metadata.",
+      "assets": []
+    }
+  }
+}

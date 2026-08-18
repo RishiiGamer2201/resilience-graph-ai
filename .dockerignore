@@ -1,13 +1,29 @@
+# Build context trimming — keep the deploy image small and the build fast.
 .git
 .venv
 **/node_modules
 frontend/dist
 **/__pycache__
+tmp
+testsprite_tests
+
+# Raw datasets (~11 GB) are never needed at runtime.
 data/raw
 data/processed/**/*.parquet
+
+# Demo data: only the shipped scenarios and the analyst-verified CERT-In file.
 data/demo
 !data/demo/scenarios
 !data/demo/scenarios/**
+
+# Reports are evidence, not runtime — except the canonical metrics store, which
+# the PS7 scoreboard reads at request time.
 reports
+!reports/metrics.json
+
 *.pdf
+*.xlsx
+*.docx
+*.pptx
 research
+outputs

@@ -123,6 +123,9 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
         "threat_intel": views.threat_intel_view(full),
         "report": views.report_view(full),
         "attackers": views.attackers_view(full),
+        # the raw gated-SOAR dict, so the investigation workflow can re-gate the
+        # same actions against RBAC policy instead of re-deriving them
+        "soar": soar,
         "meta": meta,
     }
 

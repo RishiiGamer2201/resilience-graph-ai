@@ -46,5 +46,228 @@
       "same_tactic_cos": 0.412,
       "random_cos": 0.327
     }
+  },
+  "retrieval": {
+    "gold_set": {
+      "queries": 14,
+      "recall_at_1": 0.6429,
+      "recall_at_5": 0.8571,
+      "mrr": 0.7167,
+      "k": 5,
+      "corpus_chunks": 1545,
+      "citation_integrity_failures": 0,
+      "evaluated_at": "2026-08-18 10:48 IST",
+      "note": "Hand-written gold set over the bundled corpus. Small by construction; reported as-is rather than inflated with auto-generated queries that restate the document they came from."
+    }
+  },
+  "ps7": {
+    "attack_mapping": {
+      "alerts": 320,
+      "alerts_with_technique": 320,
+      "coverage": 1.0,
+      "invalid_technique_ids": [],
+      "id_validity": 1.0,
+      "ground_truth_precision": null,
+      "ground_truth_note": "Not measured: no public dataset used here carries a per-event ATT&CK technique label, so event->technique precision cannot be computed. We report coverage and ID validity, which we can."
+    },
+    "soar_coverage": {
+      "observed_tactics": [
+        "Credential Access",
+        "Initial Access",
+        "Lateral Movement"
+      ],
+      "tactics_with_playbook_action": [
+        "Credential Access",
+        "Initial Access",
+        "Lateral Movement"
+      ],
+      "tactic_coverage": 1.0,
+      "observed_techniques": [
+        "T1021",
+        "T1078",
+        "T1110",
+        "T1550.002"
+      ],
+      "techniques_with_mitre_mitigations": [
+        "T1021",
+        "T1078",
+        "T1110",
+        "T1550.002"
+      ],
+      "mitigation_coverage": 1.0,
+      "playbook_tactics_defined": [
+        "Collection",
+        "Credential Access",
+        "Discovery",
+        "Exfiltration",
+        "Initial Access",
+        "Lateral Movement"
+      ],
+      "detector_event_types_mapped": 9,
+      "actions_executed_against_real_systems": 0,
+      "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
+    },
+    "latency_ms": {
+      "p50": 51.2,
+      "p95": 223.8,
+      "max": 745.7,
+      "samples": 12,
+      "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
+    },
+    "mttd": {
+      "measured_per_scenario": {
+        "aiims_ransomware": 0,
+        "cbse_exam_breach": 0,
+        "lanl_campaign_all": 0,
+        "lanl_redteam_u66": 0
+      },
+      "definition": "seconds from the first event in the log to the first correlated alert",
+      "note": "Measured from each log's own timestamps. Industry dwell time is cited separately as a comparison, never as our measurement."
+    },
+    "mttr": {
+      "value": null,
+      "state": "not measured",
+      "why": "Every response action in this product is SIMULATED and human-gated. With no execution there is no repair to time. Claiming an MTTR improvement would be fabricating the headline number PS7 asks for."
+    },
+    "audit": {
+      "chain_verifies": true,
+      "tamper_detected": true,
+      "detection_message": "record 1 (analysis.completed): content hash mismatch \u2014 this record's contents were altered after it was written",
+      "hash_algorithm": "sha256"
+    },
+    "rbac": {
+      "roles": [
+        "viewer",
+        "analyst",
+        "responder",
+        "admin"
+      ],
+      "viewer_denied_approval": true,
+      "crown_jewel_action_requires_approval": true,
+      "low_impact_pre_approved": true,
+      "enforced": "server-side on every mutating endpoint"
+    },
+    "scenarios": {
+      "rows": [
+        {
+          "scenario": "aiims_ransomware",
+          "events": 125,
+          "alerts": 125,
+          "incidents": 1,
+          "alert_reduction_ratio": 1.0,
+          "techniques": [
+            "T1021",
+            "T1078",
+            "T1110",
+            "T1550.002"
+          ],
+          "tactics": [
+            "Initial Access",
+            "Lateral Movement"
+          ],
+          "mttd_seconds": 0,
+          "mttd_human": "immediate",
+          "crown_jewel_exposure": 100.0,
+          "attack_progression_confidence": 66.7,
+          "citations": 6,
+          "vuln_findings": 319,
+          "proposals": 5,
+          "gated": 4,
+          "executed": 0,
+          "latency_ms_median": 53.3,
+          "degraded_nodes": []
+        },
+        {
+          "scenario": "cbse_exam_breach",
+          "events": 127,
+          "alerts": 127,
+          "incidents": 1,
+          "alert_reduction_ratio": 1.0,
+          "techniques": [
+            "T1021",
+            "T1078",
+            "T1110",
+            "T1550.002"
+          ],
+          "tactics": [
+            "Initial Access",
+            "Lateral Movement"
+          ],
+          "mttd_seconds": 0,
+          "mttd_human": "immediate",
+          "crown_jewel_exposure": 100.0,
+          "attack_progression_confidence": 66.7,
+          "citations": 6,
+          "vuln_findings": 224,
+          "proposals": 5,
+          "gated": 4,
+          "executed": 0,
+          "latency_ms_median": 48.8,
+          "degraded_nodes": []
+        },
+        {
+          "scenario": "lanl_campaign_all",
+          "events": 2732,
+          "alerts": 1243,
+          "incidents": 1,
+          "alert_reduction_ratio": 2.2,
+          "techniques": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021"
+          ],
+          "tactics": [
+            "Credential Access",
+            "Initial Access",
+            "Lateral Movement"
+          ],
+          "mttd_seconds": 0,
+          "mttd_human": "immediate",
+          "crown_jewel_exposure": 80.0,
+          "attack_progression_confidence": 73.0,
+          "citations": 6,
+          "vuln_findings": 0,
+          "proposals": 5,
+          "gated": 4,
+          "executed": 0,
+          "latency_ms_median": 180.6,
+          "degraded_nodes": [
+            "understand"
+          ]
+        },
+        {
+          "scenario": "lanl_redteam_u66",
+          "events": 215,
+          "alerts": 208,
+          "incidents": 1,
+          "alert_reduction_ratio": 1.03,
+          "techniques": [
+            "T1550.002",
+            "T1110",
+            "T1078"
+          ],
+          "tactics": [
+            "Credential Access",
+            "Initial Access",
+            "Lateral Movement"
+          ],
+          "mttd_seconds": 0,
+          "mttd_human": "immediate",
+          "crown_jewel_exposure": 5.0,
+          "attack_progression_confidence": 73.0,
+          "citations": 6,
+          "vuln_findings": 0,
+          "proposals": 5,
+          "gated": 4,
+          "executed": 0,
+          "latency_ms_median": 50.6,
+          "degraded_nodes": [
+            "understand"
+          ]
+        }
+      ],
+      "evaluated_at": "2026-08-18 10:50 IST"
+    }
   }
 }

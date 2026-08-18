@@ -34,6 +34,7 @@ from datetime import datetime, timezone as _tz
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
+from src.shared.nethttp import fetch_url
 from src.shared.timeutil import fmt_ist, fmt_ist_date
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -195,10 +196,9 @@ def _name_index() -> list[tuple[str, str]]:
 # HTTP                                                                         #
 # --------------------------------------------------------------------------- #
 def _get(url: str, headers: dict | None = None, data: bytes | None = None) -> bytes:
-    req = urllib.request.Request(url, data=data,
-                                 headers={"User-Agent": UA, **(headers or {})})
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-        return r.read()
+    """Every outbound request goes through the guarded fetcher (host allowlist,
+    SSRF/redirect guard, size + time caps) — see src/shared/nethttp.py."""
+    return fetch_url(url, headers=headers, data=data, timeout=TIMEOUT)
 
 
 def _iso(dt: datetime | None) -> str:

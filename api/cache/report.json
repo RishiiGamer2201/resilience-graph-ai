@@ -1,6 +1,6 @@
 {
   "incident_id": "INC-PS7-LANL-CAMPAIGN",
-  "generated_at": "2026-07-22 20:22 IST",
+  "generated_at": "2026-08-18 10:55 IST",
   "severity": "critical",
   "max_anomaly_score": 100,
   "account": "104 accounts",
@@ -10,6 +10,10 @@
     {
       "tactic": "Lateral Movement",
       "count": 538
+    },
+    {
+      "tactic": "Initial Access",
+      "count": 488
     },
     {
       "tactic": "Credential Access",
@@ -22,6 +26,10 @@
       "name": "Pass the Hash"
     },
     {
+      "technique_id": "T1078",
+      "name": "Valid Accounts"
+    },
+    {
       "technique_id": "T1110",
       "name": "Brute Force"
     },
@@ -31,12 +39,12 @@
     }
   ],
   "attack_path": [
-    "C17693",
-    "C586"
+    "C18025",
+    "C1065"
   ],
   "attributed_actor": {
     "actor": "Ember Bear",
-    "justification": "Ember Bear matches 3/3 observed techniques (profile coverage 100%; semantic similarity 0.76)."
+    "justification": "Ember Bear matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.80)."
   },
   "predicted_next": [
     {
@@ -59,6 +67,11 @@
       "mode": "requires human approval"
     },
     {
+      "tactic": "Initial Access",
+      "action": "Disable / step-up verify the account",
+      "mode": "requires human approval"
+    },
+    {
       "tactic": "Credential Access",
       "action": "Force password reset + enable MFA",
       "mode": "requires human approval"
@@ -78,9 +91,9 @@
     "Privileged Account Management",
     "Update Software",
     "Account Use Policies",
+    "Active Directory Configuration",
     "Multi-factor Authentication",
-    "Audit",
-    "Disable or Remove Feature or Program"
+    "Audit"
   ],
   "mttd": {
     "traditional_days": 10,
@@ -91,7 +104,9 @@
     "note": "time to first correlated alert in this log (measured); industry dwell is a cited comparison, not our claim"
   },
   "evidence": {
-    "lanl_roc_auc": 0.988,
-    "basis": "real LANL red-team labels"
+    "lanl_roc_auc": 0.992,
+    "detector": "benign-trained autoencoder",
+    "basis": "real LANL red-team labels",
+    "source": "reports/metrics.json"
   }
 }

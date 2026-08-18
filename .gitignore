@@ -7,6 +7,11 @@ data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/raw/**/.gitkeep
+# Exception: the small, committed runtime artifacts a fresh clone needs to run
+# the app with no dataset download. Everything else under data/processed is
+# regenerable and stays out.
+!data/processed/evidence/
+!data/processed/evidence/index.json.gz
 
 # ─── Models & artifacts ───────────────────────────────
 models/*
@@ -37,6 +42,9 @@ node_modules/
 frontend/dist/
 frontend/.vite/
 *.local
+
+# ─── Scratch ──────────────────────────────────────────
+tmp/
 
 # ─── Editor / OS ──────────────────────────────────────
 .vscode/

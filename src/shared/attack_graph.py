@@ -44,7 +44,8 @@ def attacker_pivots(g: nx.DiGraph) -> list[str]:
 
 
 def analyze(g: nx.DiGraph, entry_host: str | None = None,
-            critical_assets: set[str] | None = None) -> dict:
+            critical_assets: set[str] | None = None,
+            choke_points: bool = True) -> dict:
     """Compute paths to critical assets, choke points, and blast radius.
 
     Reachability is computed from EVERY attacker pivot, not just the busiest one.
@@ -67,8 +68,10 @@ def analyze(g: nx.DiGraph, entry_host: str | None = None,
         if best:
             paths[asset] = best
 
-    # betweenness centrality -> choke points to isolate
-    bc = nx.betweenness_centrality(g) if g.number_of_nodes() > 2 else {}
+    # betweenness centrality -> choke points to isolate. Skippable: the digital
+    # twin ranks hundreds of candidate isolations and only needs reachability,
+    # and betweenness is by far the most expensive term here.
+    bc = nx.betweenness_centrality(g) if (choke_points and g.number_of_nodes() > 2) else {}
     choke_points = sorted(bc, key=bc.get, reverse=True)[:3]
 
     # blast radius = everything reachable from ANY attacker pivot

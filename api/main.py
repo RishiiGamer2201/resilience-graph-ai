@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import pickle
 from pathlib import Path
 
@@ -117,7 +118,12 @@ def _cached(name: str) -> dict:
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "cache_built": (CACHE / "overview.json").exists()}
+    """Liveness. Keeps its original shape; /api/readiness has the detail."""
+    from src.shared import evidence as _ev
+    return {"ok": True,
+            "cache_built": (CACHE / "overview.json").exists(),
+            "evidence_index": _ev.available(),
+            "version": os.environ.get("NEXTATTACK_VERSION", "dev")}
 
 
 @app.get("/api/overview")
@@ -384,6 +390,14 @@ async def analyze_stream(scenario: str, critical_assets: str = "", delay: float 
 
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+# --- finalist surface: workflow, evidence, vulnerabilities, twin, RBAC, audit
+# Registered BEFORE the SPA catch-all below, which would otherwise shadow every
+# GET route it defines.
+from api.finalist import router as finalist_router   # noqa: E402
+
+app.include_router(finalist_router)
 
 
 # --- serve the built React app (single-container deploy) -------------------

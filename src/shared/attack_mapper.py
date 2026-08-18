@@ -66,11 +66,23 @@ def map_event(event_type: str) -> dict:
     }
 
 
-def infer_lanl_event_type(row: dict) -> str:
+ALERT_SCORE = 50            # matches correlate.ALERT_THRESHOLD (the 1% FPR line)
+
+
+def infer_lanl_event_type(row: dict, alert_threshold: int = ALERT_SCORE) -> str:
     """Derive an event type from a LANL auth row's behavioral features.
 
     Expects the engineered columns from src.engine1.lanl_detect.engineer()
     (is_fail, new_dst_for_user, is_ntlm). Falls back gracefully if absent.
+
+    An event the detector flagged but that is neither a failure nor a first-time
+    host still needs a technique: a successful authentication with valid
+    credentials that is anomalous for this account IS ATT&CK T1078 Valid
+    Accounts, which is exactly the observable the technique describes. Without
+    this branch those alerts reached the analyst with no ATT&CK context at all
+    (measured: 37.5% mapping coverage across the shipped scenarios). The branch
+    is deliberately gated on the score so routine, unflagged authentications are
+    never labelled an adversary technique.
     """
     if row.get("is_fail"):
         return "failed_login_burst"
@@ -80,4 +92,6 @@ def infer_lanl_event_type(row: dict) -> str:
         return "ntlm_lateral_movement"
     if new_host:
         return "new_host_auth"
+    if float(row.get("anomaly_score") or 0) >= alert_threshold:
+        return "unusual_successful_login"
     return "normal_auth"

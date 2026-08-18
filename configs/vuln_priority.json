@@ -1,0 +1,41 @@
+{
+  "_comment": "Deterministic vulnerability-prioritisation configuration. Every weight and threshold the scorer uses lives here — nothing is hidden in code. Changing a weight changes the ranking and is visible in the exported audit record (config_sha256). Weights are relative; the scorer renormalises over the factors it can actually evaluate, so an unknown CVSS lowers confidence instead of silently scoring 0.",
+  "version": "1.0.0",
+  "weights": {
+    "asset_criticality": 0.30,
+    "known_exploited": 0.25,
+    "graph_reachability": 0.20,
+    "technique_overlap": 0.10,
+    "severity": 0.10,
+    "evidence_freshness": 0.05
+  },
+  "asset_criticality_scale": {
+    "critical": 1.0,
+    "high": 0.7,
+    "medium": 0.4,
+    "low": 0.15
+  },
+  "reachability_scale": {
+    "_comment": "How exposed the asset is in THIS incident's attack graph.",
+    "reached": 1.0,
+    "path_exists": 0.75,
+    "in_blast_radius": 0.5,
+    "in_graph": 0.25,
+    "not_in_graph": 0.0
+  },
+  "freshness": {
+    "_comment": "Linear decay on the evidence's own document date. Older advisories are not less true, only less urgent as a queue signal.",
+    "full_score_within_days": 30,
+    "zero_score_after_days": 730
+  },
+  "severity": {
+    "_comment": "CVSS base score / 10. CISA KEV publishes no CVSS, so unless the optional NVD enrichment has run this factor is 'unknown' and drops out of the weighted average.",
+    "max_cvss": 10.0
+  },
+  "bands": {
+    "_comment": "Score is reported with a band because false precision (a 73.4 vs a 71.9) is not defensible from this input data.",
+    "act_now": 80,
+    "urgent": 60,
+    "scheduled": 40
+  }
+}

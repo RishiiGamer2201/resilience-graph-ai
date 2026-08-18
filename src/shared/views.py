@@ -17,6 +17,7 @@ from pathlib import Path
 
 from src.engine2.attribution import load_artifacts, rank_actors
 from src.shared.attack_mapper import explanation
+from src.shared.metrics_store import load as load_metrics
 from src.shared.timeutil import fmt_ist
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,15 +30,34 @@ MARKOV = ROOT / "models" / "next_technique_markov.pkl"
 DWELL_CITATION_DAYS = 10
 DWELL_CITATION = "Mandiant M-Trends 2024 - global median dwell ~10 days"
 
-# Model-level benchmark scorecard — mirrors reports/ (Engine 1/2 eval reports).
-# Upload-independent (it describes the detectors, not the analysed log), so both
-# the cached Overview and a live analysis show the same evidence.
-SCORECARD = [
-    {"name": "LANL lateral movement", "metric": "ROC-AUC", "value": 0.988, "kind": "real red-team"},
-    {"name": "CICIDS anomaly (autoencoder)", "metric": "PR-AUC", "value": 0.570, "kind": "real"},
-    {"name": "UNSW-NB15", "metric": "ROC-AUC", "value": 0.829, "kind": "2nd benchmark"},
-    {"name": "Next-technique (Markov)", "metric": "top-3", "value": 0.386, "kind": "honest"},
-]
+def _scorecard() -> list[dict]:
+    """Model-level benchmark scorecard, read from the canonical metrics store.
+
+    This used to be four hand-typed constants and they drifted: the card claimed
+    LANL ROC-AUC 0.988 (the IsolationForest we stopped shipping) while
+    reports/metrics.json said 0.992 for the autoencoder that actually runs, and
+    the predictor card said 0.386 against a measured 0.381. Numbers on screen now
+    come from the same file the eval scripts write, so they cannot drift again.
+    """
+    try:
+        m = load_metrics()
+    except (FileNotFoundError, ValueError):
+        return []
+    e1, e2 = m.get("engine1", {}), m.get("engine2", {})
+    lanl, cic, unsw = e1.get("lanl", {}), e1.get("cicids", {}), e1.get("unsw", {})
+    pred = e2.get("predictor", {})
+    cards = [
+        ("LANL lateral movement", "ROC-AUC", lanl.get("roc_auc"), "real red-team"),
+        ("CICIDS anomaly (autoencoder)", "PR-AUC", cic.get("autoencoder_prauc"), "real"),
+        ("UNSW-NB15", "ROC-AUC", unsw.get("roc_auc"), "2nd benchmark"),
+        ("Next-technique (interpolated Markov)", "top-3", pred.get("shipped_top3"), "honest"),
+    ]
+    return [{"name": n, "metric": mt, "value": v, "kind": k}
+            for n, mt, v, k in cards if v is not None]
+
+
+# Evaluated once at import: the store is a build artifact, not request state.
+SCORECARD = _scorecard()
 
 
 def _names() -> dict:
@@ -316,5 +336,10 @@ def report_view(full: dict) -> dict:
         "mttd": {"traditional_days": mttd["traditional_days"], "ours_minutes": mttd["ours_minutes"],
                  "ours_seconds": mttd["ours_seconds"], "value": mttd["value"],
                  "citation": mttd["citation"], "note": mttd["note"]},
-        "evidence": {"lanl_roc_auc": 0.988, "basis": "real LANL red-team labels"},
+        # from reports/metrics.json, never a constant typed into a report template
+        "evidence": {"lanl_roc_auc": next((c["value"] for c in SCORECARD
+                                           if c["name"].startswith("LANL")), None),
+                     "detector": "benign-trained autoencoder",
+                     "basis": "real LANL red-team labels",
+                     "source": "reports/metrics.json"},
     }

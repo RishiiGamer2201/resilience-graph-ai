@@ -1,0 +1,349 @@
+"""The PS7 evaluation scoreboard.
+
+One screen that answers the question the problem statement actually asks: how
+well does this system detect, attribute, decide and prove — measured, against a
+baseline, with the evidence one click away.
+
+Every value is read from `reports/metrics.json`, which the evaluation scripts
+write. Nothing here is typed by hand, and a metric that has not been measured is
+rendered `Not measured` with the reason — never zero, never a placeholder, never
+a number borrowed from a slide.
+
+Card contract (enforced by `tests/test_scoreboard.py`):
+  * `state` is "measured" or "not_measured";
+  * a measured card has a numeric `value`, a `definition`, a `dataset` and a
+    `report` that exists on disk;
+  * an unmeasured card has a `why` and no value;
+  * no card may report bare accuracy, and no card may claim perfect attribution.
+
+    from src.shared.scoreboard import scoreboard
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+from src.shared.metrics_store import load as load_metrics
+from src.shared.timeutil import fmt_ist
+
+ROOT = Path(__file__).resolve().parents[2]
+REPORTS = ROOT / "reports"
+
+# Claims we refuse to make about security models, and why. Kept in code so the
+# test can assert on it rather than trusting a review to catch a regression.
+FORBIDDEN_CLAIMS = {
+    "accuracy": "meaningless at 0.006% attack prevalence — use PR-AUC or TPR at a fixed FPR",
+    "100% attribution": "the profile-retrieval eval is near-trivial by construction",
+}
+
+
+def _pct(x: float | None) -> float | None:
+    return None if x is None else round(100.0 * x, 1)
+
+
+def _card(id: str, group: str, name: str, *, definition: str, dataset: str,
+          value=None, unit: str = "", baseline: dict | None = None,
+          higher_is_better: bool = True, report: str | None = None,
+          why: str | None = None, note: str = "", sample: str = "",
+          provenance: str = "VERIFIED") -> dict:
+    measured = value is not None
+    return {
+        "id": id, "group": group, "name": name,
+        "definition": definition, "dataset": dataset, "sample": sample,
+        "state": "measured" if measured else "not_measured",
+        "value": value, "unit": unit,
+        "baseline": baseline,
+        "delta": (round(value - baseline["value"], 3)
+                  if measured and baseline and baseline.get("value") is not None else None),
+        "lift": (round(value / baseline["value"], 2)
+                 if measured and baseline and baseline.get("value") else None),
+        "higher_is_better": higher_is_better,
+        "report": report,
+        "report_exists": bool(report and (ROOT / report).exists()),
+        "why": why,
+        "note": note,
+        "provenance": provenance if measured else "NOT_MEASURED",
+    }
+
+
+def scoreboard() -> dict:
+    m = load_metrics()
+    e1, e2 = m.get("engine1", {}), m.get("engine2", {})
+    ps7 = m.get("ps7", {})
+    ret = m.get("retrieval", {}).get("gold_set", {})
+    lanl, cic, unsw = e1.get("lanl", {}), e1.get("cicids", {}), e1.get("unsw", {})
+    pred = e2.get("predictor", {})
+    am, sc = ps7.get("attack_mapping", {}), ps7.get("soar_coverage", {})
+    lat, mttd, mttr = ps7.get("latency_ms", {}), ps7.get("mttd", {}), ps7.get("mttr", {})
+    audit, rbac = ps7.get("audit", {}), ps7.get("rbac", {})
+
+    cards = [
+        # ---- detection: the false-positive question PS7 asks -------------
+        _card("tpr_at_1pct_fpr", "Detection",
+              "True-positive rate at 1% false positives",
+              definition=("Share of the 702 real red-team events caught while the "
+                          "detector fires on only 1% of benign authentications — the "
+                          "operating point an analyst can actually staff."),
+              dataset="LANL Cyber-1, real red-team ground truth",
+              sample="702 attack events in 11.2M authentications (0.006% prevalence)",
+              value=_pct(lanl.get("tpr_at_1pct_fpr")), unit="%",
+              baseline={"name": "IsolationForest at the same 1% FPR",
+                        "value": _pct(lanl.get("iforest_tpr_at_1pct_fpr"))},
+              report="reports/lanl_redteam_detection.md",
+              note="Trained on benign traffic only. Labels are used for evaluation, never training."),
+        _card("lanl_roc", "Detection", "ROC-AUC on real red-team data",
+              definition="Ranking quality over the whole score range.",
+              dataset="LANL Cyber-1", sample="702 attack events",
+              value=lanl.get("roc_auc"), unit="",
+              baseline={"name": "random", "value": 0.5},
+              report="reports/lanl_redteam_detection.md",
+              note="Reported alongside the 1% FPR point because ROC-AUC alone flatters "
+                   "any detector at this prevalence."),
+        _card("behavioural_only_roc", "Detection",
+              "ROC-AUC with the NTLM signal removed",
+              definition=("Ablation: 100% of red-team logins used NTLM versus ~6% of "
+                          "benign. Removing that one evadable feature tests whether "
+                          "detection rests on generalisable behaviour."),
+              dataset="LANL Cyber-1", sample="702 attack events",
+              value=lanl.get("behavioral_only_roc"), unit="",
+              baseline={"name": "random", "value": 0.5},
+              report="reports/lanl_redteam_detection.md"),
+        _card("cicids_prauc", "Detection", "PR-AUC on network flows",
+              definition="Precision-recall AUC — the right metric on imbalanced flow data.",
+              dataset="CIC-IDS2017", sample="2.3M flows, split by day",
+              value=cic.get("autoencoder_prauc"), unit="",
+              baseline={"name": "rule baseline", "value": cic.get("rule_prauc")},
+              report="reports/evaluation_report.md",
+              note=f"Random baseline {cic.get('random_prauc')}; the rule baseline scores "
+                   f"{cic.get('rule_prauc')}, worse than random."),
+        _card("unsw_roc", "Detection", "ROC-AUC on a second benchmark",
+              definition="Independent confirmation on a dataset the model was not tuned on.",
+              dataset="UNSW-NB15, official split", sample="official test split",
+              value=unsw.get("roc_auc"), unit="",
+              baseline={"name": "random", "value": 0.5},
+              report="reports/unsw_evaluation.md"),
+
+        # ---- attribution and prediction ----------------------------------
+        _card("next_technique_top3", "Attribution & prediction",
+              "Next-technique top-3 accuracy",
+              definition=("Is the attacker's actual next ATT&CK technique in our top 3, "
+                          "given the sequence so far."),
+              dataset="205 real attack sequences from ATT&CK group/campaign data",
+              sample="780 held-out prediction points, split at sequence level",
+              value=_pct(pred.get("shipped_top3")), unit="%",
+              baseline={"name": "kill-chain-order baseline",
+                        "value": _pct(pred.get("killchain_top3"))},
+              report="reports/prediction_eval.md",
+              note=("The kill-chain baseline exists to catch circularity: our sequences "
+                    "are tactic-ordered, so a model could cheat by re-learning that order. "
+                    "Beating it means real technique-to-technique transitions. An LSTM over "
+                    f"MiniLM embeddings scored {_pct(pred.get('lstm_top3'))}% and lost.")),
+        _card("cert_in_top3", "Attribution & prediction",
+              "Top-3 on analyst-verified CERT-In orderings",
+              definition=("The same model on 4 CERT-In advisory sequences ordered by the "
+                          "real reported timeline rather than our heuristic — the harder, "
+                          "non-circular test."),
+              dataset="CERT-In advisories, analyst-verified", sample="4 sequences",
+              value=_pct(e2.get("manual_cert_in_top3")), unit="%",
+              baseline={"name": "auto-ordered set", "value": _pct(pred.get("shipped_top3"))},
+              report="reports/prediction_eval.md",
+              note="Published because it is worse. Real orderings are harder than "
+                   "heuristic ones, and hiding that would be the dishonest choice.",
+              provenance="VERIFIED"),
+        _card("attack_mapping_coverage", "Attribution & prediction",
+              "ATT&CK mapping coverage",
+              definition="Share of correlated alerts that carry an ATT&CK technique.",
+              dataset="all shipped scenarios", sample=f"{am.get('alerts', 0)} alerts",
+              value=_pct(am.get("coverage")), unit="%",
+              baseline={"name": "unmapped alerts", "value": 0.0},
+              report="reports/ps7_eval.md"),
+        _card("attack_id_validity", "Attribution & prediction",
+              "Technique-ID validity",
+              definition=("Share of emitted technique IDs that exist in the canonical "
+                          "parsed ATT&CK STIX. A hallucinated ID shows up here."),
+              dataset="all shipped scenarios",
+              sample=f"{len(am.get('observed_techniques', []) or sc.get('observed_techniques', []))} distinct IDs",
+              value=_pct(am.get("id_validity")), unit="%",
+              baseline={"name": "unvalidated free text", "value": None},
+              report="reports/ps7_eval.md"),
+        _card("technique_precision", "Attribution & prediction",
+              "Event-to-technique precision",
+              why=am.get("ground_truth_note",
+                         "No public dataset used here labels individual events with an "
+                         "ATT&CK technique, so precision cannot be computed."),
+              definition="Would require per-event ATT&CK ground truth.",
+              dataset="none available", report="reports/ps7_eval.md"),
+
+        # ---- evidence -----------------------------------------------------
+        _card("retrieval_recall5", "Evidence",
+              f"Evidence recall@{ret.get('k', 5)}",
+              definition=("Share of gold queries where the correct official document "
+                          "appears in the top-k."),
+              dataset="bundled MITRE ATT&CK + CISA KEV + CERT-In corpus",
+              sample=f"{ret.get('queries', 0)} hand-written queries over "
+                     f"{ret.get('corpus_chunks', 0)} chunks",
+              value=_pct(ret.get("recall_at_5")), unit="%",
+              baseline={"name": "recall@1", "value": _pct(ret.get("recall_at_1"))},
+              report="reports/retrieval_eval.md",
+              note=f"MRR {ret.get('mrr')}. Lexical BM25 with exact-identifier boost; "
+                   f"paraphrased queries with no shared vocabulary still miss."),
+        _card("citation_integrity", "Evidence", "Citation integrity failures",
+              definition=("Retrieved citations whose stored SHA-256 no longer matches "
+                          "their text, or that lack a URL, publisher or section."),
+              dataset="every hit across the gold query set",
+              sample=f"{ret.get('queries', 0)} queries × {ret.get('k', 5)} hits",
+              value=ret.get("citation_integrity_failures"), unit=" failures",
+              higher_is_better=False,
+              baseline={"name": "target", "value": 0},
+              report="reports/retrieval_eval.md"),
+
+        # ---- response and governance --------------------------------------
+        _card("soar_tactic_coverage", "Response & governance",
+              "SOAR playbook coverage",
+              definition=("Share of observed ATT&CK tactics that have a defined, gated "
+                          "response action."),
+              dataset="all shipped scenarios",
+              sample=f"{len(sc.get('observed_tactics', []))} observed tactics",
+              value=_pct(sc.get("tactic_coverage")), unit="%",
+              baseline={"name": "no playbook", "value": 0.0},
+              report="reports/ps7_eval.md"),
+        _card("mitigation_coverage", "Response & governance",
+              "MITRE mitigation coverage",
+              definition=("Share of observed techniques for which MITRE publishes a "
+                          "mitigation that we surface."),
+              dataset="parsed ATT&CK STIX",
+              sample=f"{len(sc.get('observed_techniques', []))} observed techniques",
+              value=_pct(sc.get("mitigation_coverage")), unit="%",
+              baseline={"name": "no mitigation surfaced", "value": 0.0},
+              report="reports/ps7_eval.md"),
+        _card("actions_executed", "Response & governance",
+              "Actions executed against real systems",
+              definition=("By design this is zero. Every response is simulated; "
+                          "crown-jewel actions additionally require a named human "
+                          "approval with a written reason."),
+              dataset="all shipped scenarios", sample="every proposed action",
+              value=sc.get("actions_executed_against_real_systems", 0), unit="",
+              higher_is_better=False,
+              baseline={"name": "policy limit", "value": 0},
+              report="reports/ps7_eval.md"),
+        _card("mttd", "Response & governance", "Mean time to detect",
+              definition=(mttd.get("definition")
+                          or "seconds from the first event to the first correlated alert"),
+              dataset="each scenario's own timestamps",
+              sample=", ".join(f"{k}: {v}s" for k, v in
+                               (mttd.get("measured_per_scenario") or {}).items()) or "—",
+              value=(max((mttd.get("measured_per_scenario") or {}).values())
+                     if mttd.get("measured_per_scenario") else None),
+              unit=" s", higher_is_better=False,
+              baseline={"name": "Mandiant M-Trends 2024 global median dwell "
+                                "(a citation, not our measurement)",
+                        "value": 10 * 86400},
+              report="reports/ps7_eval.md",
+              note="Worst case across the shipped scenarios. The dwell-time comparison is "
+                   "an industry citation, not something we measured."),
+        _card("mttr", "Response & governance", "Mean time to respond",
+              why=mttr.get("why", "No action is executed, so there is no repair to time."),
+              definition="Would require executing containment against a real system.",
+              dataset="none", report="reports/ps7_eval.md"),
+        _card("audit_tamper_detection", "Response & governance",
+              "Audit tampering detected",
+              definition=("A record is edited in an exported chain and the chain is "
+                          "re-verified. 1 = the edit was detected and located."),
+              dataset="synthetic tamper test, run every evaluation",
+              sample="edit + deletion",
+              value=(1 if audit.get("tamper_detected") else 0), unit="",
+              baseline={"name": "unlinked log", "value": 0},
+              report="reports/ps7_eval.md",
+              note="Tamper-evident, not tamper-proof: detection, not prevention."),
+        _card("rbac_denial", "Response & governance",
+              "Unauthorised approval blocked server-side",
+              definition=("A viewer attempts to approve a critical action. 1 = the API "
+                          "refused, independently of the UI."),
+              dataset="authorisation test, run every evaluation", sample="viewer role",
+              value=(1 if rbac.get("viewer_denied_approval") else 0), unit="",
+              baseline={"name": "UI-only gating", "value": 0},
+              report="reports/ps7_eval.md"),
+
+        # ---- performance ---------------------------------------------------
+        _card("latency_p50", "Performance", "Investigation latency (p50)",
+              definition="Wall time for the full 7-node investigation.",
+              dataset="all shipped scenarios",
+              sample=f"{lat.get('samples', 0)} runs · {lat.get('scope', '')}",
+              value=lat.get("p50"), unit=" ms", higher_is_better=False,
+              baseline={"name": "p95", "value": lat.get("p95")},
+              report="reports/ps7_eval.md"),
+        _card("throughput", "Performance", "Largest measured single analysis",
+              definition="End-to-end pipeline time at the documented 50,000-event cap.",
+              dataset="scaling measurements", sample="best of 3 after warm-up",
+              value=_scaling_max(), unit=" s", higher_is_better=False,
+              baseline={"name": "demo campaign, 2,732 events", "value": _scaling_demo()},
+              report="reports/scaling_measurements.json"),
+    ]
+
+    groups: dict[str, list[dict]] = {}
+    for c in cards:
+        groups.setdefault(c["group"], []).append(c)
+
+    measured = [c for c in cards if c["state"] == "measured"]
+    return {
+        "generated_at": fmt_ist(),
+        "groups": [{"name": g, "cards": cs} for g, cs in groups.items()],
+        "cards": cards,
+        "summary": {
+            "total": len(cards),
+            "measured": len(measured),
+            "not_measured": len(cards) - len(measured),
+            "missing_reports": [c["id"] for c in cards
+                                if c["report"] and not c["report_exists"]],
+        },
+        "sources": {
+            "metrics_store": "reports/metrics.json",
+            "regenerate": ["python -m scripts.eval_ps7",
+                           "python -m scripts.eval_retrieval"],
+        },
+        "refused_claims": FORBIDDEN_CLAIMS,
+        "note": ("Every value is read from reports/metrics.json, written by the "
+                 "evaluation scripts. A metric we have not measured says so and "
+                 "explains why."),
+    }
+
+
+def _scaling() -> list[dict]:
+    import json
+    f = REPORTS / "scaling_measurements.json"
+    if not f.exists():
+        return []
+    data = json.loads(f.read_text(encoding="utf-8"))
+    return data if isinstance(data, list) else data.get("measurements", [])
+
+
+def _scaling_max() -> float | None:
+    rows = _scaling()
+    return round(max((r.get("seconds", 0) for r in rows), default=0), 3) or None
+
+
+def _scaling_demo() -> float | None:
+    for r in _scaling():
+        if r.get("events") == 2732:
+            return round(r.get("seconds", 0), 3)
+    return None
+
+
+def demo() -> None:
+    """Self-check: the board is complete and refuses to overclaim."""
+    b = scoreboard()
+    assert b["summary"]["total"] >= 15, b["summary"]
+    assert not b["summary"]["missing_reports"], b["summary"]["missing_reports"]
+    for c in b["cards"]:
+        if c["state"] == "measured":
+            assert isinstance(c["value"], (int, float)), c
+            assert c["definition"] and c["dataset"], c["id"]
+        else:
+            assert c["why"] and c["value"] is None, c["id"]
+        assert "accuracy" not in c["name"].lower() or "top-3" in c["name"].lower(), c["name"]
+    nm = [c["id"] for c in b["cards"] if c["state"] == "not_measured"]
+    print(f"scoreboard ok: {b['summary']['measured']} measured, "
+          f"{b['summary']['not_measured']} declared not-measured ({', '.join(nm)})")
+
+
+if __name__ == "__main__":
+    demo()

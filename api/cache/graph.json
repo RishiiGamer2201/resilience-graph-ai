@@ -26,29 +26,29 @@
     "C801"
   ],
   "paths_to_critical": {
-    "C586": [
-      "C17693",
-      "C586"
-    ],
-    "C743": [
+    "C1065": [
       "C18025",
-      "C743"
+      "C1065"
     ],
     "C612": [
       "C19932",
       "C612"
     ],
-    "C467": [
-      "C17693",
-      "C467"
-    ],
     "C706": [
       "C17693",
       "C706"
     ],
-    "C801": [
+    "C467": [
       "C17693",
-      "C801"
+      "C467"
+    ],
+    "C2106": [
+      "C17693",
+      "C2106"
+    ],
+    "C457": [
+      "C17693",
+      "C457"
     ],
     "C528": [
       "C17693",
@@ -58,37 +58,37 @@
       "C17693",
       "C625"
     ],
-    "C2106": [
-      "C17693",
-      "C2106"
-    ],
-    "C1065": [
+    "C743": [
       "C18025",
-      "C1065"
-    ],
-    "C457": [
-      "C17693",
-      "C457"
-    ],
-    "C3173": [
-      "C17693",
-      "C3173"
+      "C743"
     ],
     "C585": [
       "C17693",
       "C585"
     ],
+    "C586": [
+      "C17693",
+      "C586"
+    ],
     "C231": [
       "C17693",
       "C231"
     ],
-    "C1015": [
-      "C17693",
-      "C1015"
-    ],
     "C529": [
       "C17693",
       "C529"
+    ],
+    "C3173": [
+      "C17693",
+      "C3173"
+    ],
+    "C801": [
+      "C17693",
+      "C801"
+    ],
+    "C1015": [
+      "C17693",
+      "C1015"
     ]
   },
   "choke_points": [
@@ -3546,11 +3546,11 @@
     {
       "from": "C17693",
       "to": "C2669",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 76,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U825@DOM1",
         "U1653@DOM1"
@@ -6711,11 +6711,11 @@
     {
       "from": "C18025",
       "to": "C528",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 51,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U737@DOM1"
       ],
@@ -7184,11 +7184,11 @@
     {
       "from": "C18025",
       "to": "C457",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 51,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U737@DOM1"
       ],
@@ -7798,11 +7798,11 @@
     {
       "from": "C22409",
       "to": "C754",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 75,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U1653@DOM1"
       ],
@@ -9438,11 +9438,11 @@
     {
       "from": "C19932",
       "to": "C586",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 51,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U737@DOM1"
       ],
@@ -9486,11 +9486,11 @@
     {
       "from": "C19932",
       "to": "C1665",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 51,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U737@DOM1"
       ],
@@ -9518,11 +9518,11 @@
     {
       "from": "C18025",
       "to": "C625",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 50,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U737@DOM1"
       ],
@@ -9759,11 +9759,11 @@
     {
       "from": "C18025",
       "to": "C529",
-      "technique": "-",
-      "technique_name": "",
-      "tactic": "Normal",
+      "technique": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
       "score": 51,
-      "explanation": "Expected activity.",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "users": [
         "U737@DOM1"
       ],

@@ -87,7 +87,7 @@
     {
       "name": "LANL lateral movement",
       "metric": "ROC-AUC",
-      "value": 0.988,
+      "value": 0.992,
       "kind": "real red-team"
     },
     {
@@ -103,9 +103,9 @@
       "kind": "2nd benchmark"
     },
     {
-      "name": "Next-technique (Markov)",
+      "name": "Next-technique (interpolated Markov)",
       "metric": "top-3",
-      "value": 0.386,
+      "value": 0.381,
       "kind": "honest"
     }
   ]
