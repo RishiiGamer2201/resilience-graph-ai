@@ -1,0 +1,185 @@
+# Likely judge questions, and defensible answers
+
+Every answer here is checkable in the repo. Where the honest answer is "we did not
+measure that", it says so — that is the strongest answer available, not the weakest.
+
+---
+
+## On the detection
+
+**"What is your accuracy?"**
+We do not report accuracy, and we would not trust a system that did. LANL red-team
+prevalence is 0.006% — a model that says "benign" every time scores 99.994%. We
+report ROC-AUC 0.992, and more importantly TPR at a fixed 1% false-positive rate:
+**87.7%**, 616 of 702 real red-team events, at the operating point an analyst can
+actually staff. The IsolationForest we replaced caught 361 at the same point.
+*Scoreboard → Detection. `reports/lanl_redteam_detection.md`.*
+
+**"Isn't this just detecting NTLM?"**
+Fair challenge — 100% of the red-team logins used NTLM versus about 6% of benign,
+which is a powerful but evadable signal. So we ablated it: remove NTLM entirely and
+score on behaviour alone, ROC-AUC **0.906**. Detection is driven by generalisable
+behaviour, not one brittle artifact. We publish the ablation because it is the
+first thing a good reviewer would ask.
+
+**"Did you train on the attack labels?"**
+No. Engine 1 is trained on benign traffic only; labels are used for evaluation and
+never for training. That is why resampling and SMOTE are not applicable here by
+design, and why the model transfers to a log it has never seen.
+
+**"Is it just a big model?"**
+The shipped detector is an autoencoder trained offline in PyTorch and **exported to
+NumPy weight matrices** — 5 KB. The deployed container has no deep-learning
+framework and no GPU. Inference is a few matrix multiplies.
+
+---
+
+## On the AI claims
+
+**"Where is the LLM?"**
+There isn't one, and that is deliberate. `/api/capabilities` reports
+`llm.provider: "none"`. Every score, ranking, gate, path and hash is deterministic
+Python over typed inputs. An LLM could reword an explanation behind the
+`ExplanationProvider` interface; it would be labelled non-authoritative and it would
+never calculate a number or approve an action.
+
+**"Then what is the AI?"**
+Three learned components, each measured against a baseline: an unsupervised
+benign-trained autoencoder for detection; an interpolated Markov model over 205 real
+attack sequences for next-technique prediction (top-3 **38.1%** against a
+kill-chain-order baseline of **7.1%** — 5.4×); and MiniLM embeddings for actor
+attribution by transparent profile retrieval. The orchestration around them is
+deliberately not AI, because a security decision should be reproducible.
+
+**"Why does the kill-chain baseline matter?"**
+Anti-circularity. Our sequences are tactic-ordered, so a model could score well by
+re-learning that ordering rather than learning anything about attacks. We built the
+baseline specifically to catch ourselves cheating. Beating it 5.4× is evidence of
+real technique-to-technique transitions. We also publish the harder, non-circular
+test: on four analyst-verified CERT-In sequences in the order the advisories
+actually report, top-3 drops to **10%**. We publish it *because* it is worse.
+
+**"Is the attribution a classifier?"**
+No, and we say so on the screen. It is weighted retrieval over 172 public MITRE
+group profiles with a printed justification. We deliberately never headline a
+"100% attribution" number — that eval is near-trivial by construction, and the
+scoreboard lists that claim among the ones we refuse to make.
+
+---
+
+## On the evidence layer
+
+**"Is this RAG, or just a search box?"**
+It is retrieval with citations, and we measured it rather than naming it: recall@1
+0.643, recall@5 **0.857**, MRR 0.717, zero citation-integrity failures, over a
+14-query hand-written gold set against 1,545 official chunks. The per-query results,
+including every miss, are in `reports/retrieval_eval.md`.
+
+**"Why no vector database?"**
+Measured trade-off, written up in ADR 0003. At 1,545 chunks the queries are
+identifier-shaped — an analyst investigating T1550.002 wants the T1550.002 page —
+and exact-ID matching wins that every time. A vector store would add a managed
+service that pauses after a week of inactivity, or an embedding model in an image
+we keep at nine packages. It would not add one field of provenance, which is the
+part that actually makes a citation useful.
+
+**"How do I know a citation is real?"**
+Click it — it opens attack.mitre.org, nvd.nist.gov or cert-in.org.in. Each card
+shows publisher, authority tier, section, the document's own date, our retrieval
+time, the extraction method and a SHA-256 of the indexed text. The retrieval
+evaluator re-verifies every hash on every run.
+
+**"What if an advisory contains a prompt injection?"**
+Then it does nothing, because there is no LLM to inject into. Structurally,
+retrieved text is data and never reaches an agent control message. For display we
+neutralise instruction-shaped text; there are parametrised tests for the usual
+payloads.
+
+---
+
+## On the response and governance
+
+**"Does it actually contain anything?"**
+No. Every action is simulated, and the scoreboard has a card whose measured value is
+**zero actions executed against real systems**. For critical national infrastructure
+that is the right default: an AI that can isolate a hospital domain controller on its
+own is a new attack surface, not a defence.
+
+**"So the human gate is just a disabled button?"**
+Switch the role picker to Analyst and press Approve. You get a 403 from the API. Try
+as Responder with an empty reason: 422. The UI is not the control —
+`rbac.require()` runs on every mutating endpoint, and the refusal is itself written
+to the audit chain as `action.denied`.
+
+**"Is the audit chain a blockchain?"**
+No, and the export says so in its own `claim` field. It is a hash-linked append-only
+log: each record's SHA-256 covers the record and the previous hash, over a documented
+canonical serialisation. Press "Prove tamper-evidence" — we export it, edit one
+record in your browser, send it back, and the server names the altered record.
+Tamper-**evident**, not tamper-proof. It is session-scoped and in memory, because the
+free host has an ephemeral filesystem and we will not imply persistence we do not have.
+
+**"What is the counterfactual actually doing?"**
+Cloning the incident's attack graph, removing the candidate host, and recomputing
+reachability, crown-jewel exposure and choke points with NetworkX. No model, no
+randomness — run it twice, get identical output. And it reports the **cost** next to
+the benefit: hosts offline, sessions severed, accounts disrupted. It will also tell
+you an action is not worth the outage, and that a crown jewel is still reachable
+afterwards.
+
+---
+
+## On the metrics
+
+**"What is your MTTR improvement?"**
+Not measured, and the card says so on the scoreboard. We never execute a response, so
+there is no repair to time. Reporting an MTTR here would mean fabricating the exact
+number the brief asks for. MTTD we do measure — from each log's own timestamps, first
+event to first correlated alert — and the industry dwell-time comparison is labelled
+as a Mandiant citation, not our measurement.
+
+**"Your ATT&CK mapping coverage is 100%. Is that precision?"**
+No, and we separate them deliberately. 100% is *coverage* — every correlated alert
+carries a technique — plus 100% *ID validity*, meaning every emitted ID exists in the
+parsed ATT&CK STIX, which is how you would catch a hallucinated technique.
+Event-to-technique **precision** is on the board as **Not measured**, because no
+public dataset we use labels individual events with an ATT&CK technique.
+
+**"How do I know the numbers on screen match the reports?"**
+Because they are the same file. The eval scripts write `reports/metrics.json`; the
+scoreboard and the UI scorecard read it. There is a test that fails if they diverge —
+and it exists because they *had* diverged: the UI claimed LANL ROC 0.988 (an
+IsolationForest we no longer ship) against a measured 0.992. `scripts/audit_stale.py`
+fails the build if any document cites an out-of-date number.
+
+---
+
+## On the engineering
+
+**"Will this scale?"**
+Measured at nine input sizes: 2,732 events in 0.131 s, 50,000 in 2.19 s, on a laptop
+CPU with no GPU. The full seven-node investigation is 51 ms p50, 224 ms p95.
+In-memory graph analytics are comfortable to about 50,000 events per analysis — that
+is the documented cap, enforced at the trust boundary — and beyond it we shard or move
+to a graph database behind the existing repository boundary.
+
+**"What does it cost to run?"**
+Zero. No API key, no account, no credit card, no database. Nine Python packages, no
+torch, no GPU. It runs offline from a fresh clone. The full ledger, including every
+optional component and what happens when it is absent, is in
+`docs/operations/cost-and-limits.md` with dated sources.
+
+**"What happens if the internet drops mid-demo?"**
+Nothing. There is a test that disables outbound HTTP entirely and asserts the whole
+investigation still completes with citations. The only feature that needs the network
+is the Threat Radar refresh, and it falls back to a timestamped bundled snapshot
+labelled `cache`.
+
+**"What is the weakest part?"**
+Three things, in order. One: the retriever is lexical, so a fully paraphrased query
+with no shared vocabulary misses — measured, published, with the upgrade path written
+down. Two: default authorisation is role-declaration without authentication, which is
+right for a keyless demo and wrong for production; bearer tokens are one environment
+variable away. Three: there is no rate limiting, so a free-tier deployment could be
+exhausted by a flood. All three are in `docs/security/threat-model.md` under
+"residual".

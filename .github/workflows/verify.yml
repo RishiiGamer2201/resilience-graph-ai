@@ -1,0 +1,136 @@
+# Deterministic verification on every push and PR.
+#
+# No secrets, no deployment, no external services. It runs exactly what
+# scripts/verify.sh runs locally, minus the Docker step (which needs the image
+# build and is not worth the free-tier minutes on every push).
+name: verify
+
+on:
+  push:
+    branches: ["main", "finalist/**", "m*/**"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests and API smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: requirements-deploy.txt
+
+      - name: Install slim runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-deploy.txt
+          pip install pytest httpx
+
+      # The committed artifacts are what a fresh clone gets. If one is missing the
+      # tests below would skip quietly, so fail loudly here instead.
+      - name: Required artifacts are committed
+        run: |
+          set -e
+          for f in data/processed/mitre_attack/attack_lookups.pkl \
+                   data/processed/evidence/index.json.gz \
+                   models/ae_lanl.npz \
+                   models/next_technique_markov.pkl \
+                   api/cache/score_ref.json \
+                   configs/vuln_priority.json \
+                   reports/metrics.json; do
+            test -f "$f" || { echo "missing committed artifact: $f"; exit 1; }
+          done
+          echo "all required artifacts present"
+
+      - name: Module self-checks
+        run: |
+          for m in src.shared.nethttp src.shared.detector src.shared.predictor \
+                   src.shared.evidence src.shared.vuln src.shared.twin \
+                   src.shared.rbac src.shared.audit src.shared.scoreboard \
+                   src.shared.explain src.shared.workflow; do
+            python -m "$m"
+          done
+
+      - name: Tests
+        run: python -m pytest tests/ -q
+
+      # These regenerate reports/metrics.json from the committed artifacts. They
+      # need no network and no datasets, and they are the numbers the scoreboard
+      # serves — so a change that breaks them must not merge green.
+      - name: Reproduce the operational metrics
+        run: |
+          python -m scripts.eval_retrieval
+          python -m scripts.eval_ps7 --runs 1
+
+      - name: Documented metrics are not stale
+        run: python -m scripts.audit_stale
+
+      - name: Offline API smoke test
+        run: python -W ignore -c "$(cat <<'PY'
+from fastapi.testclient import TestClient
+from api.main import app
+c = TestClient(app)
+assert c.get('/api/health').json()['ok']
+assert c.get('/api/readiness').json()['ready']
+assert c.get('/api/capabilities').json()['keys_required'] == []
+assert c.get('/api/scoreboard').json()['summary']['missing_reports'] == []
+r = c.post('/api/investigate', json={'scenario': 'aiims_ransomware'},
+           headers={'X-Role': 'analyst'})
+assert r.status_code == 200, r.text
+b = r.json()
+assert b['ok'] and b['action']['executed'] == 0
+nodes = [n['node'] for n in b['trace']['nodes']]
+assert nodes.count('evidence') <= 2
+assert c.post('/api/investigate', json={'scenario': 'aiims_ransomware'},
+              headers={'X-Role': 'viewer'}).status_code == 403
+print('smoke ok')
+PY
+          )"
+
+      - name: The evaluation output changed
+        if: always()
+        run: git --no-pager diff --stat -- reports/ || true
+
+  frontend:
+    name: Frontend lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+
+      - run: npm run lint
+        working-directory: frontend
+
+      - run: npm run build
+        working-directory: frontend
+
+      - name: The SPA bundle stays lean
+        working-directory: frontend
+        run: |
+          size=$(du -sk dist | cut -f1)
+          echo "dist is ${size} KB"
+          # A guard rail, not a target: a sudden jump means a heavy dependency
+          # landed in the bundle, which is the thing we said we would not do.
+          test "$size" -lt 4096 || { echo "dist exceeded 4 MB"; exit 1; }

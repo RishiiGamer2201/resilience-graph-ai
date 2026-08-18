@@ -62,9 +62,14 @@ npm run dev          # → http://localhost:5173
 ```
 
 ### 4. Open it
-Go to **http://localhost:5173** → **Enter demo environment** → **Analyze Log** →
-pick a scenario (e.g. *LANL red-team campaign* or *AIIMS-style hospital ransomware*) and hit
-**Analyze**. The whole app now shows that live analysis (topbar flips to **LIVE ANALYSIS**).
+Go to **http://localhost:5173** → **Enter demo environment** → **Investigation** →
+press **Run investigation**. The default scenario is an AIIMS-style hospital
+ransomware campaign; the seven-stage rail fills with real per-node timings and the
+whole app switches to that live analysis (topbar flips to **LIVE ANALYSIS**).
+
+**Zero credentials.** No API key, no account, no database, no network. Check it
+yourself: `GET /api/capabilities` reports `keys_required: []` and names the live
+state of every optional component.
 
 > **One-container alternative (Docker):** `docker build -t resilience-graph-ai . && docker run --rm -p 8000:8000 resilience-graph-ai` → open **http://localhost:8000**. This is exactly what deploys to Render.
 
@@ -102,20 +107,42 @@ flowchart TB
     FEEDS["free CTI feeds, India-first → ATT&CK map → relevance"]
   end
 
-  SPINE --> API
+  subgraph EV["EVIDENCE — evidence.py (bundled, read-only)"]
+    IDX["1,545 cited chunks: MITRE ATT&CK · CISA KEV · CERT-In<br/>BM25 + exact-ID boost · hashed, dated, linkable"]
+  end
+
+  subgraph GOV["GOVERNANCE — deterministic, server-side"]
+    G1["vuln.py · twin.py — priority + counterfactual containment"]
+    G2["rbac.py — 4 roles, approval policy"]
+    G3["audit.py — hash-linked, tamper-evident, exportable"]
+  end
+
+  subgraph WF["WORKFLOW — workflow.py (bounded, 7 nodes, 1 replan)"]
+    W["Understand → Plan → Evidence → Signals → Replan → Impact → Action"]
+  end
+
+  SPINE --> WF
+  EV --> WF
+  WF --> GOV
   RADAR --> API
-  BUILD["build_cache.py<br/>(runs the spine offline → api/cache/*.json)"]
+  GOV --> API
+  BUILD["build_cache.py + build_evidence_index.py<br/>(run the spine offline → api/cache/*.json, evidence index)"]
   SPINE -. "sample cache = a real analysis" .-> BUILD
   BUILD --> API
 
-  subgraph API["FastAPI — api/main.py"]
-    A1["POST /analyze · /analyze/upload  ◀ LIVE"]
-    A2["POST /score-event · /predict-next · /threat-radar  ◀ LIVE"]
+  subgraph API["FastAPI — api/main.py + api/finalist.py"]
+    A1["POST /analyze · /analyze/upload · /investigate  ◀ LIVE"]
+    A2["POST /score-event · /predict-next · /threat-radar · /twin · /explain  ◀ LIVE"]
+    A3["GET /capabilities · /readiness · /scoreboard · /audit  ◀ honest state"]
     A4["cached GETs + serves the built SPA"]
   end
 
-  API --> SPA["React SPA — SOC Command Center<br/>Login → Analyze → 8 screens · LIVE/SAMPLE pill"]
+  API --> SPA["React SPA — SOC Command Center<br/>Login → Investigation → 10 screens · LIVE/SAMPLE pill · role picker"]
 ```
+
+**No LLM is in any decision path.** Every score, ranking, gate, path and hash is
+deterministic Python. `LLM_PROVIDER` is `none` and `/api/capabilities` says so.
+Design decisions and the alternatives we rejected: **[docs/architecture/adr/](docs/architecture/adr/)**.
 
 Full detail (folder tree, request topology, tech-stack table): **[architecture.md](architecture.md)**.
 
@@ -133,7 +160,17 @@ incident → ATT&CK map → attack-path graph (choke points, blast radius across
 confidence-gated SOAR. A **Threat Radar** pulls India-first external CTI (CISA KEV, ET CISO,
 security RSS) and cross-references it with your incident.
 
+On top of that spine, the finalist surface adds **cited evidence** for every ATT&CK
+conclusion, **vulnerability prioritisation** that combines CISA KEV with reachability
+in *your* attack graph, a **digital twin** that costs a containment before you take it,
+**server-side RBAC** with human approval, and a **tamper-evident audit chain**.
+
 ### Try these
+- **Prove the human gate is real:** on *Investigation*, set the top-bar role to
+  **Analyst** and approve a crown-jewel action. The server returns 403. Switch to
+  **Responder** and approve with no reason: 422.
+- **Prove the audit chain is real:** press **Prove tamper-evidence**. We export it,
+  edit a record in your browser, send it back, and the server names the altered record.
 - **Prove it's live:** on *Analyze Log*, download the synthetic **sample bank incident CSV** and upload it — a fictional estate (nothing like LANL) the pipeline analyses end-to-end.
 - **India scenarios:** *AIIMS-style hospital ransomware* and *CBSE-style exam-board breach*.
 - **Attackers:** open any of the 104 compromised accounts → its own scoped incident.
@@ -155,7 +192,9 @@ You **don't** need this to run the app. Do it only to re-run the ML pipeline.
    python -m src.engine2.build_embeddings               # MiniLM embeddings (CPU: CUDA_VISIBLE_DEVICES="")
    python -m src.engine2.build_sequences && python -m src.engine2.build_predictor
    python -m scripts.export_demo_events && python -m scripts.make_india_scenario
+   python -m scripts.build_evidence_index                 # cited-evidence corpus (--no-network works)
    python -m scripts.build_cache                          # regenerate api/cache/*.json
+   python -m scripts.eval_ps7 && python -m scripts.eval_retrieval   # regenerate the scoreboard
    ```
 
 | Dataset | Use | Source |
@@ -168,10 +207,35 @@ You **don't** need this to run the app. Do it only to re-run the ML pipeline.
 
 ---
 
-## Testing
+## The PS7 surface
+
+| Screen | What it does |
+|---|---|
+| **Investigation** | The three-minute hero. Seven bounded stages — Understand → Plan → Evidence → Signals → Replan → Impact → Action — with the headline pair (attack progression confidence, crown-jewel exposure) and the arithmetic behind each number one click away. Cited evidence, a counterfactual containment with its operational cost, a prioritised vulnerability queue, a human-gated approval, and a tamper-evident audit chain you can break on purpose. |
+| **PS7 Scoreboard** | Every metric with its definition, dataset, baseline and the report that produced it — read from `reports/metrics.json`, never typed into the UI. Two metrics render **Not measured** with the reason. |
+| Overview · Attackers · Live Incident · Attack Graph · Threat Intel · Threat Radar · Models & Metrics · Data & Methodology | The original SOC screens, all rendering whatever analysis you ran. |
+
+Nothing is ever executed against a real system. Every response action is simulated,
+and the scoreboard reports the measured count: zero.
+
+## Testing and verification
+
+One command tells you whether the repo is demo-ready:
+
+```powershell
+.\scriptserify.ps1              # artifacts, Dockerfile, tests, self-checks, lint, build, API smoke
+.\scriptserify.ps1 -Docker      # additionally build the image and smoke-test the container
+```
+
+POSIX: `bash scripts/verify.sh [--docker]`. Every skipped step says why it skipped.
+
+Or the pieces:
 
 ```bash
-python -m pytest tests/ -q          # 27 tests: live pipeline + OSINT
+python -m pytest tests/ -q          # 134 tests, no network required
+python -m scripts.eval_ps7          # regenerate the PS7 operational metrics
+python -m scripts.eval_retrieval    # regenerate the retrieval gold-set results
+python -m scripts.audit_stale       # fail if any doc cites an out-of-date number
 cd frontend && npm run build        # frontend must build clean
 ```
 
@@ -188,6 +252,9 @@ cd frontend && npm run build        # frontend must build clean
 | [design.md](design.md) | Design tokens, palette, components |
 | [memory.md](memory.md) | Living project state + session log |
 | [research/claude/](research/claude/) | Canonical build spec, decision memo, plans |
+| **[docs/](docs/)** | **Architecture decisions, threat model, evaluation methodology, cost ledger, runbook, demo script, judge Q&A — start at [docs/README.md](docs/README.md)** |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, working rules, how to add a metric |
+| [SECURITY.md](SECURITY.md) | What we guarantee, and what we do not |
 
 ## Team & workflow
 Work on feature branches (`git checkout -b m2/anomaly-baseline`), open PRs into `main`.
