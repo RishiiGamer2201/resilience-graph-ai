@@ -324,7 +324,7 @@ def write_report(index: dict) -> None:
     lines += ["", "Every chunk carries url, publisher, section, document date when the "
                   "source states one, retrieval time, extraction method and a SHA-256 "
                   "of its text. Retrieval quality is measured in "
-                  "`docs/evaluation/retrieval.md`.", ""]
+                  "`reports/retrieval_eval.md`.", ""]
     REPORT.write_text("\n".join(lines), encoding="utf-8")
 
 

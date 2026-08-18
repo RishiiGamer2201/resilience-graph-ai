@@ -10,7 +10,7 @@ Why hand-rolled instead of LangGraph: the graph is seven nodes with one bounded
 retry, and every node is a call into a domain function that already exists and is
 already tested. Wrapping that in an orchestration framework would add a
 dependency, deploy weight and a cold start to the demo without changing what
-runs. The trade-off is written up in `docs/architecture/adr/0002-workflow.md`
+runs. The trade-off is written up in `docs/architecture/adr/0002-hand-rolled-workflow.md`
 along with the evidence that would justify revisiting it.
 
 Hard rules, enforced here rather than promised in a pitch:
@@ -520,6 +520,25 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                        lambda: _n_impact(bundle, critical, scenario, cited))
     action = trace.run("action", lambda: _n_action(bundle, impact, principal))
 
+    # A degraded node returns output={}. Typed degradation is only useful if the
+    # SHAPE survives it too, otherwise every consumer has to guess which keys
+    # vanished. Merge each optional node's output over a skeleton so the contract
+    # holds whether the node succeeded, degraded or failed.
+    evidence_out = {"citations": [], "corpus": {}, "index_built_at": None,
+                    "retrieval": "unavailable", "query": "", "technique_ids": [],
+                    **evidence.output}
+    impact_out = {"crown_jewel_exposure": None, "attack_progression_confidence": None,
+                  "blast_radius": None, "paths_to_critical": {},
+                  "containment_candidates": [], "counterfactual": None,
+                  "vulnerabilities": {"findings": [], "total_findings": 0,
+                                      "assets_considered": 0,
+                                      "inventory_provenance": "UNKNOWN"},
+                  **impact.output}
+    action_out = {"proposals": [], "mitre_mitigations": [], "gating_policy": "",
+                  "rfi": None, "executed": 0,
+                  "note": "SIMULATION ONLY. Nothing contacts an external system.",
+                  **action.output}
+
     return {
         "ok": True,
         "generated_at": fmt_ist(),
@@ -527,14 +546,14 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
         "scenario": scenario,
         "trace": trace.as_dict(),
         "understand": understand.output,
-        "evidence": evidence.output,
+        "evidence": evidence_out,
         "signals": {k: v for k, v in bundle.items() if k != "meta"},
         "meta": bundle["meta"],
-        "impact": impact.output,
-        "action": action.output,
+        "impact": impact_out,
+        "action": action_out,
         "headline": {
-            "attack_progression_confidence": impact.output.get("attack_progression_confidence"),
-            "crown_jewel_exposure": impact.output.get("crown_jewel_exposure"),
+            "attack_progression_confidence": impact_out["attack_progression_confidence"],
+            "crown_jewel_exposure": impact_out["crown_jewel_exposure"],
         },
         "llm": {"provider": "none", "used_for": [],
                 "note": "No LLM is in this path. Every number above is deterministic Python."},

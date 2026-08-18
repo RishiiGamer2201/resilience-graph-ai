@@ -16,7 +16,7 @@ This module owns the read side of that promise:
 No embedding model, no vector database, no network at query time. For a corpus
 of ~1.2k official chunks a lexical retriever with ID matching adds no dependency,
 no cold start and no key. Retrieval quality is measured, not asserted: see
-`tests/test_evidence.py` (gold-query set) and `docs/evaluation/retrieval.md`.
+`tests/test_evidence.py` (gold-query set) and `reports/retrieval_eval.md`.
 
     from src.shared.evidence import repository
     hits = repository().search("pass the hash lateral movement", k=5)

@@ -102,11 +102,13 @@ function Rfi({ rfi }) {
 
 export default function ActionPanel({ action, incidentId, techniqueIds, evidence, affected, onDecided }) {
   if (!action) return null
-  const gated = (action.proposals || []).filter((p) => p.policy.requires_approval).length
+  // The action node can degrade (see workflow.py). Never assume its lists exist.
+  const proposals = action.proposals || []
+  const gated = proposals.filter((p) => p.policy?.requires_approval).length
   return (
     <Card>
       <CardHeader title="Recommended response"
-        meta={`${action.proposals.length} proposed · ${gated} gated · ${action.executed} executed`} />
+        meta={`${proposals.length} proposed · ${gated} gated · ${action.executed ?? 0} executed`} />
       <div className="card-b pad stack-sm">
         <div className="banner">
           <ShieldQuestion size={15} aria-hidden="true" />
@@ -116,7 +118,13 @@ export default function ActionPanel({ action, incidentId, techniqueIds, evidence
             written reason, enforced by the API — not by hiding this button.
           </span>
         </div>
-        {action.proposals.map((p) => (
+        {proposals.length === 0 && (
+          <div className="disclosure">
+            The action stage could not complete, so no response was proposed. The
+            detection and impact above still stand.
+          </div>
+        )}
+        {proposals.map((p) => (
           <Proposal key={p.id} proposal={p} incidentId={incidentId} techniqueIds={techniqueIds}
             evidence={evidence} affected={affected} onDecided={onDecided} />
         ))}

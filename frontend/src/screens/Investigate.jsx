@@ -175,7 +175,7 @@ export default function Investigate() {
             <Card>
               <div className="card-b pad">
                 <ul className="planlist">
-                  {result.trace.nodes.find((n) => n.node === 'plan')?.output.steps.map((s) => (
+                  {(result.trace.nodes.find((n) => n.node === 'plan')?.output?.steps || []).map((s) => (
                     <li key={s.node} className={s.selected ? 'on' : 'off'}>
                       <b>{s.node}</b> <span className="mono dim">{s.tool}</span>
                       <div className="dim">{s.why}</div>
