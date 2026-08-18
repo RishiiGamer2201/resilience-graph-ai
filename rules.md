@@ -1,6 +1,6 @@
 # Rules — what to use, what to avoid
 
-> **Living document — update every working session.** Last updated: 2026-07-16.
+> **Living document — update every working session.** Last updated: 2026-08-18.
 
 Working rules for humans and AI agents (Claude/Codex) on this repo. These encode decisions already made — do not relitigate them mid-hackathon.
 
@@ -10,7 +10,7 @@ Working rules for humans and AI agents (Claude/Codex) on this repo. These encode
 
 ### Libraries (already installed — never add new deps without team sign-off)
 - **pandas / pyarrow / numpy** — all data work. Parquet for processed data.
-- **scikit-learn** — IsolationForest is the shipped detector. Pin **1.7.2** for anything that unpickles `models/*.joblib` (version mismatch breaks deploys).
+- **scikit-learn** — the IsolationForest is now the FALLBACK detector; the shipped one is a benign-trained autoencoder exported to NumPy weights (`models/ae_lanl.npz`), chosen by measurement at the 1% FPR operating point. Still pin **1.7.2** for anything that unpickles `models/*.joblib`.
 - **networkx** — all graph work.
 - **sentence-transformers** (all-MiniLM-L6-v2) — embeddings. Build-time only, never in the deploy image.
 - **torch** — comparison models only (AE, LSTM). Build-time only.
@@ -34,7 +34,7 @@ Working rules for humans and AI agents (Claude/Codex) on this repo. These encode
 - **Never train on attack labels.** Engine 1 is benign-only/unsupervised; labels are for evaluation ONLY. SMOTE/resampling = N/A by design.
 - **Never show a lone metric** — always lift over baselines (random + rule; Markov vs kill-chain-order for the predictor).
 - **Never headline "100% attribution"** — the profile-retrieval eval is near-trivial by construction. Demo with 3–4 observed techniques only.
-- **Never quote the CERT-In manual-sequence numbers** until `verified: true` in `data/manual/cert_in_sequences.json` (currently 0/4).
+- **CERT-In manual-sequence numbers are quotable** — all 4 are now `verified: true` in `data/manual/cert_in_sequences.json`. Quote top-3 10.0% (real reported ordering) ALONGSIDE 38.1% (auto-ordered), never instead of it. Anything still unverified stays unquoted and uncited.
 - **No temporal leakage:** CICIDS splits by day, UNSW keeps official split, sequences split at sequence level. Keep it that way.
 - **SOAR is simulated** — every action stays gated; critical-asset actions always "requires human approval". Never word it as real execution.
 
@@ -57,6 +57,44 @@ Working rules for humans and AI agents (Claude/Codex) on this repo. These encode
 - **Never fully decompress LANL `auth.txt.gz`** (~70 GB) — stream it (`prep_lanl.py` pattern).
 - **Don't commit data/models** — gitignored. The 4 deploy artifacts already force-added are the only exception.
 - **No accuracy theater in the UI** — screens show the same honest metrics as the reports.
+
+## Finalist invariants (added 2026-08-18)
+
+Each of these came out of the PS7 hardening pass and each one has a test. Breaking one
+should fail CI, not a review.
+
+- **Deterministic decisions.** Scores, thresholds, graph traversal, policy gates, hashes and
+  security checks are ordinary Python over typed inputs. No model calculates an authoritative
+  number and no model approves an action. `LLM_PROVIDER` is `none` and `/api/capabilities`
+  says so.
+- **Bounded workflow.** `src/shared/workflow.py` is seven nodes in a fixed order with at most
+  **one** replan. There is no loop to run away. A failing node returns `status: "degraded"`
+  and the investigation continues; only `signals` is required.
+- **Evidence, never instruction.** Retrieved document text is data. It never reaches an agent
+  control message, and excerpts are sanitised before display. Every ATT&CK ID is validated
+  against `attack_lookups.pkl`.
+- **No citation, no claim.** Every citation carries URL, publisher, section, document date,
+  retrieval time and a SHA-256. If nothing matches, say so; never improvise a source.
+- **Never guess an asset's software.** Vulnerability findings need a supplied inventory. No
+  inventory means no findings plus an explanation (LANL is anonymised and has none).
+- **Unknown is not zero.** A factor we cannot evaluate drops out of the weighted average, is
+  listed in `unknown_factors`, and lowers `confidence`. A metric we have not measured renders
+  `Not measured` with the reason.
+- **Authorisation in the API.** `rbac.require()` on every mutating endpoint. Hiding a button
+  is not access control. A gated approval without a written reason is refused, and refusals
+  are audited.
+- **Nothing is executed.** Every response action stays simulated, and a scoreboard card
+  reports the measured count: zero.
+- **One outbound door.** All external HTTP goes through `src/shared/nethttp.fetch_url` (host
+  allowlist, SSRF guard, re-validated redirects, size and time caps). Adding a host is a
+  reviewable security decision, not a convenience.
+- **The twin never mutates the incident graph.** It clones, removes, recomputes, and reports
+  operational cost alongside security benefit.
+- **Tamper-evident, not tamper-proof.** Never call the audit chain immutable, legally binding,
+  or a blockchain. It is session-scoped and in memory, and the UI says so.
+- **The SPA contract is a test.** There is no TypeScript across that boundary;
+  `tests/test_ui_contract.py` asserts every key the screens dereference. Change a payload,
+  change that file in the same commit.
 
 ## Error handling
 - Pipeline scripts: fail loudly with actionable messages (missing artifact → name the command to run, see `attribution.load_artifacts`).

@@ -205,7 +205,7 @@ export default function Investigate() {
                   {[
                     ['Severity', `${inc.severity} · peak score ${inc.max_anomaly_score}/100`],
                     ['Collapsed', `${inc.event_count} events → ${inc.alert_count} alerts → 1 incident`],
-                    ['Accounts', `${inc.users_involved?.length ?? 0}`],
+                    ['Accounts', `${inc.accounts_involved?.length ?? 0}`],
                     ['ATT&CK chain', inc.technique_ids.join(' → ') || '—'],
                     ['Attacker pivot', graph.entry_host],
                     ['Crown jewels reachable', graph.critical_assets_at_risk.join(', ') || 'none'],

@@ -103,13 +103,40 @@ The shipped demo campaign (2,732 events) completes in
 2.186 s. In-memory graph analytics are comfortable to about
 50,000 events per analysis; beyond that we shard or move to a graph database.
 
-## 5. Engineering
+## 5. PS7 operational evidence
 
-- 31 automated tests (pipeline correctness, multi-pivot graph, cross-screen
-  consistency, calibration spread, intelligence mapping precision).
+Measured by `scripts/eval_ps7.py` over every shipped scenario, and by
+`scripts/eval_retrieval.py` over the evidence gold set. Both run from a fresh
+clone with no dataset download.
+
+| Measure | Result |
+|---|---|
+| ATT&CK mapping coverage (alerts carrying a technique) | 100.0% |
+| Technique-ID validity against the parsed ATT&CK STIX | 100.0% |
+| Event to technique precision | Not measured (no per-event ATT&CK ground truth exists in these datasets) |
+| SOAR playbook coverage of observed tactics | 100.0% |
+| MITRE mitigation coverage of observed techniques | 100.0% |
+| Actions executed against real systems | 0 (by design) |
+| Investigation latency, p50 then p95 | 51 ms then 224 ms |
+| Evidence recall@1 then recall@5 | 64.3% then 85.7% |
+| Evidence MRR | 0.717 |
+| Citation integrity failures | 0 |
+| Audit tampering detected | yes |
+| Unauthorised approval blocked server side | yes |
+| Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
+
+## 6. Engineering
+
+- 152 automated tests, no network required (pipeline correctness, multi-pivot
+  graph, cross-screen consistency, calibration spread, intelligence mapping
+  precision, evidence retrieval and citation integrity, prompt-injection handling,
+  RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
+  monotonicity, workflow boundedness and degradation, SSRF guards, and the SPA
+  payload contract).
 - Browser end-to-end across 15 user flows, 14 passed.
-- `docker build` verified; one container, runs from a fresh clone with no
-  dataset download.
+- One container: FastAPI serves the built SPA from the same origin. Verify it with
+  `scripts/verify.ps1 -Docker` (or `bash scripts/verify.sh --docker`), which builds
+  the image and smoke-tests the running container.
 - Drift-proof metrics: eval scripts write `reports/metrics.json`, the UI reads
   it, and `scripts/audit_stale.py` fails if any doc cites an out-of-date number.
 
@@ -125,3 +152,6 @@ The shipped demo campaign (2,732 events) completes in
 | Model bake-off (all variants) | `reports/model_experiments.md` |
 | Attribution report | `reports/attribution_eval.md` |
 | Scaling measurements | `reports/scaling_measurements.json` |
+| PS7 operational evaluation | `reports/ps7_eval.md` |
+| Evidence retrieval evaluation | `reports/retrieval_eval.md` |
+| Evidence index composition | `reports/evidence_index.md` |

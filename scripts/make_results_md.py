@@ -23,10 +23,29 @@ I = json.loads((ROOT / "api" / "cache" / "incident.json").read_text(encoding="ut
 
 L, C, U = M["engine1"]["lanl"], M["engine1"]["cicids"], M["engine1"]["unsw"]
 P, E = M["engine2"]["predictor"], M["engine2"]["embeddings"]
+PS7 = M.get("ps7", {})
+RET = M.get("retrieval", {}).get("gold_set", {})
 
 
 def pct(x):
     return f"{x * 100:.1f}%"
+
+
+def test_count() -> int:
+    """Count the suite instead of hard-coding it. The number was 31 in this file
+    long after the suite had grown, which is the exact drift this generator
+    exists to prevent."""
+    import subprocess
+    import sys
+    try:
+        out = subprocess.run([sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q"],
+                             cwd=ROOT, capture_output=True, text=True, timeout=180).stdout
+        for line in reversed(out.splitlines()):
+            if "test" in line and "collected" in line:
+                return int(line.split()[0])
+        return sum(1 for ln in out.splitlines() if "::" in ln)
+    except Exception:
+        return 0
 
 
 def main() -> None:
@@ -135,19 +154,66 @@ after warm-up.
     for r in SCALING:
         if r["events"] in (2732, 10000, 20000, 50000):
             md += f"| {r['events']:,} | {r['seconds']:.3f} s | {r['alerts']:,} |\n"
+    am = PS7.get("attack_mapping", {})
+    sc = PS7.get("soar_coverage", {})
+    lat = PS7.get("latency_ms", {})
+    aud = PS7.get("audit", {})
+    rb = PS7.get("rbac", {})
+    mapping_cov = pct(am["coverage"]) if am.get("coverage") is not None else "Not measured"
+    id_valid = pct(am["id_validity"]) if am.get("id_validity") is not None else "Not measured"
+    soar_cov = pct(sc["tactic_coverage"]) if sc.get("tactic_coverage") is not None else "Not measured"
+    mit_cov = pct(sc["mitigation_coverage"]) if sc.get("mitigation_coverage") is not None else "Not measured"
+    executed = sc.get("actions_executed_against_real_systems", 0)
+    p50 = f"{lat.get('p50', 0):.0f}"
+    p95 = f"{lat.get('p95', 0):.0f}"
+    r1 = pct(RET["recall_at_1"]) if RET.get("recall_at_1") is not None else "Not measured"
+    r5 = pct(RET["recall_at_5"]) if RET.get("recall_at_5") is not None else "Not measured"
+    mrr = f"{RET.get('mrr', 0):.3f}"
+    integrity = RET.get("citation_integrity_failures", "Not measured")
+    tamper = "yes" if aud.get("tamper_detected") else "not verified"
+    denied = "yes" if rb.get("viewer_denied_approval") else "not verified"
+    n_tests = test_count() or "the full suite"
+
     md += f"""
 The shipped demo campaign ({demo['events']:,} events) completes in
 {demo['seconds']:.3f} s; the documented 50,000-event cap completes in
 {cap['seconds']:.3f} s. In-memory graph analytics are comfortable to about
 50,000 events per analysis; beyond that we shard or move to a graph database.
 
-## 5. Engineering
+## 5. PS7 operational evidence
 
-- 31 automated tests (pipeline correctness, multi-pivot graph, cross-screen
-  consistency, calibration spread, intelligence mapping precision).
+Measured by `scripts/eval_ps7.py` over every shipped scenario, and by
+`scripts/eval_retrieval.py` over the evidence gold set. Both run from a fresh
+clone with no dataset download.
+
+| Measure | Result |
+|---|---|
+| ATT&CK mapping coverage (alerts carrying a technique) | {mapping_cov} |
+| Technique-ID validity against the parsed ATT&CK STIX | {id_valid} |
+| Event to technique precision | Not measured (no per-event ATT&CK ground truth exists in these datasets) |
+| SOAR playbook coverage of observed tactics | {soar_cov} |
+| MITRE mitigation coverage of observed techniques | {mit_cov} |
+| Actions executed against real systems | {executed} (by design) |
+| Investigation latency, p50 then p95 | {p50} ms then {p95} ms |
+| Evidence recall@1 then recall@5 | {r1} then {r5} |
+| Evidence MRR | {mrr} |
+| Citation integrity failures | {integrity} |
+| Audit tampering detected | {tamper} |
+| Unauthorised approval blocked server side | {denied} |
+| Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
+
+## 6. Engineering
+
+- {n_tests} automated tests, no network required (pipeline correctness, multi-pivot
+  graph, cross-screen consistency, calibration spread, intelligence mapping
+  precision, evidence retrieval and citation integrity, prompt-injection handling,
+  RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
+  monotonicity, workflow boundedness and degradation, SSRF guards, and the SPA
+  payload contract).
 - Browser end-to-end across 15 user flows, 14 passed.
-- `docker build` verified; one container, runs from a fresh clone with no
-  dataset download.
+- One container: FastAPI serves the built SPA from the same origin. Verify it with
+  `scripts/verify.ps1 -Docker` (or `bash scripts/verify.sh --docker`), which builds
+  the image and smoke-tests the running container.
 - Drift-proof metrics: eval scripts write `reports/metrics.json`, the UI reads
   it, and `scripts/audit_stale.py` fails if any doc cites an out-of-date number.
 
@@ -163,6 +229,9 @@ The shipped demo campaign ({demo['events']:,} events) completes in
 | Model bake-off (all variants) | `reports/model_experiments.md` |
 | Attribution report | `reports/attribution_eval.md` |
 | Scaling measurements | `reports/scaling_measurements.json` |
+| PS7 operational evaluation | `reports/ps7_eval.md` |
+| Evidence retrieval evaluation | `reports/retrieval_eval.md` |
+| Evidence index composition | `reports/evidence_index.md` |
 """
     OUT.write_text(md, encoding="utf-8")
     # guard: the style rule bans em/en dashes

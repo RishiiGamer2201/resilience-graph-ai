@@ -205,7 +205,13 @@ def incident_view(full: dict) -> dict:
         "alert_count": inc["alert_count"], "event_count": inc["event_count"],
         "attack_chain": inc["attack_chain"], "technique_ids": inc["technique_ids"],
         "is_campaign": _is_campaign(full),
+        # Both names on purpose: the screens have always read `accounts_involved`,
+        # while everything that consumes a raw correlate() incident reads
+        # `users_involved`. Carrying both means a caller that is handed the VIEW
+        # (the workflow, the explainability trace, the RFI) cannot silently read a
+        # missing key and report "0 accounts".
         "accounts_involved": inc.get("users_involved", []),
+        "users_involved": inc.get("users_involved", []),
         "steps": alerts,
         "steps_shown": len(alerts), "steps_total": inc["alert_count"],
     }

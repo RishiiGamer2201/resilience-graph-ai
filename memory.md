@@ -21,11 +21,14 @@
 - ✅ **M5 app**: FastAPI (7 cached GETs + 2 live POSTs) · React 6 screens + splash · live widgets with cached fallback · incident report (.md/print) + MTTD panel · full stack verified running.
 - ✅ **Deploy**: single-container Dockerfile + `render.yaml`; runtime artifacts force-added to git.
 - ✅ Docs scaffold: prd/architecture/rules/phases/design/memory (2026-07-16).
+- ✅ **Finalist surface** (branch `finalist/furnish-nextattack`): cited evidence index (1,545 chunks, BM25 + exact-ID boost, recall@5 0.857) · deterministic vulnerability prioritisation (KEV × criticality × graph reachability) · digital-twin counterfactual with operational cost · server-side RBAC + approval policy · hash-linked tamper-evident audit chain · bounded 7-node workflow with node timings · 11-stage explainability trace · PS7 scoreboard read from `reports/metrics.json` · guarded outbound HTTP (allowlist + SSRF + redirect re-validation). Tests 31 → 152. Docs: 4 ADRs, threat model, cost ledger, runbook, demo script, judge Q&A.
 - ✅ **Live analysis pipeline** (branch `remove-hardcode`): `src/shared/live_analyze.py` + `views.py`; `POST /api/analyze` + `/analyze/upload` + `GET /api/scenarios`; Analyze Log screen + `AnalysisProvider`; sample cache is now a real analysis of a shipped LANL log; fabricated UI bits removed; deploy config updated. 6 pytest checks green.
 
 ## Open items / blockers
-- ⏳ **CERT-In sequences unverified (0/4)** — `data/manual/cert_in_sequences.json`, guide in `data/manual/README.md`. Blocks quoting manual-eval numbers (top-3 8.7%) and India-scenario claims.
-- ⏳ Deck, backup demo video, 30-sec hook, judge Q&A prep (see phases.md → Phase 7).
+- ✅ **CERT-In sequences verified (4/4)** — quoted top-3 is 10.0% (real reported ordering), published alongside 38.1% on the auto-ordered set.
+- ✅ 30-sec hook, click-by-click script and judge Q&A: `docs/demo/`. Backup video linked in the README.
+- ⏳ **No LICENSE file** — owner decision, flagged in CONTRIBUTING.md and docs/operations/cost-and-limits.md. Without one the repo is all-rights-reserved by default.
+- ⏳ **No rate limiting** on the API — fine for a demo, recorded as residual risk in docs/security/threat-model.md.
 - 🟢 Stretch: India scenario replay (AIIMS/CBSE-styled), one-page handout.
 
 ## Known caveats (do not lose these)
@@ -37,11 +40,19 @@
 - Live endpoints need local `models/` — otherwise UI silently shows "cached" badge (by design).
 - **Live analysis uses FIXED score_ref calibration**, so the demo scenario now shows ~209 alerts (was 131 offline with batch min/max scaling). Intentional — consistent across uploads + matches /score-event. Pivot C17693, 215 events unchanged.
 - **MTTD is "immediate"** on the demo log (attacker's first pivot event is already anomalous). Weeks→minutes headline rests on the *cited* Mandiant dwell (~10 d), labelled a citation not our claim.
-- **Docker build not run** (no Docker/Desktop/podman on the build machine). Validated the equivalent instead: fresh venv with ONLY `requirements-deploy.txt` installed clean (no torch/sentence-transformers, sklearn 1.7.2), all Dockerfile COPY sources exist + committed, and the app runs under that slim venv — `/api/analyze` (209 alerts, pivot C17693), `/score-event`, `/predict-next`, SPA all 200. Real `docker build` still worth running once on Render/a Docker host, but runtime deps are confirmed complete.
+- **The Dockerfile never copied `models/ae_lanl.npz`** — the deployed container silently fell back to the IsolationForest and scored differently from the build we measured. Fixed, and `scripts/check_dockerfile.py` now fails if a required runtime artifact is not COPYed or is excluded by `.dockerignore`. That check needs no Docker daemon.
+- **`views.SCORECARD` had drifted** to LANL ROC 0.988 (the IsolationForest we stopped shipping) against a measured 0.992. It reads `reports/metrics.json` now, and a test fails if it drifts again.
+- **ATT&CK mapping coverage was 37.5%**: a flagged authentication that was neither a failure nor a first-time host got no technique at all. Anomalous successful logins now map to T1078 Valid Accounts, gated on the alert score. Coverage 100%.
+- **`rank_candidates` recomputed betweenness centrality per candidate** — 5.9 s on the impact node, when it only needs reachability. Investigation is ~51 ms p50 now.
+- **The SPA read `incident.users_involved`** while the view exposed `accounts_involved`, rendering "0 accounts" instead of crashing. The view carries both now, and `tests/test_ui_contract.py` asserts every key the screens dereference — that file is the type system across a boundary with no TypeScript.
+- **MTTR stays Not measured** while every action is simulated. Do not let anyone put a number on that card.
+- **Default auth is authorisation WITHOUT authentication** (`X-Role` header) — deliberate, so a judge can switch roles with no signup, and `/api/capabilities` says so. `NEXTATTACK_ROLE_TOKENS` switches to bearer tokens.
+- **The audit chain is session-scoped and in memory.** Free hosts have an ephemeral filesystem; never imply it persists.
 
 ## Session log (newest first)
 | Date | Who | What changed |
 |---|---|---|
+| 2026-08-18 | Claude | `finalist/furnish-nextattack`: PS7 finalist pass. Cited evidence with hashed/dated sources; vulnerability prioritisation; digital twin; RBAC + approval; audit chain; bounded 7-node workflow; explainability trace; PS7 scoreboard; guarded outbound HTTP. New Investigation and Scoreboard screens on the existing token system (no Tailwind, no TS migration, no map — ADR 0004). Four real bugs found and fixed on the way (see caveats). 31 → 152 tests. Full docs set under `docs/`, including four ADRs and a threat model. |
 | 2026-07-16 | Claude | Docs refresh: README rewritten (mermaid diagram + new-device setup for teammates), architecture.md → mermaid, prd/phases/memory updated. Verified docker build + slim-venv run. Merged `threat-radar` → `main` (fast-forward). |
 | 2026-07-16 | Claude | India scenarios: AIIMS + CBSE (config-driven generator). TGT/non-host artifacts filtered from crown jewels. Alert-queue "review path" deep-links to the focused subgraph. Data & Methodology updated (918 techniques, 5.4×, verified CERT-In). |
 | 2026-07-16 | Claude | Campaign view: all 104 accounts (was 1); Attackers screen; graph node-click + account filter + focused exposure subgraphs; multi-pivot blast radius; crown jewels derived (not the fabricated middle-of-list pick). Many bug fixes from user testing. |
