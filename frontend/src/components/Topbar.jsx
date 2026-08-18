@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, UserCog } from 'lucide-react'
 import { useTheme } from '../lib/theme.jsx'
 import { useAnalysis } from '../lib/analysis.jsx'
+import { useSession } from '../lib/session.jsx'
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -19,6 +20,7 @@ export default function Topbar({ title, subtitle }) {
   const clock = useClock()
   const { theme, setTheme } = useTheme()
   const { source, bundle } = useAnalysis()
+  const { role, actor, roles, setRole } = useSession()
   const live = source === 'live'
 
   return (
@@ -30,6 +32,13 @@ export default function Topbar({ title, subtitle }) {
         {live ? `LIVE ANALYSIS · ${bundle?.meta?.n_events ?? ''} events` : 'SAMPLE DATA · pre-computed'}
       </span>
       <div className="spacer" />
+      <label className="rolepick" title={`Sent as X-Role and enforced server-side. Signed in as ${actor}.`}>
+        <UserCog size={13} aria-hidden="true" />
+        <span className="sr-only">Role</span>
+        <select value={role} onChange={(e) => setRole(e.target.value)}>
+          {roles.map((r) => <option key={r.role} value={r.role}>{r.label} — {r.can}</option>)}
+        </select>
+      </label>
       <span className="clock" aria-live="off">{clock}</span>
       <div className="toggle" role="group" aria-label="Theme">
         <button className={theme === 'light' ? 'on' : undefined}

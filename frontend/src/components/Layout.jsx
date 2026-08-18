@@ -3,6 +3,7 @@ import Sidebar from './Sidebar.jsx'
 import Topbar from './Topbar.jsx'
 
 const TITLES = {
+  '/investigate': { title: 'Investigation', subtitle: 'Understand → Plan → Evidence → Signals → Replan → Impact → Action' },
   '/analyze': { title: 'Analyze Log', subtitle: 'Live pipeline' },
   '/overview': { title: 'Command Center', subtitle: 'Grid operator · DOM1' },
   '/attackers': { title: 'Attackers', subtitle: 'Campaign · all accounts' },
@@ -10,6 +11,7 @@ const TITLES = {
   '/graph': { title: 'Attack-path Graph', subtitle: 'Blast radius & choke points' },
   '/threat-intel': { title: 'Threat Intel & Attribution', subtitle: 'ATT&CK-driven' },
   '/threat-radar': { title: 'Threat Radar', subtitle: 'External CTI · free feeds' },
+  '/scoreboard': { title: 'PS7 Scoreboard', subtitle: 'Measured, with baselines' },
   '/metrics': { title: 'Models & Metrics', subtitle: 'Evidence' },
   '/methodology': { title: 'Data & Methodology', subtitle: 'Our rigor' },
 }

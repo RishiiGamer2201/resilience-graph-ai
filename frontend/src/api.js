@@ -6,18 +6,39 @@
 // Vite proxy (vite.config.js) forwards /api → http://localhost:8000.
 const BASE = import.meta.env.VITE_API_BASE || "/api";
 
+// ---- session (who the backend thinks is calling) ----
+// The role travels as a header and is enforced SERVER-SIDE on every mutating
+// endpoint — changing it here cannot grant permission, it only changes which
+// refusal you get. See src/shared/rbac.py.
+let session = { role: "analyst", actor: "analyst@soc" };
+export const setSession = (s) => { session = { ...session, ...s }; };
+export const getSession = () => ({ ...session });
+
+const authHeaders = () => ({ "X-Role": session.role, "X-Actor": session.actor });
+
+// Surface the backend's own error message (403 reason, 422 validation detail)
+// instead of a bare status code — the refusal text is the demo.
+async function fail(path, r) {
+  let detail = `${r.status}`;
+  try { detail = (await r.json()).detail || detail; } catch { /* not json */ }
+  const e = new Error(detail);
+  e.status = r.status;
+  e.path = path;
+  return e;
+}
+
 async function get(path) {
-  const r = await fetch(`${BASE}${path}`);
-  if (!r.ok) throw new Error(`${path} -> ${r.status}`);
+  const r = await fetch(`${BASE}${path}`, { headers: authHeaders() });
+  if (!r.ok) throw await fail(path, r);
   return r.json();
 }
 async function post(path, body) {
   const r = await fetch(`${BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
   });
-  if (!r.ok) throw new Error(`${path} -> ${r.status}`);
+  if (!r.ok) throw await fail(path, r);
   return r.json();
 }
 
@@ -123,3 +144,50 @@ export async function predictNext(technique_ids, k = 5) {
     return { given: technique_ids, predictions: FALLBACK_NEXT.slice(0, k), live: false };
   }
 }
+
+
+// ---------------------------------------------------------------------------
+// Finalist surface: workflow, evidence, vulnerabilities, twin, RBAC, audit
+// ---------------------------------------------------------------------------
+
+// Service state: what is live, bundled, degraded or unavailable right now.
+export const getCapabilities = () => get("/capabilities");
+export const getReadiness = () => get("/readiness");
+
+// The seven-node investigation. Returns trace + signals + impact + action.
+export const investigate = (body) => post("/investigate", body);
+
+// Cited evidence over the bundled MITRE/CISA/CERT-In corpus.
+export const searchEvidence = (body) => post("/evidence/search", body);
+export const getEvidenceStats = () => get("/evidence/stats");
+
+// Vulnerability prioritisation for an incident's estate.
+export const getVulnerabilities = (body) => post("/vulnerabilities", body);
+export const getVulnConfig = () => get("/vulnerabilities/config");
+
+// Digital twin: counterfactual containment on the incident graph.
+export const twinSimulate = (body) => post("/twin/simulate", body);
+export const twinCandidates = (body) => post("/twin/candidates", body);
+
+// Full raw-event -> action provenance chain for one alert.
+export const explainStep = (body) => post("/explain", body);
+
+// Human decision on a simulated action. Nothing is ever executed.
+export const approveAction = (body) => post("/actions/approve", body);
+
+// Tamper-evident audit chain.
+export const getAudit = (limit = 100) => get(`/audit?limit=${limit}`);
+export const verifyAudit = () => get("/audit/verify");
+export const exportAudit = () => get("/audit/export");
+export const verifyAuditExport = (exp) => post("/audit/verify-export", exp);
+export const resetAudit = () => post("/audit/reset", {});
+// Markdown export goes through fetch, not a plain <a href>: the role header is
+// what authorises it and a browser navigation would not send one.
+export async function exportAuditMarkdown() {
+  const r = await fetch(`${BASE}/audit/export.md`, { headers: authHeaders() });
+  if (!r.ok) throw await fail("/audit/export.md", r);
+  return r.text();
+}
+
+// PS7 evaluation scoreboard, read from reports/metrics.json.
+export const getScoreboard = () => get("/scoreboard");
