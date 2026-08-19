@@ -28,10 +28,14 @@ from typing import Any
 
 log = logging.getLogger("rag.query")
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]   # src/retrieval/query.py -> project root
 _collection_cache: Any = None
 
 TECHNIQUE_RE = re.compile(r"\b(T\d{4}(?:\.\d{3})?)\b")
+
+# Same model as the corpus was embedded with. Importing it rather than
+# retyping the string means the two can never drift apart.
+from src.retrieval.embed import EMBED_MODEL  # noqa: E402
 
 
 def _get_collection() -> Any:
@@ -43,15 +47,28 @@ def _get_collection() -> Any:
     return _collection_cache
 
 
+_model_cache: Any = None
+
+
 def _embed_query(text: str) -> list[float]:
-    """Embed a query string using the same model as the corpus."""
-    try:
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-        vec = model.encode([text], normalize_embeddings=True)
-        return vec[0].tolist()
-    except ImportError:
-        raise ImportError("Run: pip install sentence-transformers")
+    """Embed a query string using the same model as the corpus.
+
+    The model is loaded ONCE per process. It used to be constructed on every
+    call, which re-read ~90 MB of weights from disk per query and made semantic
+    search several seconds slower than the lexical retriever it is meant to
+    improve on.
+    """
+    global _model_cache
+    if _model_cache is None:
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError as e:
+            raise ImportError(
+                "semantic query needs sentence-transformers: pip install -r requirements.txt"
+            ) from e
+        _model_cache = SentenceTransformer(EMBED_MODEL)
+    vec = _model_cache.encode([text], normalize_embeddings=True)
+    return vec[0].tolist()
 
 
 def _freshness_boost(date_str: str) -> float:

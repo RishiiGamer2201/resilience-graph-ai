@@ -76,20 +76,35 @@ def _make_id(text: str) -> str:
 
 
 def _chunk_text(text: str, max_chars: int = 1800, overlap: int = 200) -> list[str]:
-    """Split long text into overlapping chunks by sentence boundaries."""
+    """Split long text into overlapping chunks on sentence boundaries.
+
+    Termination is explicit. The previous version ended each pass with
+    `start = end - overlap` and looped `while start < len(text)`: once `end`
+    reached the end of the text, `start` settled at `len(text) - overlap`, which
+    is still less than `len(text)`, so it appended the same tail chunk forever
+    and died with MemoryError. Short documents (CISA KEV entries) never hit it;
+    every MITRE ATT&CK technique longer than `max_chars` did, which is why the
+    corpus contained zero ATT&CK chunks.
+
+    Two guards now: break as soon as the tail is consumed, and never let `start`
+    fail to advance.
+    """
     text = re.sub(r"\s+", " ", text).strip()
     if len(text) <= max_chars:
         return [text]
-    chunks, start = [], 0
+    chunks: list[str] = []
+    start = 0
     while start < len(text):
         end = min(start + max_chars, len(text))
-        # try to break at sentence boundary
         if end < len(text):
+            # prefer a sentence boundary in the back half of the window
             boundary = text.rfind(". ", start + max_chars // 2, end)
             if boundary != -1:
                 end = boundary + 1
         chunks.append(text[start:end].strip())
-        start = end - overlap
+        if end >= len(text):
+            break                       # tail consumed; nothing left to window
+        start = max(end - overlap, start + 1)   # always make progress
     return [c for c in chunks if len(c) > 50]
 
 
@@ -99,14 +114,24 @@ def _chunk_text(text: str, max_chars: int = 1800, overlap: int = 200) -> list[st
 
 def _get(url: str, headers: dict | None = None, data: bytes | None = None,
          retries: int = 3, backoff: float = 2.0) -> bytes:
-    req = urllib.request.Request(
-        url, data=data,
-        headers={"User-Agent": UA, **(headers or {})}
-    )
+    """Fetch through the guarded fetcher, with retries.
+
+    Every outbound request in this product goes through
+    `src.shared.nethttp.fetch_url`: host allowlist, SSRF guard on the resolved
+    address, redirects re-validated at each hop, size and time caps. This module
+    originally called urllib directly, which bypassed all of it -- a corpus
+    builder that will follow any URL is exactly the wrong thing to have in a
+    security product. Adding a source now means adding its host to the allowlist
+    on purpose, which is the point.
+    """
+    from src.shared.nethttp import BlockedURL, fetch_url
+
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-                return r.read()
+            return fetch_url(url, headers=headers, data=data, timeout=TIMEOUT,
+                             max_bytes=64 * 1024 * 1024)   # ATT&CK bundles are ~40 MB
+        except BlockedURL:
+            raise                       # a policy refusal is not worth retrying
         except (urllib.error.URLError, OSError) as e:
             if attempt == retries - 1:
                 raise
@@ -512,78 +537,104 @@ def ingest_cisa_kev() -> list[Chunk]:
 NVD_API = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
 
-def ingest_nvd(pub_start: str = "2025-01-01T00:00:00.000",
+# The NVD API rejects a date filter that names only a start, and it caps any
+# single query at a 120-day span. Both rules were being broken, so every request
+# came back 404 and this source produced nothing.
+NVD_MAX_WINDOW_DAYS = 110          # inside the documented 120-day cap
+
+
+def ingest_nvd(window_days: int = NVD_MAX_WINDOW_DAYS,
                max_results: int = 500) -> list[Chunk]:
-    log.info("NVD CVE API loading (from %s)...", pub_start)
+    log.info("NVD CVE API loading (rolling %d-day windows)...", window_days)
     chunks: list[Chunk] = []
     api_key = os.environ.get("NVD_API_KEY", "").strip()
     headers = {"apiKey": api_key} if api_key else {}
 
-    start_index = 0
+    from datetime import timedelta
+
+    def _stamp(dt: datetime) -> str:
+        # NVD wants ISO-8601 with milliseconds and no timezone suffix
+        return dt.strftime("%Y-%m-%dT%H:%M:%S.000")
+
     batch = 100
     fetched = 0
+    window_end = datetime.now(timezone.utc).replace(tzinfo=None)
+    windows_tried = 0
 
-    while fetched < max_results:
-        params = f"pubStartDate={pub_start}&resultsPerPage={batch}&startIndex={start_index}"
-        url = f"{NVD_API}?{params}"
-        try:
-            data = _get_json(url, headers=headers)
-        except Exception as e:
-            log.warning("  NVD batch failed at index %d: %s", start_index, e)
+    while fetched < max_results and windows_tried < 4:
+        window_start = window_end - timedelta(days=window_days)
+        start_index = 0
+        windows_tried += 1
+
+        while fetched < max_results:
+            params = (f"pubStartDate={_stamp(window_start)}"
+                      f"&pubEndDate={_stamp(window_end)}"
+                      f"&resultsPerPage={batch}&startIndex={start_index}")
+            url = f"{NVD_API}?{params}"
+            try:
+                data = _get_json(url, headers=headers)
+            except Exception as e:
+                log.warning("  NVD batch failed at index %d: %s", start_index, e)
+                break
+
+            vulns = data.get("vulnerabilities", [])
+            if not vulns:
+                break
+
+            for item in vulns:
+                cve = item.get("cve", {})
+                cve_id = cve.get("id", "")
+                published = cve.get("published", "")[:10]
+                descriptions = cve.get("descriptions", [])
+                desc_en = next((d["value"] for d in descriptions if d.get("lang") == "en"), "")
+                metrics = cve.get("metrics", {})
+
+                # CVSS v3.1 or v3.0 score
+                cvss_score = None
+                severity = "medium"
+                for key in ("cvssMetricV31", "cvssMetricV30"):
+                    mlist = metrics.get(key, [])
+                    if mlist:
+                        cvss_data = mlist[0].get("cvssData", {})
+                        cvss_score = cvss_data.get("baseScore")
+                        severity = cvss_data.get("baseSeverity", "MEDIUM").lower()
+                        break
+
+                if not desc_en:
+                    continue
+
+                full_text = (
+                    f"CVE: {cve_id}\n"
+                    f"Published: {published}  |  CVSS Score: {cvss_score}  |  Severity: {severity.upper()}\n\n"
+                    f"Description: {desc_en}\n"
+                    f"Reference: https://nvd.nist.gov/vuln/detail/{cve_id}\n"
+                )
+
+                chunks.append(Chunk(
+                    text=full_text.strip(),
+                    source="nvd_cve",
+                    doc_id=_make_id(f"nvd_{cve_id}"),
+                    title=cve_id,
+                    url=f"https://nvd.nist.gov/vuln/detail/{cve_id}",
+                    date=published,
+                    severity=severity,
+                    tags=["cve", "nvd", severity],
+                ))
+
+            fetched += len(vulns)
+            total_results = data.get("totalResults", 0)
+            log.info("  fetched %d/%d NVD CVEs...", fetched, min(total_results, max_results))
+            start_index += batch
+
+            if fetched >= total_results or fetched >= max_results:
+                break
+            time.sleep(0.7 if api_key else 6.5)  # NVD rate limits
+
+        # step back one window and keep going until max_results is satisfied
+        window_end = window_start
+        if fetched >= max_results:
             break
-
-        vulns = data.get("vulnerabilities", [])
-        if not vulns:
-            break
-
-        for item in vulns:
-            cve = item.get("cve", {})
-            cve_id = cve.get("id", "")
-            published = cve.get("published", "")[:10]
-            descriptions = cve.get("descriptions", [])
-            desc_en = next((d["value"] for d in descriptions if d.get("lang") == "en"), "")
-            metrics = cve.get("metrics", {})
-
-            # CVSS v3.1 or v3.0 score
-            cvss_score = None
-            severity = "medium"
-            for key in ("cvssMetricV31", "cvssMetricV30"):
-                mlist = metrics.get(key, [])
-                if mlist:
-                    cvss_data = mlist[0].get("cvssData", {})
-                    cvss_score = cvss_data.get("baseScore")
-                    severity = cvss_data.get("baseSeverity", "MEDIUM").lower()
-                    break
-
-            if not desc_en:
-                continue
-
-            full_text = (
-                f"CVE: {cve_id}\n"
-                f"Published: {published}  |  CVSS Score: {cvss_score}  |  Severity: {severity.upper()}\n\n"
-                f"Description: {desc_en}\n"
-                f"Reference: https://nvd.nist.gov/vuln/detail/{cve_id}\n"
-            )
-
-            chunks.append(Chunk(
-                text=full_text.strip(),
-                source="nvd_cve",
-                doc_id=_make_id(f"nvd_{cve_id}"),
-                title=cve_id,
-                url=f"https://nvd.nist.gov/vuln/detail/{cve_id}",
-                date=published,
-                severity=severity,
-                tags=["cve", "nvd", severity],
-            ))
-
-        fetched += len(vulns)
-        total_results = data.get("totalResults", 0)
-        log.info("  fetched %d/%d NVD CVEs...", fetched, min(total_results, max_results))
-        start_index += batch
-
-        if fetched >= total_results or fetched >= max_results:
-            break
-        time.sleep(0.7 if api_key else 6.5)  # NVD rate limits
+        time.sleep(0.7 if api_key else 6.5)
 
     log.info("  -> %d NVD CVE chunks", len(chunks))
     return chunks

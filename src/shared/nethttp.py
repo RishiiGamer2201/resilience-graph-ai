@@ -43,6 +43,9 @@ ALLOWED_HOSTS: set[str] = {
     "www.bleepingcomputer.com",
     "otx.alienvault.com",
     "threatfox-api.abuse.ch",
+    # RAG corpus sources (src/retrieval/ingest.py), build-time only
+    "bazaar.abuse.ch",
+    "atlas.mitre.org",
 }
 
 
