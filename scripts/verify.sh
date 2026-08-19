@@ -74,35 +74,7 @@ self_checks() {
 }
 
 smoke() {
-  PYTHONIOENCODING=utf-8 "$PY" -W ignore - <<'PYEOF'
-from fastapi.testclient import TestClient
-from api.main import app
-c = TestClient(app)
-
-assert c.get("/api/health").json()["ok"] is True
-ready = c.get("/api/readiness").json()
-assert ready["ready"], f"not ready: {ready['missing_required']}"
-assert c.get("/api/capabilities").json()["keys_required"] == []
-board = c.get("/api/scoreboard").json()
-assert board["summary"]["missing_reports"] == [], board["summary"]["missing_reports"]
-
-r = c.post("/api/investigate", json={"scenario": "aiims_ransomware"},
-           headers={"X-Role": "analyst", "X-Actor": "verify@ci"})
-assert r.status_code == 200, r.text
-b = r.json()
-assert b["ok"] and b["action"]["executed"] == 0
-nodes = [n["node"] for n in b["trace"]["nodes"]]
-assert nodes[0] == "understand" and nodes[-1] == "action", nodes
-assert nodes.count("evidence") <= 2, "replan is not bounded"
-
-assert c.post("/api/investigate", json={"scenario": "aiims_ransomware"},
-              headers={"X-Role": "viewer"}).status_code == 403
-assert c.get("/api/audit/verify", headers={"X-Role": "viewer"}).json()["verified"]
-
-print(f"   smoke ok: {len(nodes)} node runs in {b['trace']['total_ms']:.0f} ms, "
-      f"{board['summary']['measured']} measured metrics, "
-      f"{len(b['evidence'].get('citations', []))} citations, 0 actions executed")
-PYEOF
+  PYTHONIOENCODING=utf-8 "$PY" -m scripts.smoke_api
 }
 
 frontend() {                   # frontend lint|build
