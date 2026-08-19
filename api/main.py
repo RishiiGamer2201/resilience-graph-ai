@@ -392,6 +392,112 @@ async def analyze_stream(scenario: str, critical_assets: str = "", delay: float 
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
+
+# --- RAG Retrieval endpoints ------------------------------------------------
+# Lazy-init: vector store is optional — API works without it; returns empty
+# results with a 503-like note so the frontend can show "RAG not ready".
+
+_rag_ready: bool | None = None   # None = not yet checked
+
+def _check_rag() -> bool:
+    global _rag_ready
+    if _rag_ready is not None:
+        return _rag_ready
+    try:
+        from src.retrieval.embed import CHROMA_DIR, COLLECTION_NAME
+        import chromadb
+        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        client.get_collection(COLLECTION_NAME)
+        _rag_ready = True
+    except Exception:
+        _rag_ready = False
+    return _rag_ready
+
+
+class RetrieveRequest(BaseModel):
+    query: str
+    top_k: int = 10
+    source_filter: str | None = None
+    domain_filter: str | None = None
+    severity_filter: str | None = None
+    actor_filter: str | None = None
+    family_filter: str | None = None
+
+
+class IncidentRetrieveRequest(BaseModel):
+    technique_ids: list[str] = []
+    incident_text: str = ""
+    top_k: int = 15
+
+
+@app.get("/api/rag/status")
+def rag_status():
+    """Check if the RAG vector store is built and ready."""
+    ready = _check_rag()
+    return {
+        "ready": ready,
+        "note": "Run: python -m src.retrieval.ingest && python -m src.retrieval.embed" if not ready else "RAG vector store online.",
+    }
+
+
+@app.post("/api/retrieve")
+def retrieve_endpoint(req: RetrieveRequest):
+    """
+    Semantic search over the cybersecurity knowledge corpus.
+    Returns ranked chunks from ATT&CK, CISA KEV, CVEs, malware KB, etc.
+    """
+    if not _check_rag():
+        raise HTTPException(status_code=503, detail={
+            "error": "RAG vector store not built.",
+            "fix": "python -m src.retrieval.ingest && python -m src.retrieval.embed",
+        })
+    from src.retrieval.query import retrieve
+    results = retrieve(
+        query=req.query,
+        top_k=req.top_k,
+        source_filter=req.source_filter,
+        domain_filter=req.domain_filter,
+        severity_filter=req.severity_filter,
+        actor_filter=req.actor_filter,
+        family_filter=req.family_filter,
+    )
+    return {"query": req.query, "results": results, "count": len(results)}
+
+
+@app.get("/api/technique-context/{technique_id}")
+def technique_context(technique_id: str):
+    """
+    Retrieve all RAG chunks related to a specific ATT&CK technique (e.g. T1486).
+    Used by the SOC screen to show enriched context for mapped techniques.
+    """
+    if not _check_rag():
+        return {"technique_id": technique_id, "results": [], "note": "RAG not built."}
+    from src.retrieval.query import technique_lookup
+    results = technique_lookup(technique_id)
+    return {"technique_id": technique_id, "results": results, "count": len(results)}
+
+
+@app.post("/api/retrieve/incident")
+def retrieve_for_incident(req: IncidentRetrieveRequest):
+    """
+    Retrieve RAG context most relevant to a running incident.
+    Combines technique-specific lookups with free-text semantic search.
+    """
+    if not _check_rag():
+        raise HTTPException(status_code=503, detail="RAG vector store not built.")
+    from src.retrieval.query import retrieve_for_incident
+    results = retrieve_for_incident(
+        incident_techniques=req.technique_ids,
+        incident_text=req.incident_text,
+        top_k=req.top_k,
+    )
+    return {
+        "technique_ids": req.technique_ids,
+        "results": results,
+        "count": len(results),
+    }
+
+
 # --- finalist surface: workflow, evidence, vulnerabilities, twin, RBAC, audit
 # Registered BEFORE the SPA catch-all below, which would otherwise shadow every
 # GET route it defines.
