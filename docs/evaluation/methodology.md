@@ -18,7 +18,8 @@ fails if any document cites a value that no longer matches.
 | `src/engine1/eval_unsw.py` | `engine1.unsw` | ROC-AUC / PR-AUC on the official UNSW-NB15 split |
 | `src/engine2/build_predictor.py` | `engine2.predictor` | top-3 for every predictor variant plus both baselines |
 | `src/engine2/build_embeddings.py` | `engine2.embeddings` | same-tactic vs random cosine separation |
-| `scripts/eval_retrieval.py` | `retrieval.gold_set` | recall@1, recall@5, MRR, citation integrity |
+| `scripts/eval_retrieval.py` | `retrieval.gold_set` | recall@1, recall@5, MRR, citation integrity (lexical backend, the one the deploy image ships) |
+| `scripts/eval_retrieval_compare.py` | `retrieval.comparison` | lexical vs semantic head-to-head on the shared gold queries |
 | `scripts/eval_ps7.py` | `ps7.*` | mapping coverage and ID validity, SOAR coverage, MTTD, latency percentiles, audit tamper detection, RBAC denial |
 
 The first five need the ~11 GB raw datasets and the full dependency set. **The last
@@ -60,6 +61,28 @@ A lone number is not evidence. Each card names what it is beating:
 CIC-IDS2017 splits by day. UNSW-NB15 keeps the official split. Attack sequences split
 at sequence level, never at prediction-point level. Behavioural features are computed
 per account in chronological order, using only what had happened *so far*.
+
+### Two retrievers, both measured
+
+The product ships two and reports which one answered. The comparison
+(`reports/retrieval_compare.md`) is scored on what the retrieved chunk *refers
+to* -- the ATT&CK technique family, or the publisher -- because the two indexes
+use different chunk ids and scoring on ids would just measure schema agreement.
+
+| Retriever | Corpus | Recall@1 | Recall@5 | MRR |
+|---|---|---|---|---|
+| Lexical BM25 | 1,545 | 0.600 | 0.800 | 0.683 |
+| Lexical BM25 | 3,692 | 0.500 | 0.800 | 0.633 |
+| MiniLM + ChromaDB | 3,692 | **0.700** | **1.000** | **0.850** |
+
+The middle row exists to answer the obvious objection: the semantic retriever
+also has 2.4x the corpus, so is the win data or method? Giving the lexical
+retriever that same corpus made it worse, so it is method.
+
+The four analyst-verified CERT-In advisories live only in the bundled index, so
+those queries are excluded from both sides rather than counted against the corpus
+that lacks them. Ten shared queries is a small set and a 0.1 difference in
+recall@1 is one query; the recall@5 and MRR gaps are wider and consistent.
 
 ### Sub-technique credit in retrieval scoring
 A query for "repeated failed logins guessing passwords" that returns

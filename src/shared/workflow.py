@@ -264,10 +264,12 @@ def _n_plan(understand: NodeResult, want_evidence: bool, want_vuln: bool) -> Nod
 
 
 def _n_evidence(query: str, technique_ids: list[str], k: int) -> NodeResult:
-    from src.shared.evidence import repository
-    repo = repository()
-    cites = repo.for_techniques(technique_ids, k_each=1) if technique_ids else []
-    extra = repo.search(query, k=k) if query else []
+    from src.shared import evidence as ev
+    repo = ev.repository()
+    # Exact technique lookup stays lexical (an analyst asking for T1550.002 wants
+    # that page); the free-text half uses whichever backend is live.
+    cites = ev.search_for_techniques(technique_ids, k_each=1) if technique_ids else []
+    extra = ev.search(query, k=k) if query else []
     seen = {c["chunk_id"] for c in cites}
     cites += [e for e in extra if e["chunk_id"] not in seen][: max(0, k - len(cites))]
     stats = repo.stats()
@@ -280,7 +282,12 @@ def _n_evidence(query: str, technique_ids: list[str], k: int) -> NodeResult:
                 "index_built_at": stats.get("built_at"),
                 "corpus": stats["by_publisher"],
                 "query": query, "technique_ids": technique_ids,
-                "retrieval": "BM25 + exact identifier boost, bundled read-only index, no network"},
+                "backend": ev.active_backend(),
+                "retrieval": (
+                    "MiniLM + ChromaDB semantic search over the 3,692-chunk corpus, "
+                    "with exact-identifier lookup kept lexical"
+                    if ev.active_backend() == "semantic" else
+                    "BM25 + exact identifier boost, bundled read-only index, no network")},
         notes=([] if cites else ["no official evidence matched — say so, do not improvise"]),
     )
 

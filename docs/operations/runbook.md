@@ -62,6 +62,7 @@ listing anything degraded.
 |---|---|---|
 | `detection: degraded` | `models/ae_lanl.npz` missing; scoring fell back to the IsolationForest, which catches materially fewer red-team events at 1% FPR | restore the file; it is committed and copied by the Dockerfile |
 | `evidence: unavailable` | index not built | `python -m scripts.build_evidence_index` (`--no-network` works offline) |
+| `evidence.backend: lexical` | **expected in the container.** The slim image ships no chromadb/torch, so the bundled BM25 index answers (recall@5 0.80 vs 1.00 semantic) | nothing, unless you want the stronger retriever locally: `pip install -r requirements.txt`, then `python -m src.retrieval.ingest && python -m src.retrieval.embed` |
 | Evidence stage `skipped` | same as above; conclusions ship **uncited and say so** | as above |
 | `sample_cache: missing` | cached GETs 503 | `python -m scripts.build_cache` |
 | `metrics: unavailable` | `/api/scoreboard` 503 | `python -m scripts.eval_ps7` and `python -m scripts.eval_retrieval` |
@@ -81,7 +82,10 @@ retriever must not lose the detection. That behaviour is tested
 Nothing below is needed to run the app. Run it to regenerate evidence.
 
 ```powershell
-python -m scripts.build_evidence_index      # evidence corpus (fetches CISA KEV)
+python -m scripts.build_evidence_index      # bundled lexical index (fetches CISA KEV)
+python -m src.retrieval.ingest              # 3,692-chunk RAG corpus (ATT&CK, KEV, NVD, RSS)
+python -m src.retrieval.embed               # vector store, ~1 min; enables semantic retrieval
+python -m scripts.eval_retrieval_compare    # lexical vs semantic head-to-head
 python -m scripts.build_evidence_index --no-network   # offline: ATT&CK + CERT-In only
 python -m scripts.build_cache               # api/cache/*.json (the landing sample)
 python -m scripts.eval_ps7 --runs 3         # PS7 operational metrics

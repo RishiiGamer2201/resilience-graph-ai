@@ -127,7 +127,7 @@ clone with no dataset download.
 
 ## 6. Engineering
 
-- 152 automated tests, no network required (pipeline correctness, multi-pivot
+- 168 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

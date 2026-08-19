@@ -27,6 +27,9 @@ everything else.
   — why a bundled BM25 index beats a vector database at this corpus size
 - [architecture/adr/0004-frontend-stays-as-is.md](architecture/adr/0004-frontend-stays-as-is.md)
   — why no TypeScript migration, no Tailwind, no shadcn, no map
+- [architecture/adr/0005-semantic-retrieval-supersedes-0003.md](architecture/adr/0005-semantic-retrieval-supersedes-0003.md)
+  — the measurement that overturned ADR 0003: semantic retrieval leads, lexical
+  becomes the fallback
 - [../architecture.md](../architecture.md) — full system architecture, folder tree,
   tech stack *(root)*
 - [../design.md](../design.md) — design tokens, palette, components *(root)*

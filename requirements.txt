@@ -14,6 +14,14 @@ scikit-learn>=1.3      # IsolationForest, OneClassSVM, metrics (PR-AUC, F1)
 torch>=2.1             # LSTM / Transformer next-technique model, autoencoder
 sentence-transformers>=2.2   # all-MiniLM-L6-v2 technique embeddings
 
+# --- Semantic retrieval (build-time + optional at runtime) ---
+# Measurably better than the bundled lexical retriever (reports/retrieval_compare.md),
+# so it leads WHEN PRESENT. Deliberately NOT in requirements-deploy.txt: it pulls
+# torch, which would take the slim image from ~9 packages to gigabytes and lengthen
+# the free-tier cold start. The deployed demo falls back to the lexical index and
+# /api/capabilities says which backend is answering.
+chromadb>=0.5          # persistent vector store for the RAG corpus
+
 # --- Shared spine: graph + ATT&CK ---
 networkx>=3.1          # attack-path graph, centrality, shortest path
 mitreattack-python>=3.0  # parse ATT&CK STIX bundles

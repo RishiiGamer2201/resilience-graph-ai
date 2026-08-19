@@ -20,6 +20,7 @@ Provider facts are sourced and dated in
 | `next_technique_markov.pkl` | next-technique predictor | $0 | none | none | `/api/predict-next` errors; the rest of the investigation stands |
 | `attack_lookups.pkl` | parsed ATT&CK STIX (918 techniques) | $0 | none | none | required; readiness fails |
 | `evidence/index.json.gz` | 1,545 cited chunks, 474 KB | $0 | none | none | evidence node reports `skipped`, conclusions ship uncited and say so |
+| `rag_corpus/corpus.jsonl` | 3,692-chunk corpus, 3.8 MB, input to the optional vector store | $0 | none | none | semantic retrieval unavailable; lexical answers instead |
 | `api/cache/*.json` | a real analysis of a shipped log, used as the landing sample | $0 | none | none | cached GETs return 503 with a rebuild hint |
 | `configs/vuln_priority.json` | prioritisation weights | $0 | none | none | fails loudly on load (validated) |
 | `reports/metrics.json` | canonical metrics the scoreboard reads | $0 | none | none | `/api/scoreboard` returns 503 |
@@ -49,6 +50,7 @@ Container image builds from `python:3.10-slim` + `node:20-slim` build stage.
 | Bearer-token auth | real tokens instead of declared roles | $0 | `NEXTATTACK_ROLE_TOKENS` | demo-header mode, labelled as such in `/api/capabilities` |
 | NVD CVSS enrichment | a severity factor for prioritisation | $0 | NVD API key for volume | CVSS shows `unknown`, the factor drops out, confidence falls |
 | Local Ollama | reworded explanations | $0 | none, but a local model download | deterministic templates, which are the default product |
+| Semantic retrieval | MiniLM + ChromaDB over 3,692 chunks; recall@5 1.00 vs 0.80 lexical | $0 | none, but `pip install -r requirements.txt` (pulls torch) and one corpus build | falls back to the bundled lexical index; `/api/capabilities` reports `evidence.backend` |
 
 **No component is paid. No component is required.** `/api/capabilities` enumerates
 the live state of every one of them and the UI shows a degraded banner.

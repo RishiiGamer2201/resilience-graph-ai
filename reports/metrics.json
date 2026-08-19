@@ -58,6 +58,32 @@
       "citation_integrity_failures": 0,
       "evaluated_at": "2026-08-18 10:48 IST",
       "note": "Hand-written gold set over the bundled corpus. Small by construction; reported as-is rather than inflated with auto-generated queries that restate the document they came from."
+    },
+    "comparison": {
+      "evaluated_at": "2026-08-19 22:36 IST",
+      "k": 5,
+      "shared_queries": 10,
+      "bundled_only_queries": 4,
+      "lexical": {
+        "queries": 10,
+        "recall_at_1": 0.6,
+        "recall_at_5": 0.8,
+        "mrr": 0.6833,
+        "latency_ms_median": 2.7,
+        "latency_ms_max": 34.1,
+        "corpus_chunks": 1545,
+        "needs": "nothing (bundled, offline, no dependency)"
+      },
+      "semantic": {
+        "queries": 10,
+        "recall_at_1": 0.7,
+        "recall_at_5": 1.0,
+        "mrr": 0.85,
+        "latency_ms_median": 6.3,
+        "latency_ms_max": 7.2,
+        "needs": "chromadb + sentence-transformers"
+      },
+      "note": "Scored on what the retrieved chunk REFERS to (ATT&CK technique family, or publisher), because the two indexes use different chunk ids. The four analyst-verified CERT-In advisories exist only in the bundled index and are excluded from both sides."
     }
   },
   "ps7": {

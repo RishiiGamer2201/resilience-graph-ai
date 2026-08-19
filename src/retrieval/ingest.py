@@ -1208,15 +1208,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Ingest cybersecurity corpus for RAG")
     parser.add_argument("--sources", nargs="*", choices=list(SOURCE_MAP.keys()),
                         help="Sources to ingest (default: all)")
-    parser.add_argument("--nvd-start", default="2025-01-01T00:00:00.000",
-                        help="NVD CVE publish start date")
+    parser.add_argument("--nvd-window-days", type=int, default=NVD_MAX_WINDOW_DAYS,
+                        help="NVD lookback window per request; the API caps a "
+                             "single query at 120 days")
     parser.add_argument("--nvd-max", type=int, default=500,
                         help="Max NVD CVEs to fetch")
     args = parser.parse_args()
 
     # patch NVD params
     import functools
-    SOURCE_MAP["nvd"] = functools.partial(ingest_nvd, pub_start=args.nvd_start,
+    SOURCE_MAP["nvd"] = functools.partial(ingest_nvd,
+                                          window_days=args.nvd_window_days,
                                           max_results=args.nvd_max)
 
     chunks = run_ingest(args.sources)

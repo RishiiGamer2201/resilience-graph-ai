@@ -12,6 +12,14 @@ data/processed/*
 # regenerable and stays out.
 !data/processed/evidence/
 !data/processed/evidence/index.json.gz
+# The RAG corpus is committed (3.8 MB) so anyone can rebuild the vector store
+# offline in one command. The Chroma store itself (31 MB of sqlite) is not:
+# it is a derived artifact, and `python -m src.retrieval.embed` regenerates it.
+!data/processed/rag_corpus/
+!data/processed/rag_corpus/corpus.jsonl
+data/processed/rag_corpus/chroma/
+data/processed/rag_corpus/cache/
+data/processed/rag_corpus/embedded_hashes.json
 
 # ─── Models & artifacts ───────────────────────────────
 models/*

@@ -186,6 +186,22 @@ def scoreboard() -> dict:
               report="reports/retrieval_eval.md",
               note=f"MRR {ret.get('mrr')}. Lexical BM25 with exact-identifier boost; "
                    f"paraphrased queries with no shared vocabulary still miss."),
+        _card("retrieval_backend_lift", "Evidence",
+              "Semantic retrieval lift over lexical",
+              definition=("Recall@5 of the semantic retriever (MiniLM + ChromaDB) "
+                          "against the bundled lexical one, on the shared gold "
+                          "queries both corpora can answer."),
+              dataset="same gold set, scored on what the retrieved chunk refers to",
+              sample=_cmp_sample(),
+              value=_cmp("semantic", "recall_at_5"), unit="",
+              baseline={"name": "lexical BM25, bundled index",
+                        "value": _cmp("lexical", "recall_at_5")},
+              report="reports/retrieval_compare.md",
+              note=("Giving the lexical retriever the same larger corpus made it "
+                    "worse (recall@1 0.600 -> 0.500), so the win is the embeddings, "
+                    "not the corpus. The slim deploy image ships no torch, so the "
+                    "hosted demo runs the lexical backend and says so in "
+                    "/api/capabilities. See ADR 0005.")),
         _card("citation_integrity", "Evidence", "Citation integrity failures",
               definition=("Retrieved citations whose stored SHA-256 no longer matches "
                           "their text, or that lack a URL, publisher or section."),
@@ -305,6 +321,20 @@ def scoreboard() -> dict:
                  "evaluation scripts. A metric we have not measured says so and "
                  "explains why."),
     }
+
+
+def _cmp(side: str, key: str):
+    """A value from the retriever head-to-head, or None if it was never run."""
+    c = load_metrics().get("retrieval", {}).get("comparison", {}).get(side, {})
+    return c.get(key)
+
+
+def _cmp_sample() -> str:
+    c = load_metrics().get("retrieval", {}).get("comparison", {})
+    if not c:
+        return ""
+    return (f"{c.get('shared_queries', 0)} shared queries "
+            f"({c.get('bundled_only_queries', 0)} excluded as bundled-only)")
 
 
 def _scaling() -> list[dict]:

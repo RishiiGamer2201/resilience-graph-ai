@@ -1,7 +1,16 @@
 # ADR 0003 — A bundled lexical evidence index, not a vector database
 
-- **Status:** accepted
+- **Status:** SUPERSEDED in part by
+  [ADR 0005](0005-semantic-retrieval-supersedes-0003.md) on 2026-08-19
 - **Date:** 2026-08-18
+
+> **The retriever choice below was wrong and the measurement says so.** A
+> head-to-head on the same gold queries put MiniLM + ChromaDB ahead of BM25
+> (recall@5 1.00 vs 0.80, MRR 0.85 vs 0.68), and giving BM25 the same larger
+> corpus made it *worse*, so the win is the embeddings rather than the data.
+> Semantic now leads and lexical is the fallback — see ADR 0005. Everything
+> below about provenance, the committed artifact, offline operation and exact
+> identifier lookup still stands.
 
 ## Context
 

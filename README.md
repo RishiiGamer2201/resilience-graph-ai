@@ -107,8 +107,8 @@ flowchart TB
     FEEDS["free CTI feeds, India-first → ATT&CK map → relevance"]
   end
 
-  subgraph EV["EVIDENCE — evidence.py (bundled, read-only)"]
-    IDX["1,545 cited chunks: MITRE ATT&CK · CISA KEV · CERT-In<br/>BM25 + exact-ID boost · hashed, dated, linkable"]
+  subgraph EV["EVIDENCE — evidence.py (two backends, one citation shape)"]
+    IDX["semantic (default when built): MiniLM + ChromaDB over 3,692 chunks<br/>lexical (always available, offline): BM25 + exact-ID boost over 1,545<br/>MITRE ATT&CK · CISA KEV · NVD · CERT-In · hashed, dated, linkable"]
   end
 
   subgraph GOV["GOVERNANCE — deterministic, server-side"]

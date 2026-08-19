@@ -255,6 +255,117 @@ def expand_query_to_ids(query: str) -> set[str]:
             or low.strip().startswith(phrase) or low.strip().endswith(phrase)}
 
 
+# --------------------------------------------------------------------------- #
+# semantic backend (optional)                                                  #
+# --------------------------------------------------------------------------- #
+# A ChromaDB + MiniLM index built by src/retrieval/. When it is present it is
+# measurably better than BM25 on the same gold queries, so it leads; when it is
+# absent -- the slim deploy image ships neither chromadb nor sentence-transformers
+# -- retrieval falls back to the bundled lexical index and the product still runs
+# offline with no dependency. `/api/capabilities` reports which one is live.
+CHROMA_DIR = ROOT / "data" / "processed" / "rag_corpus" / "chroma"
+
+_SOURCE_PUBLISHER = {
+    "mitre_attack": "MITRE", "mitre_attack_groups": "MITRE", "mitre_atlas": "MITRE",
+    "cisa_kev": "CISA", "rss_cisa": "CISA", "nvd_cve": "NVD",
+    "india_kb": "CERT-In", "rss_india": "CERT-In",
+}
+
+
+def semantic_available() -> bool:
+    """True when the vector store exists AND its dependencies are importable."""
+    if not CHROMA_DIR.exists():
+        return False
+    try:
+        import chromadb            # noqa: F401
+        import sentence_transformers   # noqa: F401
+    except Exception:
+        return False
+    return True
+
+
+def _semantic_citation(hit: dict) -> dict:
+    """Convert a semantic hit into the same citation dict the lexical side emits.
+
+    Provenance is preserved: the corpus builder records url, title, source and
+    the document's own date per chunk. The hash is computed here because the
+    vector store holds text, not our checksum -- it still lets a reader verify
+    that the excerpt shown matches the text that was retrieved.
+    """
+    text = hit.get("text", "") or ""
+    source = str(hit.get("source") or "")
+    tids = hit.get("technique_ids") or []
+    if isinstance(tids, str):
+        tids = [t for t in tids.split(",") if t]
+    idents = [t for t in tids if t]
+    publisher = _SOURCE_PUBLISHER.get(source, source or "unknown")
+    reasons = []
+    if hit.get("semantic_score") is not None:
+        reasons.append(f"semantic similarity {round(float(hit['semantic_score']), 3)}")
+    if idents:
+        reasons.append("technique " + ", ".join(idents[:4]))
+    return {
+        "chunk_id": f"{source}:{sha256_text(text)[:16]}",
+        "title": hit.get("title") or "(untitled)",
+        "url": hit.get("url") or "",
+        "publisher": publisher,
+        "authority": AUTHORITY.get(publisher, "unrated"),
+        "section": source,
+        "published": hit.get("date") or None,
+        "retrieved_at": "bundled vector store",
+        "excerpt": sanitize_excerpt(text),
+        "sha256": sha256_text(text),
+        "identifiers": idents,
+        "extraction_method": "rag-ingest + MiniLM embedding",
+        "classification": "public",
+        "why_relevant": "; ".join(reasons),
+        "match_reason": "; ".join(reasons),
+        "score": round(float(hit.get("score") or 0.0), 3),
+        "backend": "semantic",
+    }
+
+
+def active_backend() -> str:
+    return "semantic" if semantic_available() else "lexical"
+
+
+def search(query: str, k: int = 5, *, identifiers: list[str] | None = None,
+           publishers: list[str] | None = None) -> list[dict]:
+    """Retrieve citations with the best backend available.
+
+    Semantic first when the vector store is present, lexical otherwise. A
+    semantic failure at request time falls back rather than propagating: losing
+    the retriever must not lose the investigation.
+    """
+    if semantic_available():
+        try:
+            from src.retrieval.query import retrieve as semantic_retrieve
+            hits = semantic_retrieve(query or " ".join(identifiers or []), top_k=k)
+            cites = [_semantic_citation(h) for h in hits]
+            if publishers:
+                allow = set(publishers)
+                cites = [c for c in cites if c["publisher"] in allow]
+            if cites:
+                return cites[:k]
+        except Exception:
+            pass          # fall through to the backend that cannot fail
+    out = repository().search(query, k=k, identifiers=identifiers,
+                              publishers=publishers)
+    for c in out:
+        c["backend"] = "lexical"
+    return out
+
+
+def search_for_techniques(technique_ids: list[str], k_each: int = 1) -> list[dict]:
+    """One citation per observed technique, using the active backend.
+
+    Exact identifier matching is where the lexical index is strongest, so this
+    path stays lexical: asked for T1550.002, an analyst wants the T1550.002 page,
+    not the nearest neighbour in embedding space.
+    """
+    return repository().for_techniques(technique_ids, k_each=k_each)
+
+
 _repo: EvidenceRepository | None = None
 
 

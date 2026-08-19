@@ -85,6 +85,18 @@ def _capabilities() -> dict:
                        "run python -m scripts.build_evidence_index"),
             "corpus": ev_stats.get("by_publisher", {}),
             "network_required": False,
+            # Which retriever is actually answering. Semantic when the vector
+            # store and its dependencies are present, lexical otherwise -- the
+            # slim deploy image ships neither, and still works.
+            "backend": evidence_mod.active_backend(),
+            "backend_detail": (
+                "MiniLM + ChromaDB over 3,692 chunks (measured recall@5 1.00, "
+                "MRR 0.85 on the gold set)"
+                if evidence_mod.active_backend() == "semantic" else
+                "BM25 + exact-identifier boost over the bundled index "
+                "(measured recall@5 0.80, MRR 0.68). The semantic backend is not "
+                "installed; build it with python -m src.retrieval.ingest && "
+                "python -m src.retrieval.embed"),
         },
         "vulnerability_prioritisation": {
             "state": "bundled" if inv.exists() else "unavailable",
