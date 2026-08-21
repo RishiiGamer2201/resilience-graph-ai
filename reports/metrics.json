@@ -135,8 +135,8 @@
     },
     "latency_ms": {
       "p50": 120.9,
-      "p95": 1223.4,
-      "max": 9589.3,
+      "p95": 1207.2,
+      "max": 9642.0,
       "samples": 8,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -203,7 +203,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 4850.8,
+          "latency_ms_median": 4872.4,
           "degraded_nodes": []
         },
         {
@@ -234,7 +234,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 115.0,
+          "latency_ms_median": 101.0,
           "degraded_nodes": []
         },
         {
@@ -258,7 +258,7 @@
           "mttd_human": "immediate",
           "crown_jewel_exposure": 80.0,
           "attack_progression_likelihood": 60.0,
-          "evidence_confidence": 85.0,
+          "evidence_confidence": 63.7,
           "actionable_claims": 1,
           "total_claims": 4,
           "citations": 6,
@@ -266,7 +266,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1216.3,
+          "latency_ms_median": 1188.9,
           "degraded_nodes": [
             "understand"
           ]
@@ -291,7 +291,7 @@
           "mttd_human": "immediate",
           "crown_jewel_exposure": 5.0,
           "attack_progression_likelihood": 60.0,
-          "evidence_confidence": 85.0,
+          "evidence_confidence": 63.7,
           "actionable_claims": 1,
           "total_claims": 3,
           "citations": 6,
@@ -299,13 +299,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 120.8,
+          "latency_ms_median": 120.9,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-21 20:07 IST"
+      "evaluated_at": "2026-08-21 20:12 IST"
     }
   }
 }

@@ -224,13 +224,20 @@ def evidence_confidence(claims: list[dict], cited_techniques: int,
     # A differently-built analysis of the same log is a third group. It is only
     # a partially independent one -- same log, same rule table -- and
     # src.shared.crosscheck caps what its agreement can be worth.
+    contradiction = 0.0
     if crosscheck:
-        from src.shared.crosscheck import as_evidence
+        from src.shared.crosscheck import CONTRADICTION_DISCOUNT, as_evidence
         cc_ev = as_evidence(crosscheck)
         if cc_ev is not None:
             groups.append(cc_ev)
+        elif crosscheck.get("verdict") == "contradicts":
+            # A second analysis of the same log reaching a materially different
+            # severity is a reason to trust this result LESS, not merely a reason
+            # not to trust it more. Neutral treatment would have let a
+            # contradiction pass unnoticed.
+            contradiction = CONTRADICTION_DISCOUNT
 
-    value = combine(groups)
+    value = combine(groups) * (1.0 - contradiction)
     missing: list[str] = []
     for c in claims:
         for m in c.get("missing_evidence", []):
@@ -247,7 +254,8 @@ def evidence_confidence(claims: list[dict], cited_techniques: int,
         "actionable_claims": len(actionable),
         "total_claims": len(claims),
         "crosscheck": ({"verdict": crosscheck["verdict"],
-                        "strength": crosscheck["corroboration_strength"]}
+                        "strength": crosscheck["corroboration_strength"],
+                        "confidence_discount": round(contradiction, 4)}
                        if crosscheck and crosscheck.get("available") else None),
         "missing_evidence": missing[:8],
         "note": ("Evidence quality, not attack probability. Repeating the same "

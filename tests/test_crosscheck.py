@@ -171,3 +171,46 @@ def test_the_ui_contract_for_the_crosscheck_panel(result):
     for key in ("workflow", "agent_lane", "shared", "workflow_only",
                 "agent_lane_only", "overlap"):
         assert key in cc["techniques"], key
+
+
+# --------------------------------------------------------------------------- #
+# a contradiction must cost something                                          #
+# --------------------------------------------------------------------------- #
+def test_a_contradiction_actively_reduces_evidence_confidence():
+    """Neutral treatment would let a real disagreement pass unnoticed. Two
+    analyses of the same log two severity bands apart means at least one is
+    wrong, and the result deserves less trust until that is resolved."""
+    from src.shared.crosscheck import CONTRADICTION_DISCOUNT
+    from src.shared.workflow import evidence_confidence
+
+    claims = [{"actionable": True, "confidence": 0.8, "missing_evidence": []}]
+    baseline = evidence_confidence(claims, 1, 1)["value"]
+    conflicted = evidence_confidence(
+        claims, 1, 1,
+        {"available": True, "verdict": "contradicts", "corroboration_strength": 0.0},
+    )
+    assert conflicted["value"] < baseline, (conflicted["value"], baseline)
+    assert conflicted["crosscheck"]["confidence_discount"] == CONTRADICTION_DISCOUNT
+    assert abs(conflicted["value"] - baseline * (1 - CONTRADICTION_DISCOUNT)) < 0.2
+
+
+def test_corroboration_raises_and_contradiction_lowers_from_the_same_baseline():
+    from src.shared.workflow import evidence_confidence
+    claims = [{"actionable": True, "confidence": 0.8, "missing_evidence": []}]
+    base = evidence_confidence(claims, 1, 1)["value"]
+    up = evidence_confidence(claims, 1, 1, {
+        "available": True, "verdict": "corroborates",
+        "corroboration_strength": 0.45, "independence_group": "agent-lane"})["value"]
+    down = evidence_confidence(claims, 1, 1, {
+        "available": True, "verdict": "contradicts",
+        "corroboration_strength": 0.0})["value"]
+    assert down < base < up, (down, base, up)
+
+
+def test_an_unavailable_crosscheck_neither_helps_nor_hurts():
+    from src.shared.workflow import evidence_confidence
+    claims = [{"actionable": True, "confidence": 0.8, "missing_evidence": []}]
+    base = evidence_confidence(claims, 1, 1)["value"]
+    absent = evidence_confidence(claims, 1, 1,
+                                 {"available": False, "verdict": "not available"})["value"]
+    assert absent == base

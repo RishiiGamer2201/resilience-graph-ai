@@ -30,6 +30,11 @@ SEVERITY_ORDER = ["low", "medium", "high", "critical"]
 # A second opinion built from the same log and the same rule table is not an
 # independent sensor. This caps what agreement between them can be worth.
 MAX_CORROBORATION = 0.45
+# A material disagreement actively reduces confidence rather than merely failing
+# to raise it. Two analyses of the same log reaching severities two bands apart
+# means at least one is wrong, and the result deserves less trust until that is
+# resolved.
+CONTRADICTION_DISCOUNT = 0.25
 SHARED_COMPONENTS = ["the same event log", "src.shared.attack_mapper rule table"]
 
 
@@ -157,7 +162,9 @@ def as_evidence(cc: dict):
         independence_group=cc["independence_group"],
         strength=float(cc["corroboration_strength"]),
         reliability=1.0,
-        detail=cc["explanation"],
+        # .get: a caller may hand us a partial cross-check (a test, or a stored
+        # summary). Losing the prose must not raise on a confidence calculation.
+        detail=cc.get("explanation", "independent analysis agreed"),
     )
 
 
