@@ -239,3 +239,34 @@
   font-size:11.5px;line-height:1.55;color:var(--text-faint);margin:0 0 14px;
   max-width:46ch}
 .login-note svg{flex:0 0 auto;margin-top:2px}
+
+/* ── Four-number assessment ───────────────────────────────────────────── */
+.assessment{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-top:16px}
+.as-summary{font-size:13.5px;line-height:1.5;margin-bottom:12px}
+.as-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:820px){.as-grid{grid-template-columns:repeat(2,1fr)}}
+.as-cell{background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 12px}
+.as-k{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;
+  color:var(--text-faint);display:flex;align-items:center;gap:4px}
+.as-hint{display:inline-flex;cursor:help;opacity:.7}
+.as-v{font-size:24px;font-weight:650;letter-spacing:-.5px;margin-top:3px}
+.as-cell.s-critical .as-v{color:var(--sev-critical)}
+.as-cell.s-high .as-v{color:var(--sev-high)}
+.as-cell.s-medium .as-v{color:var(--sev-medium)}
+.as-cell.s-low .as-v{color:var(--sev-low)}
+.as-band{font-size:11px;color:var(--text-dim);text-transform:lowercase}
+.as-missing{margin-top:11px;font-size:12px;color:var(--text-dim);line-height:1.5;
+  border-left:3px solid var(--sev-medium);padding-left:10px}
+.as-formula{margin-bottom:12px}
+.as-fname{font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+  color:var(--text-faint);margin-bottom:4px}
+
+/* ── Claims ───────────────────────────────────────────────────────────── */
+.claims .lede{margin-bottom:10px}
+.claim-detail{margin-top:10px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:11px 13px;background:var(--surface-2);
+  font-size:12.5px;line-height:1.55}
+.claim-detail ul{margin:5px 0 10px;padding-left:18px}
+.claim-detail p{margin:0 0 8px}

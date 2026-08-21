@@ -1,4 +1,12 @@
-"""Cyber-resilience digital twin — counterfactual containment on the real graph.
+"""Counterfactual containment twin — "what does isolating this actually change?"
+
+Named precisely, per research §9: this is a counterfactual containment twin over
+the incident's attack graph, NOT a full cyber-resilience digital twin. A complete
+twin would additionally carry synchronised asset/identity/topology state,
+expected behaviour by operating mode, an adversary model with uncertainty, and
+for OT a validated process model. Calling more graph analytics a "digital twin"
+would be the dishonest way to close that gap.
+
 
 "If we isolate this host, what actually changes?" is the question a responder has
 to answer before they take a production system off the network in a hospital or

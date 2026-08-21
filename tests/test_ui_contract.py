@@ -77,7 +77,8 @@ def test_signals_panel(result):
 
 
 # --- Headline.jsx ----------------------------------------------------------
-@pytest.mark.parametrize("key", ["attack_progression_confidence", "crown_jewel_exposure"])
+@pytest.mark.parametrize("key", ["attack_progression_likelihood",
+                                 "evidence_confidence", "crown_jewel_exposure"])
 def test_headline_metric(result, key):
     m = result["headline"][key]
     _has(m, "value", "unit", "state", "terms", "formula")
@@ -86,6 +87,21 @@ def test_headline_metric(result, key):
         assert ("name" in t) or ("asset" in t), t
         assert any(k in t for k in ("value", "score")), t
         assert ("detail" in t) or ("why" in t), t
+
+
+def test_headline_carries_the_four_number_assessment(result):
+    a = result["headline"]["assessment"]
+    _has(a, "anomaly", "likelihood", "impact", "confidence", "missing_evidence",
+         "summary", "note")
+    for dim in ("anomaly", "likelihood", "impact", "confidence"):
+        _has(a[dim], "value", "band", "question")
+
+
+def test_claims_panel_contract(result):
+    for c in result["impact"]["claims"]:
+        _has(c, "subject", "predicate", "object", "external_id", "status",
+             "actionable", "confidence", "confidence_band", "independent_groups",
+             "mapper", "evidence", "missing_evidence", "alternatives", "note")
 
 
 # --- EvidenceList.jsx ------------------------------------------------------

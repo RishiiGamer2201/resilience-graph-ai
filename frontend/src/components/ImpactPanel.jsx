@@ -38,11 +38,18 @@ export function TwinPanel({ graph, counterfactual, candidates }) {
   const cost = sim?.operational_cost
   return (
     <Card>
-      <CardHeader title="Cyber-resilience digital twin" meta="deterministic · simulated" />
+      <CardHeader title="Counterfactual containment twin" meta="deterministic · simulated" />
       <div className="card-b pad stack-sm">
         <p className="lede">
           Isolate a candidate host on a <b>clone</b> of this incident&apos;s attack graph and
           recompute what the attacker can still reach. The live graph is never touched.
+        </p>
+        <p className="fineprint">
+          Named precisely: this is a <b>counterfactual containment twin</b> over the
+          attack graph, not a full cyber-resilience digital twin. A complete twin
+          would also carry synchronised asset, identity, dependency and control
+          state, expected behaviour by operating mode, and — for OT — validated
+          process models with uncertainty. Those are on the roadmap, not on screen.
         </p>
         {error && <div className="errbox">{error}</div>}
 

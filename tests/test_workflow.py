@@ -75,7 +75,8 @@ def test_no_llm_is_in_the_path(result):
 def test_the_same_input_gives_the_same_answer():
     a = wf.investigate(scenario="aiims_ransomware", critical_assets=CRIT)
     b = wf.investigate(scenario="aiims_ransomware", critical_assets=CRIT)
-    for key in ("attack_progression_confidence", "crown_jewel_exposure"):
+    for key in ("attack_progression_likelihood", "evidence_confidence",
+                "crown_jewel_exposure"):
         assert a["headline"][key]["value"] == b["headline"][key]["value"]
     assert (a["signals"]["incident"]["technique_ids"]
             == b["signals"]["incident"]["technique_ids"])
@@ -104,11 +105,41 @@ def test_no_designated_crown_jewel_is_not_measured_rather_than_zero():
     assert "no crown-jewel assets were designated" in e["reason"]
 
 
-def test_progression_terms_reproduce_the_headline(result):
-    c = result["headline"]["attack_progression_confidence"]
+def test_likelihood_terms_reproduce_the_headline(result):
+    c = result["headline"]["attack_progression_likelihood"]
     recomputed = 100 * sum(t["weight"] * t["value"] for t in c["terms"])
     assert abs(recomputed - c["value"]) < 0.05, (recomputed, c["value"])
     assert abs(sum(t["weight"] for t in c["terms"]) - 1.0) < 1e-9
+
+
+def test_likelihood_no_longer_mixes_in_evidence_quality(result):
+    """Research §7: how far along an intrusion looks and how good the evidence
+    is are different questions. `evidence_corroboration` used to be a term in
+    the likelihood weighting, which conflated them."""
+    names = {t["name"] for t in result["headline"]["attack_progression_likelihood"]["terms"]}
+    assert "evidence_corroboration" not in names
+    assert names == {"tactic_coverage", "detector_confidence", "path_depth"}
+
+
+def test_evidence_confidence_is_reported_separately(result):
+    c = result["headline"]["evidence_confidence"]
+    assert 0 <= c["value"] <= 100
+    assert "noisy-OR" in c["formula"]
+    assert c["total_claims"] >= 0
+
+
+def test_the_four_numbers_are_not_collapsed(result):
+    a = result["headline"]["assessment"]
+    values = [a[d]["value"] for d in ("anomaly", "likelihood", "impact", "confidence")]
+    assert all(v is not None for v in values), a
+    assert len(set(values)) > 1, "four dimensions collapsed to one number"
+
+
+def test_claims_are_never_actionable_on_an_anomaly_alone(result):
+    """No claim built from the detector alone may be presented as actionable."""
+    for c in result["impact"]["claims"]:
+        if c["independent_groups"] <= 1 and c["status"] == "inferred":
+            assert c["actionable"] is False, c
 
 
 def test_exposure_terms_reproduce_the_headline(result):

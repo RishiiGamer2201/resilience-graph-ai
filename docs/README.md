@@ -30,6 +30,9 @@ everything else.
 - [architecture/adr/0005-semantic-retrieval-supersedes-0003.md](architecture/adr/0005-semantic-retrieval-supersedes-0003.md)
   — the measurement that overturned ADR 0003: semantic retrieval leads, lexical
   becomes the fallback
+- [architecture/adr/0006-evidence-calibrated-claims.md](architecture/adr/0006-evidence-calibrated-claims.md)
+  — ATT&CK conclusions become claims with status, missing evidence and benign
+  alternatives; the single attack score splits into four numbers
 - [../architecture.md](../architecture.md) — full system architecture, folder tree,
   tech stack *(root)*
 - [../design.md](../design.md) — design tokens, palette, components *(root)*
@@ -52,6 +55,9 @@ everything else.
   states, rebuild commands, troubleshooting
 
 ### Research
+- [../research/codex/it_ot_attack_detection_digital_twin_research.md](../research/codex/it_ot_attack_detection_digital_twin_research.md)
+  — the IT/OT deep research this claim model implements (§6 claim vocabulary,
+  §7 four numbers, §15 the T1078 correctness risk)
 - [research/free-tier-and-stack.md](research/free-tier-and-stack.md) — primary-source
   provider facts with URLs and access dates. **Nothing says "free forever."**
 - `../research/claude/` and `../research/codex/` — earlier build specs and plans *(root)*

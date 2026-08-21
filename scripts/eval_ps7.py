@@ -106,8 +106,11 @@ def measure(runs: int = 3) -> dict:
             "mttd_seconds": mttd["ours_seconds"],
             "mttd_human": mttd["value"],
             "crown_jewel_exposure": result["headline"]["crown_jewel_exposure"]["value"],
-            "attack_progression_confidence":
-                result["headline"]["attack_progression_confidence"]["value"],
+            "attack_progression_likelihood":
+                result["headline"]["attack_progression_likelihood"]["value"],
+            "evidence_confidence": result["headline"]["evidence_confidence"]["value"],
+            "actionable_claims": result["headline"]["evidence_confidence"]["actionable_claims"],
+            "total_claims": result["headline"]["evidence_confidence"]["total_claims"],
             "citations": len(result["evidence"].get("citations", [])),
             "vuln_findings": result["impact"]["vulnerabilities"].get("total_findings", 0),
             "proposals": len(result["action"]["proposals"]),
@@ -216,16 +219,18 @@ def write_report(m: dict) -> None:
         "# PS7 operational evaluation", "",
         f"Evaluated: {m['evaluated_at']}  ·  {m['runs_per_scenario']} run(s) per scenario",
         "", "## Per scenario", "",
-        "| Scenario | Events | Alerts | Incidents | MTTD | Exposure | Confidence | "
-        "Citations | Actions (gated) | Executed | Median latency |",
-        "|---|---|---|---|---|---|---|---|---|---|---|",
+        "| Scenario | Events | Alerts | Incidents | MTTD | Exposure | Likelihood | "
+        "Evidence conf. | Actionable claims | Citations | Actions (gated) | Executed | "
+        "Median latency |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for s in m["scenarios"]:
         lines.append(
             f"| {s['scenario']} | {s['events']} | {s['alerts']} | {s['incidents']} | "
             f"{s['mttd_human']} | "
             f"{s['crown_jewel_exposure'] if s['crown_jewel_exposure'] is not None else 'n/a'} | "
-            f"{s['attack_progression_confidence']} | {s['citations']} | "
+            f"{s['attack_progression_likelihood']} | {s['evidence_confidence']} | "
+            f"{s['actionable_claims']}/{s['total_claims']} | {s['citations']} | "
             f"{s['proposals']} ({s['gated']}) | {s['executed']} | "
             f"{s['latency_ms_median']:.0f} ms |")
     am, sc, lat = m["attack_mapping"], m["soar_coverage"], m["latency_ms"]

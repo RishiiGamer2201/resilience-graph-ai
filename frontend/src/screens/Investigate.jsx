@@ -4,6 +4,7 @@ import { CircleAlert, Crosshair, Play, RotateCcw, Target } from 'lucide-react'
 import { Card, CardHeader } from '../components/Card.jsx'
 import StageRail from '../components/StageRail.jsx'
 import Headline from '../components/Headline.jsx'
+import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
 import EvidenceList from '../components/EvidenceList.jsx'
 import ActionPanel from '../components/ActionPanel.jsx'
 import AuditPanel from '../components/AuditPanel.jsx'
@@ -147,6 +148,9 @@ export default function Investigate() {
       {result && (
         <>
           <Headline headline={result.headline} />
+          <Assessment assessment={result.headline.assessment}
+            likelihood={result.headline.attack_progression_likelihood}
+            confidence={result.headline.evidence_confidence} />
 
           <Section id="understand" title="1 · Understand" registerRef={registerRef}
             subtitle="what we were given, and what is missing">
@@ -239,6 +243,13 @@ export default function Investigate() {
                 </div>
               </Card>
             </div>
+            <Card style={{ marginTop: 18 }}>
+              <CardHeader title="What we actually claim"
+                meta="observed · inferred · predicted" />
+              <div className="card-b pad">
+                <ClaimsPanel claims={result.impact?.claims} />
+              </div>
+            </Card>
           </Section>
 
           <Section id="replan" title="5 · Replan" registerRef={registerRef}

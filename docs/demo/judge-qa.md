@@ -175,7 +175,42 @@ investigation still completes with citations. The only feature that needs the ne
 is the Threat Radar refresh, and it falls back to a timestamped bundled snapshot
 labelled `cache`.
 
-**"What is the weakest part?"**
+**"Your detector flags an unusual login. How do you know that is an attacker?"**
+We do not, and the screen says so. That produces a `T1078 Valid Accounts` claim
+with status **inferred**, confidence 0.19, marked **not actionable**, listing what
+would settle it (endpoint process telemetry, device management state, MFA result)
+and the benign explanations we have not excluded (role change, travel,
+maintenance, new device enrollment). An anomaly establishes that behaviour is
+unusual for an account; T1078 additionally asserts adversarial use of a
+legitimate account, and an authentication log cannot tell those apart. A maximum
+anomaly score still cannot make that claim actionable, because the ceiling is the
+rule's strength rather than the detector's certainty.
+
+**"Why four numbers instead of one risk score?"**
+Because they disagree, and the disagreement is the useful part. On the AIIMS
+scenario: anomaly 79, likelihood 53, impact 100, evidence confidence 64. A single
+blended score would read "moderate" and hide that the impact is critical while
+the evidence is only moderate. The summary line is the one an analyst reads:
+"likelihood moderate, impact critical, confidence moderate; strongest missing
+evidence is whether the destination is in this account's normal scope of work."
+
+**"If two of your detectors agree, is the finding twice as likely?"**
+No, and the arithmetic prevents it. Confidence is noisy-OR across *independence
+groups*. The ATT&CK rule fires because of the detector's own features, so they
+share a group and cannot corroborate each other — ten copies of one signal give
+exactly the confidence of one. Independent telemetry would be a second group and
+would genuinely raise it. That is the guard against a system talking itself into
+certainty by repetition.
+
+**"Is that a digital twin?"**
+It is a **counterfactual containment twin** and we call it that on the screen. It
+clones the attack graph, removes a candidate host and recomputes reachability. A
+full cyber-resilience twin would also carry synchronised asset, identity,
+dependency and control state, expected behaviour per operating mode, and for OT a
+validated process model with uncertainty. Renaming more graph analytics "digital
+twin" would be the easy and dishonest way to claim that.
+
+**"What is the weakest part?"
 Three things, in order. One: the retriever is lexical, so a fully paraphrased query
 with no shared vocabulary misses — measured, published, with the upgrade path written
 down. Two: default authorisation is role-declaration without authentication, which is

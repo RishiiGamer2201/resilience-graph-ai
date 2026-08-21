@@ -49,6 +49,11 @@ def correlate(events: pd.DataFrame, *, incident_id: str = "INC-PS7-001") -> dict
             "source_host": row.get("source_host", ""),
             "destination_host": row.get("destination_host", ""),
             "anomaly_score": score,
+            # event_type travels with the step so downstream consumers can rebuild
+            # the full claim (status, missing evidence, benign alternatives) rather
+            # than guessing it back from the technique id. Without it every claim
+            # silently fell back to "normal_auth" and reported zero confidence.
+            "event_type": et,
             **{k: mapping[k] for k in ("tactic", "technique", "technique_id", "explanation")},
             "is_alert": score >= ALERT_THRESHOLD,
         })

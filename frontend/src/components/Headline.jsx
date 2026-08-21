@@ -58,14 +58,18 @@ export function HeadlineMetric({ title, metric, caption }) {
 }
 
 export default function Headline({ headline }) {
-  const conf = headline?.attack_progression_confidence
+  // Two headline numbers, because they are the two a responder acts on. The
+  // full four-dimensional assessment sits directly beneath them: collapsing
+  // likelihood, impact and evidence quality into one figure is exactly what
+  // this product refuses to do.
+  const likelihood = headline?.attack_progression_likelihood
   const exp = headline?.crown_jewel_exposure
   return (
     <div className="headline-pair">
       <HeadlineMetric
-        title="Attack progression confidence"
-        metric={conf}
-        caption="how strongly the evidence says a real intrusion is progressing"
+        title="Attack progression likelihood"
+        metric={likelihood}
+        caption="how far along a real intrusion looks, from this log alone"
       />
       <HeadlineMetric
         title="Crown-jewel exposure"

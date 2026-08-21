@@ -42,11 +42,14 @@ NODES = ("understand", "plan", "evidence", "signals", "replan", "impact", "actio
 
 # Headline metric weights. Documented here, echoed in the API payload, and shown
 # in the UI behind the number — a judge can check the arithmetic on screen.
+#
+# LIKELIHOOD only. `evidence_corroboration` used to sit in this weighting, which
+# mixed "how far along does this intrusion look" with "how good is our evidence".
+# They are separate questions (research §7) and are now reported separately.
 PROGRESSION_WEIGHTS = {
-    "tactic_coverage": 0.30,      # distinct ATT&CK tactics seen / stages in an intrusion
-    "detector_confidence": 0.30,  # calibrated max anomaly score (0-100 -> 0-1)
-    "evidence_corroboration": 0.25,  # observed techniques with an official citation
-    "path_depth": 0.15,           # longest attacker path / a 5-hop reference chain
+    "tactic_coverage": 0.40,      # distinct ATT&CK tactics seen / stages in an intrusion
+    "detector_confidence": 0.35,  # calibrated max anomaly score (0-100 -> 0-1)
+    "path_depth": 0.25,           # longest attacker path / a 5-hop reference chain
 }
 PROGRESSION_STAGES = 6           # Initial Access, Credential Access, Discovery,
                                  # Lateral Movement, Collection, Exfiltration
@@ -144,8 +147,12 @@ def crown_jewel_exposure(graph: dict, designated: list[str]) -> dict:
     }
 
 
-def progression_confidence(incident: dict, graph: dict, cited_techniques: int) -> dict:
-    """0-100: how strongly the evidence says a real intrusion is progressing."""
+def progression_likelihood(incident: dict, graph: dict) -> dict:
+    """0-100: how far along a real intrusion looks, from this log alone.
+
+    LIKELIHOOD, not confidence. It says nothing about how good the evidence is;
+    `evidence_confidence()` answers that separately, and the UI shows both.
+    """
     tactics = sorted({t for t in incident.get("attack_chain", []) if t and t != "Normal"})
     tech = incident.get("technique_ids", [])
     paths = graph.get("paths_to_critical") or {}
@@ -162,11 +169,6 @@ def progression_confidence(incident: dict, graph: dict, cited_techniques: int) -
             "detail": f"peak calibrated anomaly score {incident.get('max_anomaly_score', 0)}/100 "
                       f"(50 = the 1% false-positive line)",
         },
-        "evidence_corroboration": {
-            "value": round((cited_techniques / len(tech)) if tech else 0.0, 4),
-            "detail": f"{cited_techniques} of {len(tech)} observed techniques carry an "
-                      f"official ATT&CK citation",
-        },
         "path_depth": {
             "value": round(min(1.0, longest / PATH_DEPTH_REFERENCE), 4),
             "detail": f"longest attacker path to a crown jewel is {longest} hop(s) "
@@ -180,8 +182,64 @@ def progression_confidence(incident: dict, graph: dict, cited_techniques: int) -
         "state": "measured",
         "terms": [{"name": k, "weight": PROGRESSION_WEIGHTS[k], **v} for k, v in terms.items()],
         "formula": " + ".join(f"{w}×{k}" for k, w in PROGRESSION_WEIGHTS.items()),
-        "note": ("A confidence in the EVIDENCE, not a probability of attack. Every term "
-                 "is measured from this log; none of it is a model opinion."),
+        "note": ("How far along an intrusion looks, measured from this log. NOT a "
+                 "probability that an attack occurred, and NOT a statement about "
+                 "evidence quality — see evidence confidence, reported beside it."),
+    }
+
+
+def evidence_confidence(claims: list[dict], cited_techniques: int,
+                        technique_count: int) -> dict:
+    """0-100: how good the evidence behind the ATT&CK claims actually is.
+
+    Two independent groups, combined with the same noisy-OR the claim model uses:
+    the detector-and-rule chain that produced the claims, and official citation
+    corroboration from the evidence corpus. Duplicate signals inside a group add
+    nothing, which is the whole point.
+    """
+    from src.shared.claims import Evidence, combine
+
+    actionable = [c for c in claims if c.get("actionable")]
+    strongest_claim = max((c.get("confidence", 0.0) for c in claims), default=0.0)
+    citation_rate = (cited_techniques / technique_count) if technique_count else 0.0
+
+    groups = [
+        Evidence(id="claims", kind="claim-set", source="attack_mapper rules",
+                 independence_group="detector+rule",
+                 strength=round(strongest_claim, 4), reliability=1.0,
+                 detail=(f"strongest claim confidence {strongest_claim:.3f}; "
+                         f"{len(actionable)} of {len(claims)} claims are actionable "
+                         f"(observed or confirmed)")),
+        # Reliability is deliberately capped. An official citation proves the
+        # technique is DOCUMENTED and that our mapping is well-formed; it says
+        # nothing about whether the behaviour occurred here. Treating full
+        # citation coverage as full evidence confidence pinned this at 100 and
+        # made the number useless.
+        Evidence(id="citations", kind="official-citation", source="evidence corpus",
+                 independence_group="official-corpus",
+                 strength=round(citation_rate, 4), reliability=0.5,
+                 detail=(f"{cited_techniques} of {technique_count} observed techniques "
+                         f"carry an official ATT&CK citation")),
+    ]
+    value = combine(groups)
+    missing: list[str] = []
+    for c in claims:
+        for m in c.get("missing_evidence", []):
+            if m not in missing:
+                missing.append(m)
+    return {
+        "value": round(100 * value, 1),
+        "unit": "0-100",
+        "state": "measured",
+        "terms": [{"name": g.independence_group, "value": g.strength,
+                   "weight": 1.0, "detail": g.detail} for g in groups],
+        "formula": ("noisy-OR across independence groups: "
+                    "1 − Π(1 − strength) — duplicate signals inside a group add nothing"),
+        "actionable_claims": len(actionable),
+        "total_claims": len(claims),
+        "missing_evidence": missing[:8],
+        "note": ("Evidence quality, not attack probability. Repeating the same "
+                 "signal cannot raise this; independent corroboration can."),
     }
 
 
@@ -333,9 +391,35 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
     from src.shared.twin import rank_candidates, simulate
     from src.shared.vuln import load_inventory, prioritize
 
+    from src.shared.attack_mapper import claim_for_event
+    from src.shared.claims import Assessment
+
     graph_view, inc = bundle["graph"], bundle["incident"]
     exposure = crown_jewel_exposure(graph_view, critical)
-    progression = progression_confidence(inc, graph_view, cited_techniques)
+    likelihood = progression_likelihood(inc, graph_view)
+
+    # One claim per distinct technique, built from the strongest step that
+    # produced it -- not one per alert, which would be thousands of duplicates
+    # of the same assertion.
+    best_step: dict[str, dict] = {}
+    for st in inc.get("steps", []):
+        tid = st.get("technique_id")
+        if not tid or tid == "-" or not st.get("is_alert"):
+            continue
+        cur = best_step.get(tid)
+        if cur is None or st.get("anomaly_score", 0) > cur.get("anomaly_score", 0):
+            best_step[tid] = st
+    claims = [claim_for_event(st) for _, st in sorted(best_step.items())]
+    confidence = evidence_confidence(claims, cited_techniques,
+                                     len(inc.get("technique_ids", [])))
+
+    assessment = Assessment(
+        anomaly=float(inc.get("max_anomaly_score", 0) or 0),
+        likelihood=likelihood["value"],
+        impact=exposure["value"],
+        confidence=confidence["value"],
+        missing_evidence=confidence["missing_evidence"],
+    )
 
     candidates = rank_candidates(graph_view, limit=5)
     best = candidates[0]["host"] if candidates else None
@@ -355,14 +439,17 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
                      "no asset inventory supplied — host software is never guessed"))
     return NodeResult(
         "impact", status="ok",
-        summary=(f"crown-jewel exposure {exposure['value'] if exposure['value'] is not None else 'not measured'}"
+        summary=(f"{assessment.sentence()}"
                  f" · blast radius {graph_view['blast_radius_size']} hosts"
                  + (f" · isolating {best} protects "
                     f"{len(counterfactual['delta']['crown_jewels_protected'])} jewel(s)"
                     if counterfactual else "")),
         output={
             "crown_jewel_exposure": exposure,
-            "attack_progression_confidence": progression,
+            "attack_progression_likelihood": likelihood,
+            "evidence_confidence": confidence,
+            "assessment": assessment.as_dict(),
+            "claims": claims,
             "blast_radius": graph_view["blast_radius_size"],
             "paths_to_critical": graph_view["paths_to_critical"],
             "containment_candidates": candidates,
@@ -534,7 +621,8 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
     evidence_out = {"citations": [], "corpus": {}, "index_built_at": None,
                     "retrieval": "unavailable", "query": "", "technique_ids": [],
                     **evidence.output}
-    impact_out = {"crown_jewel_exposure": None, "attack_progression_confidence": None,
+    impact_out = {"crown_jewel_exposure": None, "attack_progression_likelihood": None,
+                  "evidence_confidence": None, "assessment": None, "claims": [],
                   "blast_radius": None, "paths_to_critical": {},
                   "containment_candidates": [], "counterfactual": None,
                   "vulnerabilities": {"findings": [], "total_findings": 0,
@@ -559,7 +647,9 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
         "impact": impact_out,
         "action": action_out,
         "headline": {
-            "attack_progression_confidence": impact_out["attack_progression_confidence"],
+            "attack_progression_likelihood": impact_out["attack_progression_likelihood"],
+            "evidence_confidence": impact_out["evidence_confidence"],
+            "assessment": impact_out["assessment"],
             "crown_jewel_exposure": impact_out["crown_jewel_exposure"],
         },
         "llm": {"provider": "none", "used_for": [],
@@ -577,10 +667,12 @@ def demo() -> None:
     assert nodes.count("evidence") <= 1 + MAX_REPLANS, nodes
     hl = r["headline"]
     assert 0 <= hl["crown_jewel_exposure"]["value"] <= 100, hl
-    assert 0 <= hl["attack_progression_confidence"]["value"] <= 100, hl
+    assert 0 <= hl["attack_progression_likelihood"]["value"] <= 100, hl
+    assert 0 <= hl["evidence_confidence"]["value"] <= 100, hl
     assert r["action"]["executed"] == 0
     print(f"workflow ok: {len(nodes)} node runs {nodes} in {r['trace']['total_ms']:.0f} ms; "
-          f"progression {hl['attack_progression_confidence']['value']} · "
+          f"likelihood {hl['attack_progression_likelihood']['value']} · "
+          f"evidence confidence {hl['evidence_confidence']['value']} · "
           f"exposure {hl['crown_jewel_exposure']['value']} · "
           f"{len(r['evidence'].get('citations', []))} citations · "
           f"{len(r['action']['proposals'])} gated proposals")
