@@ -1,11 +1,16 @@
 import { getOverview } from '../api.js'
-import { useScreenData } from '../lib/analysis.jsx'
+import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import Sparkline from '../components/Sparkline.jsx'
 import MttdPanel from '../components/MttdPanel.jsx'
+import AgentPipeline from '../components/AgentPipeline.jsx'
 
 export default function Overview() {
   const { data, error, loading } = useScreenData('overview', getOverview)
+  // The 10-agent lane rides on the analysis bundle's meta, so it is only present
+  // for a live analysis, not for the pre-computed sample cache.
+  const { bundle } = useAnalysis()
+  const agentPipeline = bundle?.meta?.agent_pipeline
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 
@@ -63,6 +68,12 @@ export default function Overview() {
           are what changes with the data.
         </div>
       </Card>
+
+      {agentPipeline && (
+        <div style={{ marginTop: 20 }}>
+          <AgentPipeline pipeline={agentPipeline} />
+        </div>
+      )}
 
       <div className="foot">
         Real data from <b>LANL red-team</b> + <b>MITRE ATT&amp;CK</b> ·

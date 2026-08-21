@@ -309,3 +309,17 @@
 .xc-detail{border:1px solid var(--border);border-radius:var(--radius-sm);
   padding:12px 14px;background:var(--surface-2)}
 .xc-narr p{font-size:12.5px;line-height:1.6;color:var(--text-dim);margin:7px 0 10px}
+
+/* ── 10-agent lane panel ──────────────────────────────────────────────── */
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ag-cell{background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:8px 10px}
+.ag-cell.s-high{border-color:color-mix(in srgb,var(--sev-high) 40%,var(--border))}
+.ag-cell.s-critical{border-color:color-mix(in srgb,var(--sev-critical) 40%,var(--border))}
+.ag-name{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;
+  text-transform:capitalize}
+.ag-cell.s-low .ag-name svg{color:var(--ok)}
+.ag-cell.s-high .ag-name svg{color:var(--sev-high)}
+.ag-cell.s-critical .ag-name svg{color:var(--sev-critical)}
+.ag-meta{font-size:10.5px;color:var(--text-faint);margin-top:3px}
+.xc-narr-p{font-size:12.5px;line-height:1.6;color:var(--text-dim);margin:7px 0 12px}

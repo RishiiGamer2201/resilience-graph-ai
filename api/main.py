@@ -320,12 +320,284 @@ class AnalyzeRequest(BaseModel):
     account: str | None = None             # scope a campaign log to one account
 
 
-def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None) -> dict:
+def _prepare_agent_events(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize enough for the agent pipeline to share the standard input path."""
+    from src.schema import coerce, validate
+
+    events = coerce(df.copy())
+    validate(events)
+    for col, default in (("status", "success"), ("protocol", "")):
+        if col not in events.columns:
+            events[col] = default
+    return events
+
+
+def _agent_pipeline_summary(result) -> dict:
+    data = result.as_dict()
+    return {
+        "enabled": True,
+        "status": data["status"],
+        "incident_id": data["incident_id"],
+        "scenario": data["scenario"],
+        "severity": data["severity"],
+        "total_ms": data["total_ms"],
+        "point_b_method": data["point_b_method"],
+        "incident_narrative": data["incident_narrative"],
+        "agent_traces": data["agent_traces"],
+        "ranked_chains": data["ranked_chains"],
+        "chain_explanations": data["chain_explanations"],
+        "predictions": data["predictions"],
+        "evidence_refs": data["evidence_refs"],
+        "notes": data["notes"],
+    }
+
+
+def _agent_trace(agent_summary: dict, agent_name: str) -> dict:
+    for trace in agent_summary.get("agent_traces", []):
+        if trace.get("agent") == agent_name:
+            return trace
+    return {}
+
+
+def _agent_output(agent_summary: dict, agent_name: str) -> dict:
+    return _agent_trace(agent_summary, agent_name).get("output", {}) or {}
+
+
+def _agent_technique_mapping(agent_summary: dict) -> list[dict]:
+    from src.shared.attack_mapper import explanation
+    from src.shared.views import _names
+
+    names = _names()
+    mapped = _agent_output(agent_summary, "intelligence").get("mapped", [])
+    seen: set[str] = set()
+    out: list[dict] = []
+    for item in mapped:
+        tid = item.get("technique_id")
+        if not tid or tid in seen:
+            continue
+        seen.add(tid)
+        out.append({
+            "technique_id": tid,
+            "name": item.get("technique_name") or names.get(tid, tid),
+            "tactic": item.get("tactic") or "",
+            "confidence": item.get("confidence", 0),
+            "method": item.get("method", "agent_intelligence"),
+            "explanation": explanation(tid),
+        })
+    return out
+
+
+def _map_ranked_chains(agent_summary: dict) -> list[dict]:
+    chains = agent_summary.get("ranked_chains") or _agent_output(agent_summary, "prioritizer").get("ranked_chains", [])
+    out = []
+    for i, chain in enumerate(chains, start=1):
+        out.append({
+            **chain,
+            "rank": i,
+            "id": f"chain-{i}",
+            "title": chain.get("entity", f"Threat chain {i}"),
+            "severity": chain.get("risk_band", "low"),
+            "score": chain.get("risk_score", 0),
+            "techniques": chain.get("technique_ids", []),
+            "summary": (
+                f"{chain.get('confirmation', 'unconfirmed')} chain on {chain.get('entity', 'unknown')} "
+                f"with {len(chain.get('technique_ids', []))} ATT&CK technique(s)"
+            ),
+        })
+    return out
+
+
+def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict:
+    kb_graph = _agent_output(agent_summary, "kb_connector").get("graph_view", {})
+    observer_nodes = _agent_output(agent_summary, "graph_observer").get("nodes", [])
+    raw_nodes = kb_graph.get("nodes") or observer_nodes
+    raw_edges = kb_graph.get("edges") or []
+
+    if not raw_nodes:
+        return base_graph
+
+    # The KB connector emits an ENTITY graph (users, external IPs). The attack
+    # graph is a HOST topology, and the digital twin simulates containment on it.
+    # Swapping one for the other left the bundle claiming a 28-host blast radius
+    # over a 2-node graph, and made the twin recommend isolating a user account.
+    # Keep both, clearly separated.
+    authoritative_nodes = base_graph.get("nodes")
+    authoritative_edges = base_graph.get("edges")
+
+    entry_host = (
+        base_graph.get("entry_host")
+        or next((c.get("entity") for c in agent_summary.get("ranked_chains", []) if c.get("entity")), None)
+        or raw_nodes[0].get("id")
+    )
+    critical_assets = set(base_graph.get("critical_assets_at_risk", []))
+    nodes = []
+    for node in raw_nodes:
+        node_id = node.get("id")
+        node_type = node.get("type", "host")
+        nodes.append({
+            "id": node_id,
+            "type": node_type,
+            "label": node.get("label", node_id),
+            "critical": bool(node.get("critical") or node_type == "critical_asset" or node_id in critical_assets),
+            "pivot": node_id == entry_host or node_type in {"user", "external_ip"},
+            "entry": node_id == entry_host,
+            "meta": node.get("meta", {}),
+        })
+
+    links = []
+    for edge in raw_edges:
+        src = edge.get("from")
+        dst = edge.get("to")
+        if not src or not dst:
+            continue
+        links.append({
+            "source": src,
+            "target": dst,
+            "from": src,
+            "to": dst,
+            "relation": edge.get("relation", "related"),
+            "technique": edge.get("technique") or "-",
+            "tactic": edge.get("tactic", ""),
+            "score": edge.get("score", 0),
+            "event_count": edge.get("event_count", 1),
+            "users": edge.get("users", []),
+            "first_seen": edge.get("timestamp", edge.get("first_seen", 0)),
+            "last_seen": edge.get("timestamp", edge.get("last_seen", 0)),
+        })
+
+    # The KB connector emits an ENTITY graph (users, hosts, external IPs). The
+    # attack graph is a HOST topology, and the digital twin simulates containment
+    # on it. Swapping one for the other left the bundle reporting a 28-host blast
+    # radius over a 2-node graph, and made the twin recommend isolating
+    # `reception.rao@AIIMS` -- a user account -- with a claimed 100% reduction.
+    # Both views are kept, clearly separated, authoritative one untouched.
+    agent_view = {
+        "nodes": nodes,
+        # the React force graph reads `edges`; 3D consumers usually read `links`
+        "edges": links,
+        "links": links,
+        "n_nodes": len(nodes),
+        "n_edges": len(links),
+        "entry_host": entry_host,
+        "note": ("Entity view from the KB-connector agent. Advisory: the attack-path "
+                 "topology in nodes/edges is authoritative and is what containment "
+                 "is simulated on."),
+    }
+    graph = {**base_graph, "agent_graph": agent_view}
+    if not graph.get("nodes"):
+        # no authoritative topology at all (an empty incident): the agent view is
+        # better than nothing, and is labelled as the source.
+        graph.update({"nodes": nodes, "edges": links, "links": links,
+                      "n_nodes": len(nodes), "n_edges": len(links),
+                      "entry_host": entry_host, "topology_source": "agent"})
+    else:
+        graph.setdefault("topology_source", "attack-path analysis")
+    if not graph.get("attacker_pivots"):
+        graph["attacker_pivots"] = [n["id"] for n in nodes if n["pivot"]][:5]
+    graph["n_pivots"] = len(graph.get("attacker_pivots", []))
+    return graph
+
+
+def _map_agent_bundle(bundle: dict, agent_summary: dict) -> dict:
+    """Map 10-agent output into the standard dashboard bundle shape."""
+    narrative = agent_summary.get("incident_narrative", "")
+    ranked_chains = _map_ranked_chains(agent_summary)
+    technique_mapping = _agent_technique_mapping(agent_summary)
+
+    # ADR 0007: the workflow is authoritative, the agent lane is advisory. Every
+    # field below is ADDITIVE. The deterministic summary, report, host topology
+    # and ATT&CK mapping stay exactly as computed.
+    if narrative:
+        bundle.setdefault("overview", {})["agent_narrative"] = narrative
+        bundle.setdefault("report", {})["agent_narrative"] = narrative
+
+    if ranked_chains:
+        bundle.setdefault("incident", {})["agent_ranked_chains"] = ranked_chains
+        bundle.setdefault("overview", {})["agent_ranked_chains"] = ranked_chains[:5]
+        bundle.setdefault("report", {})["agent_ranked_chains"] = ranked_chains
+
+    # The agent view is attached ALONGSIDE the authoritative topology, never in
+    # place of it. `_map_agent_graph` keeps the real nodes/edges and adds its own
+    # under `agent_graph`; the attack-path analysis and the digital twin continue
+    # to read the host topology they were computed from.
+    bundle["graph"] = _map_agent_graph(agent_summary, bundle.get("graph", {}))
+
+    if technique_mapping:
+        ti = bundle.setdefault("threat_intel", {})
+        ti["agent_mapping"] = technique_mapping
+        ti["agent_validated_technique_ids"] = [m["technique_id"] for m in technique_mapping]
+        ti["agent_note"] = (
+            "A second opinion: these ATT&CK techniques are emitted by the Intelligence "
+            "agent and validated by the orchestrator's schema/evidence gates. The "
+            "authoritative mapping above is unchanged."
+        )
+
+    predictions = agent_summary.get("predictions") or []
+    if predictions:
+        # already agent-prefixed and additive
+        bundle.setdefault("report", {})["agent_predicted_next"] = predictions
+
+    return bundle
+
+
+def _attach_agent_pipeline(bundle: dict, agent_summary: dict) -> dict:
+    """Expose 10-agent reasoning without changing the SPA's screen contracts."""
+    bundle.setdefault("meta", {})["agent_pipeline"] = agent_summary
+    bundle["meta"]["pipeline"] = "standard+10-agent"
+
+    if agent_summary.get("status") != "failed":
+        bundle = _map_agent_bundle(bundle, agent_summary)
+    return bundle
+
+
+def _run_agents_for_standard_bundle(
+    df: pd.DataFrame,
+    *,
+    scenario: str,
+    incident_id: str,
+    entity_col: str = "user",
+) -> dict:
+    from src.agents.orchestrator import run_pipeline
+
     try:
-        return analyze_events(df, critical_assets=set(critical_assets or []),
-                              incident_id=incident_id, account=account)
+        result = run_pipeline(
+            _prepare_agent_events(df),
+            scenario=scenario,
+            incident_id=incident_id,
+            entity_col=entity_col,
+            use_llm=False,
+        )
+        summary = _agent_pipeline_summary(result)
+        return summary
+    except Exception as e:
+        return {
+            "enabled": True,
+            "status": "failed",
+            "incident_id": incident_id,
+            "scenario": scenario,
+            "error": str(e),
+            "agent_traces": [],
+            "ranked_chains": [],
+            "chain_explanations": [],
+            "predictions": [],
+            "evidence_refs": [],
+            "notes": ["10-agent pipeline failed; standard analysis bundle returned."],
+        }
+
+
+def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None,
+                  scenario: str = "events") -> dict:
+    try:
+        bundle = analyze_events(df, critical_assets=set(critical_assets or []),
+                                incident_id=incident_id, account=account)
     except ValueError as e:                # trust-boundary rejections → 422
         raise HTTPException(422, str(e))
+    agent_summary = _run_agents_for_standard_bundle(
+        df,
+        scenario=scenario,
+        incident_id=incident_id,
+    )
+    return _attach_agent_pipeline(bundle, agent_summary)
 
 
 @app.post("/api/analyze")
@@ -344,7 +616,7 @@ def analyze(req: AnalyzeRequest):
     inc_id = req.incident_id
     if req.account and inc_id == "INC-LIVE-001":
         inc_id = f"INC-{req.account.split('@')[0]}"
-    return _run_analysis(df, crit, inc_id, req.account)
+    return _run_analysis(df, crit, inc_id, req.account, scenario=req.scenario or "events")
 
 
 @app.post("/api/analyze/upload")
@@ -358,7 +630,7 @@ async def analyze_upload(file: UploadFile = File(...),
     except Exception as e:
         raise HTTPException(422, f"could not parse CSV: {e}")
     crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
-    return _run_analysis(df, crit, incident_id)
+    return _run_analysis(df, crit, incident_id, scenario=f"upload:{file.filename}")
 
 
 @app.get("/api/analyze/stream")
@@ -375,10 +647,18 @@ async def analyze_stream(scenario: str, critical_assets: str = "", delay: float 
     crit = [c.strip() for c in critical_assets.split(",") if c.strip()] \
         or SCENARIO_META.get(scenario, {}).get("critical_default", [])
     try:
-        bundle = analyze_events(pd.read_csv(path), critical_assets=set(crit),
+        df = pd.read_csv(path)
+        bundle = analyze_events(df, critical_assets=set(crit),
                                 incident_id="INC-STREAM-001")
     except ValueError as e:
         raise HTTPException(422, str(e))
+    # The streaming and non-streaming paths must return the same contract. The
+    # POST path attaches the agent lane; without this the `done` bundle silently
+    # lacked meta.agent_pipeline and the same screen behaved differently
+    # depending on which button was pressed.
+    bundle = _attach_agent_pipeline(
+        bundle, _run_agents_for_standard_bundle(df, scenario=scenario,
+                                                incident_id="INC-STREAM-001"))
     steps = bundle["incident"]["steps"]
 
     async def gen():

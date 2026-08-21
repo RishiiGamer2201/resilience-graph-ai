@@ -65,13 +65,14 @@ export function getThreatRadar({ technique_ids = [], actors = [], edges = [], re
 export const getScenarios = () => get("/scenarios");
 
 // Analyze a shipped scenario or raw event rows → full bundle (overview,
-// incident, graph, threat_intel, report, meta). Errors bubble up so the
-// Analyze screen can show the backend's validation message.
+// incident, graph, threat_intel, report, meta). The backend now runs the
+// 10-agent orchestrator inside this standard pipeline and exposes traces in
+// meta.agent_pipeline, so the SPA keeps one stable response contract.
 // `account` scopes a campaign log to one compromised account's own incident.
 export async function analyze({ scenario, events, critical_assets = [], incident_id, account }) {
   const r = await fetch(`${BASE}/analyze`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ scenario, events, critical_assets, incident_id, account }),
   });
   if (!r.ok) {
@@ -94,7 +95,7 @@ export async function analyzeUpload(file, critical_assets = [], incident_id = "I
   fd.append("file", file);
   fd.append("critical_assets", critical_assets.join(","));
   fd.append("incident_id", incident_id);
-  const r = await fetch(`${BASE}/analyze/upload`, { method: "POST", body: fd });
+  const r = await fetch(`${BASE}/analyze/upload`, { method: "POST", headers: authHeaders(), body: fd });
   if (!r.ok) {
     let msg = `${r.status}`;
     try { msg = (await r.json()).detail || msg; } catch { /* ignore */ }
