@@ -157,6 +157,10 @@ export const getReadiness = () => get("/readiness");
 // The seven-node investigation. Returns trace + signals + impact + action.
 export const investigate = (body) => post("/investigate", body);
 
+// The verified public record for the real incident a scenario is styled on.
+// 404 means the scenario is purely synthetic, which is the honest answer.
+export const getCasefile = (scenario) => get(`/casefile/${encodeURIComponent(scenario)}`);
+
 // Cited evidence over the bundled MITRE/CISA/CERT-In corpus.
 export const searchEvidence = (body) => post("/evidence/search", body);
 export const getEvidenceStats = () => get("/evidence/stats");

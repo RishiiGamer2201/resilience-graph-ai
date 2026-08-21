@@ -68,7 +68,8 @@ check_artifacts() {
 self_checks() {
   for m in src.shared.nethttp src.shared.detector src.shared.predictor \
            src.shared.evidence src.shared.vuln src.shared.twin src.shared.rbac \
-           src.shared.audit src.shared.scoreboard src.shared.explain src.shared.workflow; do
+           src.shared.audit src.shared.scoreboard src.shared.explain src.shared.claims \
+           src.shared.casefile src.shared.workflow; do
     "$PY" -m "$m" || return 1
   done
 }

@@ -634,11 +634,17 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                   "note": "SIMULATION ONLY. Nothing contacts an external system.",
                   **action.output}
 
+    # If this scenario is styled after a real, documented incident, carry the
+    # verified record alongside the synthetic analysis so the two are never
+    # confused. Most scenarios correctly have none.
+    from src.shared.casefile import load_casefile
+
     return {
         "ok": True,
         "generated_at": fmt_ist(),
         "incident_id": incident_id,
         "scenario": scenario,
+        "casefile": load_casefile(scenario),
         "trace": trace.as_dict(),
         "understand": understand.output,
         "evidence": evidence_out,

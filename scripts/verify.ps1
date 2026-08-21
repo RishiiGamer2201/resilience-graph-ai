@@ -104,7 +104,8 @@ Step 'Module self-checks' {
     foreach ($m in @('src.shared.nethttp', 'src.shared.detector', 'src.shared.predictor',
                      'src.shared.evidence', 'src.shared.vuln', 'src.shared.twin',
                      'src.shared.rbac', 'src.shared.audit', 'src.shared.scoreboard',
-                     'src.shared.explain', 'src.shared.workflow')) {
+                     'src.shared.explain', 'src.shared.claims',
+                     'src.shared.casefile', 'src.shared.workflow')) {
         Invoke-Checked $py @('-m', $m)
     }
 }

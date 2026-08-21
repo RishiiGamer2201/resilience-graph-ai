@@ -6,6 +6,7 @@ import StageRail from '../components/StageRail.jsx'
 import Headline from '../components/Headline.jsx'
 import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
 import EvidenceList from '../components/EvidenceList.jsx'
+import CaseFile from '../components/CaseFile.jsx'
 import ActionPanel from '../components/ActionPanel.jsx'
 import AuditPanel from '../components/AuditPanel.jsx'
 import ExplainTrace from '../components/ExplainTrace.jsx'
@@ -195,9 +196,14 @@ export default function Investigate() {
 
           <Section id="evidence" title="3 · Evidence" registerRef={registerRef}
             subtitle="official sources, hashed and dated">
-            <Card>
-              <div className="card-b pad"><EvidenceList evidence={result.evidence} /></div>
-            </Card>
+            <div className="stack">
+              <Card>
+                <div className="card-b pad"><EvidenceList evidence={result.evidence} /></div>
+              </Card>
+              {/* Only appears for a scenario styled after a documented real
+                  incident. Synthetic scenarios correctly show nothing here. */}
+              <CaseFile casefile={result.casefile} />
+            </div>
           </Section>
 
           <Section id="signals" title="4 · Signals" registerRef={registerRef}

@@ -72,7 +72,23 @@ Scroll to stage 3.
 > SHA-256 of the text we indexed. Click the title, you land on attack.mitre.org.
 > Recall@5 on our gold query set is 0.857 — measured, and on the scoreboard.
 
-### 1:20 — Impact and the counterfactual (40 s)
+### 1:10 — The real incident, and what nobody established (15 s)
+Still in stage 3, scroll to **Real incident on record**.
+
+> Our scenario is synthetic and labelled so. This is the actual AIIMS Delhi 2022
+> incident, from two Government of India parliamentary answers we fetched and
+> quoted directly. The Government established **one** ATT&CK technique — T1486,
+> data encrypted for impact, 1.3 terabytes across five servers — plus one control
+> weakness, improper network segmentation. Lateral movement is a hypothesis,
+> marked as one, with what would settle it.
+
+Point at the right-hand column.
+
+> And these nine things — initial access vector, ransomware family, whether data
+> was exfiltrated, who did it — are **not publicly established**. Most tools would
+> draw you a complete kill chain here. Most of it would be invented.
+
+### 1:25 — Impact and the counterfactual (40 s)
 Scroll to stage 6, the digital twin.
 
 > Now the responder's actual question. Isolate WARD-PC-013 —
@@ -93,7 +109,7 @@ Scroll to the vulnerability queue.
 > **unknown**, because CISA KEV does not publish one and we would rather show a gap
 > than a number we made up.
 
-### 2:00 — The human gate (25 s)
+### 2:05 — The human gate (25 s)
 Scroll to stage 7. Set the role picker to **Analyst** and press **Approve**.
 
 > Refused. 403, from the server, not the UI — an analyst cannot approve an action

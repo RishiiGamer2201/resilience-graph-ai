@@ -1,0 +1,146 @@
+{
+  "_comment": "The REAL AIIMS Delhi 2022 incident, as established by official Government of India parliamentary answers. This exists to sit beside our SYNTHETIC aiims_ransomware scenario and show the difference between what is established and what everyone assumes. Every quote below was extracted from the primary-source PDF, not copied from secondary reporting. Facts nobody has published stay in not_established, where they belong.",
+  "case_id": "AIIMS-DELHI-2022",
+  "title": "AIIMS Delhi ransomware incident, November 2022",
+  "provenance": "VERIFIED",
+  "verified_on": "2026-08-19",
+  "verification_method": "Primary-source PDFs fetched from sansad.in and text-extracted; quotes below are verbatim from those documents.",
+
+  "sources": [
+    {
+      "id": "RS-1043",
+      "chamber": "Rajya Sabha",
+      "question_no": "Unstarred Question No. 1043",
+      "answered_on": "2023-02-10",
+      "ministry": "Ministry of Electronics and Information Technology",
+      "answered_by": "Shri Rajeev Chandrasekhar, Minister of State",
+      "subject": "CYBER SECURITY ATTACKS",
+      "url": "https://sansad.in/getFile/annex/259/AU1043.pdf?source=pqars",
+      "verified": true,
+      "note": "Text extracted directly from the fetched PDF on 2026-08-19."
+    },
+    {
+      "id": "LS-1837",
+      "chamber": "Lok Sabha",
+      "question_no": "Unstarred Question No. 1837",
+      "answered_on": "2022-12-16",
+      "ministry": "Ministry of Health and Family Welfare",
+      "answered_by": "Dr. Bharati Pravin Pawar, Minister of State",
+      "subject": "CYBER-ATTACK IN AIIMS",
+      "url": "https://sansad.in/getFile/loksabhaquestions/annex/1710/AU1837.pdf?source=pqals",
+      "verified": true,
+      "note": "Text extracted directly from the fetched PDF on 2026-08-19."
+    },
+    {
+      "id": "LS-2310",
+      "chamber": "Lok Sabha",
+      "question_no": "Unstarred Question No. 2310",
+      "answered_on": "2022-12-21",
+      "ministry": "Ministry of Health and Family Welfare",
+      "url": "https://www.sansad.in/getFile/loksabhaquestions/annex/1710/AU2310.pdf?source=pqals",
+      "verified": false,
+      "note": "Cited in our research but NOT re-verified here: the host returned HTTP 403 when fetched on 2026-08-19. Nothing in this case file depends on it."
+    }
+  ],
+
+  "established_facts": [
+    {
+      "fact": "Five AIIMS Delhi servers were affected and approximately 1.3 TB of data was encrypted.",
+      "quote": "Based on current analysis by concerned stakeholders, five servers of the All India Institute of Medical Sciences (AIIMS), Delhi were affected and approximately 1.3 Tera Bytes of data was encrypted.",
+      "source_id": "RS-1043"
+    },
+    {
+      "fact": "Servers in the AIIMS IT network were compromised by unknown threat actors, and improper network segmentation contributed to operational disruption.",
+      "quote": "As per the analysis, servers in the information technology network of AIIMS were compromised by unknown threat actors due to improper network segmentation, which caused operational disruption due to non-functionality of critical applications.",
+      "source_id": "RS-1043"
+    },
+    {
+      "fact": "The five affected physical servers hosted the NIC e-Hospital application.",
+      "quote": "Five physical servers of AIIMS, New Delhi on which e-Hospital application of NIC was hosted, were affected.",
+      "source_id": "LS-1837"
+    },
+    {
+      "fact": "No specific ransom amount was demanded; a message on the server suggested a cyber-attack.",
+      "quote": "No specific amount of ransom was demanded by the hackers though a message was discovered on the server suggesting that it was a cyber- attack.",
+      "source_id": "LS-1837"
+    },
+    {
+      "fact": "Data was recovered from an unaffected backup server and restored onto new servers.",
+      "quote": "All the data for e-Hospital has been retrieved from a backup server which was unaffected and restored on new servers.",
+      "source_id": "LS-1837"
+    },
+    {
+      "fact": "Most e-Hospital functions were restored about two weeks after the attack.",
+      "quote": "Most of the functions of e-Hospital application like patient registration, appointment, admission, discharge etc. have been restored after two weeks of the cyber-attack.",
+      "source_id": "LS-1837"
+    },
+    {
+      "fact": "An FIR was registered with the Special Cell of Delhi Police.",
+      "quote": "A First Information Report (FIR) No. 349/22 has been registered by the All India Institute of Medical Sciences with the Special Cell of Delhi Police under relevant sections of law, regarding the incident of cyber-attack.",
+      "source_id": "LS-1837"
+    }
+  ],
+
+  "attack_claims": [
+    {
+      "technique_id": "T1486",
+      "technique": "Data Encrypted for Impact",
+      "tactic": "Impact",
+      "status": "confirmed",
+      "strength": 0.95,
+      "independence_group": "parliamentary-record",
+      "rationale": "The Government explicitly reported that approximately 1.3 TB of data was encrypted and that critical applications became non-functional. Encryption plus availability disruption is exactly what T1486 describes.",
+      "source_ids": ["RS-1043", "LS-1837"],
+      "missing_evidence": [],
+      "alternatives": []
+    },
+    {
+      "technique_id": "T1021",
+      "technique": "Remote Services",
+      "tactic": "Lateral Movement",
+      "status": "inferred",
+      "strength": 0.3,
+      "independence_group": "parliamentary-record",
+      "rationale": "Five servers were affected rather than one, which makes lateral movement a reasonable investigation hypothesis. No public source establishes it, and it must not be shown as observed without forensic evidence.",
+      "source_ids": ["RS-1043"],
+      "missing_evidence": [
+        "authentication and session logs between the affected servers",
+        "endpoint or EDR telemetry from the compromised hosts",
+        "the forensic timeline held by CERT-In and the investigating agency"
+      ],
+      "alternatives": [
+        "five servers independently exposed through the same weakness",
+        "a shared administrative credential or deployment channel used to reach all five without host-to-host movement",
+        "a common vulnerable service reachable from the same flat network segment"
+      ]
+    }
+  ],
+
+  "control_weaknesses": [
+    {
+      "weakness": "Improper network segmentation",
+      "quote": "compromised by unknown threat actors due to improper network segmentation",
+      "source_id": "RS-1043",
+      "note": "A control weakness, NOT an ATT&CK technique. It belongs in the defensive model, not the adversary model."
+    }
+  ],
+
+  "not_established": [
+    "the initial access vector",
+    "the ransomware family or variant",
+    "any credential-access or privilege-escalation technique",
+    "any persistence mechanism",
+    "any discovery technique",
+    "the specific remote service or lateral-movement technique, if any",
+    "whether data was exfiltrated as well as encrypted",
+    "whether patient data was stolen",
+    "the identity or nationality of the threat actors"
+  ],
+
+  "why_this_matters": "A complete-looking kill chain for this incident would be fabricated. The Government established one technique. Everything else that circulates about AIIMS 2022 — the initial vector, the family, the actor, the data theft — is not in the public record. This case file exists so the product demonstrates that distinction instead of quietly filling the gaps.",
+
+  "relationship_to_scenario": {
+    "scenario": "aiims_ransomware",
+    "note": "The shipped aiims_ransomware scenario is SYNTHETIC. It is styled after this incident to give a realistic Indian critical-infrastructure story with named crown jewels, but its hosts, accounts and events are generated. It is not a reconstruction of the real attack and must never be presented as one."
+  }
+}

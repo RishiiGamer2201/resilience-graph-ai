@@ -299,6 +299,21 @@ def evidence_stats():
     return {"available": True, **evidence_mod.repository().stats()}
 
 
+@router.get("/casefile/{scenario}")
+def casefile(scenario: str, p: dict = Depends(principal)):
+    """The verified public record for the real incident a scenario is styled on.
+
+    404 is the correct, honest answer for a purely synthetic scenario.
+    """
+    _require(p, "read")
+    from src.shared.casefile import load_casefile
+    cf = load_casefile(scenario)
+    if cf is None:
+        raise HTTPException(404, f"scenario '{scenario}' is synthetic and is not "
+                                 f"styled after a documented real incident")
+    return cf
+
+
 # --------------------------------------------------------------------------- #
 # vulnerabilities                                                              #
 # --------------------------------------------------------------------------- #
