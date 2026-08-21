@@ -189,7 +189,7 @@ def progression_likelihood(incident: dict, graph: dict) -> dict:
 
 
 def evidence_confidence(claims: list[dict], cited_techniques: int,
-                        technique_count: int) -> dict:
+                        technique_count: int, crosscheck: dict | None = None) -> dict:
     """0-100: how good the evidence behind the ATT&CK claims actually is.
 
     Two independent groups, combined with the same noisy-OR the claim model uses:
@@ -221,6 +221,15 @@ def evidence_confidence(claims: list[dict], cited_techniques: int,
                  detail=(f"{cited_techniques} of {technique_count} observed techniques "
                          f"carry an official ATT&CK citation")),
     ]
+    # A differently-built analysis of the same log is a third group. It is only
+    # a partially independent one -- same log, same rule table -- and
+    # src.shared.crosscheck caps what its agreement can be worth.
+    if crosscheck:
+        from src.shared.crosscheck import as_evidence
+        cc_ev = as_evidence(crosscheck)
+        if cc_ev is not None:
+            groups.append(cc_ev)
+
     value = combine(groups)
     missing: list[str] = []
     for c in claims:
@@ -237,6 +246,9 @@ def evidence_confidence(claims: list[dict], cited_techniques: int,
                     "1 − Π(1 − strength) — duplicate signals inside a group add nothing"),
         "actionable_claims": len(actionable),
         "total_claims": len(claims),
+        "crosscheck": ({"verdict": crosscheck["verdict"],
+                        "strength": crosscheck["corroboration_strength"]}
+                       if crosscheck and crosscheck.get("available") else None),
         "missing_evidence": missing[:8],
         "note": ("Evidence quality, not attack probability. Repeating the same "
                  "signal cannot raise this; independent corroboration can."),
@@ -387,7 +399,7 @@ def _n_replan(evidence: NodeResult, technique_ids: list[str], attempt: int) -> N
 
 
 def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
-              cited_techniques: int) -> NodeResult:
+              cited_techniques: int, crosscheck: dict | None = None) -> NodeResult:
     from src.shared.twin import rank_candidates, simulate
     from src.shared.vuln import load_inventory, prioritize
 
@@ -411,7 +423,7 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
             best_step[tid] = st
     claims = [claim_for_event(st) for _, st in sorted(best_step.items())]
     confidence = evidence_confidence(claims, cited_techniques,
-                                     len(inc.get("technique_ids", [])))
+                                     len(inc.get("technique_ids", [])), crosscheck)
 
     assessment = Assessment(
         anomaly=float(inc.get("max_anomaly_score", 0) or 0),
@@ -450,6 +462,7 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
             "evidence_confidence": confidence,
             "assessment": assessment.as_dict(),
             "claims": claims,
+            "crosscheck": crosscheck,
             "blast_radius": graph_view["blast_radius_size"],
             "paths_to_critical": graph_view["paths_to_critical"],
             "containment_candidates": candidates,
@@ -556,7 +569,8 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
 def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                 critical_assets: list[str] | None = None,
                 incident_id: str = "INC-LIVE-001", account: str | None = None,
-                principal: dict | None = None, evidence_k: int = 6) -> dict:
+                principal: dict | None = None, evidence_k: int = 6,
+                run_crosscheck: bool = True) -> dict:
     """Run the seven-node investigation and return the trace plus the result."""
     from src.shared.vuln import load_inventory
 
@@ -610,8 +624,24 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
 
     cited = len({i for c in (evidence.output.get("citations") or [])
                  for i in c["identifiers"] if i in set(techniques)})
+    # The agent lane: a second, differently-built reading of the same log. It is
+    # advisory -- the workflow governs -- and a failure here must not affect the
+    # investigation, so it is wrapped and degrades to "not available".
+    cc = None
+    if run_crosscheck:
+        try:
+            from src.agents.orchestrator import run_pipeline
+            from src.shared.crosscheck import crosscheck as compare
+            agent_out = run_pipeline(df, scenario=scenario or "uploaded")
+            agent_dict = agent_out.as_dict() if hasattr(agent_out, "as_dict") else agent_out
+            cc = compare({"signals": {"incident": bundle["incident"]}}, agent_dict)
+        except Exception as e:                     # advisory only; never fatal
+            cc = {"available": False, "authoritative": "workflow",
+                  "verdict": "not available",
+                  "reason": f"{type(e).__name__}: {e}"[:200]}
+
     impact = trace.run("impact",
-                       lambda: _n_impact(bundle, critical, scenario, cited))
+                       lambda: _n_impact(bundle, critical, scenario, cited, cc))
     action = trace.run("action", lambda: _n_action(bundle, impact, principal))
 
     # A degraded node returns output={}. Typed degradation is only useful if the
@@ -623,6 +653,7 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                     **evidence.output}
     impact_out = {"crown_jewel_exposure": None, "attack_progression_likelihood": None,
                   "evidence_confidence": None, "assessment": None, "claims": [],
+                  "crosscheck": None,
                   "blast_radius": None, "paths_to_critical": {},
                   "containment_candidates": [], "counterfactual": None,
                   "vulnerabilities": {"findings": [], "total_findings": 0,
@@ -652,6 +683,7 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
         "meta": bundle["meta"],
         "impact": impact_out,
         "action": action_out,
+        "crosscheck": cc,
         "headline": {
             "attack_progression_likelihood": impact_out["attack_progression_likelihood"],
             "evidence_confidence": impact_out["evidence_confidence"],

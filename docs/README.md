@@ -33,6 +33,9 @@ everything else.
 - [architecture/adr/0006-evidence-calibrated-claims.md](architecture/adr/0006-evidence-calibrated-claims.md)
   — ATT&CK conclusions become claims with status, missing evidence and benign
   alternatives; the single attack score splits into four numbers
+- [architecture/adr/0007-two-pipelines-one-authority.md](architecture/adr/0007-two-pipelines-one-authority.md)
+  — two analysis lanes, one authority: the 10-agent pipeline becomes a
+  partially-independent cross-check rather than a competing verdict
 - [../architecture.md](../architecture.md) — full system architecture, folder tree,
   tech stack *(root)*
 - [../design.md](../design.md) — design tokens, palette, components *(root)*

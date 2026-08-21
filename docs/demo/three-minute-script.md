@@ -88,7 +88,17 @@ Point at the right-hand column.
 > was exfiltrated, who did it — are **not publicly established**. Most tools would
 > draw you a complete kill chain here. Most of it would be invented.
 
-### 1:25 — Impact and the counterfactual (40 s)
+### 1:20 — A second opinion (10 s)
+Scroll to **Independent cross-check**, still in stage 4.
+
+> A second analysis, built differently — ten agents over behavioural windows
+> instead of seven bounded nodes — read the same log and reached *medium* where
+> this one says *high*. Adjacent, sharing T1021, so it partially corroborates and
+> confidence goes up. If it had disagreed by two bands you would see the word
+> *contradicts* and confidence would go down. And it is capped, because both lanes
+> read the same log: a second opinion, not a second sensor.
+
+### 1:30 — Impact and the counterfactual (40 s)
 Scroll to stage 6, the digital twin.
 
 > Now the responder's actual question. Isolate WARD-PC-013 —

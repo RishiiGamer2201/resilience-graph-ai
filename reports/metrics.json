@@ -134,10 +134,10 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 132.0,
-      "p95": 195.2,
-      "max": 9055.4,
-      "samples": 4,
+      "p50": 120.9,
+      "p95": 1223.4,
+      "max": 9589.3,
+      "samples": 8,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
     "mttd": {
@@ -195,7 +195,7 @@
           "mttd_human": "immediate",
           "crown_jewel_exposure": 100.0,
           "attack_progression_likelihood": 52.6,
-          "evidence_confidence": 63.5,
+          "evidence_confidence": 73.4,
           "actionable_claims": 0,
           "total_claims": 2,
           "citations": 6,
@@ -203,7 +203,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 9055.4,
+          "latency_ms_median": 4850.8,
           "degraded_nodes": []
         },
         {
@@ -226,7 +226,7 @@
           "mttd_human": "immediate",
           "crown_jewel_exposure": 100.0,
           "attack_progression_likelihood": 52.6,
-          "evidence_confidence": 63.7,
+          "evidence_confidence": 73.5,
           "actionable_claims": 0,
           "total_claims": 2,
           "citations": 6,
@@ -234,7 +234,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 68.8,
+          "latency_ms_median": 115.0,
           "degraded_nodes": []
         },
         {
@@ -266,7 +266,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 195.2,
+          "latency_ms_median": 1216.3,
           "degraded_nodes": [
             "understand"
           ]
@@ -299,13 +299,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 64.0,
+          "latency_ms_median": 120.8,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-21 13:02 IST"
+      "evaluated_at": "2026-08-21 20:07 IST"
     }
   }
 }

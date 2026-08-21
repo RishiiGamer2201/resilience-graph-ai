@@ -135,11 +135,19 @@ def _time_window_chunks(
         t_min = int(grp["timestamp"].iloc[0])
         t_max = int(grp["timestamp"].iloc[-1])
 
-        t = t_min
-        while t <= t_max:
+        # Bucket by integer division instead of walking the time axis.
+        #
+        # The previous loop stepped `t` from t_min to t_max in window_sec
+        # increments FOR EVERY ENTITY, running a full boolean mask over that
+        # entity's rows at each step. Its cost scaled with the log's DURATION,
+        # not its event count, so a campaign spanning weeks burned millions of
+        # empty windows: 125 events chunked in 0.05 s while 2,732 events spanning
+        # a longer period took 30 s. Same chunks out, one grouped pass in.
+        buckets = (grp["timestamp"] - t_min) // window_sec
+        for bucket, sub in grp.groupby(buckets, sort=True):
+            t = t_min + int(bucket) * window_sec
             window_end = t + window_sec
-            mask = (grp["timestamp"] >= t) & (grp["timestamp"] < window_end)
-            sub = grp[mask].reset_index(drop=True)
+            sub = sub.reset_index(drop=True)
             if len(sub) >= MIN_CHUNK_EVENTS:
                 yield EventChunk(
                     chunk_id=_chunk_id(str(entity), t, ChunkStrategy.TIME_WINDOW),

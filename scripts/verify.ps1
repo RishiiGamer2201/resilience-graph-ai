@@ -105,7 +105,8 @@ Step 'Module self-checks' {
                      'src.shared.evidence', 'src.shared.vuln', 'src.shared.twin',
                      'src.shared.rbac', 'src.shared.audit', 'src.shared.scoreboard',
                      'src.shared.explain', 'src.shared.claims',
-                     'src.shared.casefile', 'src.shared.workflow')) {
+                     'src.shared.casefile', 'src.shared.crosscheck',
+                     'src.shared.workflow')) {
         Invoke-Checked $py @('-m', $m)
     }
 }

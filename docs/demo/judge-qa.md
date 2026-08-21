@@ -202,7 +202,27 @@ exactly the confidence of one. Independent telemetry would be a second group and
 would genuinely raise it. That is the guard against a system talking itself into
 certainty by repetition.
 
-**"Is that a digital twin?"**
+**"You have two pipelines. Which one is right?"**
+The workflow is authoritative; the ten-agent lane is a cross-check. They are built
+differently on purpose — the workflow takes severity from the peak calibrated
+anomaly score, the agent lane from a prioritiser's risk band over ranked attack
+chains — so when they agree, that is corroboration from a different method rather
+than the same signal counted twice. On the AIIMS scenario they read *high* and
+*medium*: adjacent, sharing T1021, which the system scores as "partially
+corroborates" and which lifts evidence confidence from 63.5 to 73.4. If they
+differed by two severity bands it would read *contradicts*, contribute nothing,
+and the disagreement would be on screen.
+
+**"Isn't agreeing with yourself just double-counting?"**
+It would be, and the cap exists for exactly that reason. The two lanes read the
+same log and share the same ATT&CK rule table, so they are a second opinion, not
+a second sensor. Corroboration between them is capped at 0.45, the shared
+components are listed in every result, and a degraded agent lane halves its own
+contribution. Genuinely independent telemetry — endpoint process data rather than
+the same authentication log — would justify raising that cap, and that is written
+into the ADR as what would change our mind.
+
+**"Is that a digital twin?"
 It is a **counterfactual containment twin** and we call it that on the screen. It
 clones the attack graph, removes a candidate host and recomputes reachability. A
 full cyber-resilience twin would also carry synchronised asset, identity,

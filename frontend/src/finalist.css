@@ -286,3 +286,26 @@
 .cf-quote{margin:0 0 12px;padding-left:12px;border-left:3px solid var(--accent)}
 .cf-quote p{margin:0 0 4px;font-size:12.5px;line-height:1.6;font-style:italic}
 .cf-quote footer{font-size:10.5px;color:var(--text-faint)}
+
+/* ── Independent cross-check ──────────────────────────────────────────── */
+.xc-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch}
+@media (max-width:820px){.xc-grid{grid-template-columns:1fr}}
+.xc-lane{background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:11px 13px}
+.xc-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;
+  color:var(--text-faint)}
+.xc-sev{font-size:20px;font-weight:650;letter-spacing:-.4px;margin:2px 0 4px;
+  text-transform:capitalize}
+.xc-basis{font-size:11px;color:var(--text-dim);line-height:1.45}
+.xc-tech{font-size:10.5px;color:var(--text-faint);margin-top:6px;
+  word-break:break-word}
+.xc-verdict{display:flex;flex-direction:column;justify-content:center;
+  align-items:center;text-align:center;padding:0 14px;min-width:150px}
+.xc-vtext{font-size:13px;font-weight:600;text-transform:capitalize}
+.xc-vsub{font-size:11px;color:var(--text-faint);margin-top:2px}
+.banner.xc-conflict{border-color:color-mix(in srgb,var(--sev-critical) 40%,var(--border))}
+.banner.xc-conflict svg{color:var(--sev-critical)}
+.xc-diff{font-size:11px;line-height:1.6}
+.xc-detail{border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 14px;background:var(--surface-2)}
+.xc-narr p{font-size:12.5px;line-height:1.6;color:var(--text-dim);margin:7px 0 10px}

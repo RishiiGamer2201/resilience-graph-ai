@@ -7,6 +7,7 @@ import Headline from '../components/Headline.jsx'
 import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
 import EvidenceList from '../components/EvidenceList.jsx'
 import CaseFile from '../components/CaseFile.jsx'
+import CrossCheck from '../components/CrossCheck.jsx'
 import ActionPanel from '../components/ActionPanel.jsx'
 import AuditPanel from '../components/AuditPanel.jsx'
 import ExplainTrace from '../components/ExplainTrace.jsx'
@@ -256,6 +257,12 @@ export default function Investigate() {
                 <ClaimsPanel claims={result.impact?.claims} />
               </div>
             </Card>
+            {/* A second, differently-built analysis of the same log. Advisory:
+                the workflow governs, but agreement or disagreement here moves
+                evidence confidence. */}
+            <div style={{ marginTop: 18 }}>
+              <CrossCheck crosscheck={result.crosscheck} />
+            </div>
           </Section>
 
           <Section id="replan" title="5 · Replan" registerRef={registerRef}

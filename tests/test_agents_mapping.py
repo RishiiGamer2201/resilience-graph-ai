@@ -171,3 +171,66 @@ def test_semantic_fallback_is_off_by_default():
     T1496.003 to an authentication log on wording similarity alone."""
     from src.agents.intelligence import RAG_FALLBACK
     assert RAG_FALLBACK is False
+
+
+# --------------------------------------------------------------------------- #
+# chunker cost: scales with events, not with elapsed time                      #
+# --------------------------------------------------------------------------- #
+def test_chunking_cost_follows_event_count_not_log_duration():
+    """The time-window chunker used to walk the whole time axis per entity,
+    running a pandas mask at every step, so its cost scaled with the log's
+    DURATION. Two events a month apart cost more than a thousand in an hour:
+    the LANL campaign took 30 s to chunk while a denser 125-event log took
+    0.05 s. This pins the fix."""
+    import time as _t
+
+    import pandas as pd
+
+    from src.agents.chunker import ChunkStrategy, chunk_events
+
+    def frame(n: int, span_sec: int) -> pd.DataFrame:
+        step = max(1, span_sec // max(1, n))
+        return pd.DataFrame({
+            "timestamp": [i * step for i in range(n)],
+            "user": ["u@d"] * n,
+            "source_host": ["A"] * n,
+            "destination_host": ["B"] * n,
+            "event_type": ["auth"] * n,
+        })
+
+    dense = frame(200, 3_600)              # 200 events in an hour
+    sparse = frame(200, 90 * 24 * 3_600)   # the same 200 events over 90 days
+
+    t = _t.perf_counter()
+    list(chunk_events(dense, entity_col="user", strategy=ChunkStrategy.TIME_WINDOW))
+    dense_s = _t.perf_counter() - t
+
+    t = _t.perf_counter()
+    list(chunk_events(sparse, entity_col="user", strategy=ChunkStrategy.TIME_WINDOW))
+    sparse_s = _t.perf_counter() - t
+
+    # Same number of events, wildly different spans. Before the fix the sparse
+    # frame was orders of magnitude slower; now they are comparable.
+    assert sparse_s < max(0.5, dense_s * 25 + 0.05), (
+        f"chunking still scales with duration: dense {dense_s:.4f}s vs "
+        f"sparse {sparse_s:.4f}s")
+
+
+def test_chunking_a_long_sparse_log_terminates_quickly():
+    import time as _t
+
+    import pandas as pd
+
+    from src.agents.chunker import ChunkStrategy, chunk_events
+
+    # two events a year apart: the old loop would step through ~105k windows
+    df = pd.DataFrame({
+        "timestamp": [0, 365 * 24 * 3_600],
+        "user": ["u@d", "u@d"],
+        "source_host": ["A", "A"],
+        "destination_host": ["B", "B"],
+        "event_type": ["auth", "auth"],
+    })
+    t = _t.perf_counter()
+    list(chunk_events(df, entity_col="user", strategy=ChunkStrategy.TIME_WINDOW))
+    assert _t.perf_counter() - t < 0.5
