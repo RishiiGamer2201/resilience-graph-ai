@@ -1,0 +1,173 @@
+"""Regression tests for the 10-agent pipeline's ATT&CK mapping.
+
+The branch's own suite passed while the intelligence agent mapped 0 of 5 chunks,
+because every test asserted that it *degrades gracefully* and none asserted that
+it *works*. Graceful degradation is a good property and a terrible thing to test
+exclusively: a component that always fails degrades perfectly.
+
+These assert the opposite direction — that the pipeline actually produces
+mappings, that the mappings are real ATT&CK IDs, and that the failure modes which
+were silently swallowed now surface.
+"""
+from __future__ import annotations
+
+import pickle
+import re
+
+import pytest
+from fastapi.testclient import TestClient
+
+from api.main import app
+from src.agents import AgentStatus
+from src.agents.intelligence import _rule_based_map, _validate_technique_id
+from src.shared.attack_mapper import RULE_MAP, map_event
+
+ATTACK_ID = re.compile(r"^T\d{4}(\.\d{3})?$")
+
+
+@pytest.fixture(scope="module")
+def client():
+    return TestClient(app)
+
+
+@pytest.fixture(scope="module")
+def pipeline(client):
+    r = client.post("/api/agents/analyze", json={"scenario": "aiims_ransomware"})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+@pytest.fixture(scope="module")
+def valid_ids():
+    from src.shared.attack_mapper import LOOKUPS
+    with LOOKUPS.open("rb") as f:
+        return set(pickle.load(f)["technique_to_name"])
+
+
+# --------------------------------------------------------------------------- #
+# the four defects, pinned                                                     #
+# --------------------------------------------------------------------------- #
+def test_rule_mapping_reads_the_id_not_the_name():
+    """`mapping["technique"]` is the NAME ("Valid Accounts"); the ID lives under
+    `technique_id`. Validating the name against an ATT&CK regex can never match,
+    which is what produced 0 mappings."""
+    m = map_event("unusual_successful_login")
+    assert not _validate_technique_id(m["technique"]), "the name must not look like an ID"
+    assert _validate_technique_id(m["technique_id"])
+
+
+@pytest.mark.parametrize("event_type", ["new_host_auth", "failed_login_burst",
+                                        "large_outbound_transfer"])
+def test_the_synthesised_event_types_exist_in_the_rule_table(event_type):
+    """The agent used to synthesise "lateral_movement", "brute_force" and
+    "large_outbound", none of which are RULE_MAP keys, so all three fell through
+    to Unmapped."""
+    assert event_type in RULE_MAP
+    assert _validate_technique_id(map_event(event_type)["technique_id"])
+
+
+def test_a_flagged_chunk_actually_maps():
+    """The test that was missing: does the rule mapper return anything at all?"""
+    chunk = {
+        "anomaly_score": 80,
+        "stats": {"failure_rate": 0.0, "destination_host_unique": 7, "n_events": 20,
+                  "event_type_top": {"auth": 20}, "bytes_out_total": 0},
+    }
+    out = _rule_based_map(chunk)
+    assert out is not None, "a clearly lateral-movement-shaped chunk mapped to nothing"
+    assert ATTACK_ID.match(out["technique_id"]), out
+    assert out["technique_name"], "technique_name came back empty"
+    assert 0.0 < out["confidence"] <= 1.0
+
+
+def test_mapping_confidence_comes_from_the_rule_not_a_default():
+    """Confidence used to read a `confidence` key map_event never returns, so it
+    silently used a hardcoded 0.6. It now scales the rule's own calibrated
+    strength."""
+    strong = _rule_based_map({"anomaly_score": 100,
+                              "stats": {"failure_rate": 0.9, "n_events": 20,
+                                        "destination_host_unique": 1,
+                                        "event_type_top": {}, "bytes_out_total": 0}})
+    weak = _rule_based_map({"anomaly_score": 20,
+                            "stats": {"failure_rate": 0.9, "n_events": 20,
+                                      "destination_host_unique": 1,
+                                      "event_type_top": {}, "bytes_out_total": 0}})
+    assert strong["confidence"] > weak["confidence"]
+    assert strong["confidence"] != 0.6, "still using the invented default"
+
+
+def test_an_unknown_event_type_does_not_produce_a_technique():
+    out = _rule_based_map({"anomaly_score": 90,
+                           "stats": {"failure_rate": 0.0, "destination_host_unique": 1,
+                                     "n_events": 1,
+                                     "event_type_top": {"something_unheard_of": 1},
+                                     "bytes_out_total": 0}})
+    assert out is None or out["technique_id"] != "-"
+
+
+# --------------------------------------------------------------------------- #
+# end to end                                                                   #
+# --------------------------------------------------------------------------- #
+def test_the_pipeline_maps_at_least_one_technique(pipeline):
+    assert pipeline["evidence_refs"], "the pipeline produced no ATT&CK evidence at all"
+
+
+def test_every_emitted_technique_id_is_real(pipeline, valid_ids):
+    for tid in pipeline["evidence_refs"]:
+        if tid.startswith("T"):
+            assert ATTACK_ID.match(tid), f"malformed technique id: {tid}"
+            assert tid in valid_ids, f"technique not in the parsed ATT&CK STIX: {tid}"
+
+
+def test_no_agent_is_left_degraded_on_the_hero_scenario(pipeline):
+    """Two of nine used to degrade because the mapping cascade failed."""
+    degraded = [a["agent"] for a in pipeline["agent_traces"]
+                if a["status"] != AgentStatus.OK.value]
+    assert not degraded, f"degraded agents on the hero scenario: {degraded}"
+
+
+def test_the_narrative_names_the_chain_rather_than_saying_unknown(pipeline):
+    assert "unknown" not in pipeline["incident_narrative"].lower(), \
+        pipeline["incident_narrative"]
+
+
+def test_prediction_runs_once_there_is_a_chain(pipeline):
+    assert pipeline["predictions"], "no next-technique predictions were produced"
+
+
+# --------------------------------------------------------------------------- #
+# the LLM stays fenced                                                         #
+# --------------------------------------------------------------------------- #
+def test_narrative_is_template_generated_without_a_key(pipeline):
+    assert pipeline["point_b_method"] == "template"
+
+
+def test_llm_output_can_never_be_authoritative():
+    from src.agents.summarizer import summarize_incident
+    out = summarize_incident([{"entity": "u", "n_events": 3, "text": "t"}],
+                             ["T1078"], use_llm=False)
+    assert out["authoritative"] is False
+
+
+def test_the_remote_call_goes_through_the_guarded_fetcher():
+    """It used to call urllib directly and put the API key in the query string."""
+    import inspect
+
+    from src.agents import summarizer
+    src = inspect.getsource(summarizer._call_gemini)
+    assert "fetch_url" in src, "the Gemini call bypasses the outbound guard"
+    assert "urlopen" not in src
+    assert "?key=" not in src, "the API key is in the URL query string"
+    assert "x-goog-api-key" in src
+
+
+def test_the_gemini_host_is_allowlisted_deliberately():
+    from src.shared.nethttp import allowed_hosts
+    assert "generativelanguage.googleapis.com" in allowed_hosts()
+
+
+def test_semantic_fallback_is_off_by_default():
+    """rules.md: precision over recall. Enabled, it attached T1110.003 and
+    T1496.003 to an authentication log on wording similarity alone."""
+    from src.agents.intelligence import RAG_FALLBACK
+    assert RAG_FALLBACK is False

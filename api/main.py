@@ -506,6 +506,90 @@ from api.finalist import router as finalist_router   # noqa: E402
 app.include_router(finalist_router)
 
 
+# --- 10-agent pipeline endpoint (Sarthak's architecture) --------------------
+class AgentAnalysisRequest(BaseModel):
+    scenario: str = "lanl_campaign_all"
+    incident_id: str = "INC-001"
+    entity_col: str = "user"
+    use_llm: bool = False   # default off; set True if GEMINI_API_KEY is set
+
+
+@app.post("/api/agents/analyze")
+def agents_analyze(req: AgentAnalysisRequest):
+    """Run the full 10-agent pipeline on a pre-loaded scenario.
+
+    Returns the complete PipelineResult including:
+      - per-agent execution traces
+      - ranked attack chains
+      - Point-A chunk summaries + Point-B incident narrative
+      - next-move predictions
+      - all evidence references
+    """
+    from src.agents.orchestrator import run_pipeline
+
+    # Load scenario events (.csv or .parquet)
+    csv_file = SCENARIOS / f"{req.scenario}.csv"
+    parquet_file = SCENARIOS / f"{req.scenario}.parquet"
+    if csv_file.exists():
+        events = pd.read_csv(csv_file)
+    elif parquet_file.exists():
+        events = pd.read_parquet(parquet_file)
+    else:
+        raise HTTPException(404, f"Scenario '{req.scenario}' not found. "
+                            f"Available: {list(SCENARIO_META.keys())}")
+
+    try:
+        result = run_pipeline(
+            events,
+            scenario=req.scenario,
+            incident_id=req.incident_id,
+            entity_col=req.entity_col,
+            use_llm=req.use_llm,
+        )
+        return result.as_dict()
+    except Exception as e:
+        raise HTTPException(500, f"Pipeline error: {e}")
+
+
+@app.post("/api/agents/analyze/upload")
+async def agents_analyze_upload(
+    file: UploadFile = File(...),
+    incident_id: str = Form("INC-001"),
+    entity_col: str = Form("user"),
+    use_llm: bool = Form(False),
+):
+    """Run the 10-agent pipeline on an uploaded CSV log file.
+
+    The CSV must have at minimum: timestamp, user, source_host, destination_host.
+    Schema normalization is applied automatically.
+    """
+    from src.agents.orchestrator import run_pipeline
+    from src.shared.normalize import normalize
+
+    try:
+        contents = await file.read()
+        df_raw = pd.read_csv(io.BytesIO(contents))
+    except Exception as e:
+        raise HTTPException(400, f"Failed to parse uploaded CSV: {e}")
+
+    try:
+        # Attempt normalization; fall back to raw if columns already match
+        try:
+            events = normalize(df_raw, source="lanl")
+        except Exception:
+            events = df_raw
+        result = run_pipeline(
+            events,
+            scenario=f"upload:{file.filename}",
+            incident_id=incident_id,
+            entity_col=entity_col,
+            use_llm=use_llm,
+        )
+        return result.as_dict()
+    except Exception as e:
+        raise HTTPException(500, f"Pipeline error: {e}")
+
+
 # --- serve the built React app (single-container deploy) -------------------
 # When frontend/dist exists (production image), FastAPI serves the SPA from the
 # same origin as /api — no CORS, one URL. In local dev the Vite server handles

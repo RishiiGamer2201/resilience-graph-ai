@@ -41,7 +41,7 @@ export default function Analyze() {
 
   const runScenario = (name, criticalDefault) =>
     run(() => analyze({ scenario: name, critical_assets: crit.length ? crit : criticalDefault }),
-        'Scoring events…')
+      'Scoring events…')
 
   const runUpload = () => {
     if (!file) return
@@ -96,7 +96,7 @@ export default function Analyze() {
             <div className="card-b pad" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.55 }}>
                 Columns: <span className="mono">timestamp, user, source_host, destination_host,
-                status, protocol</span> (extras ignored). Max 50k rows.
+                  status, protocol</span> (extras ignored). Max 50k rows.
               </div>
               <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.55 }}>
                 No file handy? Grab the synthetic{' '}

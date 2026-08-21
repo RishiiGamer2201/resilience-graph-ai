@@ -31,8 +31,16 @@ Please include the endpoint or file, what you did, and what happened.
 - **No secrets are required and none are stored.** The product runs with zero
   credentials. Optional keys (OTX, ThreatFox, role tokens) are read from the
   environment and never returned by an endpoint or exposed to the browser.
-- **Uploaded data is never persisted.** Analysis is in memory; nothing is written to
-  disk; nothing is transmitted anywhere.
+- **Uploaded data is never persisted.** Analysis is in memory and nothing is
+  written to disk.
+- **Nothing leaves the host by default.** There is exactly one exception and it is
+  off unless you switch it on: setting `GEMINI_API_KEY` enables an optional
+  narrative-wording call in the 10-agent pipeline that **transmits incident
+  summaries to Google**. Without that variable no incident-derived content leaves
+  the machine, and `/api/capabilities` reports which state you are in. The call
+  goes through the same allowlisted, SSRF-guarded fetcher as everything else, the
+  key travels in a header rather than the URL, and the resulting text is always
+  labelled non-authoritative.
 - **Retrieved document text is evidence, never instruction.** There is no LLM in any
   decision path to inject into, and displayed excerpts are sanitised.
 - **Model artifacts are trusted build outputs**, committed to the repository and

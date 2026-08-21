@@ -57,6 +57,34 @@ def _require(p: dict, permission: str, *, incident_id: str | None = None) -> Non
 # --------------------------------------------------------------------------- #
 # capability + readiness                                                       #
 # --------------------------------------------------------------------------- #
+def _llm_capability() -> dict:
+    """No LLM touches a decision. One optional path rewords a narrative.
+
+    If it is switched on it sends incident summaries to Google, so this reports
+    the egress explicitly rather than describing the product as offline while a
+    key is quietly set.
+    """
+    import os
+
+    key_set = bool(os.environ.get("GEMINI_API_KEY", "").strip())
+    return {
+        "state": "byok-narrative" if key_set else "none",
+        "provider": "gemini-1.5-flash" if key_set else "none",
+        "keys_required": [],
+        "in_decision_path": False,
+        "data_leaves_host": key_set,
+        "detail": (
+            "GEMINI_API_KEY is set: the 10-agent pipeline may call Google to reword "
+            "the incident narrative, which TRANSMITS INCIDENT SUMMARIES OFF THIS "
+            "HOST. The text is labelled non-authoritative and no score, ranking, "
+            "gate or hash depends on it. Unset the variable to disable."
+            if key_set else
+            "No LLM is configured. Every score, ranking, gate and hash is "
+            "deterministic Python, narratives come from templates, and no "
+            "incident-derived content leaves this host."),
+    }
+
+
 def _capabilities() -> dict:
     from src.shared import detector
 
@@ -109,13 +137,7 @@ def _capabilities() -> dict:
                        "host-allowlisted fetcher. Falls back to the bundled snapshot."),
             "network_required": True, "optional": True,
         },
-        "llm": {
-            "state": "none",
-            "detail": ("No LLM is in any decision path. Every score, ranking, gate and "
-                       "hash is deterministic Python. An optional local provider could "
-                       "reword explanations only; it is not configured and not required."),
-            "provider": "none", "keys_required": [],
-        },
+        "llm": _llm_capability(),
         "authorisation": {
             "state": rbac.auth_mode(),
             "roles": list(rbac.ROLES),
