@@ -41,22 +41,22 @@ export default function Analyze() {
 
   const runScenario = (name, criticalDefault) =>
     run(() => analyze({ scenario: name, critical_assets: crit.length ? crit : criticalDefault }),
-      'Scoring events…')
+      'Running agent pipeline…')
 
   const runUpload = () => {
     if (!file) return
-    run(() => analyzeUpload(file, crit), `Scoring ${file.name}…`)
+    run(() => analyzeUpload(file, crit), `Running agents on ${file.name}…`)
   }
 
   return (
     <>
       <div className="page-head">
         <span className="tag-pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-          LIVE PIPELINE
+          LIVE 10-AGENT PIPELINE
         </span>
         <h2>Analyze an event log</h2>
-        <p className="mono">Every event is scored by the real benign-trained autoencoder, correlated into one incident,
-          mapped to ATT&amp;CK, graphed, attributed and projected — computed on the spot.</p>
+        <p className="mono">The standard analysis API now runs the 10-agent orchestrator, then returns the same
+          overview, incident, graph, threat-intel and report bundle the app already renders.</p>
       </div>
 
       {error && (
