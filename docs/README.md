@@ -74,6 +74,9 @@ everything else.
   narrative set *(root)*
 
 ### Competition
+- [competition/sih-2026-world-models.md](competition/sih-2026-world-models.md)
+  — gap analysis against the SIH 2026 NCIIPC world-models problem statement:
+  what we have, the one gap that matters, and what we must not claim
 - [competition/README.md](competition/README.md) — where the competitive matrix lives
   and how to read it
 

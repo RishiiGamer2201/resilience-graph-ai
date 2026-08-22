@@ -12,6 +12,7 @@ import ActionPanel from '../components/ActionPanel.jsx'
 import AuditPanel from '../components/AuditPanel.jsx'
 import ExplainTrace from '../components/ExplainTrace.jsx'
 import { TwinPanel, VulnPanel } from '../components/ImpactPanel.jsx'
+import Progression from '../components/Progression.jsx'
 import { getCapabilities, getScenarios, investigate, resetAudit, twinCandidates } from '../api.js'
 import { useAnalysis } from '../lib/analysis.jsx'
 import { useSession } from '../lib/session.jsx'
@@ -282,6 +283,8 @@ export default function Investigate() {
           <Section id="impact" title="6 · Impact" registerRef={registerRef}
             subtitle="reachability, counterfactual containment, patch queue">
             <div className="stack">
+              {/* Where the attack goes next, before the containment that stops it. */}
+              <Progression forecast={result.impact?.progression_forecast} />
               <TwinPanel graph={graph} counterfactual={result.impact.counterfactual}
                 candidates={candidates.length ? candidates : result.impact.containment_candidates} />
               <VulnPanel vulns={result.impact.vulnerabilities} />

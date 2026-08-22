@@ -441,6 +441,12 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
         missing_evidence=confidence["missing_evidence"],
     )
 
+    # Forward simulation: roll the learned transition model K steps ahead so the
+    # impact stage answers "where is this going" and not only "where is it now".
+    from src.shared.rollout import simulate_progression
+    progression = simulate_progression(inc.get("technique_ids", []), graph_view,
+                                       k_steps=5, crown_jewels=critical)
+
     candidates = rank_candidates(graph_view, limit=5)
     best = candidates[0]["host"] if candidates else None
     counterfactual = simulate(graph_view, isolate_host=best) if best else None
@@ -459,7 +465,10 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
                      "no asset inventory supplied — host software is never guessed"))
     return NodeResult(
         "impact", status="ok",
-        summary=(f"{assessment.sentence()}"
+        summary=((f"forecast: {progression['peak_infiltration_probability']}% chance of "
+                  f"reaching an impact stage within {progression['k_steps']} steps · "
+                  if progression.get("available") else "")
+                 + f"{assessment.sentence()}"
                  f" · blast radius {graph_view['blast_radius_size']} hosts"
                  + (f" · isolating {best} protects "
                     f"{len(counterfactual['delta']['crown_jewels_protected'])} jewel(s)"
@@ -473,6 +482,7 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
             "crosscheck": crosscheck,
             "blast_radius": graph_view["blast_radius_size"],
             "paths_to_critical": graph_view["paths_to_critical"],
+            "progression_forecast": progression,
             "containment_candidates": candidates,
             "counterfactual": counterfactual,
             "vulnerabilities": vulns,
@@ -664,6 +674,7 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                   "crosscheck": None,
                   "blast_radius": None, "paths_to_critical": {},
                   "containment_candidates": [], "counterfactual": None,
+                  "progression_forecast": None,
                   "vulnerabilities": {"findings": [], "total_findings": 0,
                                       "assets_considered": 0,
                                       "inventory_provenance": "UNKNOWN"},
