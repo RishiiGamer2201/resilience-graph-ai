@@ -18,6 +18,9 @@ techniques. Written for SIH 2026 requirement 2.
 | Next-state top-1, interpolated (shipped) | 0.3567 | 0.362 | persistence |
 | Next-state top-3, interpolated | 0.6273 | n/a | |
 | Next-state top-1, marginal | 0.1516 | n/a | ignores S_t |
+| **Next-state top-1, online adaptive** | **0.3964** | 0.362 | persistence |
+| Next-state top-1, second order | 0.2357 | 0.362 | persistence |
+| Next-state top-1, ORACLE (cheats) | 0.4475 | 0.362 | ceiling for any order-1 model |
 | Attack-rate Brier @ 1 step | 0.02217 | 0.12353 | always predict prevalence |
 | Next-window compromise ROC-AUC | 0.9872 | 0.5 | random |
 
@@ -25,7 +28,8 @@ techniques. Written for SIH 2026 requirement 2.
 
 - **The counted transition matrix LOSES to persistence: 27.3% against 36.2%.** Network traffic is strongly autocorrelated and the transition structure learned on the training days does not fully transfer to a different traffic mix. That is the finding, not a footnote: a transition matrix that cannot beat 'assume no change' is not a forecaster yet.
 - **Interpolating the two closes most of that gap: 35.7% top-1 and 62.7% top-3, which draws level with persistence, 0.5 points below it.** The weight is 0.15, chosen by leave-one-day-out over the training days -- count on two, score on the third -- because the real difficulty is transferring to a day with a different attack mix, and a holdout taken from inside a day never poses that question. Two weaker protocols were tried first and both picked a weight that did not transfer; `src/engine3/netstate.py` records what they were and why they were wrong. The same interpolation is what made engine2's next-technique predictor work.
-- **So the next-state forecast should be described as matching a persistence baseline, not beating one.** Knowing which latent state comes next is worth about as much as assuming the network stays where it is. What the model adds over persistence is everything below: persistence can tell you the next window resembles this one, and it cannot tell you the probability that window is compromised.
+- **Offline, then, the next-state forecast matches a persistence baseline rather than beating one.** Two things were tried before concluding that. A second-order context, which is the obvious candidate because an order-1 matrix cannot tell 'we have been sitting in state B' from 'we just arrived in B from A': it scored 0.2357 alone against the order-1 matrix's 0.2733, and leave-one-day-out gave it a weight of zero. And an oracle first-order matrix, counted on the test days themselves: 0.4475. The oracle beats persistence by 8.6 points, so a first-order model over these latent states CAN win. Ours does not. The limit is transfer between days, not model capacity.
+- **Adapting online closes most of that gap: 39.6% against persistence at 36.2%, +3.4 points**. Transfer is fixable at deployment and needs no labels: traffic arrives, you observe its transitions, so you may count them. `OnlineTracker` predicts the next state and only then is told what happened, blending the offline prior in as 2.0 pseudo-counts so it dominates early in a stream and hands over as evidence accumulates. Strictly causal: nothing after the current window contributes. That puts it 5.1 points off the cheating oracle. Hyperparameters were fitted leave-one-day-out on the training days; a version read off the test days scored 0.4243, and the smaller honest number is the one reported.
 - **Infiltration forecast: the model beats the prevalence baseline at one step.** Brier 0.02217 against 0.12353 for always predicting the training attack rate of 0.1416.
 - **One-step-ahead compromise warning:** ROC-AUC 0.9872, PR-AUC 0.9333 over 3,370 test windows of which 500 were compromised. This is the model warning about the NEXT window from the current one, not classifying the window in front of it.
 

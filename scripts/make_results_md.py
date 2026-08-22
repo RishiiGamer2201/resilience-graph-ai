@@ -79,10 +79,6 @@ def netstate_section() -> str:
         return ("## 3. World model over network state (Engine 3)\n\n"
                 "**Not measured.** Run `python -m scripts.eval_netstate` with the "
                 "CIC-IDS2017 parquet present.\n")
-    gap = N["next_state_top1"] - N["persistence_top1"]
-    standing = ("clears it" if gap > 0.01 else
-                "draws level with it" if gap >= -0.01 else
-                f"is {abs(gap) * 100:.1f} points behind it")
     return f"""## 3. World model over network state (Engine 3)
 
 `P(S_t+1 | S_t)` where `S_t` is observed traffic, not an ATT&CK label. Written
@@ -102,26 +98,45 @@ burst appears on both sides.
 | Next-window compromise, ROC-AUC | **{N['compromise_roc_auc']}** | 0.5 | random |
 | Next-window compromise, PR-AUC | {N['compromise_pr_auc']} | | |
 | Attack-rate Brier @ 1 step | **{N['brier_1step']}** | {N['brier_1step_baseline']} | always predict prevalence |
-| Next-state top-1 | {N['next_state_top1']} | {N['persistence_top1']} | persistence |
+| Next-state top-1, online adaptive | **{N['online_top1']}** | {N['persistence_top1']} | persistence |
+| Next-state top-1, offline | {N['next_state_top1']} | {N['persistence_top1']} | persistence |
 | Next-state top-1, counted matrix only | {N['counted_matrix_top1']} | {N['persistence_top1']} | persistence |
+| Next-state top-1, second order | {N['second_order_top1']} | {N['persistence_top1']} | persistence |
+| Next-state top-1, oracle (cheats) | {N['oracle_top1']} | {N['persistence_top1']} | ceiling for any order-1 model |
 
-**The result is split and both halves are published.** Forecasting whether the
-next window is compromised works well: ROC-AUC {N['compromise_roc_auc']} on
-{N['n_windows_test']:,} held-out windows, and a Brier score
+**Forecasting compromise works well.** ROC-AUC {N['compromise_roc_auc']} at
+warning that the NEXT window is compromised, over {N['n_windows_test']:,}
+held-out windows, and a one-step Brier score
 {N['brier_1step_baseline'] / N['brier_1step']:.1f}x better than always predicting
-the base rate. Predicting *which* latent state comes next {standing}: top-1
-{N['next_state_top1']} against a persistence baseline of {N['persistence_top1']}.
-Traffic is strongly autocorrelated and the transition structure learned on three
-days does not fully transfer to a different attack mix. Interpolating the counted
-matrix with persistence at weight {N['persistence_weight']}, chosen by
-leave-one-day-out over the training days, lifts top-1 from
-{N['counted_matrix_top1']} but does not clear the baseline.
+the base rate.
 
-So: a strong risk model over network state, a mediocre state forecaster.
+**Predicting which state comes next took three attempts and the failures are
+worth more than the result.** Offline, the model draws with persistence:
+{N['next_state_top1']} against {N['persistence_top1']}, with the raw counted
+matrix nine points behind at {N['counted_matrix_top1']}. A second-order model,
+the obvious candidate since an order-1 matrix cannot tell "we have been sitting
+in state B" from "we just arrived in B from A", was worse still at
+{N['second_order_top1']}, and leave-one-day-out gave it a weight of zero. What
+settled it was an oracle: a first-order matrix counted on the test days
+themselves reaches {N['oracle_top1']}, beating persistence outright. So a
+first-order model over these latent states CAN win, and ours did not. The limit
+was transfer between days, not model capacity.
+
+Transfer is fixable at deployment and needs no labels. Traffic arrives and you
+observe its transitions, so you may count them. `OnlineTracker` predicts the
+next state and only then is told what happened, blending the offline prior in as
+{N['online_prior_strength']} pseudo-counts so it dominates early in a stream and
+hands over as evidence accumulates. Strictly causal, and there is a test that
+fails if future evidence ever leaks backwards. That scores **{N['online_top1']}
+against persistence at {N['persistence_top1']}**, and sits below the oracle,
+where an honest causal model has to sit. Hyperparameters were fitted
+leave-one-day-out; reading them off the test days instead would have scored
+0.4243, and that number is not used anywhere.
+
 `reports/netstate.md` has the per-horizon calibration, the latent-state
-descriptions, the K sweep and three lambda-fitting protocols we tried and
-rejected. Engine 3 is **not in the live demo path**: the demo scenarios are
-authentication logs and this model consumes flow records.
+descriptions, the K sweep and three rejected lambda-fitting protocols. Engine 3
+is **not in the live demo path**: the demo scenarios are authentication logs and
+this model consumes flow records.
 """
 
 

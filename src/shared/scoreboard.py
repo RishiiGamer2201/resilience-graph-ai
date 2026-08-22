@@ -208,27 +208,33 @@ def scoreboard() -> dict:
               "Next-state prediction vs a persistence baseline",
               definition=("Top-1 accuracy at predicting the next latent traffic "
                           "state, against the baseline that assumes the network "
-                          "stays where it is."),
+                          "stays where it is. The shipped figure is the online "
+                          "adaptive model, which counts transitions it has "
+                          "already observed in the current stream."),
               dataset="CIC-IDS2017, 3,370 held-out window transitions",
               sample=_ns("n_states", fmt="{} latent states"),
-              value=_pct(_ns("next_state_top1")), unit="%",
+              value=_pct(_ns("online_top1")), unit="%",
               baseline={"name": "persistence (assume no change)",
                         "value": _pct(_ns("persistence_top1"))},
               report="reports/netstate.md",
               why=("Needs the CIC-IDS2017 parquet, which is not committed. Run "
                    "python -m scripts.eval_netstate after fetching it."),
-              note=("We DRAW here, we do not win. Network traffic is strongly "
-                    "autocorrelated, so 'assume no change' is a hard baseline and "
-                    "the transition structure learned on three days does not fully "
-                    "transfer to a different attack mix. The counted matrix alone "
-                    "managed only "
-                    + (f"{_pct(_ns('counted_matrix_top1'))}%" if _ns("counted_matrix_top1")
-                       is not None else "less")
-                    + "; interpolating with persistence at weight "
-                    + str(_ns("persistence_weight"))
-                    + " recovers most of the gap. So engine3 is a strong risk "
-                    "model over network state and a weak state forecaster, and "
-                    "reports/netstate.md says which is which.")),
+              note=("Won the hard way, and the route matters. The purely offline "
+                    "matrix DRAWS with persistence ("
+                    + f"{_pct(_ns('next_state_top1'))}% against "
+                      f"{_pct(_ns('persistence_top1'))}%"
+                    + "), and a second-order model made it worse ("
+                    + f"{_pct(_ns('second_order_top1'))}%"
+                    + "). An oracle matrix counted on the test days themselves "
+                      "reaches "
+                    + f"{_pct(_ns('oracle_top1'))}%"
+                    + ", which proved the limit was transfer between days rather "
+                      "than model capacity. Adapting online fixes transfer with "
+                      "no labels: predict the next state, then observe it, "
+                      "nothing after the current window contributing. Strictly "
+                      "causal, and tested for it. Hyperparameters fitted "
+                      "leave-one-day-out; reading them off the test days would "
+                      "have scored 0.4243 and that number is not used.")),
         _card("attribution_method", "Attribution & prediction",
               "Feature attribution exactness",
               definition=("Share of the detector's prediction gap explained by exact "

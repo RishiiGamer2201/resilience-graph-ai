@@ -9,11 +9,12 @@ learning network behaviour and forecasting attacker progression.
 than the closure. `src/engine3/netstate.py` learns `P(S_t+1 | S_t)` over an
 observed traffic feature vector on CIC-IDS2017 — the state space the PS asks
 for, not the ATT&CK technique space of `src/engine2`. It forecasts a compromise
-in the next window at ROC-AUC **0.987** and beats the prevalence baseline on
-Brier by 5.6x. But its **next-state prediction only draws level with a
-persistence baseline** (top-1 0.357 against 0.362), which means it is a strong
-risk model and a weak state forecaster. That is written into
-`reports/netstate.md` rather than left out, and it is the first thing to fix.
+in the next window at ROC-AUC **0.987**, beats the prevalence baseline on Brier
+by 5.6x, and beats a persistence baseline at next-state prediction (**0.396
+against 0.362**) once it is allowed to adapt causally to the stream in front of
+it. Purely offline it only draws with persistence at 0.357.
+`reports/netstate.md` carries both figures and the two failed attempts between
+them.
 
 What remains genuinely absent is packet-level analysis (requirements 7 and 8)
 and results on CTU-13 or CIC-IDS2018 (requirement 9).
@@ -25,7 +26,7 @@ and results on CTU-13 or CIC-IDS2018 (requirement 9).
 | # | PS requirement | Status | Evidence / gap |
 |---|---|---|---|
 | 1 | Represent network state as feature vectors or graphs | **Yes** | `src/engine3/netstate.py`: a 48-dimensional traffic state vector per window of 256 consecutive flows — TCP flag distribution, IAT statistics, bidirectional ratios, packet-length distribution, TCP window sizes and throughput, each as a window mean and standard deviation. Plus the original 7 behavioural auth features and the NetworkX host/identity graph |
-| 2 | Learn state-transition dynamics (LSTM / Transformer / GNN / latent) | **Yes, with a stated weakness** | A **discrete latent state-space model** — one of the four families the PS names. 24 latent states over the traffic vectors, Laplace-smoothed transition matrix, trained Mon-Wed and tested Thu-Fri so no day appears on both sides. K was selected on forecast quality, not on top-1, because top-1 across different K is not comparable. **The honest weakness:** next-state top-1 is 0.357 against a persistence baseline of 0.362, so it matches 'assume no change' rather than beating it. Full workings and three rejected lambda-fitting protocols in `reports/netstate.md`. The technique-space Markov (38.1% top-3 vs 7.1%) and the published LSTM negative (27.2%) remain in `src/engine2` |
+| 2 | Learn state-transition dynamics (LSTM / Transformer / GNN / latent) | **Yes, with a stated weakness** | A **discrete latent state-space model** — one of the four families the PS names. 24 latent states over the traffic vectors, Laplace-smoothed transition matrix, trained Mon-Wed and tested Thu-Fri so no day appears on both sides. K was selected on forecast quality, not on top-1, because top-1 across different K is not comparable. Next-state top-1 **0.396 against a persistence baseline of 0.362** with causal online adaptation, and 0.357 -- a draw -- without it. A second-order model was tried first and was worse (0.236). An oracle matrix counted on the test days reaches 0.448, which is how the limit was established as transfer between days rather than model capacity. Full workings, and three rejected lambda-fitting protocols, in `reports/netstate.md`. The technique-space Markov (38.1% top-3 vs 7.1%) and the published LSTM negative (27.2%) remain in `src/engine2` |
 | 3 | Forecast future states; estimate probability of attacker progression | **Yes, in both state spaces** | Over traffic state: exact K-step matrix rollout in `engine3` (`p0 @ T^k`, no sampling), one-step Brier **0.022 vs 0.124** for the prevalence baseline, next-window compromise ROC-AUC **0.987**, calibration published per horizon out to 5 steps. Over technique state: `src/shared/rollout.py` beam rollout with a monotone cumulative probability, separately-reported decaying horizon confidence and a reliable-horizon rule |
 | 4 | Map predicted behaviour to MITRE ATT&CK stages | **Yes** | Every predicted step carries its ATT&CK tactic; every emitted ID is validated against parsed STIX (100% ID validity, `reports/ps7_eval.md`) |
 | 5 | Explainability via attention or feature attribution | **Yes** | **EXACT Shapley values** per feature (`src/shared/attribution.py`), surfaced in stage 4 of the explainability trace. Seven features means 128 coalitions, so the full enumeration is computed rather than approximated — no sampling error, and the efficiency axiom is asserted at runtime. Plus the 11-stage provenance trace and per-factor attribution in vulnerability scoring |
@@ -59,24 +60,39 @@ future states reads directly as an infiltration probability.
 0.987, PR-AUC 0.933 over 3,370 held-out windows. One-step Brier 0.022 against
 0.124 for always predicting the base rate. Both on days the model never saw.
 
-**What it does badly, and this is the honest headline.** Predicting *which*
-latent state comes next: top-1 0.357 against a persistence baseline of 0.362.
-The counted matrix alone managed only 0.273. Network traffic is strongly
-autocorrelated and the transition structure learned Mon-Wed does not transfer
-cleanly to a different attack mix, so the single most useful fact about the next
-window is that it resembles this one. Interpolating the matrix with persistence
-recovers most of the gap but does not clear it.
+**What took three attempts.** Predicting *which* latent state comes next. The
+counted matrix alone managed 0.273 against a persistence baseline of 0.362, nine
+points behind. Interpolating with persistence lifted it to 0.357, a draw.
 
-So: a good risk model over network state, a mediocre state forecaster. Both
-halves are in `reports/netstate.md`, together with three lambda-fitting
-protocols we tried and rejected, two of which produced a confident number that
-did not transfer.
+A second-order context was the obvious next move, since an order-1 matrix cannot
+distinguish "we have been sitting in state B" from "we just arrived in B from
+A", and those have different futures. It was **worse**: 0.236 alone, and
+leave-one-day-out gave it a weight of zero. Momentum was not the missing
+ingredient.
 
-**What would actually improve it**, in order: a sequence model with more than
-one step of memory (the current matrix is first-order, and an attack ramp is not
-Markovian in a single window); a time-based rather than count-based window, which
-needs a timestamp column CIC-IDS2017 does not ship; and per-host state, which
-needs the address columns this parquet drops.
+What settled it was building an oracle on purpose: a first-order matrix counted
+on the test days themselves, which reaches **0.448**. That is the ceiling for
+any first-order model over these latent states, and it beats persistence by 8.6
+points. So such a model *can* win, and ours was not winning because the
+structure learned Monday-Wednesday does not transfer to Thursday-Friday. The
+limit was transfer, not capacity, and that changes what to build.
+
+Transfer is fixable at deployment and needs no labels. Traffic arrives and you
+observe its transitions, so you may count them. `OnlineTracker` predicts the
+next state and only then is told what happened; the offline prior enters as 2.0
+pseudo-counts, so it dominates early in a stream and hands over as live evidence
+accumulates. Strictly causal, with a test that fails if evidence from after the
+current window ever leaks backwards. **0.396 against persistence at 0.362**, and
+below the oracle, which is where an honest causal model has to sit.
+
+Hyperparameters were fitted leave-one-day-out on the training days. Reading them
+off the test days instead would have scored 0.4243; that number appears nowhere
+except as a note on what tuning on the test set buys.
+
+**What would still improve it**, in order: closing the remaining five points to
+the oracle; a time-based rather than count-based window, which needs a timestamp
+column CIC-IDS2017 does not ship; and per-host state, which needs the address
+columns this parquet drops.
 
 ### Integration note
 
@@ -96,7 +112,8 @@ results appear on the scoreboard and in `RESULTS.md`; the model runs from
 | ~~K-step forward simulation~~ | done | — | **Closed.** `src/shared/rollout.py`, requirement 3 |
 | ~~Network-state transition model~~ | done | — | **Closed** on CIC-IDS2017. `src/engine3/netstate.py`, requirements 1, 2, 3 and 6 |
 | PCAP ingestion + packet features (Scapy) | 2–3 days | Unlocks requirements 7 and 8 outright | **Do it** if targeting this PS |
-| Beat persistence on next-state prediction | 2–3 days | The one measured weakness in engine3 | **Do it** — a higher-order or sequence model over the latent states |
+| ~~Beat persistence on next-state prediction~~ | done | — | **Closed** by causal online adaptation, 0.396 vs 0.362. A higher-order model was tried first and lost |
+| Close the remaining gap to the oracle, 0.396 → 0.448 | 3–5 days | Five points of headroom that provably exist | **Optional** — the oracle proves they are reachable |
 | Re-run engine3 on CTU-13 / CIC-IDS2018 | 2–3 days | Requirement 9, and evidence the model is not CIC-IDS2017-specific | **Do it** if targeting this PS |
 | GNN over the flow graph | 1 week+ | One named option among several; LSTM/Transformer are equally acceptable and we already have sequence-model experience | **Skip** unless time is abundant |
 | Streamlit demo | — | We already have a better offline interface | **Skip** |
@@ -117,9 +134,12 @@ results appear on the scoreboard and in `RESULTS.md`; the model runs from
 
 **Do not claim**, because it is not true today:
 
-- that engine3 beats a persistence baseline at next-state prediction. It does
-  not; it draws level. It beats the prevalence baseline at forecasting
-  compromise, which is a different and weaker claim;
+- that engine3's **offline** matrix beats a persistence baseline at next-state
+  prediction. It does not; it draws level at 0.357 against 0.362. The 0.396
+  figure needs the online tracker, which needs a live stream to adapt to, so it
+  is a claim about deployment rather than about the static model;
+- that the online number is near a ceiling. An oracle matrix counted on the test
+  days reaches 0.448, so about five points provably remain;
 - that engine3 runs in the live demo. It does not — the demo ingests auth logs
   and engine3 consumes flow records;
 - packet-level analysis of any kind;

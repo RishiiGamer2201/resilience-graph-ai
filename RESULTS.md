@@ -106,26 +106,45 @@ burst appears on both sides.
 | Next-window compromise, ROC-AUC | **0.9872** | 0.5 | random |
 | Next-window compromise, PR-AUC | 0.9333 | | |
 | Attack-rate Brier @ 1 step | **0.02217** | 0.12353 | always predict prevalence |
-| Next-state top-1 | 0.3567 | 0.362 | persistence |
+| Next-state top-1, online adaptive | **0.3964** | 0.362 | persistence |
+| Next-state top-1, offline | 0.3567 | 0.362 | persistence |
 | Next-state top-1, counted matrix only | 0.2733 | 0.362 | persistence |
+| Next-state top-1, second order | 0.2357 | 0.362 | persistence |
+| Next-state top-1, oracle (cheats) | 0.4475 | 0.362 | ceiling for any order-1 model |
 
-**The result is split and both halves are published.** Forecasting whether the
-next window is compromised works well: ROC-AUC 0.9872 on
-3,372 held-out windows, and a Brier score
+**Forecasting compromise works well.** ROC-AUC 0.9872 at
+warning that the NEXT window is compromised, over 3,372
+held-out windows, and a one-step Brier score
 5.6x better than always predicting
-the base rate. Predicting *which* latent state comes next draws level with it: top-1
-0.3567 against a persistence baseline of 0.362.
-Traffic is strongly autocorrelated and the transition structure learned on three
-days does not fully transfer to a different attack mix. Interpolating the counted
-matrix with persistence at weight 0.15, chosen by
-leave-one-day-out over the training days, lifts top-1 from
-0.2733 but does not clear the baseline.
+the base rate.
 
-So: a strong risk model over network state, a mediocre state forecaster.
+**Predicting which state comes next took three attempts and the failures are
+worth more than the result.** Offline, the model draws with persistence:
+0.3567 against 0.362, with the raw counted
+matrix nine points behind at 0.2733. A second-order model,
+the obvious candidate since an order-1 matrix cannot tell "we have been sitting
+in state B" from "we just arrived in B from A", was worse still at
+0.2357, and leave-one-day-out gave it a weight of zero. What
+settled it was an oracle: a first-order matrix counted on the test days
+themselves reaches 0.4475, beating persistence outright. So a
+first-order model over these latent states CAN win, and ours did not. The limit
+was transfer between days, not model capacity.
+
+Transfer is fixable at deployment and needs no labels. Traffic arrives and you
+observe its transitions, so you may count them. `OnlineTracker` predicts the
+next state and only then is told what happened, blending the offline prior in as
+2.0 pseudo-counts so it dominates early in a stream and
+hands over as evidence accumulates. Strictly causal, and there is a test that
+fails if future evidence ever leaks backwards. That scores **0.3964
+against persistence at 0.362**, and sits below the oracle,
+where an honest causal model has to sit. Hyperparameters were fitted
+leave-one-day-out; reading them off the test days instead would have scored
+0.4243, and that number is not used anywhere.
+
 `reports/netstate.md` has the per-horizon calibration, the latent-state
-descriptions, the K sweep and three lambda-fitting protocols we tried and
-rejected. Engine 3 is **not in the live demo path**: the demo scenarios are
-authentication logs and this model consumes flow records.
+descriptions, the K sweep and three rejected lambda-fitting protocols. Engine 3
+is **not in the live demo path**: the demo scenarios are authentication logs and
+this model consumes flow records.
 
 ## 4. Operational output (live campaign analysis)
 
@@ -181,7 +200,7 @@ clone with no dataset download.
 
 ## 7. Engineering
 
-- 387 automated tests, no network required (pipeline correctness, multi-pivot
+- 397 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

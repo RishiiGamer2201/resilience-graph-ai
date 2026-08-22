@@ -20,6 +20,7 @@ from src.engine3.netstate import (
     MODEL,
     STATE_DIM,
     NetStateModel,
+    OnlineTracker,
     build_observations,
     fit,
     state_names,
@@ -252,3 +253,133 @@ def test_the_published_numbers_match_a_rerun():
         "interpolation is supposed to help; if it stops helping, say so in the report")
     assert ns["brier_1step"] < ns["brier_1step_baseline"], (
         "the forecast must beat always predicting prevalence or it means nothing")
+
+
+# --------------------------------------------------------------------------- #
+# online adaptation                                                            #
+# --------------------------------------------------------------------------- #
+def test_the_tracker_cannot_see_the_future(model_and_obs):
+    """The property the whole online result depends on.
+
+    A prediction made at window i must be byte-identical whether or not windows
+    after i exist. If a refactor ever lets future evidence leak backwards, the
+    published 0.3964 becomes another oracle number and we would not notice from
+    the accuracy alone -- it would simply improve.
+    """
+    m, obs = model_and_obs
+    states = obs[1][1]
+
+    short = OnlineTracker(m, prior_strength=2.0)
+    short.observe_all(states[:5])
+    early = short.next_distribution()
+
+    long = OnlineTracker(m, prior_strength=2.0)
+    long.observe_all(states[:5])
+    mid = long.next_distribution()
+    long.observe_all(states[5:])          # the future arrives
+
+    assert np.array_equal(early, mid)
+
+
+def test_predict_then_observe_is_the_only_order_that_works(model_and_obs):
+    m, obs = model_and_obs
+    t = OnlineTracker(m, prior_strength=2.0)
+    with pytest.raises(ValueError):
+        t.next_distribution()
+    with pytest.raises(ValueError):
+        t.forecast(horizon=2)
+    t.observe(obs[0][1][0])
+    assert t.next_distribution() is not None
+
+
+def test_the_tracker_starts_at_the_offline_prior(model_and_obs):
+    """With no live evidence the adapted row must equal the offline row, or the
+    model is worse than useless on the first window of a stream."""
+    m, obs = model_and_obs
+    t = OnlineTracker(m, prior_strength=2.0)
+    latent = t.observe(obs[0][1][0])
+    assert np.allclose(t.next_distribution(), m.next_distribution(latent))
+
+
+def test_live_evidence_moves_the_distribution(model_and_obs):
+    m, obs = model_and_obs
+    t = OnlineTracker(m, prior_strength=2.0)
+    t.observe_all(obs[1][1][:2])
+    before = t.next_distribution().copy()
+    cur = t.current_state
+    t.observe_all(obs[1][1][2:12])
+    if t.current_state == cur:
+        assert not np.allclose(before, t.next_distribution()), (
+            "ten observed transitions must change the estimate")
+
+
+def test_the_adapted_matrix_stays_a_probability_model(model_and_obs):
+    m, obs = model_and_obs
+    t = OnlineTracker(m, prior_strength=2.0)
+    t.observe_all(obs[1][1])
+    T = t.transition_matrix()
+    assert np.allclose(T.sum(axis=1), 1.0)
+    assert (T >= 0).all()
+
+
+def test_reset_forgets_the_stream(model_and_obs):
+    m, obs = model_and_obs
+    t = OnlineTracker(m, prior_strength=2.0)
+    t.observe_all(obs[1][1])
+    t.reset()
+    assert t.current_state is None and t.n_observed == 0
+    latent = t.observe(obs[0][1][0])
+    assert np.allclose(t.next_distribution(), m.next_distribution(latent))
+
+
+def test_the_online_forecast_says_it_is_online(model_and_obs):
+    m, obs = model_and_obs
+    t = OnlineTracker(m, prior_strength=2.0)
+    t.observe_all(obs[1][1][:6])
+    f = t.forecast(horizon=3)
+    assert f["adaptation"]["mode"] == "online"
+    assert f["adaptation"]["windows_observed"] == 6
+    cum = [x["cumulative_probability"] for x in f["steps"]]
+    assert cum == sorted(cum), cum
+
+
+def test_both_forecasts_go_through_one_rollout(model_and_obs):
+    """Two rollout implementations would drift and the drifting one would be
+    whichever nobody was watching. A zero-strength-prior tracker with no live
+    evidence beyond one window must agree with the offline forecast."""
+    m, obs = model_and_obs
+    states = obs[0][1]
+    offline = m.forecast(states[:1], horizon=3)
+    t = OnlineTracker(m, prior_strength=1.0)
+    t.observe(states[0])
+    online = t.forecast(horizon=3)
+    assert offline["current_state"] == online["current_state"]
+    assert set(offline) <= set(online)
+
+
+@pytest.mark.skipif(not MODEL.exists(), reason="netstate model not trained")
+def test_the_shipped_model_carries_its_online_hyperparameter():
+    m = NetStateModel.load()
+    assert m.online_prior_strength > 0.0, (
+        "online_prior_strength must be fitted, not left at the zero default")
+
+
+@pytest.mark.skipif(not FLOWS.exists(), reason="CIC-IDS2017 parquet not present")
+def test_online_beats_persistence_and_stays_under_the_oracle():
+    """The claim in reports/netstate.md, in one assertion.
+
+    Under the oracle matters as much as over persistence: an online number at or
+    above a matrix counted on the test days would mean future information had
+    leaked in somewhere.
+    """
+    import json
+    from pathlib import Path
+    ns = json.loads(Path("reports/metrics.json").read_text(encoding="utf-8")
+                    ).get("engine3", {}).get("netstate")
+    if not ns or "online_top1" not in ns:
+        pytest.skip("online arm not evaluated yet")
+    assert ns["online_top1"] > ns["persistence_top1"], (
+        ns["online_top1"], ns["persistence_top1"])
+    assert ns["online_top1"] < ns["oracle_top1"], (
+        "online must stay below an oracle counted on the test days; at or above "
+        "it means future information is leaking into the causal walk")

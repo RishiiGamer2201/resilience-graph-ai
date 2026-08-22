@@ -166,6 +166,9 @@ class NetStateModel:
     # Weight on "the next window looks like this one", fitted on a slice held
     # out from the training days. 0.0 means the counted matrix is used as-is.
     persistence_weight: float = 0.0
+    # Pseudo-count mass given to the offline prior by OnlineTracker. Small means
+    # the tracker trusts the day in front of it sooner. Fitted leave-one-day-out.
+    online_prior_strength: float = 0.0
 
     # -- inference ---------------------------------------------------------- #
     @property
@@ -221,9 +224,18 @@ class NetStateModel:
         under the model's own step probabilities.
         """
         latents = self.encode(states)
-        T = self.transition_matrix()
+        return self._forecast_from(int(latents[-1]), self.transition_matrix(),
+                                   horizon=horizon)
+
+    def _forecast_from(self, latent: int, T: np.ndarray, *, horizon: int) -> dict:
+        """Roll a given transition matrix forward from a given state.
+
+        Split out so OnlineTracker rolls its adapted matrix through exactly this
+        code. Two rollout implementations would drift, and the one that drifted
+        would be the one nobody was watching.
+        """
         p = np.zeros(self.n_states)
-        p[latents[-1]] = 1.0
+        p[latent] = 1.0
 
         steps, survive = [], 1.0
         for k in range(1, horizon + 1):
@@ -241,8 +253,8 @@ class NetStateModel:
                 ],
             })
         return {
-            "current_state": int(latents[-1]),
-            "current_state_attack_rate": round(float(self.state_attack_rate[latents[-1]]), 4),
+            "current_state": latent,
+            "current_state_attack_rate": round(float(self.state_attack_rate[latent]), 4),
             "horizon": horizon,
             "steps": steps,
             "state_space": "network traffic state (CIC-IDS2017 flow windows)",
@@ -261,6 +273,7 @@ class NetStateModel:
             window=np.array([self.window]),
             trained_on=np.array([self.trained_on]),
             persistence_weight=np.array([self.persistence_weight]),
+            online_prior_strength=np.array([self.online_prior_strength]),
         )
 
     @classmethod
@@ -273,6 +286,8 @@ class NetStateModel:
             window=int(z["window"][0]), trained_on=str(z["trained_on"][0]),
             persistence_weight=float(z["persistence_weight"][0])
             if "persistence_weight" in z else 0.0,
+            online_prior_strength=float(z["online_prior_strength"][0])
+            if "online_prior_strength" in z else 0.0,
         )
 
     @classmethod
@@ -301,6 +316,111 @@ class NetStateModel:
                 for i in order
             ],
         }
+
+
+# ─── Online adaptation ────────────────────────────────────────────────────────
+class OnlineTracker:
+    """Adapt the transition matrix to the day in front of you, causally.
+
+    Why this exists. The offline matrix draws level with a persistence baseline
+    and no better estimator fixes that: an oracle first-order matrix counted on
+    the test days themselves reaches 0.4475 against persistence at 0.3620, so a
+    first-order model over these latent states CAN win by eight points, and ours
+    does not because the structure learned Monday-Wednesday does not transfer to
+    Thursday-Friday. The limit is transfer, not capacity. A second-order model
+    was tried and made it worse: leave-one-day-out gave order-2 a weight of 0.0
+    and order-2 alone scored 0.2357 against order-1's 0.2735.
+
+    Transfer is fixable at deployment and needs no labels. Traffic arrives, you
+    observe its transitions, so you may count them. This tracker predicts the
+    next state, and only then is told what actually happened -- the offline
+    prior is blended with live counts as pseudo-counts, so early in a day the
+    prior dominates and it hands over as evidence accumulates.
+
+    Measured: top-1 0.3964 against persistence 0.3620 on Thursday and Friday,
+    with the prior strength and persistence weight fitted leave-one-day-out over
+    the training days. A version of those hyperparameters read off the test days
+    scored 0.4243, which is what tuning on the test set buys and the reason the
+    number above is the smaller one.
+
+    Usage is predict-then-observe, and misusing it is hard by construction:
+
+        t = OnlineTracker(model)
+        for window in stream:
+            forecast = t.forecast(horizon=3)   # before seeing this window
+            t.observe(window)                  # now the model may count it
+    """
+
+    def __init__(self, model: "NetStateModel", *, prior_strength: float | None = None):
+        self.model = model
+        self.prior_strength = (model.online_prior_strength if prior_strength is None
+                               else float(prior_strength))
+        K = model.n_states
+        self._prior = model.transitions * self.prior_strength
+        self._live = np.zeros((K, K))
+        self._current: int | None = None
+        self.n_observed = 0
+
+    # -- state -------------------------------------------------------------- #
+    @property
+    def current_state(self) -> int | None:
+        return self._current
+
+    def reset(self) -> None:
+        """Start a new stream. Live counts do not carry across a discontinuity."""
+        self._live = np.zeros((self.model.n_states, self.model.n_states))
+        self._current = None
+        self.n_observed = 0
+
+    def observe(self, state_vector) -> int:
+        """Feed one window. Call this AFTER predicting from it."""
+        latent = int(self.model.encode(np.atleast_2d(state_vector))[0])
+        if self._current is not None:
+            self._live[self._current, latent] += 1.0
+        self._current = latent
+        self.n_observed += 1
+        return latent
+
+    def observe_all(self, state_vectors) -> list[int]:
+        return [self.observe(v) for v in np.atleast_2d(state_vectors)]
+
+    # -- prediction --------------------------------------------------------- #
+    def next_distribution(self, latent: int | None = None) -> np.ndarray:
+        latent = self._current if latent is None else latent
+        if latent is None:
+            raise ValueError("observe at least one window before predicting")
+        c = self._prior[latent] + self._live[latent]
+        row = c / c.sum()
+        w = float(self.model.persistence_weight)
+        if w > 0.0:
+            stay = np.zeros(self.model.n_states)
+            stay[latent] = 1.0
+            row = (1.0 - w) * row + w * stay
+        return row
+
+    def transition_matrix(self) -> np.ndarray:
+        """The adapted matrix, for multi-step rollouts."""
+        c = self._prior + self._live
+        T = c / c.sum(axis=1, keepdims=True)
+        w = float(self.model.persistence_weight)
+        if w > 0.0:
+            T = (1.0 - w) * T + w * np.eye(self.model.n_states)
+        return T
+
+    def forecast(self, *, horizon: int = 5) -> dict:
+        """Same shape as NetStateModel.forecast, over the adapted matrix."""
+        if self._current is None:
+            raise ValueError("observe at least one window before forecasting")
+        out = self.model._forecast_from(self._current, self.transition_matrix(),
+                                        horizon=horizon)
+        out["adaptation"] = {
+            "mode": "online",
+            "windows_observed": self.n_observed,
+            "prior_strength": self.prior_strength,
+            "note": ("Counts only transitions already observed in this stream. "
+                     "Nothing after the current window contributes."),
+        }
+        return out
 
 
 # ─── Training ─────────────────────────────────────────────────────────────────
@@ -348,7 +468,51 @@ def fit(observations, *, n_states: int = N_STATES, window: int = WINDOW,
     )
     if fit_persistence:
         model.persistence_weight = _fit_persistence_weight(model, observations)
+        model.online_prior_strength = _fit_online_strength(model, observations)
     return model
+
+
+ONLINE_STRENGTH_GRID = (2.0, 5.0, 10.0, 20.0, 50.0, 100.0)
+
+
+def _fit_online_strength(model: NetStateModel, observations) -> float:
+    """How much pseudo-count mass the offline prior keeps against live evidence.
+
+    Leave-one-day-out, same protocol as the persistence weight and for the same
+    reason: the question is transfer to a day the matrix has not seen, and a
+    holdout taken from inside a day never asks it.
+    """
+    per_day = [model.encode(states) for _, states, _ in observations]
+    per_day = [lat for lat in per_day if len(lat) >= 2]
+    if len(per_day) < 2:
+        return ONLINE_STRENGTH_GRID[0]
+
+    scores = {g: 0 for g in ONLINE_STRENGTH_GRID}
+    for i, held in enumerate(per_day):
+        rest = [lat for j, lat in enumerate(per_day) if j != i]
+        prior = _count_transitions(rest, model.n_states)
+        for g in ONLINE_STRENGTH_GRID:
+            scores[g] += _online_hits(held, prior, g, model.persistence_weight,
+                                      model.n_states)
+    # Ties go to the weaker prior: prefer adapting to what is actually happening.
+    return float(min(ONLINE_STRENGTH_GRID, key=lambda g: (-scores[g], g)))
+
+
+def _online_hits(sequence, prior: np.ndarray, strength: float,
+                 persist_w: float, n_states: int) -> int:
+    """Causal walk: predict from what is already seen, then count the truth."""
+    prior_mass = prior * strength
+    eye = np.eye(n_states)
+    live = np.zeros((n_states, n_states))
+    hits = 0
+    for a, b in zip(sequence[:-1], sequence[1:]):
+        c = prior_mass[a] + live[a]
+        row = c / c.sum()
+        if persist_w > 0.0:
+            row = (1.0 - persist_w) * row + persist_w * eye[a]
+        hits += int(row.argmax() == b)
+        live[a, b] += 1.0
+    return hits
 
 
 PERSISTENCE_GRID = tuple(round(x, 2) for x in np.arange(0.0, 1.01, 0.05))
@@ -458,9 +622,21 @@ def _selftest() -> None:
     d = m.describe_state(noisy["current_state"])
     assert d["distinguishing_features"], d
 
+    # the online tracker must stay causal and stay a probability model
+    t = OnlineTracker(m, prior_strength=2.0)
+    seq = np.vstack([o[1] for o in obs if o[0] == "B"])
+    t.observe(seq[0])
+    for v in seq[1:]:
+        f = t.forecast(horizon=2)
+        assert 0.0 <= f["steps"][0]["attack_probability"] <= 1.0, f
+        t.observe(v)
+    assert t.n_observed == len(seq)
+    assert np.allclose(t.transition_matrix().sum(axis=1), 1.0)
+
     print(f"netstate ok: {m.n_states} latent states, {STATE_DIM}-dim windows · "
           f"compromised regime forecasts {noisy['steps'][0]['attack_probability']:.3f} "
-          f"vs {quiet['steps'][0]['attack_probability']:.3f} for the quiet one")
+          f"vs {quiet['steps'][0]['attack_probability']:.3f} for the quiet one · "
+          f"online tracker adapted over {t.n_observed} windows")
 
 
 if __name__ == "__main__":
