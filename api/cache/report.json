@@ -1,6 +1,6 @@
 {
   "incident_id": "INC-PS7-LANL-CAMPAIGN",
-  "generated_at": "2026-08-18 11:31 IST",
+  "generated_at": "2026-08-22 15:31 IST",
   "severity": "critical",
   "max_anomaly_score": 100,
   "account": "104 accounts",
@@ -40,7 +40,7 @@
   ],
   "attack_path": [
     "C17693",
-    "C801"
+    "C586"
   ],
   "attributed_actor": {
     "actor": "Ember Bear",

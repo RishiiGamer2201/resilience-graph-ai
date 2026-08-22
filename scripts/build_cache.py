@@ -21,6 +21,28 @@ import pandas as pd
 from src.shared.live_analyze import analyze_events
 from src.shared.osint import collect as collect_osint
 
+
+def agent_pipeline(df, incident_id: str) -> dict:
+    """Run the 10-agent lane over the same log the cache is built from.
+
+    The cached sample is a real analysis, so it carries the agent lane exactly
+    as a live analysis does. Without this the deployed landing page showed no
+    agent panel until someone ran an analysis, which reads as a broken feature.
+    """
+    try:
+        from api.main import _agent_pipeline_summary
+        from src.agents.orchestrator import run_pipeline
+        result = run_pipeline(df, scenario="lanl_campaign_all",
+                              incident_id=incident_id, use_llm=False)
+        summary = _agent_pipeline_summary(result)
+        print(f"    10-agent lane: {summary.get('status')} · "
+              f"{len(summary.get('agent_traces', []))} agents")
+        return summary
+    except Exception as e:                      # never block the cache build
+        print(f"    10-agent lane skipped: {type(e).__name__}: {e}")
+        return {"enabled": False, "status": "failed", "error": str(e),
+                "agent_traces": []}
+
 ROOT = Path(__file__).resolve().parents[1]
 # Default view = the WHOLE red-team campaign (104 compromised accounts, 702 red-team
 # events from 4 attacker pivots), not a single account's slice of it.
@@ -125,8 +147,13 @@ def main() -> None:
     _write("score_ref", score_ref())
 
     print("  running live analysis on the full LANL campaign ...")
-    bundle = analyze_events(pd.read_csv(SCENARIO), critical_assets=demo_critical(),
+    events = pd.read_csv(SCENARIO)
+    bundle = analyze_events(events, critical_assets=demo_critical(),
                             incident_id="INC-PS7-LANL-CAMPAIGN")
+    # The cached sample carries the agent lane too, so the landing page shows it
+    # without needing a live run first.
+    bundle["overview"]["agent_pipeline"] = agent_pipeline(
+        events, "INC-PS7-LANL-CAMPAIGN")
     print(f"    {bundle['incident']['alert_count']} alerts · "
           f"{len(bundle['attackers'])} compromised accounts · "
           f"{bundle['graph']['n_nodes']} hosts")

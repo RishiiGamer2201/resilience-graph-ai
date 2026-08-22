@@ -10,11 +10,14 @@ export default function Overview() {
   // The 10-agent lane rides on the analysis bundle's meta, so it is only present
   // for a live analysis, not for the pre-computed sample cache.
   const { bundle } = useAnalysis()
-  const agentPipeline = bundle?.meta?.agent_pipeline
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 
   const { mttd, active_incident, blast_radius_contained, alerts_correlated, score_trend, scorecard } = data
+  // Live analysis carries the agent lane on meta; the pre-computed sample
+  // carries it inside the overview payload, so the panel shows on a cold
+  // landing too instead of looking like a missing feature.
+  const agentPipeline = bundle?.meta?.agent_pipeline || data.agent_pipeline
 
   return (
     <>

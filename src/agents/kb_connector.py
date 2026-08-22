@@ -111,8 +111,11 @@ def run(graph_observer_result: AgentResult) -> AgentResult:
         score = chunk.get("anomaly_score", 0)
         t_start = chunk.get("t_start", 0)
 
-        # Edge: entity --[auth]--> destination hosts
-        for dst_host in (stats.get("destination_host_top") or {}).keys():
+        # Edge: entity --[auth]--> destination hosts.
+        # `destination_host_top` never existed; the chunker emits
+        # `destination_host_unique`, a count. Host relationships now come from
+        # the observer's event-derived edges, below.
+        for dst_host in ():
             if entity and dst_host and entity != dst_host:
                 if not G.has_node(entity):
                     G.add_node(entity, type="user", critical=False)
@@ -146,22 +149,30 @@ def run(graph_observer_result: AgentResult) -> AgentResult:
                 G.add_edge(tid, mit_id, relation="mitigated_by")
                 edges_added.append({"from": tid, "to": mit_id, "relation": "mitigated_by"})
 
-    # ── Lateral movement edges (host→host from auth trails) ─────────────────
-    # Find hosts reached by same entity to chain lateral movement
-    entity_hosts: dict[str, list[str]] = {}
-    for chunk in mapped_chunks:
-        entity = str(chunk.get("entity", ""))
-        for h in (chunk.get("stats", {}).get("destination_host_top") or {}).keys():
-            entity_hosts.setdefault(entity, []).append(h)
-
-    for entity, hosts in entity_hosts.items():
-        for i in range(len(hosts) - 1):
-            src, dst = hosts[i], hosts[i + 1]
-            if src != dst and G.has_node(src) and G.has_node(dst):
-                if not G.has_edge(src, dst):
-                    G.add_edge(src, dst, relation="movement",
-                               users=[entity], event_count=1)
-                    edges_added.append({"from": src, "to": dst, "relation": "movement"})
+    # ── Observed movements, from the graph observer ─────────────────────────
+    # These are derived from the chunks' ACTUAL events (source_host ->
+    # destination_host), not from summary statistics, so they are the real
+    # topology rather than an inference about it.
+    for edge in graph_observer_result.output.get("edges", []):
+        src = str(edge.get("from") or edge.get("source") or "")
+        dst = str(edge.get("to") or edge.get("target") or "")
+        if not src or not dst or src == dst:
+            continue
+        if not G.has_node(src):
+            G.add_node(src, type="host", critical=False)
+        if not G.has_node(dst):
+            G.add_node(dst, type="host", critical=False)
+        if G.has_edge(src, dst):
+            continue
+        G.add_edge(src, dst,
+                   relation=edge.get("kind", "movement"),
+                   technique=edge.get("technique") or "",
+                   tactic=edge.get("tactic", ""),
+                   score=edge.get("score", 0),
+                   users=edge.get("users", []),
+                   event_count=edge.get("event_count", 1))
+        edges_added.append({"from": src, "to": dst,
+                            "relation": edge.get("kind", "movement")})
 
     # ── Serialize graph + run blast-radius analysis ─────────────────────────
     graph_view = {
