@@ -371,10 +371,28 @@ def _n_evidence(query: str, technique_ids: list[str], k: int) -> NodeResult:
 
 
 def _n_signals(df: pd.DataFrame, critical: list[str], incident_id: str,
-               account: str | None) -> NodeResult:
+               account: str | None, scenario: str | None) -> NodeResult:
     from src.shared.live_analyze import analyze_events
     bundle = analyze_events(df, critical_assets=set(critical), incident_id=incident_id,
                             account=account)
+    try:
+        from api.main import _attach_agent_pipeline, _run_agents_for_standard_bundle
+        agent_summary = _run_agents_for_standard_bundle(
+            df,
+            scenario=scenario or "events",
+            incident_id=incident_id,
+        )
+        bundle = _attach_agent_pipeline(bundle, agent_summary)
+    except Exception as e:
+        bundle.setdefault("meta", {})["agent_pipeline"] = {
+            "enabled": True,
+            "status": "failed",
+            "incident_id": incident_id,
+            "scenario": scenario or "events",
+            "error": str(e),
+            "agent_traces": [],
+            "notes": ["Agent pipeline failed; deterministic investigation continued."],
+        }
     inc, g = bundle["incident"], bundle["graph"]
     return NodeResult(
         "signals", status="ok",
@@ -621,7 +639,7 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                     notes=["conclusions will be reported without citations"])))
 
     signals = trace.run("signals",
-                        lambda: _n_signals(df, critical, incident_id, account),
+                        lambda: _n_signals(df, critical, incident_id, account, scenario),
                         required=True)
     if signals.status == "failed":
         return {"ok": False, "trace": trace.as_dict(), "error": signals.summary,

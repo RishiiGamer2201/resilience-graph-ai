@@ -120,6 +120,7 @@ def test_iso8601_timestamps_accepted():
 # --- campaign: many accounts in one log ------------------------------------
 CRIT = [a["host"] for a in json.loads((ROOT / "data" / "demo" / "scenarios" / "critical_assets.json").read_text())["assets"]] if (ROOT / "data" / "demo" / "scenarios" / "critical_assets.json").exists() else []
 CAMPAIGN = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"
+AIIMS = ROOT / "data" / "demo" / "scenarios" / "aiims_ransomware.csv"
 
 
 @pytest.fixture(scope="module")
@@ -176,6 +177,25 @@ def test_crown_jewels_agree_across_screens(campaign):
         reached |= set(a["critical_reached"])
     at_risk = set(campaign["graph"]["critical_assets_at_risk"])
     assert not (reached - at_risk), f"reached but not flagged at risk: {reached - at_risk}"
+
+
+def test_aiims_isolation_recommends_host_not_user_or_weak_choke_point():
+    """Regression: the containment answer must come from host-topology impact.
+
+    WARD-PC-041 has high centrality in the benign hospital background traffic, but
+    isolating it protects no crown jewels. The useful containment is the phished
+    ward PC that cuts the ransomware path to the domain controller.
+    """
+    if not AIIMS.exists():
+        pytest.skip("AIIMS scenario not present")
+    bundle = analyze_events(pd.read_csv(AIIMS),
+                            critical_assets={"PATIENT-DB-01", "DC-AIIMS-01"},
+                            incident_id="INC-AIIMS")
+    graph = bundle["graph"]
+    assert graph["entry_host"] == "WARD-PC-013"
+    assert graph["recommended_isolation"] == "WARD-PC-013"
+    assert graph["isolation_cuts"] == 20
+    assert "DC-AIIMS-01" in graph["critical_assets_at_risk"]
 
 
 def test_isolation_cuts_distinct_from_total_exposure(campaign):

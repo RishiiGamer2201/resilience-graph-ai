@@ -407,14 +407,19 @@ def _map_ranked_chains(agent_summary: dict) -> list[dict]:
     return out
 
 
-def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict:
+def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
+    """Map the KB Connector's entity graph as advisory data.
+
+    This graph is not the attack-path topology used by the twin. It may contain
+    users or external IPs, so it must never replace the host graph's nodes/edges.
+    """
     kb_graph = _agent_output(agent_summary, "kb_connector").get("graph_view", {})
     observer_nodes = _agent_output(agent_summary, "graph_observer").get("nodes", [])
     raw_nodes = kb_graph.get("nodes") or observer_nodes
     raw_edges = kb_graph.get("edges") or []
 
     if not raw_nodes:
-        return base_graph
+        return None
 
     # The KB connector emits an ENTITY graph (users, external IPs). The attack
     # graph is a HOST topology, and the digital twin simulates containment on it.

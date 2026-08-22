@@ -4,7 +4,6 @@ import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import Sparkline from '../components/Sparkline.jsx'
 import MttdPanel from '../components/MttdPanel.jsx'
 import AgentPipeline from '../components/AgentPipeline.jsx'
-
 export default function Overview() {
   const { data, error, loading } = useScreenData('overview', getOverview)
   // The 10-agent lane rides on the analysis bundle's meta, so it is only present
