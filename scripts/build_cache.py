@@ -152,8 +152,19 @@ def main() -> None:
                             incident_id="INC-PS7-LANL-CAMPAIGN")
     # The cached sample carries the agent lane too, so the landing page shows it
     # without needing a live run first.
-    bundle["overview"]["agent_pipeline"] = agent_pipeline(
-        events, "INC-PS7-LANL-CAMPAIGN")
+    agents = agent_pipeline(events, "INC-PS7-LANL-CAMPAIGN")
+    bundle["overview"]["agent_pipeline"] = agents
+    # The cached sample is a real analysis, so it carries the same analysis layer
+    # every live path does — claims, the four-number assessment, the progression
+    # forecast and the cross-check. Without this the landing page showed a
+    # thinner product than a live run, for no reason a viewer could see.
+    from src.shared.enrich import enrich_bundle
+    bundle = enrich_bundle(bundle, df=events, scenario="lanl_campaign_all",
+                           critical=sorted(demo_critical()),
+                           agent_summary=agents)
+    bundle["overview"]["analysis"] = bundle["analysis"]
+    print(f"    analysis layer: {len(bundle['analysis']['claims'])} claims · "
+          f"forecast {bundle['analysis']['progression_forecast'].get('headline_probability')}%")
     print(f"    {bundle['incident']['alert_count']} alerts · "
           f"{len(bundle['attackers'])} compromised accounts · "
           f"{bundle['graph']['n_nodes']} hosts")

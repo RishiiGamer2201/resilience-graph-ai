@@ -587,6 +587,16 @@ def _run_agents_for_standard_bundle(
 
 def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None,
                   scenario: str = "events") -> dict:
+    """The standard analysis path, enriched exactly like the investigation.
+
+    Both go through src.shared.enrich, so the Analyze tab, the Overview screen
+    and the cached sample carry the same claims, four-number assessment,
+    progression forecast and agent cross-check the Investigation tab does. They
+    used to diverge, which meant the same log produced different answers
+    depending on which button started it.
+    """
+    from src.shared.enrich import enrich_bundle
+
     try:
         bundle = analyze_events(df, critical_assets=set(critical_assets or []),
                                 incident_id=incident_id, account=account)
@@ -597,7 +607,10 @@ def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None,
         scenario=scenario,
         incident_id=incident_id,
     )
-    return _attach_agent_pipeline(bundle, agent_summary)
+    bundle = _attach_agent_pipeline(bundle, agent_summary)
+    return enrich_bundle(bundle, df=df, scenario=scenario,
+                         critical=list(critical_assets or []),
+                         agent_summary=agent_summary)
 
 
 @app.post("/api/analyze")
@@ -656,9 +669,12 @@ async def analyze_stream(scenario: str, critical_assets: str = "", delay: float 
     # POST path attaches the agent lane; without this the `done` bundle silently
     # lacked meta.agent_pipeline and the same screen behaved differently
     # depending on which button was pressed.
-    bundle = _attach_agent_pipeline(
-        bundle, _run_agents_for_standard_bundle(df, scenario=scenario,
-                                                incident_id="INC-STREAM-001"))
+    from src.shared.enrich import enrich_bundle
+    _agents = _run_agents_for_standard_bundle(df, scenario=scenario,
+                                              incident_id="INC-STREAM-001")
+    bundle = enrich_bundle(_attach_agent_pipeline(bundle, _agents),
+                           df=df, scenario=scenario, critical=list(crit),
+                           agent_summary=_agents)
     steps = bundle["incident"]["steps"]
 
     async def gen():

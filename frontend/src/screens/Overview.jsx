@@ -4,6 +4,10 @@ import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import Sparkline from '../components/Sparkline.jsx'
 import MttdPanel from '../components/MttdPanel.jsx'
 import AgentPipeline from '../components/AgentPipeline.jsx'
+import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
+import Progression from '../components/Progression.jsx'
+import CrossCheck from '../components/CrossCheck.jsx'
+import { Card as SurfaceCard, CardHeader as SurfaceHeader } from '../components/Card.jsx'
 
 export default function Overview() {
   const { data, error, loading } = useScreenData('overview', getOverview)
@@ -18,6 +22,10 @@ export default function Overview() {
   // carries it inside the overview payload, so the panel shows on a cold
   // landing too instead of looking like a missing feature.
   const agentPipeline = bundle?.meta?.agent_pipeline || data.agent_pipeline
+  // The analysis layer is produced by src/shared/enrich for EVERY path, so the
+  // same panels render whether this came from a live run, an upload, the SSE
+  // replay or the pre-computed sample.
+  const analysis = bundle?.analysis || data.analysis
 
   return (
     <>
@@ -71,6 +79,31 @@ export default function Overview() {
           are what changes with the data.
         </div>
       </Card>
+
+      {analysis && (
+        <>
+          <Assessment assessment={analysis.assessment}
+            likelihood={analysis.attack_progression_likelihood}
+            confidence={analysis.evidence_confidence} />
+          <div style={{ marginTop: 20 }}>
+            <Progression forecast={analysis.progression_forecast} />
+          </div>
+          <div style={{ marginTop: 20 }}>
+            <SurfaceCard>
+              <SurfaceHeader title="What we actually claim"
+                meta="observed · inferred · predicted" />
+              <div className="card-b pad">
+                <ClaimsPanel claims={analysis.claims} />
+              </div>
+            </SurfaceCard>
+          </div>
+          {analysis.crosscheck && (
+            <div style={{ marginTop: 20 }}>
+              <CrossCheck crosscheck={analysis.crosscheck} />
+            </div>
+          )}
+        </>
+      )}
 
       {agentPipeline && (
         <div style={{ marginTop: 20 }}>

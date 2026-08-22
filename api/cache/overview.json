@@ -115,7 +115,7 @@
     "incident_id": "INC-PS7-LANL-CAMPAIGN",
     "scenario": "lanl_campaign_all",
     "severity": "medium",
-    "total_ms": 1027.0,
+    "total_ms": 1051.0,
     "point_b_method": "template",
     "incident_narrative": "Investigation covers 69 actor(s) (U620@DOM1, U748@DOM1, U825@DOM1...) across 442 behavioral windows totalling 2297 events. Observed ATT&CK chain: T1021. Key observations: U620@DOM1 made 3 login attempts, all successful, across 2 unique destinations, in 99s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 2 unique destinations, in 3m 44s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 1 unique destination, in 2m 56s, 0% failure rate \u2014 normal destination range",
     "agent_traces": [
@@ -14336,7 +14336,7 @@
           "entities_seen": 69
         },
         "evidence_refs": [],
-        "ms": 39.5,
+        "ms": 28.3,
         "notes": [
           "Triaged 442 chunks; 309 escalated to Detection."
         ]
@@ -46113,7 +46113,7 @@
           "edge_count": 487
         },
         "evidence_refs": [],
-        "ms": 70.3,
+        "ms": 72.3,
         "notes": [
           "Built entity graph: 222 nodes {'user': 19, 'host': 202, 'technique': 1}, 487 edges."
         ]
@@ -53582,7 +53582,7 @@
         "evidence_refs": [
           "T1021"
         ],
-        "ms": 6.0,
+        "ms": 5.7,
         "notes": [
           "Connected graph: 222 nodes, 487 edges."
         ]
@@ -53956,7 +53956,7 @@
         "evidence_refs": [
           "T1021"
         ],
-        "ms": 97.0,
+        "ms": 93.7,
         "notes": [
           "Validated 19 entity chains: 8 confirmed, 8 partial, 3 unconfirmed.",
           "Unconfirmed chains retained \u2014 not discarded."
@@ -55083,5 +55083,895 @@
       "Pre-stage: 442 chunks, 442 Point-A summaries.",
       "[orchestrator] prediction cites 3 technique(s) not confirmed by Validator: ['T1021.001', 'T1105', 'T1059.001']. Flagged non-authoritative."
     ]
+  },
+  "analysis": {
+    "claims": [
+      {
+        "subject": "account:U737@DOM1",
+        "predicate": "MAPS_TO",
+        "object": "Remote Services",
+        "external_id": "T1021",
+        "status": "inferred",
+        "actionable": false,
+        "confidence": 0.225,
+        "confidence_band": "low",
+        "independent_groups": 1,
+        "mapper": "src.shared.attack_mapper.RULE_MAP",
+        "evidence": [
+          {
+            "id": "step:464542:C19932",
+            "kind": "behavioural-anomaly",
+            "source": "src.shared.detector (benign-trained autoencoder)",
+            "independence_group": "detector+rule",
+            "strength": 0.45,
+            "reliability": 0.5,
+            "support": 0.225,
+            "detail": "calibrated anomaly score 50/100 on C19932 -> C19932"
+          }
+        ],
+        "contradicted_by": [],
+        "missing_evidence": [
+          "whether the destination is in this account's normal scope of work",
+          "the process that initiated the connection"
+        ],
+        "alternatives": [
+          "legitimate first-time access to a newly assigned system",
+          "an administrator working outside their usual hosts"
+        ],
+        "note": "First-ever authentication to this host by this account. Suggestive of remote-service use; not proof of it."
+      },
+      {
+        "subject": "account:U1723@DOM1",
+        "predicate": "MAPS_TO",
+        "object": "Valid Accounts",
+        "external_id": "T1078",
+        "status": "inferred",
+        "actionable": false,
+        "confidence": 0.183,
+        "confidence_band": "very low",
+        "independent_groups": 1,
+        "mapper": "src.shared.attack_mapper.RULE_MAP",
+        "evidence": [
+          {
+            "id": "step:472282:C2519",
+            "kind": "behavioural-anomaly",
+            "source": "src.shared.detector (benign-trained autoencoder)",
+            "independence_group": "detector+rule",
+            "strength": 0.3,
+            "reliability": 0.61,
+            "support": 0.183,
+            "detail": "calibrated anomaly score 61/100 on C17693 -> C2519"
+          }
+        ],
+        "contradicted_by": [],
+        "missing_evidence": [
+          "endpoint process telemetry for the session",
+          "whether the source device is managed and enrolled",
+          "MFA result and whether the method was downgraded",
+          "whether the account changed role or was travelling"
+        ],
+        "alternatives": [
+          "role change or new team assignment",
+          "travel, or a first login from a new office or VPN gateway",
+          "scheduled maintenance or an administrative task",
+          "new device enrollment"
+        ],
+        "note": "The detector saw behaviour unusual for this account. T1078 additionally asserts adversarial use of a legitimate account, which authentication logs alone cannot establish. Reported as a candidate, not an observation."
+      },
+      {
+        "subject": "account:U825@DOM1",
+        "predicate": "MAPS_TO",
+        "object": "Brute Force",
+        "external_id": "T1110",
+        "status": "observed",
+        "actionable": true,
+        "confidence": 0.7,
+        "confidence_band": "moderate",
+        "independent_groups": 1,
+        "mapper": "src.shared.attack_mapper.RULE_MAP",
+        "evidence": [
+          {
+            "id": "step:214970:C2669",
+            "kind": "behavioural-anomaly",
+            "source": "src.shared.detector (benign-trained autoencoder)",
+            "independence_group": "detector+rule",
+            "strength": 0.7,
+            "reliability": 1.0,
+            "support": 0.7,
+            "detail": "calibrated anomaly score 100/100 on C18025 -> C2669"
+          }
+        ],
+        "contradicted_by": [],
+        "missing_evidence": [
+          "whether the attempts came from one source or many"
+        ],
+        "alternatives": [
+          "an expired password with a client retrying automatically",
+          "a service account with stale credentials after a rotation"
+        ],
+        "note": "Repeated authentication failures are directly observable, which is why this one is 'observed' rather than 'inferred'. The benign causes are common and are kept on the record."
+      },
+      {
+        "subject": "account:U748@DOM1",
+        "predicate": "MAPS_TO",
+        "object": "Use Alternate Authentication Material: Pass the Hash",
+        "external_id": "T1550.002",
+        "status": "inferred",
+        "actionable": false,
+        "confidence": 0.6,
+        "confidence_band": "moderate",
+        "independent_groups": 1,
+        "mapper": "src.shared.attack_mapper.RULE_MAP",
+        "evidence": [
+          {
+            "id": "step:151036:C305",
+            "kind": "behavioural-anomaly",
+            "source": "src.shared.detector (benign-trained autoencoder)",
+            "independence_group": "detector+rule",
+            "strength": 0.6,
+            "reliability": 1.0,
+            "support": 0.6,
+            "detail": "calibrated anomaly score 100/100 on C17693 -> C305"
+          }
+        ],
+        "contradicted_by": [],
+        "missing_evidence": [
+          "evidence that authentication material was stolen rather than typed",
+          "endpoint credential-access telemetry on the source host"
+        ],
+        "alternatives": [
+          "a legacy application or appliance that only supports NTLM",
+          "a misconfigured client falling back from Kerberos"
+        ],
+        "note": "New-host authentication over NTLM. Pass-the-Hash is the strongest reading, but NTLM fallback has benign causes; T1550.002 needs evidence about the credential material."
+      }
+    ],
+    "assessment": {
+      "anomaly": {
+        "value": 100.0,
+        "band": "high",
+        "question": "how unlike its own baseline is this behaviour?"
+      },
+      "likelihood": {
+        "value": 60.0,
+        "band": "moderate",
+        "question": "how probable is it that a malicious path is present?"
+      },
+      "impact": {
+        "value": 80.0,
+        "band": "critical",
+        "question": "what does it cost if this hypothesis is right?"
+      },
+      "confidence": {
+        "value": 52.5,
+        "band": "moderate",
+        "question": "how good is the evidence behind the claim?"
+      },
+      "missing_evidence": [
+        "whether the destination is in this account's normal scope of work",
+        "the process that initiated the connection",
+        "endpoint process telemetry for the session",
+        "whether the source device is managed and enrolled",
+        "MFA result and whether the method was downgraded",
+        "whether the account changed role or was travelling",
+        "whether the attempts came from one source or many",
+        "evidence that authentication material was stolen rather than typed"
+      ],
+      "summary": "likelihood moderate, impact critical, confidence moderate; strongest missing evidence is whether the destination is in this account's normal scope of work",
+      "note": "Four separate questions, deliberately not collapsed into one score. A single number would hide which of them is weak."
+    },
+    "attack_progression_likelihood": {
+      "value": 60.0,
+      "unit": "0-100",
+      "state": "measured",
+      "terms": [
+        {
+          "name": "tactic_coverage",
+          "weight": 0.4,
+          "value": 0.5,
+          "detail": "3 distinct ATT&CK tactics of 6 intrusion stages: Credential Access, Initial Access, Lateral Movement"
+        },
+        {
+          "name": "detector_confidence",
+          "weight": 0.35,
+          "value": 1.0,
+          "detail": "peak calibrated anomaly score 100/100 (50 = the 1% false-positive line)"
+        },
+        {
+          "name": "path_depth",
+          "weight": 0.25,
+          "value": 0.2,
+          "detail": "longest attacker path to a crown jewel is 1 hop(s) (reference chain 5)"
+        }
+      ],
+      "formula": "0.4\u00d7tactic_coverage + 0.35\u00d7detector_confidence + 0.25\u00d7path_depth",
+      "note": "How far along an intrusion looks, measured from this log. NOT a probability that an attack occurred, and NOT a statement about evidence quality \u2014 see evidence confidence, reported beside it."
+    },
+    "evidence_confidence": {
+      "value": 52.5,
+      "unit": "0-100",
+      "state": "measured",
+      "terms": [
+        {
+          "name": "detector+rule",
+          "value": 0.7,
+          "weight": 1.0,
+          "detail": "strongest claim confidence 0.700; 1 of 4 claims are actionable (observed or confirmed)"
+        },
+        {
+          "name": "official-corpus",
+          "value": 0.0,
+          "weight": 1.0,
+          "detail": "0 of 4 observed techniques carry an official ATT&CK citation"
+        }
+      ],
+      "formula": "noisy-OR across independence groups: 1 \u2212 \u03a0(1 \u2212 strength) \u2014 duplicate signals inside a group add nothing",
+      "actionable_claims": 1,
+      "total_claims": 4,
+      "crosscheck": {
+        "verdict": "contradicts",
+        "strength": 0.0,
+        "confidence_discount": 0.25
+      },
+      "missing_evidence": [
+        "whether the destination is in this account's normal scope of work",
+        "the process that initiated the connection",
+        "endpoint process telemetry for the session",
+        "whether the source device is managed and enrolled",
+        "MFA result and whether the method was downgraded",
+        "whether the account changed role or was travelling",
+        "whether the attempts came from one source or many",
+        "evidence that authentication material was stolen rather than typed"
+      ],
+      "note": "Evidence quality, not attack probability. Repeating the same signal cannot raise this; independent corroboration can."
+    },
+    "crown_jewel_exposure": {
+      "value": 80.0,
+      "unit": "0-100",
+      "state": "measured",
+      "terms": [
+        {
+          "asset": "C1015",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C1015"
+        },
+        {
+          "asset": "C1065",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C18025 \u2192 C1065"
+        },
+        {
+          "asset": "C1640",
+          "hops": null,
+          "score": 0.0,
+          "why": "no path from any attacker pivot"
+        },
+        {
+          "asset": "C2106",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C2106"
+        },
+        {
+          "asset": "C2162",
+          "hops": null,
+          "score": 0.0,
+          "why": "no path from any attacker pivot"
+        },
+        {
+          "asset": "C231",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C231"
+        },
+        {
+          "asset": "C2327",
+          "hops": null,
+          "score": 0.0,
+          "why": "no path from any attacker pivot"
+        },
+        {
+          "asset": "C2553",
+          "hops": null,
+          "score": 0.0,
+          "why": "no path from any attacker pivot"
+        },
+        {
+          "asset": "C3173",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C3173"
+        },
+        {
+          "asset": "C457",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C457"
+        },
+        {
+          "asset": "C467",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C467"
+        },
+        {
+          "asset": "C528",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C528"
+        },
+        {
+          "asset": "C529",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C529"
+        },
+        {
+          "asset": "C585",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C585"
+        },
+        {
+          "asset": "C586",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C586"
+        },
+        {
+          "asset": "C612",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C19932 \u2192 C612"
+        },
+        {
+          "asset": "C625",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C625"
+        },
+        {
+          "asset": "C706",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C706"
+        },
+        {
+          "asset": "C743",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C18025 \u2192 C743"
+        },
+        {
+          "asset": "C801",
+          "hops": 1,
+          "score": 100.0,
+          "why": "C17693 \u2192 C801"
+        }
+      ],
+      "formula": "mean over designated crown jewels of 100 \u00d7 0.9^(hops\u22121), 0 when unreachable",
+      "designated": [
+        "C1015",
+        "C1065",
+        "C1640",
+        "C2106",
+        "C2162",
+        "C231",
+        "C2327",
+        "C2553",
+        "C3173",
+        "C457",
+        "C467",
+        "C528",
+        "C529",
+        "C585",
+        "C586",
+        "C612",
+        "C625",
+        "C706",
+        "C743",
+        "C801"
+      ]
+    },
+    "progression_forecast": {
+      "available": true,
+      "observed_chain": [
+        "T1550.002",
+        "T1078",
+        "T1110",
+        "T1021"
+      ],
+      "k_steps": 5,
+      "steps": [
+        {
+          "step": 1,
+          "horizon_confidence": 1.0,
+          "predictions": [
+            {
+              "technique_id": "T1021.001",
+              "name": "Remote Desktop Protocol",
+              "stage": "lateral movement",
+              "probability": 0.9424,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1105",
+              "name": "Ingress Tool Transfer",
+              "stage": "command and control",
+              "probability": 0.0316,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1059.001",
+              "name": "PowerShell",
+              "stage": "execution",
+              "probability": 0.026,
+              "is_impact": false
+            }
+          ],
+          "impact_mass": 0,
+          "model_source": "markov-interpolated-order1"
+        },
+        {
+          "step": 2,
+          "horizon_confidence": 0.62,
+          "predictions": [
+            {
+              "technique_id": "T1021.002",
+              "name": "SMB/Windows Admin Shares",
+              "stage": "lateral movement",
+              "probability": 0.7243,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1021.004",
+              "name": "SSH",
+              "stage": "lateral movement",
+              "probability": 0.1453,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1570",
+              "name": "Lateral Tool Transfer",
+              "stage": "lateral movement",
+              "probability": 0.1064,
+              "is_impact": false
+            }
+          ],
+          "impact_mass": 0.0023,
+          "model_source": "markov-interpolated-order1"
+        },
+        {
+          "step": 3,
+          "horizon_confidence": 0.3844,
+          "predictions": [
+            {
+              "technique_id": "T1021.004",
+              "name": "SSH",
+              "stage": "lateral movement",
+              "probability": 0.282,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1570",
+              "name": "Lateral Tool Transfer",
+              "stage": "lateral movement",
+              "probability": 0.2425,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1021.006",
+              "name": "Windows Remote Management",
+              "stage": "lateral movement",
+              "probability": 0.2169,
+              "is_impact": false
+            }
+          ],
+          "impact_mass": 0.1748,
+          "model_source": "markov-interpolated-order2"
+        },
+        {
+          "step": 4,
+          "horizon_confidence": 0.2383,
+          "predictions": [
+            {
+              "technique_id": "T1005",
+              "name": "Data from Local System",
+              "stage": "collection",
+              "probability": 0.3878,
+              "is_impact": true
+            },
+            {
+              "technique_id": "T1550.002",
+              "name": "Pass the Hash",
+              "stage": "lateral movement",
+              "probability": 0.1222,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1074.001",
+              "name": "Local Data Staging",
+              "stage": "collection",
+              "probability": 0.1203,
+              "is_impact": true
+            }
+          ],
+          "impact_mass": 0.6874,
+          "model_source": "markov-interpolated-order2"
+        },
+        {
+          "step": 5,
+          "horizon_confidence": 0.1478,
+          "predictions": [
+            {
+              "technique_id": "T1074.001",
+              "name": "Local Data Staging",
+              "stage": "collection",
+              "probability": 0.4368,
+              "is_impact": true
+            },
+            {
+              "technique_id": "T1005",
+              "name": "Data from Local System",
+              "stage": "collection",
+              "probability": 0.1744,
+              "is_impact": true
+            },
+            {
+              "technique_id": "T1570",
+              "name": "Lateral Tool Transfer",
+              "stage": "lateral movement",
+              "probability": 0.1308,
+              "is_impact": false
+            }
+          ],
+          "impact_mass": 0.8514,
+          "model_source": "markov-interpolated-order2"
+        }
+      ],
+      "infiltration_probability": [
+        0.0,
+        0.2,
+        17.7,
+        74.3,
+        96.2
+      ],
+      "horizon_confidence": [
+        1.0,
+        0.62,
+        0.3844,
+        0.2383,
+        0.1478
+      ],
+      "peak_infiltration_probability": 96.2,
+      "reliable_horizon": 3,
+      "headline_probability": 17.7,
+      "headline_confidence": 0.3844,
+      "headline": "17.7% chance of reaching an impact stage within 3 step(s), at horizon confidence 0.3844. Most likely next stage: lateral movement.",
+      "beyond_horizon_note": "Steps past 3 are shown but not quoted: horizon confidence falls below 0.35 and the cumulative curve rises toward 100% mainly because the model keeps rolling, not because the outcome becomes certain.",
+      "confidence_at_peak": 0.1478,
+      "most_likely_paths": [
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1005"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1005"
+          ],
+          "probability": 0.00032,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "collection"
+          ],
+          "reaches_impact": true
+        },
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1570"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1570"
+          ],
+          "probability": 0.00031,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement"
+          ],
+          "reaches_impact": false
+        },
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1570",
+            "T1005",
+            "T1074.001"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1570",
+            "T1005",
+            "T1074.001"
+          ],
+          "probability": 0.0003,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "collection",
+            "collection"
+          ],
+          "reaches_impact": true
+        },
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1005",
+            "T1074.001"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1005",
+            "T1074.001"
+          ],
+          "probability": 0.00027,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "collection",
+            "collection"
+          ],
+          "reaches_impact": true
+        },
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1021.004",
+            "T1005",
+            "T1074.001"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1021.004",
+            "T1005",
+            "T1074.001"
+          ],
+          "probability": 0.00025,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "collection",
+            "collection"
+          ],
+          "reaches_impact": true
+        }
+      ],
+      "reachable_crown_jewels": {
+        "available": true,
+        "designated": [
+          "C1015",
+          "C1065",
+          "C1640",
+          "C2106",
+          "C2162",
+          "C231",
+          "C2327",
+          "C2553",
+          "C3173",
+          "C457",
+          "C467",
+          "C528",
+          "C529",
+          "C585",
+          "C586",
+          "C612",
+          "C625",
+          "C706",
+          "C743",
+          "C801"
+        ],
+        "already_reachable": [
+          "C1015",
+          "C1065",
+          "C2106",
+          "C231",
+          "C3173",
+          "C457",
+          "C467",
+          "C528",
+          "C529",
+          "C585",
+          "C586",
+          "C612",
+          "C625",
+          "C706",
+          "C743",
+          "C801"
+        ],
+        "not_yet_reachable": [
+          "C1640",
+          "C2162",
+          "C2327",
+          "C2553"
+        ],
+        "shortest_paths": {
+          "C467": [
+            "C17693",
+            "C467"
+          ],
+          "C625": [
+            "C17693",
+            "C625"
+          ],
+          "C231": [
+            "C17693",
+            "C231"
+          ],
+          "C3173": [
+            "C17693",
+            "C3173"
+          ],
+          "C528": [
+            "C17693",
+            "C528"
+          ],
+          "C743": [
+            "C18025",
+            "C743"
+          ],
+          "C612": [
+            "C19932",
+            "C612"
+          ],
+          "C1015": [
+            "C17693",
+            "C1015"
+          ],
+          "C529": [
+            "C17693",
+            "C529"
+          ],
+          "C706": [
+            "C17693",
+            "C706"
+          ],
+          "C2106": [
+            "C17693",
+            "C2106"
+          ],
+          "C801": [
+            "C17693",
+            "C801"
+          ],
+          "C585": [
+            "C17693",
+            "C585"
+          ],
+          "C586": [
+            "C17693",
+            "C586"
+          ],
+          "C1065": [
+            "C18025",
+            "C1065"
+          ],
+          "C457": [
+            "C17693",
+            "C457"
+          ]
+        },
+        "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here \u2014 we do not invent hosts the attacker has not touched."
+      },
+      "method": {
+        "model": "interpolated Markov over 205 real ATT&CK sequences",
+        "search": "beam search, width 5, branch 3",
+        "decay": "horizon confidence 0.62^(step-1): a model measured at 38.1% top-3 for one step is not 38.1% accurate 5 steps out, and the timeline says so",
+        "deterministic": true
+      },
+      "honesty": "These are the transition model's own probabilities rolled forward, not a simulation of an attacker's intent. Step 1 rests on a measured 38.1% top-3 accuracy; every step after that compounds the same uncertainty, which is why horizon confidence decays and the later steps are shown faded rather than quoted as forecasts."
+    },
+    "crosscheck": {
+      "available": true,
+      "authoritative": "workflow",
+      "verdict": "contradicts",
+      "corroboration_strength": 0.0,
+      "independence_group": "agent-lane",
+      "severity": {
+        "workflow": "critical",
+        "agent_lane": "medium",
+        "agreement": "conflicting",
+        "distance": 2,
+        "basis_workflow": "peak calibrated anomaly score across correlated alerts",
+        "basis_agent_lane": "prioritiser risk band over ranked attack chains"
+      },
+      "techniques": {
+        "workflow": [
+          "T1550.002",
+          "T1078",
+          "T1110",
+          "T1021"
+        ],
+        "agent_lane": [
+          "T1021"
+        ],
+        "shared": [
+          "T1021"
+        ],
+        "workflow_only": [
+          "T1078",
+          "T1110",
+          "T1550.002"
+        ],
+        "agent_lane_only": [],
+        "overlap": 0.25
+      },
+      "agent_lane_degraded": [],
+      "narrative": "Investigation covers 69 actor(s) (U620@DOM1, U748@DOM1, U825@DOM1...) across 442 behavioral windows totalling 2297 events. Observed ATT&CK chain: T1021. Key observations: U620@DOM1 made 3 login attempts, all successful, across 2 unique destinations, in 99s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 2 unique destinations, in 3m 44s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 1 unique destination, in 2m 56s, 0% failure rate \u2014 normal destination range",
+      "narrative_method": "template",
+      "narrative_authoritative": false,
+      "partial_independence": {
+        "shared_components": [
+          "the same event log",
+          "src.shared.attack_mapper rule table"
+        ],
+        "cap": 0.45,
+        "note": "These two analyses read the same log and share the ATT&CK rule table, so they are a second opinion rather than a second sensor. Agreement between them is capped at 0.45 corroboration strength for that reason."
+      },
+      "explanation": "The two analyses disagree materially: the workflow says critical, the agent lane says medium. They measure severity differently \u2014 peak anomaly score versus ranked-chain risk \u2014 so this is a real disagreement to resolve, not noise. The workflow governs; confidence is reduced until it is understood."
+    },
+    "note": "Produced by src.shared.enrich for every analysis path, so the Investigation, Analyze and cached-sample views cannot disagree about the same log."
   }
 }

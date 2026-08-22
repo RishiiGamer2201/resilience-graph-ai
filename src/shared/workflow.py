@@ -411,8 +411,8 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
     from src.shared.twin import rank_candidates, simulate
     from src.shared.vuln import load_inventory, prioritize
 
-    from src.shared.attack_mapper import claim_for_event
     from src.shared.claims import Assessment
+    from src.shared.enrich import build_claims
 
     graph_view, inc = bundle["graph"], bundle["incident"]
     exposure = crown_jewel_exposure(graph_view, critical)
@@ -421,15 +421,7 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
     # One claim per distinct technique, built from the strongest step that
     # produced it -- not one per alert, which would be thousands of duplicates
     # of the same assertion.
-    best_step: dict[str, dict] = {}
-    for st in inc.get("steps", []):
-        tid = st.get("technique_id")
-        if not tid or tid == "-" or not st.get("is_alert"):
-            continue
-        cur = best_step.get(tid)
-        if cur is None or st.get("anomaly_score", 0) > cur.get("anomaly_score", 0):
-            best_step[tid] = st
-    claims = [claim_for_event(st) for _, st in sorted(best_step.items())]
+    claims = build_claims(inc)
     confidence = evidence_confidence(claims, cited_techniques,
                                      len(inc.get("technique_ids", [])), crosscheck)
 

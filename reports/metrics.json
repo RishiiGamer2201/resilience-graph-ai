@@ -134,9 +134,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 632.0,
-      "p95": 1106.1,
-      "max": 9068.7,
+      "p50": 790.2,
+      "p95": 1411.1,
+      "max": 9847.7,
       "samples": 4,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -203,7 +203,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 9068.7,
+          "latency_ms_median": 9847.7,
           "degraded_nodes": []
         },
         {
@@ -234,7 +234,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 123.1,
+          "latency_ms_median": 133.1,
           "degraded_nodes": []
         },
         {
@@ -266,7 +266,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1106.1,
+          "latency_ms_median": 1411.1,
           "degraded_nodes": [
             "understand"
           ]
@@ -299,13 +299,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 158.0,
+          "latency_ms_median": 169.3,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-22 15:42 IST"
+      "evaluated_at": "2026-08-22 15:57 IST"
     }
   }
 }

@@ -1,15 +1,15 @@
 # PS7 operational evaluation
 
-Evaluated: 2026-08-22 15:42 IST  ·  1 run(s) per scenario
+Evaluated: 2026-08-22 15:57 IST  ·  1 run(s) per scenario
 
 ## Per scenario
 
 | Scenario | Events | Alerts | Incidents | MTTD | Exposure | Likelihood | Evidence conf. | Actionable claims | Citations | Actions (gated) | Executed | Median latency |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| aiims_ransomware | 125 | 125 | 1 | immediate | 100.0 | 52.6 | 79.9 | 0/2 | 6 | 5 (4) | 0 | 9069 ms |
-| cbse_exam_breach | 127 | 127 | 1 | immediate | 100.0 | 52.6 | 80.0 | 0/2 | 6 | 5 (4) | 0 | 123 ms |
-| lanl_campaign_all | 2732 | 1243 | 1 | immediate | 80.0 | 60.0 | 63.7 | 1/4 | 6 | 5 (4) | 0 | 1106 ms |
-| lanl_redteam_u66 | 215 | 208 | 1 | immediate | 5.0 | 60.0 | 85.0 | 1/3 | 6 | 5 (4) | 0 | 158 ms |
+| aiims_ransomware | 125 | 125 | 1 | immediate | 100.0 | 52.6 | 79.9 | 0/2 | 6 | 5 (4) | 0 | 9848 ms |
+| cbse_exam_breach | 127 | 127 | 1 | immediate | 100.0 | 52.6 | 80.0 | 0/2 | 6 | 5 (4) | 0 | 133 ms |
+| lanl_campaign_all | 2732 | 1243 | 1 | immediate | 80.0 | 60.0 | 63.7 | 1/4 | 6 | 5 (4) | 0 | 1411 ms |
+| lanl_redteam_u66 | 215 | 208 | 1 | immediate | 5.0 | 60.0 | 85.0 | 1/3 | 6 | 5 (4) | 0 | 169 ms |
 
 ## ATT&CK mapping
 
@@ -25,7 +25,7 @@ Evaluated: 2026-08-22 15:42 IST  ·  1 run(s) per scenario
 
 ## Latency
 
-- p50 **632 ms**, p95 **1106 ms**, max 9069 ms over 4 runs (full 7-node investigation, warm process, laptop CPU, no GPU)
+- p50 **790 ms**, p95 **1411 ms**, max 9848 ms over 4 runs (full 7-node investigation, warm process, laptop CPU, no GPU)
 
 ## MTTD / MTTR
 

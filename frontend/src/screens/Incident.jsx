@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Progression from '../components/Progression.jsx'
 import { Play, Zap, Radio } from 'lucide-react'
 import { getIncident, streamUrl } from '../api.js'
 import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
@@ -32,7 +33,7 @@ function TimelineRow({ step, animate }) {
 
 export default function Incident() {
   const { data, error, loading } = useScreenData('incident', getIncident)
-  const { setBundle } = useAnalysis()
+  const { bundle, setBundle } = useAnalysis()
   const [visible, setVisible] = useState(Infinity)
   const [replaying, setReplaying] = useState(false)
   const [streamSteps, setStreamSteps] = useState(null)   // null = not streaming
@@ -41,6 +42,9 @@ export default function Incident() {
   const esRef = useRef(null)
 
   const steps = data?.steps || []
+  // Same enrichment every other path gets (src/shared/enrich), so the forecast
+  // shows here whether this came from a live run or the cached sample.
+  const forecast = (bundle?.analysis || data?.analysis)?.progression_forecast
 
   useEffect(() => () => { clearInterval(timer.current); esRef.current?.close() }, [])
 
@@ -92,6 +96,12 @@ export default function Incident() {
 
   return (
     <>
+      {/* What happens next, beside what happened. */}
+      {forecast && (
+        <div style={{ marginBottom: 20 }}>
+          <Progression forecast={forecast} />
+        </div>
+      )}
       <div className="page-head">
         <span className="tag-pill" style={{ background: 'color-mix(in srgb, var(--sev-critical) 14%, transparent)', color: 'var(--sev-critical)' }}>{data.incident_id}</span>
         <h2 className="s-critical">{data.severity.toUpperCase()}</h2>
