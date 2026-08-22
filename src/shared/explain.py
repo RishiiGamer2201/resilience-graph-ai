@@ -99,18 +99,28 @@ def explain_step(df: pd.DataFrame, bundle: dict, step_index: int = 0, *,
         except Exception:
             raw_err = None
         anchors = detector.anchors()
+        try:
+            from src.shared.attribution import explain_score
+            attribution = explain_score(feats)
+        except Exception as e:
+            attribution = {"available": False, "error": f"{type(e).__name__}: {e}"}
         stages.append({
             "stage": "4 · anomaly score",
             "produced_by": "src/shared/detector.py · benign-trained autoencoder (NumPy)",
             "value": {"reconstruction_error": (round(raw_err, 6) if raw_err is not None else None),
                       "calibrated_0_100": step["anomaly_score"],
-                      "anchors": anchors},
+                      "anchors": anchors,
+                      # exact Shapley: which of the seven features moved the score
+                      "attribution": attribution},
             "explanation": ("The autoencoder was trained on benign authentications only. "
                             "It reconstructs normal behaviour well and unusual behaviour "
                             "badly, so the reconstruction error IS the anomaly signal. "
                             "The error is mapped onto 0-100 with fixed anchors: benign "
                             "median → 0, benign 99th percentile → 50 (the 1% "
-                            "false-positive line), extreme → 100."),
+                            "false-positive line), extreme → 100. The attribution "
+                            "block gives EXACT Shapley values per feature: with seven "
+                            "features the full 128-coalition enumeration is cheap, so "
+                            "there is no sampling error to report."),
         })
     else:
         stages.append({

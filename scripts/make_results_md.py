@@ -48,10 +48,35 @@ def test_count() -> int:
         return 0
 
 
+def lr_paragraph() -> str:
+    """The supervised baseline the SIH problem statement names. It beats us on
+    ranking; the loss is published rather than dropped."""
+    B = M.get("engine1", {}).get("lr_baseline")
+    if not B:
+        return ("Comparison against a supervised logistic regression: **Not measured**. "
+                "Run `python -m scripts.eval_lr_baseline` with the LANL parquet present.")
+    lr, ae = B["logistic_regression"], B["shipped_autoencoder"]
+    return f"""The supervised baseline, and we lose it. A logistic regression trained **with**
+the red-team labels on the identical seven features reaches TPR@1%FPR
+{lr['tpr_at_1pct_fpr']} against our {ae['tpr_at_1pct_fpr']}, and PR-AUC
+{lr['pr_auc']} against {ae['pr_auc']}, on a stratified 70/30 split of
+{B['n_test']:,} held-out rows. Three things qualify that and none of them erase
+it: the autoencoder never sees a label, so it is the one that still works on a
+campaign nobody has labelled yet; a stratified split puts the same campaign on
+both sides, which flatters a supervised model; and at an actual decision
+threshold the regression is unusable, F1 {lr['f1_at_0.5']} at a
+{lr['false_positive_rate_at_0.5']:.1%} false-positive rate. Full workings in
+`reports/lr_baseline.md`. The {pct(ae['tpr_at_1pct_fpr'])} on this split is not
+the {pct(L['tpr_at_1pct_fpr'])} headline above, which comes from the day-wise
+protocol in `reports/lanl_redteam_detection.md`; the two are not comparable.
+"""
+
+
 def main() -> None:
     caught1 = round(L["tpr_at_1pct_fpr"] * 702)
     if_caught1 = round(L["iforest_tpr_at_1pct_fpr"] * 702)
     caught5 = round(L["tpr_at_5pct_fpr"] * 702)
+    lr_para = lr_paragraph()
     cap = next(r for r in SCALING if r["events"] == 50000)
     demo = next(r for r in SCALING if r["events"] == 2732)
 
@@ -94,6 +119,7 @@ events against {if_caught1} of 702 for the forest. The autoencoder trains offlin
 and is exported to NumPy weights, so the deployed image needs no deep-learning
 framework and no GPU.
 
+{lr_para}
 The NTLM ablation: 100% of red-team logins used the older NTLM protocol versus
 about 6% of benign, a powerful but evadable signal. Removing it and scoring on
 behaviour alone still gives ROC-AUC {L['behavioral_only_roc']}, so detection is

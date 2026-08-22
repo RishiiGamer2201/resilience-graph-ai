@@ -165,6 +165,41 @@ def scoreboard() -> dict:
               value=_pct(am.get("id_validity")), unit="%",
               baseline={"name": "unvalidated free text", "value": None},
               report="reports/ps7_eval.md"),
+        _card("vs_logistic_regression", "Detection",
+              "TPR @ 1% FPR vs a supervised logistic regression",
+              definition=("The SIH problem statement names logistic regression as the "
+                          "baseline. Trained WITH the red-team labels on the identical "
+                          "seven features; our detector never sees a label."),
+              dataset="LANL auth red-team window, stratified 70/30 split",
+              sample=_lr("n_test", fmt="{:,} held-out rows"),
+              value=_pct(_lr_side("shipped_autoencoder", "tpr_at_1pct_fpr")),
+              unit="%",
+              baseline={"name": "logistic regression (supervised, same features)",
+                        "value": _pct(_lr_side("logistic_regression", "tpr_at_1pct_fpr"))},
+              report="reports/lr_baseline.md",
+              why=("Needs the LANL parquet, which is not committed. Run "
+                   "python -m scripts.eval_lr_baseline after fetching it."),
+              note=("We LOSE this one on ranking and publish it anyway. Three "
+                    "qualifiers, in the report: LR is trained on labels we would not "
+                    "have for a novel campaign; the stratified split puts the same "
+                    "campaign on both sides, which flatters a supervised model; and "
+                    "at a usable threshold LR is unusable (F1 0.004 at a 3.1% "
+                    "false-positive rate). Our headline 87.7% comes from the "
+                    "documented day-wise protocol, not this split.")),
+        _card("attribution_method", "Attribution & prediction",
+              "Feature attribution exactness",
+              definition=("Share of the detector's prediction gap explained by exact "
+                          "Shapley values. 100% means the attribution satisfies the "
+                          "efficiency axiom rather than approximating it."),
+              dataset="every scored event; 7 features = 128 coalitions",
+              sample="full coalition enumeration, no sampling",
+              value=100.0, unit="%",
+              baseline={"name": "KernelSHAP approximation", "value": None},
+              report="reports/ps7_eval.md",
+              note=("SHAP approximations exist because exhaustive enumeration is "
+                    "usually infeasible. With seven features it is not, so the "
+                    "values are exact and carry no sampling error. Asserted at "
+                    "runtime in src/shared/attribution.py.")),
         _card("technique_precision", "Attribution & prediction",
               "Event-to-technique precision",
               why=am.get("ground_truth_note",
@@ -321,6 +356,16 @@ def scoreboard() -> dict:
                  "evaluation scripts. A metric we have not measured says so and "
                  "explains why."),
     }
+
+
+def _lr_side(side: str, key: str):
+    """A value from the logistic-regression comparison, or None if never run."""
+    return load_metrics().get("engine1", {}).get("lr_baseline", {}).get(side, {}).get(key)
+
+
+def _lr(key: str, fmt: str = "{}") -> str:
+    v = load_metrics().get("engine1", {}).get("lr_baseline", {}).get(key)
+    return fmt.format(v) if v is not None else ""
 
 
 def _cmp(side: str, key: str):

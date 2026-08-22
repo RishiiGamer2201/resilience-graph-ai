@@ -37,6 +37,20 @@ events against 361 of 702 for the forest. The autoencoder trains offline
 and is exported to NumPy weights, so the deployed image needs no deep-learning
 framework and no GPU.
 
+The supervised baseline, and we lose it. A logistic regression trained **with**
+the red-team labels on the identical seven features reaches TPR@1%FPR
+0.9194 against our 0.9005, and PR-AUC
+0.0878 against 0.0088, on a stratified 70/30 split of
+3,366,571 held-out rows. Three things qualify that and none of them erase
+it: the autoencoder never sees a label, so it is the one that still works on a
+campaign nobody has labelled yet; a stratified split puts the same campaign on
+both sides, which flatters a supervised model; and at an actual decision
+threshold the regression is unusable, F1 0.004 at a
+3.1% false-positive rate. Full workings in
+`reports/lr_baseline.md`. The 90.0% on this split is not
+the 87.7% headline above, which comes from the day-wise
+protocol in `reports/lanl_redteam_detection.md`; the two are not comparable.
+
 The NTLM ablation: 100% of red-team logins used the older NTLM protocol versus
 about 6% of benign, a powerful but evadable signal. Removing it and scoring on
 behaviour alone still gives ROC-AUC 0.906, so detection is
@@ -127,7 +141,7 @@ clone with no dataset download.
 
 ## 6. Engineering
 
-- 342 automated tests, no network required (pipeline correctness, multi-pivot
+- 353 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

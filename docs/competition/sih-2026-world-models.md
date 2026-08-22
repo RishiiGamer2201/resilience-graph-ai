@@ -3,7 +3,7 @@
 An honest gap analysis of nextATT&CKs against the NCIIPC problem statement on
 learning network behaviour and forecasting attacker progression.
 
-`as_of: 2026-08-22`
+`as_of: 2026-08-22` (updated after closing two gaps)
 
 **Summary judgement.** We are strong on the half most teams get wrong — attack-stage
 mapping, explainability, honest uncertainty, offline operation, real benchmark
@@ -22,12 +22,12 @@ the central gap, and no amount of polish elsewhere substitutes for it.
 | 2 | Learn state-transition dynamics (LSTM / Transformer / GNN / latent) | **Partial** | Interpolated Markov over 205 real ATT&CK sequences, measured **38.1% top-3 vs 7.1%** kill-chain baseline. An LSTM over MiniLM embeddings was tried and **lost at 27.2%** — published as a negative in `reports/model_experiments.md`. No GNN, no Transformer, and the transitions are between *techniques*, not *network states* |
 | 3 | Forecast future states; estimate probability of attacker progression | **Now present** | `src/shared/rollout.py`: K-step beam rollout producing a monotone cumulative infiltration probability with separately-reported decaying horizon confidence, and a reliable-horizon rule so the headline is never the least trustworthy number. Forecasts technique states, not traffic states |
 | 4 | Map predicted behaviour to MITRE ATT&CK stages | **Yes** | Every predicted step carries its ATT&CK tactic; every emitted ID is validated against parsed STIX (100% ID validity, `reports/ps7_eval.md`) |
-| 5 | Explainability via attention or feature attribution | **Partial** | 11-stage provenance trace (`explain.py`), per-factor attribution with facts in vulnerability scoring, claims carrying missing evidence and benign alternatives. **No SHAP values and no attention weights** — the PS names both, and "black-box outputs without interpretability are not acceptable" |
+| 5 | Explainability via attention or feature attribution | **Yes** | **EXACT Shapley values** per feature (`src/shared/attribution.py`), surfaced in stage 4 of the explainability trace. Seven features means 128 coalitions, so the full enumeration is computed rather than approximated — no sampling error, and the efficiency axiom is asserted at runtime. Plus the 11-stage provenance trace and per-factor attribution in vulnerability scoring |
 | 6 | Flow-level features (TCP flags, IAT statistics, bidirectional ratios) | **Partial** | Engine 1 trains on CIC-IDS2017 flow features, but the *live* pipeline ingests authentication logs with 7 behavioural features. Flags, IAT variance and directionality are not in the runtime path |
 | 7 | Packet-level features (TTL variance, TCP window, fragment flags, payload distribution, port-scan signatures, retransmissions) | **Absent** | Nothing packet-level anywhere in the codebase |
 | 8 | PCAP ingestion via Scapy or PyShark | **Absent** | We ingest CSV only |
 | 9 | CIC-IDS2018 or CTU-13 | **Absent** | We use CIC-IDS2017, UNSW-NB15 and LANL. The PS names 2018 and CTU-13 explicitly, though it also lists ours as acceptable |
-| 10 | Benchmark vs a logistic-regression baseline on the same features | **Partial** | We benchmark against random, a rule baseline and IsolationForest. **Not** against logistic regression, which the PS names specifically |
+| 10 | Benchmark vs a logistic-regression baseline on the same features | **Yes, and we lose it** | `scripts/eval_lr_baseline.py`. Supervised LR on the identical seven features reaches TPR@1%FPR **0.919 vs our 0.901** and PR-AUC **0.088 vs 0.009**. Published in `reports/lr_baseline.md` with its three qualifiers: LR trains on labels a novel campaign would not have, the stratified split puts one campaign on both sides, and at a usable threshold LR collapses (F1 0.004 at 3.1% FPR) |
 | 11 | Offline demo interface, no cloud APIs | **Yes** | React SPA + FastAPI in one container, runs with no key and no network |
 | 12 | Fully open source | **Yes** | No paid dependency in the required path |
 
@@ -68,8 +68,9 @@ Steps 1 and 2 are the real work. Step 3 already exists.
 
 | Gap | Effort | Value for this PS | Verdict |
 |---|---|---|---|
-| Logistic-regression baseline on the existing features | hours | The PS names it explicitly and we already have the harness | **Do it** — cheapest possible point |
-| SHAP attribution on the autoencoder detector | 1 day | PS says black-box output is unacceptable; we have deterministic attribution but not the named technique | **Do it** |
+| ~~Logistic-regression baseline~~ | done | — | **Closed.** And it beat us; see requirement 10 |
+| ~~SHAP attribution on the detector~~ | done | — | **Closed.** Exact Shapley, not approximated |
+| ~~K-step forward simulation~~ | done | — | **Closed.** `src/shared/rollout.py`, requirement 3 |
 | PCAP ingestion + packet features (Scapy) | 2–3 days | Unlocks requirements 7 and 8 outright | **Do it** if targeting this PS |
 | Network-state transition model on CTU-13 / CIC-IDS2018 | 4–7 days | The thesis of the PS | **Required** to be credible here |
 | GNN over the flow graph | 1 week+ | One named option among several; LSTM/Transformer are equally acceptable and we already have sequence-model experience | **Skip** unless time is abundant |
@@ -94,9 +95,13 @@ Steps 1 and 2 are the real work. Step 3 already exists.
 - that we have a world model over network state — we have one over ATT&CK
   techniques, and the distinction is exactly what this PS is testing;
 - packet-level analysis of any kind;
-- SHAP or attention-based attribution;
-- results on CTU-13 or CIC-IDS2018.
+- results on CTU-13 or CIC-IDS2018;
+- that we beat a supervised baseline on this dataset. We do not. Logistic
+  regression on the same features ranks better, and the reasons that matters
+  less than it looks are written down rather than left out.
 
-The forward-simulation work landed today (`rollout.py`) makes requirement 3 real.
-It does not make requirement 2 real, and a judge for this PS will ask about
-requirement 2 first.
+Three requirements have since closed: forward simulation (3), exact Shapley
+attribution (5) and the logistic-regression benchmark (10). **Requirement 2 has
+not**, and a judge for this PS will ask about it first. Our transition model is
+over ATT&CK techniques; the PS wants one over network state. Everything else on
+this page is polish next to that.

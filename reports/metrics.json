@@ -23,6 +23,39 @@
       "roc_auc": 0.829,
       "prauc": 0.867,
       "note": "2nd benchmark, official split"
+    },
+    "lr_baseline": {
+      "dataset": "LANL auth red-team window",
+      "features": [
+        "is_fail",
+        "new_dst_for_user",
+        "new_src_for_user",
+        "user_distinct_dst_sofar",
+        "user_fail_rate_sofar",
+        "dst_rarity",
+        "is_ntlm"
+      ],
+      "n_train": 7855331,
+      "n_test": 3366571,
+      "attack_prevalence": 6.3e-05,
+      "split": "stratified 70/30, random_state=42",
+      "logistic_regression": {
+        "supervised": true,
+        "roc_auc": 0.9974,
+        "pr_auc": 0.0878,
+        "tpr_at_1pct_fpr": 0.9194,
+        "f1_at_0.5": 0.004,
+        "precision_at_0.5": 0.002,
+        "recall_at_0.5": 1.0,
+        "false_positive_rate_at_0.5": 0.0315
+      },
+      "shipped_autoencoder": {
+        "supervised": false,
+        "roc_auc": 0.9929,
+        "pr_auc": 0.0088,
+        "tpr_at_1pct_fpr": 0.9005
+      },
+      "note": "Logistic regression is trained WITH the red-team labels; the autoencoder never sees one. A supervised linear model is the fair, hard baseline for an unsupervised detector on identical features, which is why it is worth publishing whichever way it lands."
     }
   },
   "engine2": {
