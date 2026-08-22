@@ -112,7 +112,13 @@ def run(
     evidence_refs: list[str] = []
 
     for entity, chunks in entity_chunks.items():
-        technique_ids = [c.get("technique_id") for c in chunks if c.get("technique_id")]
+        # Distinct techniques in the order the entity first exhibited them. Chunks
+        # arrive time-ordered, so this IS the observed progression -- which is what
+        # the predictor, the actor match and the narrative all want. Undeduplicated
+        # it read "chain of 49 techniques" for U66 when every one of them was the
+        # same T1550.002, and the UI printed the ID 49 times in one table cell.
+        raw_tids = [c.get("technique_id") for c in chunks if c.get("technique_id")]
+        technique_ids = list(dict.fromkeys(raw_tids))
         max_score = max((c.get("anomaly_score", 0) for c in chunks), default=0)
         technique_texts = " ".join(c.get("point_a_text", "") for c in chunks)
 
@@ -150,6 +156,7 @@ def run(
         chains.append({
             "entity": entity,
             "technique_ids": technique_ids,
+            "n_technique_events": len(raw_tids),
             "tactic_chain": list(dict.fromkeys(
                 c.get("tactic", "") for c in chunks if c.get("tactic")
             )),

@@ -22,6 +22,39 @@
       "roc_auc": 0.829,
       "prauc": 0.867,
       "note": "2nd benchmark, official split"
+    },
+    "lr_baseline": {
+      "dataset": "LANL auth red-team window",
+      "features": [
+        "is_fail",
+        "new_dst_for_user",
+        "new_src_for_user",
+        "user_distinct_dst_sofar",
+        "user_fail_rate_sofar",
+        "dst_rarity",
+        "is_ntlm"
+      ],
+      "n_train": 7855331,
+      "n_test": 3366571,
+      "attack_prevalence": 6.3e-05,
+      "split": "stratified 70/30, random_state=42",
+      "logistic_regression": {
+        "supervised": true,
+        "roc_auc": 0.9974,
+        "pr_auc": 0.0878,
+        "tpr_at_1pct_fpr": 0.9194,
+        "f1_at_0.5": 0.004,
+        "precision_at_0.5": 0.002,
+        "recall_at_0.5": 1.0,
+        "false_positive_rate_at_0.5": 0.0315
+      },
+      "shipped_autoencoder": {
+        "supervised": false,
+        "roc_auc": 0.9929,
+        "pr_auc": 0.0088,
+        "tpr_at_1pct_fpr": 0.9005
+      },
+      "note": "Logistic regression is trained WITH the red-team labels; the autoencoder never sees one. A supervised linear model is the fair, hard baseline for an unsupervised detector on identical features, which is why it is worth publishing whichever way it lands."
     }
   },
   "engine2": {
@@ -133,9 +166,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 632.0,
-      "p95": 1106.1,
-      "max": 9068.7,
+      "p50": 790.2,
+      "p95": 1411.1,
+      "max": 9847.7,
       "samples": 4,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -202,7 +235,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 9068.7,
+          "latency_ms_median": 9847.7,
           "degraded_nodes": []
         },
         {
@@ -233,7 +266,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 123.1,
+          "latency_ms_median": 133.1,
           "degraded_nodes": []
         },
         {
@@ -265,7 +298,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1106.1,
+          "latency_ms_median": 1411.1,
           "degraded_nodes": [
             "understand"
           ]
@@ -298,13 +331,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 158.0,
+          "latency_ms_median": 169.3,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-22 15:42 IST"
+      "evaluated_at": "2026-08-22 15:57 IST"
     }
   }
 }

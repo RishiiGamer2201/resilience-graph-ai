@@ -35,6 +35,18 @@ W_BLAST = 0.25
 W_ACTOR = 0.20
 W_CONF  = 0.20
 
+# Risk bands. Read off the rounded score so the printed number and the printed
+# band can never disagree.
+BAND_CRITICAL, BAND_HIGH, BAND_MEDIUM = 0.75, 0.55, 0.35
+
+
+def _band(score: float) -> str:
+    return ("critical" if score >= BAND_CRITICAL
+            else "high" if score >= BAND_HIGH
+            else "medium" if score >= BAND_MEDIUM
+            else "low")
+
+
 CONFIRMATION_WEIGHTS = {
     "confirmed": 1.0,
     "partially_confirmed": 0.5,
@@ -54,18 +66,44 @@ def _blast_radius(entity: str, graph) -> int:
         return 0
 
 
+_TECH_TO_GROUPS: dict[str, list[str]] | None = None
+
+
+def _tech_to_groups() -> dict[str, list[str]]:
+    """technique id -> the real ATT&CK groups documented as using it.
+
+    This used to call `load_attack()` from src.shared.parse_attack, a function
+    that does not exist there, inside a bare `except Exception: pass`. The
+    ImportError was swallowed on every call, so _actor_match returned 0.0 for
+    every chain in every scenario and 20% of the risk score (W_ACTOR) was dead
+    weight. Inverted once from the pickled lookups the rest of the app uses.
+    """
+    global _TECH_TO_GROUPS
+    if _TECH_TO_GROUPS is None:
+        from src.shared.attack_mapper import _lookups
+        out: dict[str, list[str]] = {}
+        for group, techs in _lookups().get("group_to_techniques", {}).items():
+            for tid in techs:
+                out.setdefault(tid, []).append(group)
+        _TECH_TO_GROUPS = out
+    return _TECH_TO_GROUPS
+
+
 def _actor_match(technique_ids: list[str]) -> float:
-    """Returns 1.0 if any technique is in a known APT group's profile."""
-    try:
-        from src.shared.parse_attack import load_attack
-        attack = load_attack()
-        tech_to_groups = attack.get("tech_to_groups", {})
-        for tid in technique_ids:
-            if tech_to_groups.get(tid):
-                return 1.0
-    except Exception:
-        pass
-    return 0.0
+    """1.0 if any technique appears in a known ATT&CK group's profile."""
+    t2g = _tech_to_groups()
+    return 1.0 if any(t2g.get(tid) for tid in technique_ids) else 0.0
+
+
+def _matched_actors(technique_ids: list[str], limit: int = 5) -> list[str]:
+    """The groups behind the match, so the score can be read rather than trusted."""
+    t2g = _tech_to_groups()
+    seen: list[str] = []
+    for tid in technique_ids:
+        for g in t2g.get(tid, []):
+            if g not in seen:
+                seen.append(g)
+    return sorted(seen)[:limit]
 
 
 def run(
@@ -115,13 +153,11 @@ def run(
             **chain,
             "blast_radius": blast,
             "actor_match": bool(actor),
+            "matched_actors": _matched_actors(tech_ids) if actor else [],
             "risk_score": round(risk_score, 4),
-            "risk_band": (
-                "critical" if risk_score >= 0.75
-                else "high" if risk_score >= 0.55
-                else "medium" if risk_score >= 0.35
-                else "low"
-            ),
+            # Band from the SAME rounded number the UI shows. Banding the raw
+            # float printed "risk=0.55" next to "medium" for a 0.54999 chain.
+            "risk_band": _band(round(risk_score, 4)),
         })
 
     ranked.sort(key=lambda c: c["risk_score"], reverse=True)
@@ -140,6 +176,13 @@ def run(
         notes=[
             f"Ranked {len(ranked)} chains. Top entity: {top.get('entity','')} "
             f"risk={top.get('risk_score',0):.3f} ({top.get('risk_band','')}).",
+            # Say how weak this term is rather than let a reader take an APT name
+            # for an attribution. 525 of 794 ATT&CK techniques have at least one
+            # documented group, so "a known group uses this" is close to always
+            # true and mostly raises the whole distribution.
+            f"Actor match fired on {sum(c['actor_match'] for c in ranked)} of "
+            f"{len(ranked)} chains. It records that a documented group uses the "
+            f"technique, not that this group is responsible.",
         ],
         ms=(time.perf_counter() - t0) * 1000,
     )

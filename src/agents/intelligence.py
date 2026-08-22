@@ -32,6 +32,13 @@ from src.shared.attack_mapper import RULE_MAP, infer_lanl_event_type, map_event
 # ─── Valid ATT&CK ID pattern (enforced as hard gate) ──────────────────────────
 _ATTACK_ID_RE = re.compile(r"^T\d{4}(\.\d{3})?$")
 
+# ─── Behavioural rule thresholds ──────────────────────────────────────────────
+# Named, not inline, because they decide which ATT&CK technique reaches a screen.
+NTLM_DOMINANT = 0.8      # share of the chunk's logins negotiating NTLM
+NTLM_MIN_HOSTS = 2       # ...and reaching at least this many distinct hosts
+FAIL_BURST_RATE = 0.5    # failed-login share that reads as brute force
+FAIL_BURST_EVENTS = 5    # ...over at least this many attempts
+
 # ─── RAG query engine (lazy-loaded, optional) ──────────────────────────────────
 _rag_query = None
 
@@ -65,6 +72,7 @@ def _rule_based_map(chunk_record: dict) -> dict | None:
     fail_rate = stats.get("failure_rate", 0.0)
     n_dst = stats.get("destination_host_unique", 1)
     n_events = stats.get("n_events", 1)
+    ntlm_rate = stats.get("ntlm_rate", 0.0)
     score = chunk_record.get("anomaly_score", 0)
 
     # Synthesize an event type string for the rule engine
@@ -74,12 +82,31 @@ def _rule_based_map(chunk_record: dict) -> dict | None:
     # Enrich with behavioural hints. These MUST be real RULE_MAP keys -- the
     # previous values ("lateral_movement", "brute_force", "large_outbound") are
     # not in the table, so every one of them fell through to "Unmapped".
-    if n_dst >= 5 and fail_rate < 0.3:
-        dominant_type = "new_host_auth"
-    elif fail_rate >= 0.5 and n_events >= 5:
+    #
+    # Ordered by how much the pattern actually establishes, strongest first.
+    # Before this the lane could only ever reach new_host_auth: it mapped 60 of
+    # 229 flagged LANL chunks and every one of them to T1021, so the entity
+    # chains carried a single technique and the prioritiser scored the campaign
+    # medium against the workflow's critical.
+    if ntlm_rate >= NTLM_DOMINANT and n_dst >= NTLM_MIN_HOSTS:
+        # NTLM alone is not pass-the-hash: 30% of benign logins in the LANL demo
+        # slice use it. NTLM *plus* fan-out to several hosts is the signature the
+        # ntlm_lateral_movement rule is named for, and the rule already carries
+        # claim_status "inferred" with the missing evidence spelled out.
+        dominant_type = "ntlm_lateral_movement"
+    elif fail_rate >= FAIL_BURST_RATE and n_events >= FAIL_BURST_EVENTS:
         dominant_type = "failed_login_burst"
     elif stats.get("bytes_out_total", 0) > 10_000_000:
         dominant_type = "large_outbound_transfer"
+    elif n_dst >= 5 and fail_rate < 0.3:
+        dominant_type = "new_host_auth"
+    elif fail_rate == 0.0 and n_events >= 2:
+        # An anomalous chunk that is entirely successful and does not fan out.
+        # T1078 at claim_strength 0.3, status "inferred", never actionable on its
+        # own -- the deliberately weak reading. Asserting it any harder is the
+        # over-assertion the research doc warns about and that we already made
+        # once by mapping every anomalous login to T1078 to inflate coverage.
+        dominant_type = "unusual_successful_login"
     elif dominant_type not in RULE_MAP:
         # an event_type straight from the log that the table does not know
         dominant_type = "normal_auth"

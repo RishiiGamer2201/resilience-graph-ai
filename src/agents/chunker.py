@@ -86,6 +86,7 @@ def _compute_stats(df: pd.DataFrame) -> dict:
         ("user", "nunique"),
         ("status", None),
         ("event_type", None),
+        ("protocol", None),
         ("bytes_out", "sum"),
         ("port", "nunique"),
     ]:
@@ -100,12 +101,27 @@ def _compute_stats(df: pd.DataFrame) -> dict:
             vc = series.value_counts().head(3).to_dict()
             stats[f"{col}_top"] = {str(k): int(v) for k, v in vc.items()}
 
-    # Failure rate
+    # Failure rate. The canonical status vocabulary from src.shared.normalize is
+    # "success" / "fail" -- this tested for "failure", which no source emits, so
+    # failure_rate was 0.0 for every chunk ever produced. Detection scoring,
+    # Investigation triage, the Point-A summary text and the T1110 brute-force
+    # rule all read it, so all four were blind to 217 failed logins in the LANL
+    # demo slice alone. Match any status that starts with "fail".
     if "status" in df.columns:
-        n_fail = int((df["status"].astype(str).str.lower() == "failure").sum())
+        st = df["status"].astype(str).str.lower()
+        n_fail = int(st.str.startswith("fail").sum())
         stats["failure_rate"] = round(n_fail / max(n, 1), 3)
         stats["n_failures"] = n_fail
         stats["n_successes"] = n - n_fail
+
+    # NTLM share. 100% of LANL red-team logins used NTLM against 30% of benign in
+    # this slice, and the published ablation puts ROC at 0.992 with the signal
+    # and 0.906 without it. The agent lane could not see it at all because
+    # protocol was never aggregated, which is why it never reached the
+    # ntlm_lateral_movement rule that already existed in the table.
+    if "protocol" in df.columns:
+        pr = df["protocol"].astype(str).str.upper()
+        stats["ntlm_rate"] = round(int((pr == "NTLM").sum()) / max(n, 1), 3)
 
     # Avg bytes if present
     if "bytes_out" in df.columns:
