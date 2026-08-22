@@ -106,6 +106,7 @@ Step 'Module self-checks' {
                      'src.shared.rbac', 'src.shared.audit', 'src.shared.scoreboard',
                      'src.shared.explain', 'src.shared.claims',
                      'src.shared.casefile', 'src.shared.crosscheck', 'src.shared.rollout', 'src.shared.enrich', 'src.shared.attribution',
+    'src.engine3.netstate',
                      'src.shared.workflow')) {
         Invoke-Checked $py @('-m', $m)
     }

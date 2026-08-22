@@ -24,6 +24,10 @@ data/processed/rag_corpus/embedded_hashes.json
 # ─── Models & artifacts ───────────────────────────────
 models/*
 !models/.gitkeep
+# 13 KB and deterministic. Committed so the engine3 tests run in CI
+# instead of skipping, and so the published netstate numbers can be
+# checked against the artifact that produced them.
+!models/netstate_cicids.npz
 *.pkl
 *.pt
 *.pth

@@ -87,7 +87,47 @@ justification. Not a trained classifier, and we say so. Technique embeddings
 separate same-tactic pairs at cosine 0.412 versus
 0.327 for random pairs.
 
-## 3. Operational output (live campaign analysis)
+## 3. World model over network state (Engine 3)
+
+`P(S_t+1 | S_t)` where `S_t` is observed traffic, not an ATT&CK label. Written
+for the SIH 2026 problem statement, which asks for transition dynamics over
+network state specifically. `S_t` is a 48-dimensional vector per
+window of 256 consecutive CIC-IDS2017 flows: TCP flag distribution,
+inter-arrival-time statistics, bidirectional ratios, packet-length distribution,
+TCP window sizes and throughput, each as a window mean and standard deviation.
+The dynamics are a 24-state latent transition matrix; a K-step
+rollout is `p0 @ T^k`, exact rather than sampled.
+
+Trained Monday-Wednesday, tested Thursday-Friday. A temporal split, so no attack
+burst appears on both sides.
+
+| Metric | Model | Baseline | |
+|---|---|---|---|
+| Next-window compromise, ROC-AUC | **0.9872** | 0.5 | random |
+| Next-window compromise, PR-AUC | 0.9333 | | |
+| Attack-rate Brier @ 1 step | **0.02217** | 0.12353 | always predict prevalence |
+| Next-state top-1 | 0.3567 | 0.362 | persistence |
+| Next-state top-1, counted matrix only | 0.2733 | 0.362 | persistence |
+
+**The result is split and both halves are published.** Forecasting whether the
+next window is compromised works well: ROC-AUC 0.9872 on
+3,372 held-out windows, and a Brier score
+5.6x better than always predicting
+the base rate. Predicting *which* latent state comes next draws level with it: top-1
+0.3567 against a persistence baseline of 0.362.
+Traffic is strongly autocorrelated and the transition structure learned on three
+days does not fully transfer to a different attack mix. Interpolating the counted
+matrix with persistence at weight 0.15, chosen by
+leave-one-day-out over the training days, lifts top-1 from
+0.2733 but does not clear the baseline.
+
+So: a strong risk model over network state, a mediocre state forecaster.
+`reports/netstate.md` has the per-horizon calibration, the latent-state
+descriptions, the K sweep and three lambda-fitting protocols we tried and
+rejected. Engine 3 is **not in the live demo path**: the demo scenarios are
+authentication logs and this model consumes flow records.
+
+## 4. Operational output (live campaign analysis)
 
 Live run of the full LANL red-team campaign through the complete pipeline.
 
@@ -100,7 +140,7 @@ Live run of the full LANL red-team campaign through the complete pipeline.
 | Total exposure | 469 hosts |
 | Isolate the single best choke point | severs 463 hosts |
 
-## 4. Performance and scalability
+## 5. Performance and scalability
 
 Full pipeline measured at nine input sizes on a laptop CPU, no GPU, best of 3
 after warm-up.
@@ -117,7 +157,7 @@ The shipped demo campaign (2,732 events) completes in
 2.186 s. In-memory graph analytics are comfortable to about
 50,000 events per analysis; beyond that we shard or move to a graph database.
 
-## 5. PS7 operational evidence
+## 6. PS7 operational evidence
 
 Measured by `scripts/eval_ps7.py` over every shipped scenario, and by
 `scripts/eval_retrieval.py` over the evidence gold set. Both run from a fresh
@@ -139,9 +179,9 @@ clone with no dataset download.
 | Unauthorised approval blocked server side | yes |
 | Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
 
-## 6. Engineering
+## 7. Engineering
 
-- 353 automated tests, no network required (pipeline correctness, multi-pivot
+- 387 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

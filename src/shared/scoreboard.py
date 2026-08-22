@@ -186,6 +186,49 @@ def scoreboard() -> dict:
                     "at a usable threshold LR is unusable (F1 0.004 at a 3.1% "
                     "false-positive rate). Our headline 87.7% comes from the "
                     "documented day-wise protocol, not this split.")),
+        _card("netstate_compromise_warning", "Attribution & prediction",
+              "Next-window compromise warning (network state)",
+              definition=("ROC-AUC for predicting that the NEXT traffic window is "
+                          "compromised, from the current one. A forecast, not a "
+                          "classification of the window in front of it."),
+              dataset="CIC-IDS2017, trained Mon-Wed, tested Thu-Fri",
+              sample=_ns("n_windows_test", fmt="{:,} held-out windows"),
+              value=_pct(_ns("compromise_roc_auc")), unit="%",
+              baseline={"name": "random", "value": 50.0},
+              report="reports/netstate.md",
+              why=("Needs the CIC-IDS2017 parquet, which is not committed. Run "
+                   "python -m scripts.eval_netstate after fetching it."),
+              note=("This is the world model the SIH 2026 problem statement asks "
+                    "for: P(S_t+1 | S_t) over a 48-dimensional traffic state "
+                    "vector, not over ATT&CK techniques. 24 latent states, exact "
+                    "matrix rollout, no sampling. Temporal split, so no day "
+                    "appears on both sides. Read the next card before quoting "
+                    "this one.")),
+        _card("netstate_vs_persistence", "Attribution & prediction",
+              "Next-state prediction vs a persistence baseline",
+              definition=("Top-1 accuracy at predicting the next latent traffic "
+                          "state, against the baseline that assumes the network "
+                          "stays where it is."),
+              dataset="CIC-IDS2017, 3,370 held-out window transitions",
+              sample=_ns("n_states", fmt="{} latent states"),
+              value=_pct(_ns("next_state_top1")), unit="%",
+              baseline={"name": "persistence (assume no change)",
+                        "value": _pct(_ns("persistence_top1"))},
+              report="reports/netstate.md",
+              why=("Needs the CIC-IDS2017 parquet, which is not committed. Run "
+                   "python -m scripts.eval_netstate after fetching it."),
+              note=("We DRAW here, we do not win. Network traffic is strongly "
+                    "autocorrelated, so 'assume no change' is a hard baseline and "
+                    "the transition structure learned on three days does not fully "
+                    "transfer to a different attack mix. The counted matrix alone "
+                    "managed only "
+                    + (f"{_pct(_ns('counted_matrix_top1'))}%" if _ns("counted_matrix_top1")
+                       is not None else "less")
+                    + "; interpolating with persistence at weight "
+                    + str(_ns("persistence_weight"))
+                    + " recovers most of the gap. So engine3 is a strong risk "
+                    "model over network state and a weak state forecaster, and "
+                    "reports/netstate.md says which is which.")),
         _card("attribution_method", "Attribution & prediction",
               "Feature attribution exactness",
               definition=("Share of the detector's prediction gap explained by exact "
@@ -356,6 +399,14 @@ def scoreboard() -> dict:
                  "evaluation scripts. A metric we have not measured says so and "
                  "explains why."),
     }
+
+
+def _ns(key: str, fmt: str | None = None):
+    """A value from the engine3 network-state evaluation, or None if never run."""
+    v = load_metrics().get("engine3", {}).get("netstate", {}).get(key)
+    if fmt is None:
+        return v
+    return fmt.format(v) if v is not None else ""
 
 
 def _lr_side(side: str, key: str):
