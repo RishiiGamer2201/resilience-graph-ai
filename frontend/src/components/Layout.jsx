@@ -6,6 +6,7 @@ const TITLES = {
   '/investigate': { title: 'Investigation', subtitle: 'Understand → Plan → Evidence → Signals → Replan → Impact → Action' },
   '/analyze': { title: 'Analyze Log', subtitle: 'Live pipeline' },
   '/overview': { title: 'Command Center', subtitle: 'Grid operator · DOM1' },
+  '/digital-twin': { title: 'Digital Twin & AI Advisor', subtitle: 'Counterfactual simulation & Plain-language Copilot' },
   '/attackers': { title: 'Attackers', subtitle: 'Campaign · all accounts' },
   '/incident': { title: 'Live Incident', subtitle: 'INC-PS7-LANL-001' },
   '/graph': { title: 'Attack-path Graph', subtitle: 'Blast radius & choke points' },

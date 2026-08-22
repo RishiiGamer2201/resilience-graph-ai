@@ -156,25 +156,63 @@ _POINT_B_SYSTEM = (
 _DISCLAIMER = "[LLM-assisted narrative — non-authoritative, for analyst review only]"
 
 
+def _technique_friendly_name(tid: str) -> str:
+    """Look up friendly name for an ATT&CK technique if available."""
+    try:
+        from src.shared.views import _names
+        names = _names()
+        return names.get(tid, tid)
+    except Exception:
+        return tid
+
+
 def _template_fallback(summaries: list[dict], technique_chain: list[str]) -> str:
-    """Deterministic fallback when no LLM is available."""
+    """Deterministic natural-language incident narrative synthesis."""
     if not summaries:
-        return "No notable activity detected in this incident window."
+        return "No notable anomalous activity or lateral movement detected in this incident window."
 
-    entities = list(dict.fromkeys(s["entity"] for s in summaries))
-    total_events = sum(s["n_events"] for s in summaries)
-    texts = [s["text"] for s in summaries]
+    entities = list(dict.fromkeys(s["entity"] for s in summaries if s.get("entity")))
+    total_events = sum(s.get("n_events", 1) for s in summaries)
+    entity_str = ", ".join(entities[:2]) if entities else "an unidentified account"
+    if len(entities) > 2:
+        entity_str += f" and {len(entities) - 2} other account(s)"
 
-    entity_str = ", ".join(entities[:3]) + ("..." if len(entities) > 3 else "")
-    tchain = " → ".join(technique_chain[:6]) if technique_chain else "unknown"
+    # Identify primary pattern indicators
+    has_burst = any("high frequency" in s.get("burst_label", "") for s in summaries)
+    has_fanout = any("fan-out" in s.get("fanout_label", "") for s in summaries)
+    unique_dsts = max((s.get("stats", {}).get("destination_host_unique", 1) for s in summaries), default=1)
 
-    narrative = (
-        f"Investigation covers {len(entities)} actor(s) ({entity_str}) "
-        f"across {len(summaries)} behavioral windows totalling {total_events} events. "
-        f"Observed ATT&CK chain: {tchain}. "
-        f"Key observations: {' '.join(texts[:3])}"
+    # Translate technique chain into readable tactical progression
+    friendly_techs = [_technique_friendly_name(t) for t in technique_chain[:4]]
+    tech_flow = " followed by ".join(friendly_techs) if friendly_techs else "unusual credential activity"
+
+    # Construct plain-language narrative paragraph
+    sentences = []
+    sentences.append(
+        f"The intrusion initiated with anomalous authentication activity linked to {entity_str}, "
+        f"generating {total_events} total events across {len(summaries)} behavioral observation windows."
     )
-    return narrative
+    if has_fanout or unique_dsts > 1:
+        spread_desc = f"rapid lateral spread across {unique_dsts} unique internal endpoints" if unique_dsts > 1 else "lateral movement attempts"
+        rate_desc = " in rapid succession" if has_burst else ""
+        sentences.append(f"The adversary established an initial foothold and exhibited {spread_desc}{rate_desc}.")
+    if friendly_techs:
+        sentences.append(
+            f"The attack path matches known adversary behaviors progressing through {tech_flow}, "
+            f"indicating an organized attempt to escalate privileges and access central infrastructure."
+        )
+    else:
+        sentences.append(
+            "Telemetry patterns indicate coordinated unauthorized traversal across endpoints "
+            "consistent with an active security breach."
+        )
+
+    sentences.append(
+        "Immediate isolation of the active entry host is recommended to sever the attacker's "
+        "path before critical domain assets are compromised."
+    )
+
+    return " ".join(sentences)
 
 
 # The single remote egress path in this product, and it is off unless a key is

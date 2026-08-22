@@ -280,10 +280,13 @@ def predict_next(c: Chain):
     from src.shared import predictor
     _, names, _ = _markov()                    # technique_id -> display name
     top, source = predictor.rank_next(list(c.technique_ids), max(1, c.k))
+    preds = [{"rank": i + 1, "technique_id": t, "name": names.get(t, t),
+              "score": round(p, 3)}
+             for i, (t, p) in enumerate(top)]
+    narrative = predictor.generate_prediction_narrative(preds, list(c.technique_ids))
     return {"given": c.technique_ids,
-            "predictions": [{"rank": i + 1, "technique_id": t, "name": names.get(t, t),
-                             "score": round(p, 3)}
-                            for i, (t, p) in enumerate(top)],
+            "predictions": preds,
+            "projection_narrative": narrative,
             "source": source}
 
 
@@ -873,6 +876,123 @@ async def agents_analyze_upload(
         return result.as_dict()
     except Exception as e:
         raise HTTPException(500, f"Pipeline error: {e}")
+
+
+@app.get("/api/agents/stream")
+async def agents_stream(
+    scenario: str,
+    critical_assets: str = "",
+    incident_id: str = "INC-STREAM-001",
+    entity_col: str = "user",
+    use_llm: bool = False,
+):
+    """Server-Sent Events: stream the 10-agent pipeline executing live agent by agent."""
+    import asyncio
+    from fastapi.responses import StreamingResponse
+    from src.agents.orchestrator import iter_pipeline
+
+    path = SCENARIOS / f"{scenario}.csv"
+    if not path.exists():
+        raise HTTPException(404, f"unknown scenario '{scenario}'")
+    crit = [c.strip() for c in critical_assets.split(",") if c.strip()] \
+        or SCENARIO_META.get(scenario, {}).get("critical_default", [])
+
+    try:
+        df = pd.read_csv(path)
+        bundle = analyze_events(df, critical_assets=set(crit), incident_id=incident_id)
+    except Exception as e:
+        raise HTTPException(422, str(e))
+
+    async def gen():
+        events_df = _prepare_agent_events(df)
+        final_summary = None
+        for event_type, payload in iter_pipeline(
+            events_df,
+            scenario=scenario,
+            incident_id=incident_id,
+            entity_col=entity_col,
+            use_llm=use_llm,
+        ):
+            if event_type == "agent_progress":
+                yield f"event: progress\ndata: {json.dumps(payload)}\n\n"
+                await asyncio.sleep(0.05)
+            elif event_type == "pipeline_complete":
+                pipeline_res = payload["result"]
+                final_summary = _agent_pipeline_summary(pipeline_res)
+
+        if final_summary:
+            final_bundle = _attach_agent_pipeline(bundle, final_summary)
+            yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
+        else:
+            yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.post("/api/agents/stream/upload")
+async def agents_upload_stream(
+    file: UploadFile = File(...),
+    critical_assets: str = Form(""),
+    incident_id: str = Form("INC-UPLOAD-001"),
+    entity_col: str = Form("user"),
+    use_llm: bool = Form(False),
+):
+    """Server-Sent Events: stream the 10-agent pipeline executing live on an uploaded log."""
+    import asyncio
+    from fastapi.responses import StreamingResponse
+    from src.agents.orchestrator import iter_pipeline
+    from src.shared.normalize import normalize
+
+    raw = await file.read()
+    try:
+        df_raw = pd.read_csv(io.BytesIO(raw))
+    except Exception as e:
+        raise HTTPException(422, f"could not parse CSV: {e}")
+
+    crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
+
+    try:
+        try:
+            df = normalize(df_raw, source="lanl")
+        except Exception:
+            df = df_raw
+        bundle = analyze_events(df, critical_assets=set(crit), incident_id=incident_id)
+    except Exception as e:
+        raise HTTPException(422, str(e))
+
+    async def gen():
+        events_df = _prepare_agent_events(df)
+        final_summary = None
+        for event_type, payload in iter_pipeline(
+            events_df,
+            scenario=f"upload:{file.filename}",
+            incident_id=incident_id,
+            entity_col=entity_col,
+            use_llm=use_llm,
+        ):
+            if event_type == "agent_progress":
+                yield f"event: progress\ndata: {json.dumps(payload)}\n\n"
+                await asyncio.sleep(0.05)
+            elif event_type == "pipeline_complete":
+                pipeline_res = payload["result"]
+                final_summary = _agent_pipeline_summary(pipeline_res)
+
+        if final_summary:
+            final_bundle = _attach_agent_pipeline(bundle, final_summary)
+            yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
+        else:
+            yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
 
 
 # --- serve the built React app (single-container deploy) -------------------

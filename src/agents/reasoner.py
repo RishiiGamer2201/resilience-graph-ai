@@ -27,32 +27,35 @@ from src.agents.summarizer import summarize_incident
 
 
 def _chain_explanation(chain: dict) -> str:
-    """Template-based explanation for one ranked chain."""
+    """Natural-language explanation for one ranked threat chain."""
     entity = chain.get("entity", "unknown")
     tids = chain.get("technique_ids", [])
     tactics = chain.get("tactic_chain", [])
-    signals = chain.get("corroborating_signals", [])
     confirmation = chain.get("confirmation", "unconfirmed")
     risk_band = chain.get("risk_band", "low")
     blast = chain.get("blast_radius", 0)
     actor_match = chain.get("actor_match", False)
 
-    tactic_str = " → ".join(tactics) if tactics else "unknown tactic chain"
-    tech_str = ", ".join(tids[:5]) if tids else "no techniques identified"
-    signal_str = "; ".join(signals[:4]) if signals else "no corroborating signals"
+    try:
+        from src.shared.views import _names
+        names = _names()
+        friendly_techs = [f"{names.get(t, t)} ({t})" for t in tids[:4]]
+    except Exception:
+        friendly_techs = tids[:4]
 
-    actor_note = (
-        " The technique sequence matches a known advanced persistent threat (APT) group's profile."
-        if actor_match else ""
-    )
-    blast_note = f" Isolating this entity would cut access to {blast} downstream node(s)." if blast > 0 else ""
+    tech_desc = ", ".join(friendly_techs) if friendly_techs else "unusual account activity"
+    tactic_desc = " → ".join(tactics) if tactics else "Active intrusion path"
 
-    return (
-        f"Entity '{entity}' ({confirmation}, {risk_band} risk): "
-        f"Observed tactic chain — {tactic_str}. "
-        f"Mapped techniques: {tech_str}. "
-        f"Corroborating evidence: {signal_str}.{actor_note}{blast_note}"
-    )
+    parts = [
+        f"Threat chain centered on {entity} is currently assessed at {risk_band.upper()} severity ({confirmation}).",
+        f"The adversary demonstrates a progressive tactical sequence traversing {tactic_desc}, utilizing techniques including {tech_desc}."
+    ]
+    if actor_match:
+        parts.append("This specific tactical profile strongly correlates with known advanced adversary campaign signatures.")
+    if blast > 0:
+        parts.append(f"Left unchecked, this vector exposes {blast} downstream operational system(s) to compromise.")
+
+    return " ".join(parts)
 
 
 def run(

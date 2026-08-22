@@ -92,6 +92,65 @@ def top_ids(technique_ids: list[str], k: int = 3) -> list[str]:
     return [t for t, _ in rank_next(technique_ids, k)[0]]
 
 
+def generate_prediction_narrative(
+    predictions: list[tuple[str, float] | dict],
+    technique_chain: list[str] | None = None,
+) -> str:
+    """Generate a coherent, plain-English projection paragraph of the attacker's next 2-3 moves."""
+    if not predictions:
+        return "No sufficient historical patterns available to project the attacker's immediate next moves."
+
+    try:
+        from src.shared.views import _names
+        names = _names()
+    except Exception:
+        names = {}
+
+    formatted_preds = []
+    for item in predictions[:3]:
+        if isinstance(item, dict):
+            tid = item.get("technique_id", "")
+            prob = item.get("probability", item.get("score", 0.0))
+            name = item.get("name") or names.get(tid, tid)
+        else:
+            tid, prob = item
+            name = names.get(tid, tid)
+        formatted_preds.append((tid, name, float(prob)))
+
+    if not formatted_preds:
+        return "No next moves projected with high statistical confidence."
+
+    last_tech_str = ""
+    if technique_chain:
+        last_tid = technique_chain[-1]
+        last_name = names.get(last_tid, last_tid)
+        last_tech_str = f"Following recent activity observed in {last_name} ({last_tid}), "
+
+    parts = [f"{last_tech_str}our predictive model anticipates the adversary's next 2–3 tactical actions:"]
+
+    for i, (tid, name, prob) in enumerate(formatted_preds, start=1):
+        pct = round(prob * 100)
+        confidence_str = f" (~{pct}% likelihood)" if pct > 0 else ""
+        name_lower = name.lower()
+        if any(k in name_lower for k in ("credential", "logon", "auth", "password", "ticket")):
+            action = "harvesting credentials or hijacking active sessions to escalate access"
+        elif any(k in name_lower for k in ("remote", "lateral", "smb", "rdp", "ssh", "service")):
+            action = "pivoting laterally to compromise adjacent domain infrastructure"
+        elif any(k in name_lower for k in ("encrypt", "impact", "ransom", "wipe", "destroy", "inhibit")):
+            action = "staging payload execution or data encryption targeting high-value infrastructure"
+        elif any(k in name_lower for k in ("discovery", "scan", "enumerat", "network", "permission")):
+            action = "scanning internal network segments to identify critical servers and domain controllers"
+        elif any(k in name_lower for k in ("persistence", "account", "backdoor", "scheduled", "task")):
+            action = "establishing persistent administrative access across reachable hosts"
+        else:
+            action = f"executing {name_lower} to advance the attack progression"
+
+        parts.append(f"• Move {i}: {name} ({tid}){confidence_str} — {action}.")
+
+    parts.append("Proactive isolation of active pivot hosts will interrupt this path before crown-jewel assets are compromised.")
+    return " ".join(parts)
+
+
 def demo() -> None:
     """Self-check: predictions are ranked, probabilities are sane."""
     m = _load()

@@ -83,6 +83,11 @@ export async function analyze({ scenario, events, critical_assets = [], incident
   return r.json();
 }
 
+// SSE URL for live 10-agent multi-agent pipeline stream
+export const agentStreamUrl = (scenario, critical_assets = []) =>
+  `${BASE}/agents/stream?scenario=${encodeURIComponent(scenario)}` +
+  (critical_assets.length ? `&critical_assets=${encodeURIComponent(critical_assets.join(','))}` : '');
+
 // SSE URL for the streaming replay (EventSource needs a plain URL; same-origin
 // /api is proxied in dev and same-origin in prod).
 export const streamUrl = (scenario, critical_assets = []) =>
@@ -173,6 +178,7 @@ export const getVulnConfig = () => get("/vulnerabilities/config");
 // Digital twin: counterfactual containment on the incident graph.
 export const twinSimulate = (body) => post("/twin/simulate", body);
 export const twinCandidates = (body) => post("/twin/candidates", body);
+export const twinChat = (body) => post("/twin/chat", body);
 
 // Full raw-event -> action provenance chain for one alert.
 export const explainStep = (body) => post("/explain", body);
