@@ -368,7 +368,7 @@ export default function DigitalTwin() {
                             marginTop: 4,
                             fontSize: 10.5,
                             color: 'var(--text-faint)',
-                            fontFamily: 'var(--font-mono)',
+                            fontFamily: 'var(--mono)',
                           }}
                         >
                           {m.method === 'deterministic'

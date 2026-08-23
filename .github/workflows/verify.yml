@@ -7,7 +7,8 @@ name: verify
 
 on:
   push:
-    branches: ["main", "finalist/**", "m*/**"]
+    branches: ["**"]          # every branch: a gate that only runs on
+                              # main cannot stop anything reaching main
   pull_request:
     branches: ["main"]
   workflow_dispatch:
@@ -92,9 +93,26 @@ jobs:
       - name: Offline API smoke test
         run: python -m scripts.smoke_api
 
-      - name: The evaluation output changed
-        if: always()
-        run: git --no-pager diff --stat -- reports/ || true
+      - name: Regenerated evidence matches what is committed
+        # This used to be `git diff --stat -- reports/ || true`, which prints a
+        # diff and exits 0 whatever it finds, while the comment beside it claimed
+        # "a change that breaks them must not merge green". That protection did
+        # not exist, and it is exactly how RESULTS.md went stale: the generator
+        # was broken for several commits and CI reported success throughout.
+        run: |
+          if ! git diff --quiet -- reports/ RESULTS.md; then
+            echo "::error::regenerated evidence differs from the committed copy."
+            echo "Run the eval scripts and commit the result, or fix the generator."
+            git --no-pager diff -- reports/ RESULTS.md
+            exit 1
+          fi
+          echo "committed evidence reproduces"
+
+      - name: Frontend tokens are all defined
+        # A custom property that is used but never defined resolves to nothing,
+        # so backgrounds render transparent and borders vanish, silently, in both
+        # themes. Four such tokens shipped before anyone noticed.
+        run: python -m scripts.check_css_tokens
 
   frontend:
     name: Frontend lint and build
