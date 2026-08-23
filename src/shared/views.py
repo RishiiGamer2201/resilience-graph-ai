@@ -30,6 +30,17 @@ MARKOV = ROOT / "models" / "next_technique_markov.pkl"
 DWELL_CITATION_DAYS = 10
 DWELL_CITATION = "Mandiant M-Trends 2024 - global median dwell ~10 days"
 
+
+def _incident_phrase(inc: dict) -> str:
+    """How many incidents the alerts clustered into, in prose.
+
+    Was the literal "this single incident", which was accurate only while
+    correlate() could not return anything else.
+    """
+    n = inc.get("incident_count", 1)
+    return "a single incident" if n == 1 else f"{n} separate incidents"
+
+
 def _scorecard() -> list[dict]:
     """Model-level benchmark scorecard, read from the canonical metrics store.
 
@@ -328,7 +339,8 @@ def report_view(full: dict) -> dict:
             f"From pivot host {full['pivot']}, the account authenticated to "
             f"{br} hosts, reaching the critical asset {crit}. "
             f"{inc['alert_count']} anomaly alerts were correlated from "
-            f"{inc['event_count']} events into this single incident."
+            f"{inc['event_count']} events into "
+            f"{_incident_phrase(inc)}."
         )
     mttd = compute_mttd(full)
     return {

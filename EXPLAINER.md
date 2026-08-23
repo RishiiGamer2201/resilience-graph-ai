@@ -45,7 +45,7 @@ the story hidden across them.** On real red-team attack data it:
 - scores **2,732** authentication events, flags **1,243** as anomalous, and clusters them
   into **51** incidents instead of 1,243 disconnected alerts;
 - draws the attacker's movement across **473 machines**, identifies **4 attacker-controlled
-  hosts**, and finds that isolating just **one** of them severs **463 machines** of exposure;
+  hosts**, and finds that isolating just **one** of them severs **452 machines** of exposure;
 - maps each step to the industry-standard MITRE ATT&CK catalogue, predicts the attacker's
   likely next move, ranks which known threat group it resembles, and recommends containment
   that a human must approve.
@@ -294,13 +294,13 @@ graph we compute what a responder actually needs:
 | Where did the attacker operate from? | Nodes with outbound movement | **4 pivots**; `C17693` alone carries **670 of 702** red-team events |
 | How far can they reach? | Reachable set from **any** pivot | **469 hosts** |
 | Which valuable machines are exposed? | Shortest path to each crown jewel | **16 crown jewels** reachable |
-| What do we unplug first? | Betweenness centrality | Isolating `C17693` **cuts 463 hosts** |
+| What do we unplug first? | Betweenness centrality | Isolating `C17693` **cuts 452 hosts** |
 
 🔬 **Under the hood** (`src/shared/attack_graph.py`). `networkx.DiGraph`; blast radius is the
 union of `descendants()` over **every** pivot (an earlier single-entry version under-reported
 457 vs the true 469 and wrongly cleared four crown jewels — fixed, with a regression test).
 Choke points are the top-3 by `betweenness_centrality`. We deliberately report two distinct
-numbers: **total exposure** (469) and **what isolating one host actually severs** (463).
+numbers: **total exposure** (469) and **what isolating one host actually severs** (452).
 
 **On "crown jewels":** LANL is anonymised and has **no asset-criticality labels** — every row
 says `medium`. So we derive them from a stated heuristic: *the hosts the most distinct accounts
@@ -554,7 +554,7 @@ because it's exactly why simple thresholds fail.
 | Attack graph | 473 hosts, 484 movements, 4 pivots |
 | Crown jewels reachable | 18 |
 | Total exposure | 469 hosts |
-| Isolating one choke point | cuts **463** hosts |
+| Isolating one choke point | cuts **452** hosts |
 
 ---
 

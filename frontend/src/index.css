@@ -67,15 +67,12 @@
 /* the hint explains what the group is FOR, in prose, quietly */
 .nav-label em {
   font-family: var(--sans); font-style: normal; text-transform: none;
-  letter-spacing: 0; font-size: 10.5px; color: var(--rule);
+  letter-spacing: 0; font-size: 10.5px; color: var(--faint);
 }
-/* The bare `:root:not([data-theme="light"])` form also matches the DEFAULT state,
- * where no theme attribute is set at all, so it was applying the dark treatment
- * in system-light mode. It only means "dark" inside the media query. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .nav-label em { color: var(--faint); opacity: .65; }
-}
-:root[data-theme="dark"] .nav-label em { color: var(--faint); opacity: .65; }
+/* No per-theme override needed: --faint is already defined in every theme, which
+ * is the point of styling through tokens. The previous version used --rule here,
+ * a BORDER token, giving 1.29:1 against the light ground -- invisible in the
+ * theme that ships -- and then repaired only dark. */
 
 .nav { display: flex; flex-direction: column; gap: 1px; }
 .nav a {

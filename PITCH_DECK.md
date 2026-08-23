@@ -110,9 +110,9 @@ flowchart LR
 | Compromised accounts in one campaign | **104** |
 | Attacker pivots | **4** — but **C17693 alone carries 670 of 702 red-team events** |
 | Crown jewels reachable | **16** · total exposure **469 hosts** |
-| **Isolate one host (C17693)** | **cuts 463 hosts of blast radius** |
+| **Isolate one host (C17693)** | **cuts 452 hosts of blast radius** |
 
-**Killer line:** "One machine ran almost the entire campaign. Isolate it, sever 463 hosts."
+**Killer line:** "One machine ran almost the entire campaign. Isolate it, sever 452 hosts."
 
 📸 **SCREENSHOT:** **Attack Graph** (full campaign) — 473-node graph with pivots, crown jewels and the blast-radius panel.
 
@@ -282,7 +282,7 @@ flowchart LR
 |---|---|---|
 | **Detection** | ~10-day median dwell | First correlated alert within the log window |
 | **Analyst load** | 1,243 alerts to triage | **51 incidents** with narratives, not 1,243 rows |
-| **Containment** | "Which of 473 hosts?" | **Isolate 1 → cut 463** |
+| **Containment** | "Which of 473 hosts?" | **Isolate 1 → cut 452** |
 | **Attribution** | Manual CTI reading | Ranked actor + auditable justification |
 | **External intel** | Separate portal | Cross-referenced to *your* techniques |
 
@@ -330,7 +330,7 @@ flowchart LR
 - **Palette:** deep navy/charcoal background, one accent blue (`#4C8DFF`); red reserved **only** for genuine severity — never decoration.
 - **Typography:** one clean sans for prose; **monospace for every identifier** (C17693, T1550.002, U66@DOM1) — it's the product's signature and reads as "real system".
 - **Density:** one idea per slide. Split any table over ~6 rows across two columns if cramped.
-- **Numbers:** big and bare (`0.992`, `1,243 → 1`, `463`). Let them carry the slide.
+- **Numbers:** big and bare (`0.992`, `1,243 → 1`, `452`). Let them carry the slide.
 - **Do not** use stock hacker imagery (hoodies, matrix code). The screenshots are the credibility.
 
 ---

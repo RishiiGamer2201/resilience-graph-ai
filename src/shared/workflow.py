@@ -110,6 +110,13 @@ class Trace:
 # --------------------------------------------------------------------------- #
 # headline metrics -- deterministic, explainable, checkable on screen           #
 # --------------------------------------------------------------------------- #
+
+def _n_incidents(inc: dict) -> str:
+    """"51 incidents" / "1 incident", never a hardcoded number."""
+    n = inc.get("incident_count", 1)
+    return f"{n} incident" if n == 1 else f"{n} incidents"
+
+
 def crown_jewel_exposure(graph: dict, designated: list[str]) -> dict:
     """0-100: how exposed the designated crown jewels are, right now.
 
@@ -393,8 +400,12 @@ def _n_signals(df: pd.DataFrame, critical: list[str], incident_id: str,
     inc, g = bundle["incident"], bundle["graph"]
     return NodeResult(
         "signals", status="ok",
+        # The count, not a hardcoded 1. correlate() used to return exactly one
+        # incident for any input, so "into 1 incident" was true by construction;
+        # it clusters now, and this string was the API still saying 1 while the
+        # screen beside it rendered 51.
         summary=(f"{inc['alert_count']} alerts from {inc['event_count']} events correlated "
-                 f"into 1 incident · {len(inc['technique_ids'])} ATT&CK techniques · "
+                 f"into {_n_incidents(inc)} · {len(inc['technique_ids'])} ATT&CK techniques · "
                  f"severity {inc['severity']}"),
         output={"bundle": bundle},
     )

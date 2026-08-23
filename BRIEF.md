@@ -109,7 +109,7 @@ prediction), **detect** (Engine 1), **understand** (correlation and graph),
 | Attack graph | 473 hosts, 484 movements, 4 attacker pivots |
 | Concentration | C17693 alone carries 670 of 702 red-team events |
 | Crown jewels reachable, total exposure | 16 reachable, 469 hosts |
-| Isolate one host (C17693) | cuts 463 hosts of blast radius |
+| Isolate one host (C17693) | cuts 452 hosts of blast radius |
 | Detection | ROC-AUC 0.992 against 702 real labelled attack events, zero attack labels in training. At the 1 percent false-positive operating point it catches 616 of 702 |
 
 ---
@@ -147,7 +147,7 @@ Click any machine to see every authentication involving it. It computes blast ra
 across all attacker pivots, not just one.
 **How it solves the problem:** This is the fix for the missing blast-radius view, the
 feature that answers "which machine do we unplug first." It surfaces the killer
-operational fact: isolate C17693, sever 463 hosts. It also fixed a real bug where
+operational fact: isolate C17693, sever 452 hosts. It also fixed a real bug where
 assuming a single entry point under-reported exposure and wrongly cleared four crown
 jewels; reachability is now unioned over every pivot.
 

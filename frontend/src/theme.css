@@ -141,7 +141,7 @@
   --text:var(--ink); --text-dim:var(--muted); --text-faint:var(--faint);
   --grid:var(--rule-soft); --ok:var(--observed);
   --text-muted:var(--muted); --surface-raised:var(--surface-2);
-  --border-soft:var(--rule-soft);
+  --border-soft:var(--rule-soft); --surface-sunken:var(--surface-2);
 }
 
 *{box-sizing:border-box}
