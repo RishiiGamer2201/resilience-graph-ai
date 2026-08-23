@@ -1,61 +1,208 @@
-/* Resilience Graph AI: SOC Command Center · design tokens (light default + dark)
-   Source of truth for the palette. Components style THROUGH these vars, never
-   hardcode colors. Toggle sets data-theme="light|dark" on <html>. */
+/* nextATT&CKs -- design tokens.
+   Direction: "Instrument". This is not a threat dashboard. It is a measuring
+   device that shows its own uncertainty, and the palette exists to make that
+   legible: the surface is neutral, and COLOUR IS ONLY EVER MEANING. Nothing is
+   coloured to look important. If something is coloured, it is because the colour
+   carries a fact -- how severe, or how well established.
+
+   The rejected alternatives, on purpose: near-black with an acid accent, the
+   glowing-card cyber look, and the generic SaaS blue (#2F6FED) this replaces.
+   All three appear in every security dashboard template, none of them says
+   anything about this product.
+
+   Components style THROUGH these vars, never hardcode a colour. */
+
 :root{
-  --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --border:#DCE2EC;
-  --text:#16202E; --text-dim:#5A6678; --text-faint:#8894A6;
-  --accent:#2F6FED; --accent-soft:#E7EEFD;
-  --sev-critical:#E5484D; --sev-high:#F2760C; --sev-medium:#DFA000;
-  --sev-low:#2F6FED; --sev-normal:#7B8798;
-  --ok:#0A7D3F; --grid:#E4E9F1;
-  --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.05);
-  --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Consolas,Menlo,monospace;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --radius:12px; --radius-sm:8px;
+  /* ---- ground: cool drafting paper, not cream, not black ---- */
+  --paper:#F1F3EF;          /* faint green cast: instrument panel, drafting stock */
+  --surface:#FBFCFA;
+  --surface-2:#E9ECE6;
+  --ink:#14181B;
+  --muted:#5B6169;
+  --faint:#878D93;
+  --rule:#D4D9CF;
+  --rule-soft:#E3E7DF;
+
+  /* ---- epistemic status. The thesis of the product, as four colours. ----
+     Every claim this system makes carries one of these. They are deliberately
+     earthy rather than saturated: an instrument reports, it does not alarm. */
+  --observed:#1F5C3D;       /* measured, or seen directly in the log */
+  --observed-bg:#E4EDE7;
+  --inferred:#8A6A16;       /* a rule fired, but the evidence is indirect */
+  --inferred-bg:#F3EDDC;
+  --disputed:#9B2C25;       /* contradicted by another signal */
+  --disputed-bg:#F6E5E3;
+  --unmeasured:#8E9196;     /* NOT MEASURED. Has its own token on purpose:
+                               "we did not measure this" is a first-class
+                               answer here, not an empty state to hide. */
+  --unmeasured-bg:#EAEBE9;
+
+  /* ---- severity. Separate axis from status: how bad, not how sure. ---- */
+  --sev-critical:#8F2B23;
+  --sev-high:#A9600F;
+  --sev-medium:#87721A;
+  --sev-low:#3F5B72;
+  --sev-normal:#8E9196;
+
+  /* ---- the one non-semantic accent, used for interaction only ---- */
+  --accent:#1B4D5A;         /* deep instrument teal: links, focus, selection */
+  --accent-soft:#DDE7E9;
+
+  --shadow:0 1px 0 rgba(20,24,27,.04), 0 1px 3px rgba(20,24,27,.06);
+  --shadow-lift:0 1px 0 rgba(20,24,27,.04), 0 8px 24px -12px rgba(20,24,27,.25);
+
+  /* ---- type. Mono is a PRIMARY face here, not a caption face. ----
+     Every measured quantity, identifier, host, technique and timestamp is set
+     in mono with tabular figures, so columns of numbers line up and a reader
+     can tell at a glance what is data and what is prose. Sans carries prose
+     only. That inversion is the typographic argument for "instrument". */
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+
+  /* ---- measure. Rules are hairlines; radii are small. An instrument has
+         tight tolerances, and a 12px radius reads as a consumer card. ---- */
+  --radius:4px;
+  --radius-sm:3px;
+  --gutter:26px;            /* the provenance gutter, see .claimrow */
 }
+
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
-  --bg:#0C111B; --surface:#131B29; --surface-2:#0F1622; --border:#233149;
-  --text:#E6ECF5; --text-dim:#8A97AC; --text-faint:#5C6B82;
-  --accent:#4C8DFF; --accent-soft:#16233C;
-  --sev-critical:#FF5A5F; --sev-high:#FF8A3D; --sev-medium:#F5C144;
-  --sev-low:#4C8DFF; --sev-normal:#5B6678; --ok:#4ade80; --grid:#1B2536;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  --paper:#12140F;
+  --surface:#191C16;
+  --surface-2:#0D0F0B;
+  --ink:#E8EBE3;
+  --muted:#9AA096;
+  --faint:#6E756A;
+  --rule:#2B2F27;
+  --rule-soft:#22261F;
+
+  --observed:#6FBF8E;  --observed-bg:#152219;
+  --inferred:#D6AE55;  --inferred-bg:#241E10;
+  --disputed:#E8817A;  --disputed-bg:#251413;
+  --unmeasured:#7E847A; --unmeasured-bg:#1B1E18;
+
+  --sev-critical:#E0736B;
+  --sev-high:#D9A05A;
+  --sev-medium:#C4B667;
+  --sev-low:#8FB0C6;
+  --sev-normal:#7E847A;
+
+  --accent:#79B9C6;
+  --accent-soft:#16252A;
+
+  --shadow:0 1px 0 rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.5);
+  --shadow-lift:0 1px 0 rgba(0,0,0,.5), 0 10px 28px -14px rgba(0,0,0,.8);
 }}
+
 :root[data-theme="dark"]{
-  --bg:#0C111B; --surface:#131B29; --surface-2:#0F1622; --border:#233149;
-  --text:#E6ECF5; --text-dim:#8A97AC; --text-faint:#5C6B82;
-  --accent:#4C8DFF; --accent-soft:#16233C;
-  --sev-critical:#FF5A5F; --sev-high:#FF8A3D; --sev-medium:#F5C144;
-  --sev-low:#4C8DFF; --sev-normal:#5B6678; --ok:#4ade80; --grid:#1B2536;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  --paper:#12140F; --surface:#191C16; --surface-2:#0D0F0B;
+  --ink:#E8EBE3; --muted:#9AA096; --faint:#6E756A;
+  --rule:#2B2F27; --rule-soft:#22261F;
+  --observed:#6FBF8E;  --observed-bg:#152219;
+  --inferred:#D6AE55;  --inferred-bg:#241E10;
+  --disputed:#E8817A;  --disputed-bg:#251413;
+  --unmeasured:#7E847A; --unmeasured-bg:#1B1E18;
+  --sev-critical:#E0736B; --sev-high:#D9A05A; --sev-medium:#C4B667;
+  --sev-low:#8FB0C6; --sev-normal:#7E847A;
+  --accent:#79B9C6; --accent-soft:#16252A;
+  --shadow:0 1px 0 rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.5);
+  --shadow-lift:0 1px 0 rgba(0,0,0,.5), 0 10px 28px -14px rgba(0,0,0,.8);
 }
+
 :root[data-theme="light"]{
-  --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --border:#DCE2EC;
-  --text:#16202E; --text-dim:#5A6678; --text-faint:#8894A6;
-  --accent:#2F6FED; --accent-soft:#E7EEFD;
-  --sev-critical:#E5484D; --sev-high:#F2760C; --sev-medium:#DFA000;
-  --sev-low:#2F6FED; --sev-normal:#7B8798; --ok:#0A7D3F; --grid:#E4E9F1;
-  --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.05);
+  --paper:#F1F3EF; --surface:#FBFCFA; --surface-2:#E9ECE6;
+  --ink:#14181B; --muted:#5B6169; --faint:#878D93;
+  --rule:#D4D9CF; --rule-soft:#E3E7DF;
+  --observed:#1F5C3D;  --observed-bg:#E4EDE7;
+  --inferred:#8A6A16;  --inferred-bg:#F3EDDC;
+  --disputed:#9B2C25;  --disputed-bg:#F6E5E3;
+  --unmeasured:#8E9196; --unmeasured-bg:#EAEBE9;
+  --sev-critical:#8F2B23; --sev-high:#A9600F; --sev-medium:#87721A;
+  --sev-low:#3F5B72; --sev-normal:#8E9196;
+  --accent:#1B4D5A; --accent-soft:#DDE7E9;
+  --shadow:0 1px 0 rgba(20,24,27,.04), 0 1px 3px rgba(20,24,27,.06);
+  --shadow-lift:0 1px 0 rgba(20,24,27,.04), 0 8px 24px -12px rgba(20,24,27,.25);
+}
+
+/* legacy aliases, so nothing breaks while screens migrate one at a time */
+:root,:root[data-theme]{
+  --bg:var(--paper); --border:var(--rule);
+  --text:var(--ink); --text-dim:var(--muted); --text-faint:var(--faint);
+  --grid:var(--rule-soft); --ok:var(--observed);
 }
 
 *{box-sizing:border-box}
 html,body,#root{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
-  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
-  transition:background .2s,color .2s}
-.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-a{color:var(--accent);text-decoration:none}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Data is mono. Prose is sans. Nothing in between. */
+.mono,code,kbd,samp{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+a{color:var(--accent);text-decoration:none;
+  border-bottom:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+a:hover{border-bottom-color:var(--accent)}
 button{font-family:var(--sans);cursor:pointer}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
 
-/* severity helpers (text + bg): shared across screens */
+/* ---- the signature: the provenance gutter ----------------------------------
+   Claims sit in a column with a fixed-width gutter on the left. Each carries one
+   mark for how well established it is. Scanning the gutter alone tells you what
+   this system actually knows versus what it inferred versus what it never
+   measured -- which is the whole argument of the product, made visible before a
+   single word is read. */
+.claimrow{display:grid;grid-template-columns:var(--gutter) 1fr;gap:0 12px;
+  padding:10px 0;border-bottom:1px solid var(--rule-soft)}
+.claimrow:last-child{border-bottom:none}
+
+.mark{width:14px;height:14px;margin-top:3px;border-radius:2px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:9px;font-weight:600;line-height:1;
+  border:1px solid currentColor}
+.mark.observed  {color:var(--observed);  background:var(--observed-bg)}
+.mark.inferred  {color:var(--inferred);  background:var(--inferred-bg)}
+.mark.disputed  {color:var(--disputed);  background:var(--disputed-bg)}
+.mark.unmeasured{color:var(--unmeasured);background:var(--unmeasured-bg);
+                 border-style:dashed}
+
+/* A measured quantity. The unit is quieter than the number, always. */
+.q{font-family:var(--mono);font-variant-numeric:tabular-nums;
+   font-size:1.6rem;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+.q .unit{font-size:.5em;color:var(--faint);margin-left:.35em;letter-spacing:0}
+.q.unmeasured{color:var(--unmeasured);font-size:1rem;letter-spacing:0}
+
+/* eyebrow: the label above a reading */
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--faint)}
+
+/* hairline card. No lift, no glow: an instrument face is flush. */
+.card{background:var(--surface);border:1px solid var(--rule);
+  border-radius:var(--radius);box-shadow:var(--shadow)}
+
+/* severity is a left edge, never a fill: it qualifies, it does not shout */
+.sev-edge{border-left:2px solid var(--sev-normal)}
+.sev-edge.critical{border-left-color:var(--sev-critical)}
+.sev-edge.high{border-left-color:var(--sev-high)}
+.sev-edge.medium{border-left-color:var(--sev-medium)}
+.sev-edge.low{border-left-color:var(--sev-low)}
+
 .s-critical{color:var(--sev-critical)} .bg-critical{background:var(--sev-critical)}
-.s-high{color:var(--sev-high)} .bg-high{background:var(--sev-high)}
-.s-medium{color:var(--sev-medium)} .bg-medium{background:var(--sev-medium)}
-.s-low{color:var(--sev-low)} .bg-low{background:var(--sev-low)}
-.s-normal{color:var(--sev-normal)} .bg-normal{background:var(--sev-normal)}
+.s-high{color:var(--sev-high)}         .bg-high{background:var(--sev-high)}
+.s-medium{color:var(--sev-medium)}     .bg-medium{background:var(--sev-medium)}
+.s-low{color:var(--sev-low)}           .bg-low{background:var(--sev-low)}
+.s-normal{color:var(--sev-normal)}     .bg-normal{background:var(--sev-normal)}
 
-/* reusable card */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow)}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---- motion: one mechanical idea, used sparingly ---------------------------
+   A reading settles; it does not bounce. Everything eases out, nothing
+   overshoots, and the only orchestrated sequence is the investigation rail
+   advancing stage by stage, which mirrors what the backend is actually doing. */
+@keyframes settle{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.settle{animation:settle .22s cubic-bezier(.2,.6,.2,1) both}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}

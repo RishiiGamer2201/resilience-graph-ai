@@ -26,7 +26,10 @@ export default function Topbar({ title, subtitle }) {
 
   return (
     <div className="topbar">
-      <h1>{title}{subtitle && <small>{subtitle}</small>}</h1>
+      <div className="topbar-head">
+        <h1>{title}</h1>
+        {subtitle && <p className="topbar-sub">{subtitle}</p>}
+      </div>
       <span className={`pill ${live ? 'live' : 'sample'}`}
         title={live ? 'Rendering a live analysis you ran' : 'Pre-computed sample analysis of a shipped real log'}>
         <span className="d" />

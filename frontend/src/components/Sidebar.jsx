@@ -1,29 +1,53 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database, ScanSearch, Satellite, Users, Crosshair, ClipboardCheck, Cpu } from 'lucide-react'
+import {
+  ClipboardCheck, Crosshair, Cpu, Database, LayoutDashboard, LineChart,
+  Radar, Satellite, ScanSearch, Shield, Users, Waypoints,
+} from 'lucide-react'
 
-const OPERATIONS = [
-  { to: '/investigate', label: 'Investigation', icon: Crosshair },
-  { to: '/analyze', label: 'Analyze Log', icon: ScanSearch },
-  { to: '/overview', label: 'Overview', icon: LayoutDashboard },
-  { to: '/digital-twin', label: 'Digital Twin', icon: Cpu },
-  { to: '/attackers', label: 'Attackers', icon: Users },
-  { to: '/incident', label: 'Live Incident', icon: Radar, alert: true },
-  { to: '/graph', label: 'Attack Graph', icon: Waypoints },
-  { to: '/threat-intel', label: 'Threat Intel & Attribution', icon: Shield },
-  { to: '/threat-radar', label: 'Threat Radar', icon: Satellite },
-]
-const EVIDENCE = [
-  { to: '/scoreboard', label: 'PS7 Scoreboard', icon: ClipboardCheck },
-  { to: '/metrics', label: 'Models & Metrics', icon: LineChart },
-  { to: '/methodology', label: 'Data & Methodology', icon: Database },
+/* Three groups, and the grouping is an argument rather than a filing system.
+ *
+ * ANALYSE is what you do to a log. EVIDENCE is what the system will show you to
+ * back a claim. METHOD is how it was measured. A reader who never clicks past
+ * the labels still learns that this product separates a finding from its
+ * justification -- which is the thing it is actually for. */
+const GROUPS = [
+  {
+    label: 'Analyse',
+    hint: 'a log, end to end',
+    items: [
+      { to: '/investigate', label: 'Investigation', icon: Crosshair },
+      { to: '/analyze', label: 'Analyse log', icon: ScanSearch },
+      { to: '/overview', label: 'Overview', icon: LayoutDashboard },
+      { to: '/incident', label: 'Incident timeline', icon: Radar },
+      { to: '/graph', label: 'Attack path', icon: Waypoints },
+      { to: '/attackers', label: 'Accounts', icon: Users },
+    ],
+  },
+  {
+    label: 'Evidence',
+    hint: 'what backs a claim',
+    items: [
+      { to: '/threat-intel', label: 'Attribution', icon: Shield },
+      { to: '/threat-radar', label: 'External intel', icon: Satellite },
+      { to: '/digital-twin', label: 'Containment twin', icon: Cpu },
+    ],
+  },
+  {
+    label: 'Method',
+    hint: 'how it was measured',
+    items: [
+      { to: '/scoreboard', label: 'Scoreboard', icon: ClipboardCheck },
+      { to: '/metrics', label: 'Models & metrics', icon: LineChart },
+      { to: '/methodology', label: 'Data & methodology', icon: Database },
+    ],
+  },
 ]
 
-function NavItem({ to, label, icon: Icon, alert }) {
+function NavItem({ to, label, icon: Icon }) {
   return (
     <NavLink to={to} className={({ isActive }) => (isActive ? 'active' : undefined)}>
-      <Icon className="ic" strokeWidth={2} aria-hidden="true" />
+      <Icon className="ic" strokeWidth={1.75} aria-hidden="true" />
       <span>{label}</span>
-      {alert && <span className="dot" aria-label="active alert" />}
     </NavLink>
   )
 }
@@ -31,25 +55,32 @@ function NavItem({ to, label, icon: Icon, alert }) {
 export default function Sidebar() {
   return (
     <aside className="rail">
+      {/* The wordmark is the ampersand, because the product is named for the
+        * ATT&CK catalogue and that is the one glyph the name owns. The old mark
+        * was a letter "R", left over from a previous name the product no longer
+        * has. */}
       <div className="brand">
-        <div className="mark">R</div>
-        <div>
-          <b>{'nextATT&CKs'}</b>
-          <span>SOC Command Center</span>
+        <div className="mark" aria-hidden="true">&amp;</div>
+        <div className="brand-text">
+          <b>nextATT&amp;CKs</b>
+          <span>Authentication-log forensics</span>
         </div>
       </div>
 
-      <div className="nav-label">Operations</div>
-      <nav className="nav" aria-label="Operations">
-        {OPERATIONS.map((n) => <NavItem key={n.to} {...n} />)}
-      </nav>
+      {GROUPS.map((g) => (
+        <div className="nav-group" key={g.label}>
+          <div className="nav-label">
+            {g.label}<em>{g.hint}</em>
+          </div>
+          <nav className="nav" aria-label={g.label}>
+            {g.items.map((n) => <NavItem key={n.to} {...n} />)}
+          </nav>
+        </div>
+      ))}
 
-      <div className="nav-label">Evidence</div>
-      <nav className="nav" aria-label="Evidence">
-        {EVIDENCE.map((n) => <NavItem key={n.to} {...n} />)}
-      </nav>
-
-      <div className="rail-foot">PS7 · Critical National Infrastructure</div>
+      <div className="rail-foot">
+        <span className="mono">PS7</span> Critical National Infrastructure
+      </div>
     </aside>
   )
 }
