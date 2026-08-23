@@ -6,6 +6,7 @@
   "pivot": "C17693",
   "alert_count": 1243,
   "event_count": 2732,
+  "incident_count": 51,
   "attack_chain": [
     "Lateral Movement",
     "Initial Access",

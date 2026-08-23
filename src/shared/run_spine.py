@@ -1,9 +1,9 @@
 """
-Milestone 4 · Shared-spine driver — runs S2→S3→S4→S5 on a REAL LANL incident.
+Milestone 4 · Shared-spine driver -- runs S2→S3→S4→S5 on a REAL LANL incident.
 
 Takes the busiest red-team user's authentications from the LANL window, scores
 them with the trained E1.3 detector, correlates into one incident, maps to
-ATT&CK, builds the attack-path graph, and recommends gated SOAR actions —
+ATT&CK, builds the attack-path graph, and recommends gated SOAR actions --
 writing an evidence-backed incident report.
 
     ./.venv/Scripts/python.exe -m src.shared.run_spine
@@ -35,7 +35,7 @@ def build_real_incident() -> pd.DataFrame:
     df = engineer(pd.read_parquet(PARQUET))
     victim = df[df.label == 1]["user"].value_counts().index[0]
     # scope to the ATTACK SESSION: the victim's events within the red-team time
-    # window (+/- 1h context) — not their entire lifetime history.
+    # window (+/- 1h context) -- not their entire lifetime history.
     mal = df[(df.user == victim) & (df.label == 1)]
     pivot = mal["source_host"].mode().iloc[0]        # attacker's pivot host
     t0, t1 = mal["timestamp"].min() - 3600, mal["timestamp"].max() + 3600
@@ -67,7 +67,11 @@ def main() -> None:
     soar = recommend(incident, ga)
 
     OUT_JSON.write_text(json.dumps(
-        {"incident": {k: v for k, v in incident.items() if k not in ("steps", "alerts")},
+        {"incident": {k: v for k, v in incident.items()
+                       # `incidents` carries every sub-incident WITH its own
+                       # steps and alerts, so leaving it in re-inlines the
+                       # per-event detail this comprehension exists to strip.
+                       if k not in ("steps", "alerts", "incidents")},
          "graph": ga, "soar": soar}, indent=2), encoding="utf-8")
 
     # full version (with per-event steps) for the Live Incident screen
@@ -88,21 +92,21 @@ def main() -> None:
         f"**Compromised account:** {victim} · **alerts:** {incident['alert_count']} "
         f"correlated from {incident['event_count']} events (alert-fatigue reduction).",
         "",
-        "## S2 — Correlated attack chain (ATT&CK tactics)",
+        "## S2 -- Correlated attack chain (ATT&CK tactics)",
         f"`{tchain}`",
-        f"- Techniques: {', '.join(incident['technique_ids']) or '—'}",
+        f"- Techniques: {', '.join(incident['technique_ids']) or '--'}",
         "",
-        "## S4 — Attack-path graph",
+        "## S4 -- Attack-path graph",
         f"- Graph: **{ga['n_nodes']} hosts**, {ga['n_edges']} movement edges.",
         f"- Entry / pivot host: **{ga['entry_host']}** (fan-out to {ga['blast_radius_size']} hosts).",
-        f"- Critical assets reachable: {ga['critical_assets_at_risk'] or '—'}.",
-        f"- Choke points to isolate (betweenness): {ga['choke_points'] or '—'}.",
+        f"- Critical assets reachable: {ga['critical_assets_at_risk'] or '--'}.",
+        f"- Choke points to isolate (betweenness): {ga['choke_points'] or '--'}.",
         f"- **Recommended isolation: {ga['recommended_isolation']}** "
         f"→ cuts a blast radius of {ga['blast_radius_size']} hosts.",
         "",
-        "## S5 — Simulated SOAR response (confidence-gated)",
+        "## S5 -- Simulated SOAR response (confidence-gated)",
         f"- Policy: {soar['gating_policy']}",
-        f"- ATT&CK mitigations: {', '.join(soar['mitre_mitigations']) or '—'}",
+        f"- ATT&CK mitigations: {', '.join(soar['mitre_mitigations']) or '--'}",
         "",
         "| Tactic | Action | Mode |",
         "|---|---|---|",

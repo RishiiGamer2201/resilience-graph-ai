@@ -1,4 +1,4 @@
-"""PS7 operational evaluation harness — the numbers the scoreboard shows.
+"""PS7 operational evaluation harness -- the numbers the scoreboard shows.
 
 The model metrics (ROC-AUC, PR-AUC, top-k) come from the Engine 1/2 eval scripts.
 This harness measures the OPERATIONAL half of PS7, which nothing else measures:
@@ -99,7 +99,9 @@ def measure(runs: int = 3) -> dict:
             "scenario": name,
             "events": inc["event_count"],
             "alerts": inc["alert_count"],
-            "incidents": 1,
+            # Was hardcoded to 1, which was true only because correlate()
+            # could not return anything else. Now it is measured.
+            "incidents": inc.get("incident_count", 1),
             # Share of ingested events that raised an alert. Published because it
             # is the number that decides whether an analyst can run this, and it
             # is currently bad: the behavioural features are recomputed per upload
@@ -247,14 +249,14 @@ def write_report(m: dict) -> None:
         f"({am['alerts_with_technique']} of {am['alerts']})",
         f"- emitted technique IDs valid against the canonical ATT&CK lookups: "
         f"**{am['id_validity']:.1%}** (invalid: {am['invalid_technique_ids'] or 'none'})",
-        f"- event->technique precision: **Not measured** — {am['ground_truth_note']}",
+        f"- event->technique precision: **Not measured** -- {am['ground_truth_note']}",
         "", "## SOAR coverage", "",
         f"- observed tactics with a playbook action: **{sc['tactic_coverage']:.1%}** "
         f"({', '.join(sc['tactics_with_playbook_action'])})",
         f"- observed techniques with real MITRE mitigations: "
         f"**{sc['mitigation_coverage']:.1%}**",
         f"- actions executed against a real system: **{sc['actions_executed_against_real_systems']}** "
-        "(by design — every action is simulated and human-gated)",
+        "(by design -- every action is simulated and human-gated)",
         "", "## Latency", "",
         f"- p50 **{lat['p50']:.0f} ms**, p95 **{lat['p95']:.0f} ms**, max {lat['max']:.0f} ms "
         f"over {lat['samples']} runs ({lat['scope']})",

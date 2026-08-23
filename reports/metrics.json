@@ -168,9 +168,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 219.9,
-      "p95": 1893.6,
-      "max": 3030.9,
+      "p50": 242.1,
+      "p95": 1928.1,
+      "max": 5624.6,
       "samples": 12,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -213,7 +213,7 @@
           "scenario": "aiims_ransomware",
           "events": 125,
           "alerts": 26,
-          "incidents": 1,
+          "incidents": 2,
           "alert_rate": 0.208,
           "alert_reduction_ratio": 4.81,
           "techniques": [
@@ -238,7 +238,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 222.8,
+          "latency_ms_median": 220.9,
           "degraded_nodes": []
         },
         {
@@ -270,14 +270,14 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 155.1,
+          "latency_ms_median": 162.1,
           "degraded_nodes": []
         },
         {
           "scenario": "lanl_campaign_all",
           "events": 2732,
           "alerts": 1243,
-          "incidents": 1,
+          "incidents": 51,
           "alert_rate": 0.455,
           "alert_reduction_ratio": 2.2,
           "techniques": [
@@ -303,7 +303,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1801.0,
+          "latency_ms_median": 1780.1,
           "degraded_nodes": [
             "understand"
           ]
@@ -312,7 +312,7 @@
           "scenario": "lanl_redteam_u66",
           "events": 215,
           "alerts": 208,
-          "incidents": 1,
+          "incidents": 9,
           "alert_rate": 0.9674,
           "alert_reduction_ratio": 1.03,
           "techniques": [
@@ -337,13 +337,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 217.1,
+          "latency_ms_median": 263.3,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-23 21:42 IST"
+      "evaluated_at": "2026-08-23 22:26 IST"
     }
   },
   "engine3": {
