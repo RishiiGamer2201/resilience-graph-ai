@@ -33,16 +33,36 @@ Please include the endpoint or file, what you did, and what happened.
   environment and never returned by an endpoint or exposed to the browser.
 - **Uploaded data is never persisted.** Analysis is in memory and nothing is
   written to disk.
-- **Nothing leaves the host by default.** There is exactly one exception and it is
-  off unless you switch it on: setting `GEMINI_API_KEY` enables an optional
-  narrative-wording call in the 10-agent pipeline that **transmits incident
-  summaries to Google**. Without that variable no incident-derived content leaves
-  the machine, and `/api/capabilities` reports which state you are in. The call
-  goes through the same allowlisted, SSRF-guarded fetcher as everything else, the
-  key travels in a header rather than the URL, and the resulting text is always
-  labelled non-authoritative.
-- **Retrieved document text is evidence, never instruction.** There is no LLM in any
-  decision path to inject into, and displayed excerpts are sanitised.
+- **Nothing leaves the host by default.** The exception is the optional
+  language-model layer (`src/shared/llm.py`), which supports **OpenAI** and
+  **Google Gemini** and **transmits incident-derived text to whichever you
+  enable**. Two things must both be true before a single byte goes out: the
+  provider's key must be present, and `NEXTATTACK_LLM_PROVIDER` must name it.
+
+  **A key on its own does nothing, and that default was chosen the hard way.**
+  While this layer was being written, an `OPENAI_API_KEY` was found already
+  exported in the development shell for unrelated tooling. Under the `auto`
+  default it had, the product would have begun sending incident text to a paid
+  third party on the first run, on a key nobody had pointed at this app. An
+  ambient credential is not consent, so enabling a provider is now an explicit
+  act and `tests/test_llm.py` fails if that ever regresses.
+
+  Both providers go through the same allowlisted, SSRF-guarded fetcher as
+  everything else; keys travel in headers, never in a URL, so they stay out of
+  logs and out of any redirect target; `/api/llm` and `/api/health` report which
+  provider is active without ever returning a key; and the resulting text is
+  always labelled non-authoritative, in the payload and on screen.
+- **A language model never decides anything.** It rewords figures the
+  deterministic pipeline already computed. It produces no score, no severity, no
+  technique id, no probability and no approval. A provider that is unreachable,
+  rate-limited or returns nonsense costs us prose, never a decision: every caller
+  falls back to a deterministic template and says which path produced the text.
+- **Retrieved document text is evidence, never instruction.** No LLM sits in a
+  decision path to inject into. Where text does reach a model, trusted facts and
+  untrusted material are separate arguments to `llm.render()`, the untrusted side
+  is fenced, angle brackets inside it are neutralised so a document cannot close
+  its own fence, and instruction-shaped content is flagged to the reader rather
+  than acted on. Displayed excerpts are sanitised.
 - **Model artifacts are trusted build outputs**, committed to the repository and
   copied by the Dockerfile. No user-supplied path reaches a pickle loader; there is no
   "upload a model" feature. Artifact hashes are stamped into every audit record.

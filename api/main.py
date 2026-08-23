@@ -120,10 +120,22 @@ def _cached(name: str) -> dict:
 def health():
     """Liveness. Keeps its original shape; /api/readiness has the detail."""
     from src.shared import evidence as _ev
+    from src.shared import llm as _llm
     return {"ok": True,
             "cache_built": (CACHE / "overview.json").exists(),
             "evidence_index": _ev.available(),
+            # Whether a language model is on, and which. Reported so a reader
+            # never has to guess whether prose came from a model or a template,
+            # and so an unintended provider is visible rather than silent.
+            "llm": _llm.status(),
             "version": os.environ.get("NEXTATTACK_VERSION", "dev")}
+
+
+@app.get("/api/llm")
+def llm_status():
+    """What the language-model layer is doing. Never returns a key."""
+    from src.shared import llm as _llm
+    return _llm.status()
 
 
 @app.get("/api/overview")

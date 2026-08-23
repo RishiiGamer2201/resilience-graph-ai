@@ -53,13 +53,16 @@ export default function DigitalTwin() {
     {
       role: 'assistant',
       content:
-        'Hello! I am your **Digital Twin Executive Advisor**. I monitor ongoing security simulations and can explain attack progression, business risks, and containment decisions in clear, plain English without overwhelming technical jargon.\n\nHow can I assist you with this incident today?',
+        'I explain this incident in plain English, using only figures the analysis already computed.\n\nAsk what is at risk, what to isolate, which advisories apply, or what this analysis cannot tell you.\n\n_I restate and explain. I do not decide, and I do not approve actions._',
       sources: [],
       follow_ups: QUICK_PROMPTS.slice(0, 3),
     },
   ])
   const [input, setInput] = useState('')
   const [chatBusy, setChatBusy] = useState(false)
+  // What the backend says about the language-model layer, so the header
+  // reports what is actually on rather than a fixed claim.
+  const [llm, setLlm] = useState(null)
   const chatBottomRef = useRef(null)
 
   const activeGraph = bundle?.graph || graphData
@@ -116,8 +119,11 @@ export default function DigitalTwin() {
           sources: res.sources || [],
           follow_ups: res.follow_ups || [],
           method: res.method,
+          model: res.model || '',
+          llmError: res.llm_error || '',
         },
       ])
+      setLlm(res.llm || null)
     } catch (e) {
       setMessages((prev) => [
         ...prev,
@@ -148,7 +154,7 @@ export default function DigitalTwin() {
         </span>
         <h2>Digital Twin Simulation Lab &amp; AI Advisor</h2>
         <p className="mono">
-          Simulate zero-risk counterfactual containment on a cloned attack graph and chat with our RAG-grounded
+          Simulate zero-risk counterfactual containment on a cloned attack graph and ask the
           executive advisor for plain-English explanations.
         </p>
       </div>
@@ -303,7 +309,11 @@ export default function DigitalTwin() {
                   <Bot size={16} style={{ color: 'var(--accent)' }} /> Digital Twin AI Advisor (Plain English)
                 </span>
               }
-              meta="executive copilot · RAG-grounded"
+              meta={
+                llm?.enabled
+                  ? `${llm.active_provider} · ${llm.providers?.[llm.active_provider]?.model || ''} · not authoritative`
+                  : 'offline · deterministic templates · no language model'
+              }
             />
             <div className="card-b pad" style={{ display: 'flex', flexDirection: 'column', height: 580 }}>
               {/* Chat Messages Container */}
@@ -349,6 +359,23 @@ export default function DigitalTwin() {
                       >
                         {m.content}
                       </div>
+
+                      {/* Where this reply came from. The API returns it; not
+                          showing it let a template read as a model answer. */}
+                      {!isUser && m.method && (
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 10.5,
+                            color: 'var(--text-faint)',
+                            fontFamily: 'var(--font-mono)',
+                          }}
+                        >
+                          {m.method === 'deterministic'
+                            ? `template · no language model${m.llmError ? ` · ${m.llmError}` : ''}`
+                            : `${m.method}${m.model ? ` · ${m.model}` : ''} · reworded, not authoritative`}
+                        </div>
+                      )}
 
                       {/* Evidence Citations */}
                       {!isUser && m.sources?.length > 0 && (

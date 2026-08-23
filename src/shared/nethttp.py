@@ -46,11 +46,12 @@ ALLOWED_HOSTS: set[str] = {
     # RAG corpus sources (src/retrieval/ingest.py), build-time only
     "bazaar.abuse.ch",
     "atlas.mitre.org",
-    # Optional BYOK narrative wording (src/agents/summarizer.py). OFF unless
-    # GEMINI_API_KEY is set. This is the ONLY host that receives incident-derived
-    # content rather than sending us public reference data, which is why it is
-    # called out here and in SECURITY.md.
+    # Optional bring-your-own-key LLM providers (src/shared/llm.py). BOTH are
+    # off unless the matching key is set. These are the ONLY hosts that receive
+    # incident-derived content rather than sending us public reference data,
+    # which is why they are called out here and in SECURITY.md.
     "generativelanguage.googleapis.com",
+    "api.openai.com",
 }
 
 
