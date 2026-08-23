@@ -124,11 +124,24 @@
   --shadow-lift:0 1px 0 rgba(20,24,27,.04), 0 8px 24px -12px rgba(20,24,27,.25);
 }
 
-/* legacy aliases, so nothing breaks while screens migrate one at a time */
+/* Aliases. Two kinds, and the second kind is a bug fix.
+ *
+ * The first are the names the screens were written against before this palette
+ * existed, kept so they can migrate one at a time instead of all at once.
+ *
+ * The second are names the screens were ALREADY using that were never defined
+ * anywhere: --text-muted, --surface-raised and --border-soft appear in 13 places
+ * across four screens. An undefined custom property resolves to nothing, so
+ * those backgrounds were transparent and those borders simply absent, on both
+ * themes, since the day they were written. Defining them here fixes all
+ * thirteen; the alternative was thirteen edits and the same risk of the
+ * fourteenth. */
 :root,:root[data-theme]{
   --bg:var(--paper); --border:var(--rule);
   --text:var(--ink); --text-dim:var(--muted); --text-faint:var(--faint);
   --grid:var(--rule-soft); --ok:var(--observed);
+  --text-muted:var(--muted); --surface-raised:var(--surface-2);
+  --border-soft:var(--rule-soft);
 }
 
 *{box-sizing:border-box}
