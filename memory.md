@@ -18,7 +18,7 @@
 - ✅ **M2 Engine 1**: CICIDS anomaly (AE PR-AUC 0.570 best) · LANL lateral movement **ROC 0.988** (the moat) · UNSW 0.829.
 - ✅ **M3 Engine 2**: 199+4 sequences · embeddings · **interpolated Markov shipped** (top-3 38.1%, 5.4× kill-chain baseline; LSTM/biLSTM/2nd-order honest negatives) · attribution over 172 profiles.
 - ✅ **M4 spine**: 215 events → 1 CRITICAL incident (U66@DOM1) · 94-host graph, pivot C17693 → C2388 · gated SOAR. `run_spine.py` end-to-end.
-- ✅ **M5 app**: FastAPI (7 cached GETs + 2 live POSTs) · React 6 screens + splash · live widgets with cached fallback · incident report (.md/print) + MTTD panel · full stack verified running.
+- ✅ **M5 app**: FastAPI (7 cached GETs + 2 live POSTs) · React 6 screens + splash · live widgets that fail visibly rather than fabricating a score · incident report (.md/print) + MTTD panel · full stack verified running.
 - ✅ **Deploy**: single-container Dockerfile + `render.yaml`; runtime artifacts force-added to git.
 - ✅ Docs scaffold: prd/architecture/rules/phases/design/memory (2026-07-16).
 - ✅ **Finalist surface** (branch `finalist/furnish-nextattack`): cited evidence index (1,545 chunks, BM25 + exact-ID boost, recall@5 0.857) · deterministic vulnerability prioritisation (KEV × criticality × graph reachability) · digital-twin counterfactual with operational cost · server-side RBAC + approval policy · hash-linked tamper-evident audit chain · bounded 7-node workflow with node timings · 11-stage explainability trace · PS7 scoreboard read from `reports/metrics.json` · guarded outbound HTTP (allowlist + SSRF + redirect re-validation). Tests 31 → 152. Docs: 4 ADRs, threat model, cost ledger, runbook, demo script, judge Q&A.
@@ -39,7 +39,11 @@
 - `requirements-deploy.txt` pins scikit-learn **1.7.2** to match the pickled models — bump only together with re-training.
 - Live endpoints need local `models/` — otherwise UI silently shows "cached" badge (by design).
 - **Live analysis uses FIXED score_ref calibration**, so the demo scenario now shows ~209 alerts (was 131 offline with batch min/max scaling). Intentional — consistent across uploads + matches /score-event. Pivot C17693, 215 events unchanged.
-- **MTTD is "immediate"** on the demo log (attacker's first pivot event is already anomalous). Weeks→minutes headline rests on the *cited* Mandiant dwell (~10 d), labelled a citation not our claim.
+- **MTTD**: 2 h on the synthetic scenarios, still "immediate" on the LANL exports because
+  that window starts at the pivot host. It read "immediate" everywhere until the
+  calibration fix, for a bad reason: every event alerted, so the first log line was
+  always a detection and time-to-detect was necessarily zero. The weeks it is compared
+  against remains a *cited* Mandiant dwell (~10 d), labelled a citation, not our claim.
 - **The Dockerfile never copied `models/ae_lanl.npz`** — the deployed container silently fell back to the IsolationForest and scored differently from the build we measured. Fixed, and `scripts/check_dockerfile.py` now fails if a required runtime artifact is not COPYed or is excluded by `.dockerignore`. That check needs no Docker daemon.
 - **`views.SCORECARD` had drifted** to LANL ROC 0.988 (the IsolationForest we stopped shipping) against a measured 0.992. It reads `reports/metrics.json` now, and a test fails if it drifts again.
 - **ATT&CK mapping coverage was 37.5%**: a flagged authentication that was neither a failure nor a first-time host got no technique at all. Anomalous successful logins now map to T1078 Valid Accounts, gated on the alert score. Coverage 100%.

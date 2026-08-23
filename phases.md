@@ -48,7 +48,7 @@ Correlation (215 events → 1 CRITICAL incident, U66@DOM1) → ATT&CK mapping (T
 - 5.2 Design tokens light+dark (`theme.css`) ✅
 - 5.3 React app: 6 screens + login splash ✅
 - 5.4 Hero screens: incident replay + live scorer · force-graph + live predictor ✅
-- 5.5 Integration + live→cached fallback, full stack verified ✅
+- 5.5 Integration, full stack verified ✅ (the live→cached fallback was later removed: it fabricated scores from hand-tuned weights)
 - 5.6 Audit-ready incident report + MTTD panel ✅
 
 ## Phase 6 — Deploy ✅

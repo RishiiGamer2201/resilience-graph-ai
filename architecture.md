@@ -114,7 +114,7 @@ ET_HACK_26/
 │       └── timeutil.py         # IST timestamps (fixed +5:30, no tzdata needed)
 ├── frontend/                   # Vite + React 19 SPA
 │   └── src/
-│       ├── api.js              # API client + live→cached fallback
+│       ├── api.js              # API client; live model calls fail visibly, no fallback
 │       ├── lib/analysis.jsx    # AnalysisProvider + useScreenData (live bundle overrides sample)
 │       ├── components/         # Layout, Sidebar, Topbar, Card, widgets, IncidentReport
 │       └── screens/            # Login, Analyze, Overview, Attackers, Incident, Graph, ThreatIntel, ThreatRadar, Metrics, Methodology

@@ -3,7 +3,9 @@
 > **Living document — update every working session.** Last updated: 2026-07-16.
 
 **Event:** ET AI Hackathon 2026 · **Problem Statement:** PS7 — AI-Driven Cyber Resilience for Critical National Infrastructure
-**One-liner:** Detect low-and-slow attacks in real infrastructure logs, connect weak signals into an explainable MITRE ATT&CK attack chain, predict the attacker's next moves, name the likely actor, and recommend gated containment — cutting detection time from weeks to minutes.
+**One-liner:** Detect low-and-slow attacks in real infrastructure logs, connect weak signals into an explainable MITRE ATT&CK attack chain, predict the attacker's next moves, name the likely actor, and recommend gated containment. On the synthetic scenarios the first correlated
+alert lands 2 hours into the log; the "weeks" that is compared against is a cited
+Mandiant dwell median, not a measurement of ours.
 
 ---
 
@@ -47,7 +49,7 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 - **8 screens:** **Analyze Log** · Overview · **Attackers** (all 104 compromised accounts; open one → its own scoped incident) · Live Incident (replay + SSE stream + live event scoring) · Attack Graph (click-a-host, account filter, focused exposure subgraphs) · Threat Intel & Attribution (live prediction) · **Threat Radar** · Models & Metrics · Data & Methodology. Plus login splash (no real auth).
 - **Scenarios:** the full LANL red-team campaign (104 accounts, one machine — C17693 — carrying 670/702 events), a single-account view, a synthetic **AIIMS-style hospital ransomware** and **CBSE-style exam-board breach** (concrete India CNI), plus an upload-to-prove-it's-live sample.
 - **Campaign-wide, not one account** — the graph computes blast radius / choke points / crown-jewels-at-risk across **all** attacker pivots; crown jewels are a stated heuristic (hosts the most accounts depend on), never a fabricated label.
-- The committed sample cache is itself a **real live analysis** of a shipped LANL red-team log — sample and live use the identical pipeline. Live model widgets keep a silent cached fallback so the pitch never breaks.
+- The committed sample cache is itself a **real live analysis** of a shipped LANL red-team log — sample and live use the identical pipeline. Live model widgets have NO fallback: if the model is unreachable they show an error, because a widget that keeps producing plausible scores without a model behind it is worse than one that stops.
 - **Threat Radar (external CTI)** — free, purpose-built intel feeds (CISA KEV, CISA advisories, The Hacker News, BleepingComputer; optional AlienVault OTX / ThreatFox behind free keys) mapped to real ATT&CK techniques and **cross-referenced with the incident you're investigating** ("same technique / same tactic / mentions your attributed actor"). Cached at build time + live refresh. Closes the loop: outside world → your infrastructure.
 - Audit-ready incident report (download .md / print) + MTTD panel (detection latency measured from the log; industry dwell cited, not asserted).
 - Single-container deploy (Docker, Render free tier).
