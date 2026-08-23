@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Microscope } from 'lucide-react'
 import { Card, CardHeader } from './Card.jsx'
+import CalibrationBadge, { CalibrationNote } from './CalibrationBadge.jsx'
 import { explainStep } from '../api.js'
+import { useAnalysis } from '../lib/analysis.jsx'
 
 // "Why did you flag this one line?" — the whole computation, read back, for a
 // single alert. Each stage names the module that produced it and the value it
@@ -11,6 +13,11 @@ export default function ExplainTrace({ scenario, criticalAssets, events }) {
   const [trace, setTrace] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  // The banner quotes one raw score. It is the score of the analysis currently
+  // loaded, so its scale is that bundle's meta.calibration -- the panel that
+  // explains a number is the last place it should appear unqualified.
+  const { bundle } = useAnalysis()
+  const cal = bundle?.meta?.calibration
 
   useEffect(() => {
     if (!scenario && !events) return
@@ -47,6 +54,12 @@ export default function ExplainTrace({ scenario, criticalAssets, events }) {
             score {trace.step.anomaly_score} · {trace.step.technique_id}
           </span>
         </div>
+        {cal && (
+          <div className="calblock">
+            <CalibrationBadge label="score scale" />
+            <CalibrationNote />
+          </div>
+        )}
         <ol className="trace">
           {trace.stages.map((s) => (
             <li key={s.stage}>

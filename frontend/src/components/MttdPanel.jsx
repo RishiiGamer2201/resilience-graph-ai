@@ -1,14 +1,25 @@
+import { CircleSlash } from 'lucide-react'
 import { Card, CardHeader } from './Card.jsx'
 
-// Weeks -> minutes detection-time visual. Proportional bars would make "ours"
-// invisible (21 days vs 4 min), so we use fixed emphasis widths and state the
-// real compression factor in text.
+// Two numbers that are NOT the same kind of fact, drawn side by side and
+// labelled as such: what this log measured (first event -> first correlated
+// alert), and a published median dwell time we cite. The old title claimed
+// "weeks to minutes" as if both halves were ours; the weeks are Mandiant's.
+//
+// Proportional bars would make the measured value invisible next to a 10-day
+// median, so the widths are fixed emphasis, not a scale -- the numbers beside
+// them are the fact.
+//
+// Every value comes from the payload. A missing measurement renders "Not
+// measured": defaulting to "< 1 min" invented the exact metric this panel is
+// supposed to report.
 export default function MttdPanel({ mttd }) {
-  const days = mttd?.traditional_days ?? 10
-  const secs = mttd?.ours_seconds ?? 0
-  const oursLabel = mttd?.value ?? '< 1 min'
-  // detection compression vs cited industry dwell; guard the immediate (0s) case
-  const factor = secs > 0 ? Math.round((days * 86400) / secs) : null
+  const secs = typeof mttd?.ours_seconds === 'number' ? mttd.ours_seconds : null
+  const days = typeof mttd?.traditional_days === 'number' ? mttd.traditional_days : null
+  const oursLabel = mttd?.value
+  // detection compression vs the cited dwell median; needs both numbers, and
+  // guards the immediate (0s) case
+  const factor = days !== null && secs > 0 ? Math.round((days * 86400) / secs) : null
 
   const Row = ({ label, value, width, color }) => (
     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 78px',
@@ -23,20 +34,37 @@ export default function MttdPanel({ mttd }) {
     </div>
   )
 
+  if (!oursLabel || secs === null) {
+    return (
+      <Card>
+        <CardHeader title="Time to first correlated alert" meta="MTTD" />
+        <div className="card-b pad" style={{ display: 'flex', gap: 8, alignItems: 'center',
+                                             color: 'var(--text-faint)', fontSize: 13 }}>
+          <CircleSlash size={15} aria-hidden="true" />
+          Not measured -- this analysis carries no detection-latency measurement.
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card>
-      <CardHeader title="Detection time: weeks to minutes" meta="MTTD" />
+      <CardHeader title="Time to first correlated alert" meta="MTTD · measured in this log" />
       <div className="card-b pad">
-        <Row label={`Industry median dwell`} value={`≈ ${days} d`}
-             width="100%" color="var(--sev-critical)" />
-        <Row label={'nextATT&CKs'} value={oursLabel}
+        {days !== null && (
+          <Row label="Industry median dwell (cited)" value={`≈ ${days} d`}
+               width="100%" color="var(--sev-critical)" />
+        )}
+        <Row label={'nextATT&CKs (measured)'} value={oursLabel}
              width="3%" color="var(--accent)" />
         <div style={{ marginTop: 6, fontSize: 13, color: 'var(--text)' }}>
-          {factor
-            ? <>Detection compressed <b className="mono s-low">{factor.toLocaleString()}×</b>{' '}
-                — from <b>{days} days</b> of typical dwell to <b>{oursLabel}</b>.</>
-            : <>First correlated alert fired <b className="s-low">{oursLabel}</b> — on the first
-                anomalous authentication, vs a <b>{days}-day</b> industry median dwell.</>}
+          Measured <b className="s-low">{oursLabel}</b> from the first event in this log to
+          the first correlated alert.
+          {factor !== null && <> That is <b className="mono s-low">{factor.toLocaleString()}×</b>{' '}
+            shorter than the cited <b>{days}-day</b> median dwell -- a published figure, not
+            a second measurement of ours.</>}
+          {factor === null && days !== null && <> The <b>{days}-day</b> dwell bar above is a
+            published median, not something we measured.</>}
           {mttd?.citation && <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-faint)' }}>
             Dwell reference: {mttd.citation}</div>}
         </div>

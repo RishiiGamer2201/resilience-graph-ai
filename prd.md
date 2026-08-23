@@ -16,7 +16,7 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 | Piece | What it does | Scoring axis |
 |---|---|---|
 | **Engine 1 — Real Detection** | Unsupervised anomaly / lateral-movement detection on real data (CIC-IDS2017, LANL, UNSW-NB15), evaluated against LANL's real red-team ground truth | Technical Excellence (20%) |
-| **Engine 2 — Prediction + Attribution** | Predicts the attacker's next ATT&CK technique(s) (Markov, shipped) and ranks the likely APT group (transparent profile retrieval) | Innovation (25%) |
+| **Engine 2 — Prediction + Attribution** | Predicts the attacker's next ATT&CK technique(s) (interpolated Markov, shipped) and ranks the likely APT group (transparent profile retrieval) | Innovation (25%) |
 | **Shared spine** | normalize → correlate alerts into incidents → ATT&CK map → attack-path graph (choke points, blast radius) → confidence-gated SOAR | UX + Business Impact |
 | **SOC Command Center** | FastAPI + React demo app: 6 screens, pre-cached data + 2 live model endpoints, audit-ready incident report | UX (15%) |
 
@@ -30,22 +30,22 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 
 ### Detection (Engine 1)
 - Benign-only IsolationForest + autoencoder on CIC-IDS2017 flows (PR-AUC 0.570 best, lift over random + rule baselines).
-- LANL lateral-movement detector: 7 behavioral auth features, **ROC-AUC 0.988** vs 702 real red-team events; NTLM-ablation robustness (0.906 behavioral-only).
+- LANL lateral-movement detector (autoencoder, benign-only): 7 behavioral auth features, **ROC-AUC 0.992** vs 702 real red-team events, TPR@1%FPR 87.7%. NTLM ablation is a known weakness, not a robustness result: behavioral-only ROC holds at 0.906 but TPR@1%FPR collapses to **22.8%**.
 - UNSW-NB15 second benchmark (ROC-AUC 0.829, official split preserved).
 
 ### Prediction & attribution (Engine 2)
-- Next-technique prediction: first-order Markov over 199 ATT&CK group/campaign sequences + 4 manual CERT-In sequences. Top-3 38.6%; **4.7× the kill-chain-order baseline** (anti-circularity proof). LSTM kept as documented negative result.
+- Next-technique prediction: interpolated Markov over 199 ATT&CK group/campaign sequences + 4 manual CERT-In sequences. Top-3 38.1%; **5.4× the kill-chain-order baseline** (anti-circularity proof). LSTM kept as documented negative result.
 - Actor attribution: transparent ranking over 172 ATT&CK group profiles (coverage 55% + Jaccard 20% + semantic similarity 25%), templated auditable justification. NOT a trained classifier.
 
 ### Shared spine
 - 12-field common event schema (all datasets normalize into it).
-- Correlation: 215 raw LANL events → 131 alerts → **1 incident** (alert-fatigue reduction).
+- Correlation: 215 raw LANL events → 208 alerts → **9 incidents** (alert-fatigue reduction). Correlation clusters; it does not collapse a log to one incident. Measured per scenario in `reports/ps7_eval.md`: aiims 2, cbse 1, lanl_redteam_u66 9, lanl_campaign_all 51.
 - ATT&CK mapping with real technique descriptions (no hallucinated IDs).
 - Attack-path graph: 94 hosts, pivot C17693, shortest path to crown jewel C2388, betweenness choke points, blast-radius = 93 hosts cut by isolating 1 node.
 - Simulated SOAR: actions seeded from real ATT&CK mitigations, gated (low=monitor · medium=ticket · high=contain · critical-asset=human approval).
 
 ### Demo app (SOC Command Center)
-- **Live analysis pipeline (`POST /api/analyze`)** — pick a shipped scenario or upload a CSV event log; the backend scores **every event** with the real IsolationForest, correlates into one incident, maps ATT&CK, builds the attack graph, gates SOAR, attributes an actor, and predicts the next technique — all computed per request. Every screen renders the live result; a topbar pill shows LIVE vs SAMPLE. Judges can feed their own data.
+- **Live analysis pipeline (`POST /api/analyze`)** — pick a shipped scenario or upload a CSV event log; the backend scores **every event** with the shipped autoencoder, correlates the alerts into incidents, maps ATT&CK, builds the attack graph, gates SOAR, attributes an actor, and predicts the next technique — all computed per request. Every screen renders the live result; a topbar pill shows LIVE vs SAMPLE. Judges can feed their own data.
 - **8 screens:** **Analyze Log** · Overview · **Attackers** (all 104 compromised accounts; open one → its own scoped incident) · Live Incident (replay + SSE stream + live event scoring) · Attack Graph (click-a-host, account filter, focused exposure subgraphs) · Threat Intel & Attribution (live prediction) · **Threat Radar** · Models & Metrics · Data & Methodology. Plus login splash (no real auth).
 - **Scenarios:** the full LANL red-team campaign (104 accounts, one machine — C17693 — carrying 670/702 events), a single-account view, a synthetic **AIIMS-style hospital ransomware** and **CBSE-style exam-board breach** (concrete India CNI), plus an upload-to-prove-it's-live sample.
 - **Campaign-wide, not one account** — the graph computes blast radius / choke points / crown-jewels-at-risk across **all** attacker pivots; crown jewels are a stated heuristic (hosts the most accounts depend on), never a fabricated label.
@@ -55,7 +55,7 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 - Single-container deploy (Docker, Render free tier).
 
 ## What is NOT faked (the anti-"hardcoded" guarantee)
-Every number on screen is either computed live from the analysed log or a labelled citation. Anomaly scores come from the real IsolationForest; the incident/graph/attribution/prediction are the actual spine output; MTTD is measured from timestamps. Change the input and the output changes.
+Every number on screen is either computed live from the analysed log or a labelled citation. Anomaly scores come from the shipped autoencoder; the incidents/graph/attribution/prediction are the actual spine output; MTTD is measured from timestamps. Change the input and the output changes.
 
 ## Non-goals (deliberate scope boundaries, not shortcuts)
 - **No social-media scraping (Facebook / Instagram / X / Google results).** Evaluated and rejected: it violates those platforms' terms and is actively blocked; "tracking an attacker" from public posts is person-level attribution that risks naming the wrong people; and nothing external can be "stopped" from a dashboard. The Threat Radar uses legitimate CTI feeds built for programmatic use instead — same intent, defensible execution.

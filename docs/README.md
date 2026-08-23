@@ -28,14 +28,19 @@ everything else.
 - [architecture/adr/0004-frontend-stays-as-is.md](architecture/adr/0004-frontend-stays-as-is.md)
   — why no TypeScript migration, no Tailwind, no shadcn, no map
 - [architecture/adr/0005-semantic-retrieval-supersedes-0003.md](architecture/adr/0005-semantic-retrieval-supersedes-0003.md)
-  — the measurement that overturned ADR 0003: semantic retrieval leads, lexical
-  becomes the fallback
+  — the measurement that overturned ADR 0003: semantic retrieval leads on a
+  developer laptop, lexical becomes the fallback. **Amended by ADR 0008**
 - [architecture/adr/0006-evidence-calibrated-claims.md](architecture/adr/0006-evidence-calibrated-claims.md)
   — ATT&CK conclusions become claims with status, missing evidence and benign
   alternatives; the single attack score splits into four numbers
 - [architecture/adr/0007-two-pipelines-one-authority.md](architecture/adr/0007-two-pipelines-one-authority.md)
   — two analysis lanes, one authority: the 10-agent pipeline becomes a
   partially-independent cross-check rather than a competing verdict
+- [architecture/adr/0008-deployed-retriever-is-lexical.md](architecture/adr/0008-deployed-retriever-is-lexical.md)
+  — amends ADR 0005: semantic retrieval has never run in a deployed container
+  (1.09 GB of dependencies against a 512 MB instance, no vendored weights, and
+  the query embedding needs the network), so lexical is the shipped retriever
+  and the published headline number is the lexical one
 - [../architecture.md](../architecture.md) — full system architecture, folder tree,
   tech stack *(root)*
 - [../design.md](../design.md) — design tokens, palette, components *(root)*

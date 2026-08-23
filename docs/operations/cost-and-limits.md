@@ -32,9 +32,9 @@ Container image builds from `python:3.10-slim` + `node:20-slim` build stage.
 
 | Work | Time |
 |---|---|
-| Full seven-node investigation, AIIMS scenario (125 events) | ~110 ms |
-| Full seven-node investigation, LANL campaign (2,732 events) | ~860 ms cold, ~250 ms warm |
-| p50 / p95 across all shipped scenarios | 51 ms / 224 ms |
+| Full seven-node investigation, AIIMS scenario (125 events) | ~221 ms |
+| Full seven-node investigation, LANL campaign (2,732 events) | ~1780 ms |
+| p50 / p95 across all shipped scenarios | 242 ms / 1928 ms |
 | Pipeline at the documented 50,000-event cap | 2.19 s |
 | Evidence index in memory | 474 KB gzipped on disk, ~6 MB tokenised |
 

@@ -169,7 +169,9 @@ fails the build if any document cites an out-of-date number.
 
 **"Will this scale?"**
 Measured at nine input sizes: 2,732 events in 0.131 s, 50,000 in 2.19 s, on a laptop
-CPU with no GPU. The full seven-node investigation is 51 ms p50, 224 ms p95.
+CPU with no GPU. The full seven-node investigation is 242 ms p50, 1928 ms p95
+across all shipped scenarios (`reports/ps7_eval.md`); the p95 is the 2,732-event
+LANL campaign, the largest log we ship.
 In-memory graph analytics are comfortable to about 50,000 events per analysis — that
 is the documented cap, enforced at the trust boundary — and beyond it we shard or move
 to a graph database behind the existing repository boundary.

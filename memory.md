@@ -15,9 +15,9 @@
 
 ## What has been completed
 - ✅ **M0–M1** env + data foundation (CICIDS 2.30M flows · LANL 11.2M-row red-team window · ATT&CK lookups · frozen schema).
-- ✅ **M2 Engine 1**: CICIDS anomaly (AE PR-AUC 0.570 best) · LANL lateral movement **ROC 0.988** (the moat) · UNSW 0.829.
+- ✅ **M2 Engine 1**: CICIDS anomaly (AE PR-AUC 0.570 best) · LANL lateral movement **ROC 0.992**, TPR@1%FPR 87.7% (the moat; autoencoder shipped) · UNSW 0.829.
 - ✅ **M3 Engine 2**: 199+4 sequences · embeddings · **interpolated Markov shipped** (top-3 38.1%, 5.4× kill-chain baseline; LSTM/biLSTM/2nd-order honest negatives) · attribution over 172 profiles.
-- ✅ **M4 spine**: 215 events → 1 CRITICAL incident (U66@DOM1) · 94-host graph, pivot C17693 → C2388 · gated SOAR. `run_spine.py` end-to-end.
+- ✅ **M4 spine**: 215 events → 208 alerts → 9 incidents (U66@DOM1) · 94-host graph, pivot C17693 → C2388 · gated SOAR. `run_spine.py` end-to-end.
 - ✅ **M5 app**: FastAPI (7 cached GETs + 2 live POSTs) · React 6 screens + splash · live widgets that fail visibly rather than fabricating a score · incident report (.md/print) + MTTD panel · full stack verified running.
 - ✅ **Deploy**: single-container Dockerfile + `render.yaml`; runtime artifacts force-added to git.
 - ✅ Docs scaffold: prd/architecture/rules/phases/design/memory (2026-07-16).
@@ -35,10 +35,10 @@
 - **Threat Radar "relevant to your incident" is legitimately EMPTY** with the demo LANL incident: it's auth-based (T1550.002/T1110 = lateral-movement/credential-access) while public feeds are vuln/malware-dominated (initial-access/execution/impact). Verified not a bug — a synthetic T1190/T1486 incident scores 7 hits. The screen explains this honestly. Don't "fix" it by loosening matching.
 - **Threat Radar optional keys:** `OTX_API_KEY`, `ABUSECH_AUTH_KEY` (both free signups). Without them those 2 sources are skipped; the 4 no-key sources still deliver 40 items. abuse.ch/ThreatFox now 401s without a key (policy changed).
 - Attribution "100% top-1" is near-trivial by construction — never headline it; demo with 3–4 observed techniques.
-- Manual (real-ordered) prediction is much harder than auto (8.7% vs 38.6% top-3) — prediction is a supporting feature; lean the pitch on Engine 1 + attribution.
+- Manual (real-ordered) prediction is much harder than auto (10.0% vs 38.1% top-3) — prediction is a supporting feature; lean the pitch on Engine 1 + attribution.
 - `requirements-deploy.txt` pins scikit-learn **1.7.2** to match the pickled models — bump only together with re-training.
 - Live endpoints need local `models/` — otherwise UI silently shows "cached" badge (by design).
-- **Live analysis uses FIXED score_ref calibration**, so the demo scenario now shows ~209 alerts (was 131 offline with batch min/max scaling). Intentional — consistent across uploads + matches /score-event. Pivot C17693, 215 events unchanged.
+- **Live analysis uses FIXED score_ref calibration**, so the demo scenario now shows 208 alerts (was 131 offline with batch min/max scaling). Intentional — consistent across uploads + matches /score-event. Pivot C17693, 215 events unchanged.
 - **MTTD**: 2 h on the synthetic scenarios, still "immediate" on the LANL exports because
   that window starts at the pivot host. It read "immediate" everywhere until the
   calibration fix, for a bad reason: every event alerted, so the first log line was
@@ -47,7 +47,7 @@
 - **The Dockerfile never copied `models/ae_lanl.npz`** — the deployed container silently fell back to the IsolationForest and scored differently from the build we measured. Fixed, and `scripts/check_dockerfile.py` now fails if a required runtime artifact is not COPYed or is excluded by `.dockerignore`. That check needs no Docker daemon.
 - **`views.SCORECARD` had drifted** to LANL ROC 0.988 (the IsolationForest we stopped shipping) against a measured 0.992. It reads `reports/metrics.json` now, and a test fails if it drifts again.
 - **ATT&CK mapping coverage was 37.5%**: a flagged authentication that was neither a failure nor a first-time host got no technique at all. Anomalous successful logins now map to T1078 Valid Accounts, gated on the alert score. Coverage 100%.
-- **`rank_candidates` recomputed betweenness centrality per candidate** — 5.9 s on the impact node, when it only needs reachability. Investigation is ~51 ms p50 now.
+- **`rank_candidates` recomputed betweenness centrality per candidate** — 5.9 s on the impact node, when it only needs reachability. The full 7-node investigation now measures **242 ms p50 / 1928 ms p95** (`reports/ps7_eval.md`); the p95 is dominated by the 2,732-event LANL campaign scenario.
 - **The SPA read `incident.users_involved`** while the view exposed `accounts_involved`, rendering "0 accounts" instead of crashing. The view carries both now, and `tests/test_ui_contract.py` asserts every key the screens dereference — that file is the type system across a boundary with no TypeScript.
 - **MTTR stays Not measured** while every action is simulated. Do not let anyone put a number on that card.
 - **Default auth is authorisation WITHOUT authentication** (`X-Role` header) — deliberate, so a judge can switch roles with no signup, and `/api/capabilities` says so. `NEXTATTACK_ROLE_TOKENS` switches to bearer tokens.

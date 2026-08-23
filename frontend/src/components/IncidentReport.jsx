@@ -3,15 +3,19 @@ import { getReport } from '../api.js'
 import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader } from './Card.jsx'
 import CalibrationBadge, { CalibrationNote } from './CalibrationBadge.jsx'
+import { scaleSuffix } from '../lib/format.js'
 
 // `cal` is bundle.meta.calibration. The exported file leaves the app, so the
 // scale has to leave with it -- a bare "/100" in a downloaded report is the same
-// unqualified claim this badge exists to stop.
+// unqualified claim this badge exists to stop. Nothing here can be recovered by
+// looking at a screen later, so when the bundle carries no calibration block the
+// export says so outright instead of falling silent like the in-app badge does.
 function toMarkdown(r, cal) {
+  const scale = scaleSuffix(cal) || ' · scale: not recorded in this bundle'
   const L = [
     `# Incident Report: ${r.incident_id}`, '',
     `- Generated: ${r.generated_at}`,
-    `- Severity: ${r.severity.toUpperCase()} (max anomaly ${r.max_anomaly_score}/100)`,
+    `- Severity: ${r.severity.toUpperCase()} (max anomaly ${r.max_anomaly_score}/100${scale})`,
     ...(cal ? [`- Score basis: ${cal.basis}`] : []),
     ...(cal?.note ? [`- Calibration: ${cal.note}`] : []),
     `- Account: ${r.account} · Pivot: ${r.pivot}`, '',
@@ -28,7 +32,10 @@ function toMarkdown(r, cal) {
     ...r.response_actions.map((a) => `- [${a.mode}] ${a.action}`),
     '', '## Evidence',
     `- Detector: LANL lateral-movement, ROC-AUC ${r.evidence.lanl_roc_auc} (${r.evidence.basis})`,
-    `- MTTD: ~${r.mttd.traditional_days} days → ~${r.mttd.ours_minutes} min`,
+    // Two separate facts, not one arrow: what we measured, and what somebody
+    // else published. The old `days → min` line read as a single measurement.
+    `- MTTD: ${r.mttd.value} to the first correlated alert (measured in this log)`,
+    `- Dwell comparison: ${r.mttd.citation} (cited, not our measurement)`,
   ]
   return L.join('\n')
 }

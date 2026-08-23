@@ -16,7 +16,7 @@ import Progression from '../components/Progression.jsx'
 import { getCapabilities, getScenarios, investigate, resetAudit, twinCandidates } from '../api.js'
 import { useAnalysis } from '../lib/analysis.jsx'
 import { useSession } from '../lib/session.jsx'
-import { scaleSuffix } from '../lib/format.js'
+import { incidentCount, scaleSuffix } from '../lib/format.js'
 import { CalibrationNote } from '../components/CalibrationBadge.jsx'
 
 // The hero scenario: a concrete Indian critical-infrastructure story with a named
@@ -98,6 +98,7 @@ export default function Investigate() {
   const degraded = caps?.degraded || []
   const inc = result?.signals?.incident
   const graph = result?.signals?.graph
+  const incidents = incidentCount(inc?.incident_count ?? result?.meta?.incident_count)
 
   return (
     <>
@@ -214,11 +215,14 @@ export default function Investigate() {
             subtitle="detect, correlate, map, predict">
             <div className="grid2">
               <Card>
-                <CardHeader title="One correlated incident" meta={inc.incident_id} />
+                {/* Correlation returns however many incidents it found. The
+                    title used to say "One" and the row used to end in a literal
+                    1, beside two live numbers from the same object. */}
+                <CardHeader title={incidents} meta={inc.incident_id} />
                 <div className="card-b pad kv">
                   {[
                     ['Severity', `${inc.severity} · peak score ${inc.max_anomaly_score}/100${scaleSuffix(result.meta?.calibration)}`],
-                    ['Collapsed', `${inc.event_count} events → ${inc.alert_count} alerts → 1 incident`],
+                    ['Collapsed', `${inc.event_count} events → ${inc.alert_count} alerts → ${incidents}`],
                     ['Accounts', `${inc.accounts_involved?.length ?? 0}`],
                     ['ATT&CK chain', inc.technique_ids.join(' → ') || '—'],
                     ['Attacker pivot', graph.entry_host],

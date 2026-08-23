@@ -5,6 +5,7 @@ import { getAttackers, getIncident, analyze } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import CalibrationBadge from '../components/CalibrationBadge.jsx'
 import { fmtTime } from '../lib/format.js'
 
 // The campaign log every per-account incident is carved out of.
@@ -17,6 +18,8 @@ export default function Attackers() {
   const { bundle, setBundle } = useAnalysis()
   const data = (bundle?.attackers?.length > 1 ? bundle.attackers : null) || cached
   const { data: incident } = useScreenData('incident', getIncident)
+  // The scale every "Max score" in the table below is on.
+  const cal = bundle?.meta?.calibration
   const navigate = useNavigate()
 
   const [q, setQ] = useState('')
@@ -106,6 +109,9 @@ export default function Attackers() {
               style={{ fontSize: 12, padding: '4px 8px', minWidth: 220 }} />
           </span>
         </CardHeader>
+        {/* Pinned outside the scroll container, like the incident timeline's:
+            the "Max score" column stays qualified however far you scroll. */}
+        {cal && <div className="calstrip"><CalibrationBadge label="max score scale" /></div>}
         <div className="card-b" style={{ maxHeight: 620, overflowY: 'auto' }}>
           <table className="mtable">
             <thead>

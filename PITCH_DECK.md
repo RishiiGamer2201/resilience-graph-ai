@@ -97,9 +97,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A["2,732 raw<br/>auth events"] --> B["Score every event<br/>IsolationForest"]
+  A["2,732 raw<br/>auth events"] --> B["Score every event<br/>autoencoder"]
   B --> C["1,243 anomaly<br/>alerts"]
-  C --> D["ONE correlated<br/>incident"]
+  C --> D["51 correlated<br/>incidents"]
   D --> E["ATT&CK chain<br/>T1550.002 · T1110 · T1021"]
   E --> F["Attack graph<br/>473 hosts · 4 pivots"]
   F --> G["Gated SOAR<br/>human approval"]
@@ -125,10 +125,10 @@ flowchart LR
 | Feature | What it does | Real? |
 |---|---|---|
 | **Analyze any log** | Pick a scenario or **upload your own CSV** — the whole app re-renders on your data | ✅ live per request |
-| **Campaign view** | All **104** compromised accounts in one incident, not one victim | ✅ |
+| **Campaign view** | All **104** compromised accounts in one campaign, not one victim | ✅ |
 | **Per-account drill-down** | Open any account → its own scoped incident, graph and report | ✅ |
 | **Attack-path graph** | Click a host to see every authentication; blast radius across **all** pivots | ✅ |
-| **Live event scoring** | Score a single auth event on stage with the real IsolationForest | ✅ |
+| **Live event scoring** | Score a single auth event on stage with the shipped autoencoder | ✅ |
 | **Next-technique prediction** | Ranked next moves with a real transition probability (e.g. **52.5%**) | ✅ |
 | **Actor attribution** | Ranked ATT&CK group + auditable justification | ✅ transparent retrieval |
 | **Threat Radar** | India-first external CTI mapped to ATT&CK, cross-referenced to *your* incident | ✅ live feeds |

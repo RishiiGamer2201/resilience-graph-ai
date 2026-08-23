@@ -2,8 +2,8 @@
 Live analysis engine — run the WHOLE spine on an arbitrary event log at request
 time. This is what makes the SOC Command Center actually work rather than replay
 one pre-baked incident: feed it events (a CSV/rows in the common schema) and it
-scores every event with the real IsolationForest, correlates them into one
-incident, builds the attack-path graph, gates SOAR, attributes an actor, and
+scores every event with the shipped autoencoder, correlates the alerts into
+incidents, builds the attack-path graph, gates SOAR, attributes an actor, and
 predicts the next technique — all computed live.
 
     from src.shared.live_analyze import analyze_events

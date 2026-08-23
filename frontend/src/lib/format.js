@@ -66,6 +66,17 @@ export function shortExplanation(explanation) {
 // block (the cached sample), because inventing a basis is worse than silence.
 export const scaleSuffix = (cal) => (cal?.basis ? ` · scale: ${cal.basis}` : '')
 
+// ---- incident count --------------------------------------------------------
+// How many DISTINCT incidents the alerts clustered into, straight from the
+// payload (`incident.incident_count` / `meta.incident_count`). It used to be a
+// literal 1 on three screens, from the days when correlate() could only return
+// one. Never defaults to 1: an absent count says it was not measured, because a
+// wrong count is indistinguishable from a measured one.
+export function incidentCount(n) {
+  if (typeof n !== 'number') return 'correlated incidents (count not measured)'
+  return `${n} correlated incident${n === 1 ? '' : 's'}`
+}
+
 // Wall-clock timestamp in the operator's timezone (IST) — matches the backend's
 // src/shared/timeutil.fmt_ist so every timestamp in the product reads the same.
 export function nowIST() {

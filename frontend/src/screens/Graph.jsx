@@ -6,6 +6,7 @@ import { getGraph, getAttackers, analyze } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import CalibrationBadge from '../components/CalibrationBadge.jsx'
 import { useTheme } from '../lib/theme.jsx'
 import { cssVar, fmtTime, severityFromScore } from '../lib/format.js'
 
@@ -80,8 +81,11 @@ function HostDetail({ id, data, onClose, onPick }) {
             {f.accounts.length > 3 ? `${f.accounts.length} accounts` : (f.accounts.join(', ') || '—')}</span></div>
         <div className="row"><span className="k">Techniques</span>
           <span className="v mono" style={{ fontSize: 12 }}>{f.techniques.join(' ') || '—'}</span></div>
+        {/* A score is meaningless without the scale it was produced on, so the
+            badge rides beside it (it reads meta.calibration itself). */}
         <div className="row"><span className="k">Max anomaly</span>
-          <span className={`v s-${severityFromScore(f.maxScore)}`}>{f.maxScore}/100</span></div>
+          <span className={`v s-${severityFromScore(f.maxScore)}`}>{f.maxScore}/100</span>
+          <CalibrationBadge label="max anomaly scale" /></div>
       </div>
 
       {f.outbound.length > 0 && (

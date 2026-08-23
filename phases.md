@@ -31,17 +31,17 @@ venv (Python 3.10.11), `requirements.txt`, repo skeleton, `src/schema.py` frozen
 
 ## Phase 2 — Engine 1: real detection ✅
 - Baselines first (random + packet-rate rule) → IsolationForest (PR-AUC 0.473, 3.1× random) → autoencoder (best, PR-AUC 0.570).
-- LANL lateral movement: ROC-AUC **0.988**, TPR@5%FPR 96.6%, NTLM ablation 0.906.
+- LANL lateral movement (autoencoder shipped): ROC-AUC **0.992**, TPR@1%FPR 87.7%, TPR@5%FPR 96.6%. NTLM ablation: ROC holds at 0.906 but TPR@1%FPR falls to 22.8% — a weakness, not a robustness result.
 - UNSW-NB15 second benchmark: ROC-AUC 0.829.
 
 ## Phase 3 — Engine 2: prediction & attribution ✅ (one loose end)
 - 199 auto sequences + 4 manual CERT-In (report-ordered, TEST-only).
-- Embeddings sanity-passed; predictor bake-off → **Markov shipped** (top-3 38.6%, 4.7× kill-chain baseline; LSTM honest negative result).
+- Embeddings sanity-passed; predictor bake-off → **interpolated Markov shipped** (top-3 38.1%, 5.4× kill-chain baseline; LSTM honest negative result).
 - Attribution: 172 profiles, transparent scoring + justification.
 - ⏳ **Loose end:** CERT-In sequence mappings unverified (0/4) — team must verify before quoting manual numbers in the pitch.
 
 ## Phase 4 — Shared spine ✅
-Correlation (215 events → 1 CRITICAL incident, U66@DOM1) → ATT&CK mapping (T1550.002 pass-the-hash) → 94-host attack graph (pivot C17693, crown jewel C2388, blast radius 93) → gated SOAR. Driver: `run_spine.py`.
+Correlation (215 events → 208 alerts → 9 incidents, U66@DOM1) → ATT&CK mapping (T1550.002 pass-the-hash) → 94-host attack graph (pivot C17693, crown jewel C2388, blast radius 93) → gated SOAR. Driver: `run_spine.py`.
 
 ## Phase 5 — SOC Command Center ✅
 - 5.1 FastAPI + frozen JSON contract + `build_cache.py` ✅
@@ -89,4 +89,4 @@ Asked: could we OSINT social media to track attackers and stop attacks? Assessed
 2. **0:30** Live Incident replay on real LANL data → incidents → pass-the-hash. *Live: score an event on stage.*
 3. **1:15** Attack Graph: path to the database; isolating 1 host cuts 93.
 4. **2:00** Threat Intel: attribute actor; *live: predict next move.*
-5. **2:30** Models & Methodology: "ROC 0.988 on genuine red-team data, honest baselines, no accuracy theater." Weeks → minutes.
+5. **2:30** Models & Methodology: "ROC 0.992 on genuine red-team data, honest baselines, no accuracy theater — including the NTLM ablation that goes against us." Weeks → minutes.

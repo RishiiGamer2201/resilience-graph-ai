@@ -37,7 +37,7 @@ The whole app then runs on your data.
 I pick the real red-team attack. / And I click Analyze.
 See this badge on top / it says LIVE ANALYSIS. *(feature: LIVE / SAMPLE badge)*
 That means everything you see now / is computed right now. Not fake.
-It scored two thousand seven hundred events. / It found one thousand two hundred alerts. / And joined them into just **one** incident."
+It scored two thousand seven hundred events. / It found one thousand two hundred alerts. / And grouped them into **fifty one** incidents. / Fifty one stories to read, / not twelve hundred rows."
 
 ---
 
@@ -48,7 +48,7 @@ It scored two thousand seven hundred events. / It found one thousand two hundred
 **SAY:**
 "This is the Overview. / A quick summary.
 Here is the time to the first alert, / measured from the log itself. *(feature: measured MTTD)*
-Here is the active incident. / One attack, one story.
+Here is the top incident. / Each one is a story, / not a pile of rows.
 And here are our model scores, / from honest testing. *(feature: detector benchmarks)*"
 
 ---
@@ -197,7 +197,7 @@ That is all **9 sidebar screens** and every feature inside them.
 |---|---|
 | Events analysed | 2,732 |
 | Alerts | 1,243 |
-| Incidents | 1 |
+| Incidents | 51 |
 | Compromised accounts | 104 |
 | Machines in the graph | 473 |
 | Attacker foothold machines | 4 |

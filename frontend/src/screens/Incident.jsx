@@ -7,7 +7,7 @@ import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveScoreWidget from '../components/LiveScoreWidget.jsx'
 import IncidentReport from '../components/IncidentReport.jsx'
 import CalibrationBadge, { CalibrationNote } from '../components/CalibrationBadge.jsx'
-import { severityFromStep, fmtTime, describeAccount, describeHost, describeStep, shortExplanation } from '../lib/format.js'
+import { severityFromStep, fmtTime, describeAccount, describeHost, describeStep, shortExplanation, incidentCount } from '../lib/format.js'
 
 const SEV_LABEL = { critical: 'critical', high: 'high', medium: 'medium', low: 'low', normal: 'normal' }
 
@@ -155,7 +155,8 @@ export default function Incident() {
           <Card>
             <CardHeader title="What this means" />
             <div className="card-b pad" style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.6 }}>
-              {data.event_count} raw sign-in events collapsed into a single correlated incident —
+              {data.event_count} raw sign-in events collapsed into{' '}
+              {incidentCount(data.incident_count ?? bundle?.meta?.incident_count)} --
               {' '}{data.alert_count} flagged anomalous. The account appears to reuse stolen
               authentication material from {describeHost(data.pivot)}, then attempts repeated
               password guesses.{' '}
