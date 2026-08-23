@@ -71,7 +71,8 @@ one.
   caught, reported as `not available`, and the investigation completes unchanged —
   tested.
 - Latency: the agent lane adds roughly 90 ms to an investigation. It can be
-  disabled with `run_crosscheck=False`.
+  disabled with `run_crosscheck=False`. **This figure is stale; see the
+  2026-08-23 addendum for measured numbers.**
 - The narrative is the agent lane's, and it is never authoritative regardless of
   whether a template or an LLM produced it.
 
@@ -133,3 +134,100 @@ Two honest consequences:
   it. The prioritiser now says so in its own notes, and `matched_actors` lists
   the groups so a reader can see that "APT28 uses pass-the-hash" is not an
   attribution of this incident to APT28.
+
+## Addendum, 2026-08-23: merging the digital-twin branch
+
+`feature/digital-twin-reasoning-simulation` brought a plain-English advisor, a
+streaming agent pipeline, a containment-aware isolation search and a Digital
+Twin screen. Merged, with four defects repaired first and the latency claim
+above corrected.
+
+### The lane ran twice per investigation
+
+The branch added an agent-lane invocation inside `_n_signals`, and the
+cross-check added by this ADR already ran its own. Same frame, same scenario,
+measured at two `run_pipeline` calls per `investigate()`. The lane now runs once
+in `_n_signals` and the cross-check reuses the stashed summary. It could never
+have disagreed with itself usefully in any case: it was the same computation.
+
+`_n_signals` also imported `_attach_agent_pipeline` from `api.main`, so
+`src/shared` depended on the API layer. Only an inside-the-function import kept
+that off the import graph. The helper moved to `src.shared.enrich`.
+
+### Measured latency, replacing the 90 ms above
+
+| Scenario | Events | Deterministic analysis | Agent lane adds |
+|---|---|---|---|
+| aiims_ransomware | 125 | ~30 ms | **419 ms** |
+| lanl_campaign_all | 2,732 | 185 ms | **1,910 ms** |
+
+The lane is now roughly ten times more expensive than this ADR claimed. Nothing
+regressed: the fixes in `6f637bf` made it do the work it was always supposed to,
+mapping 269 of 287 flagged chunks instead of 60 and building 307 graph nodes
+instead of 222. A second opinion costing 1.9 s against a 185 ms authoritative
+answer is a real trade, and the honest way to state it is that **the
+deterministic result is available in under 200 ms and the cross-check is
+advisory**. If interactive latency ever matters more than the second opinion,
+`run_crosscheck=False` is the switch and confidence drops accordingly, which is
+the behaviour this ADR already specifies.
+
+The new isolation search was suspected first and cleared by measurement: 47 ms
+across two calls on the 473-node LANL graph.
+
+### What was repaired before merging
+
+The branch's narrative work made the output far more readable and, in several
+places, made it assert things the data does not support. The readability is
+kept; the claims are not.
+
+- **`chat_advisor.py` invented facts.** An unknown crown-jewel list defaulted to
+  `["core database server", "domain controller"]` and an unknown blast radius to
+  3, so a bundle with no graph produced a confident briefing naming two servers
+  that do not exist. It also said "our digital twin simulated taking X offline"
+  and "the simulation confirms this eliminates risk" on a keyword match against
+  the user's question, with no simulation run. Rewritten: absent values are
+  reported absent, no outcome is promised, and the reply is never authoritative
+  by either path.
+- **Retrieved advisories went into the LLM prompt unfenced**, against this
+  project's standing rule that retrieved content is evidence and never
+  instruction. Excerpts are now fenced, the system prompt states the fence is
+  quoted material, and a document containing instruction-like text is flagged in
+  the reply rather than acted on.
+- **Citations were given invented sources.** A missing URL defaulted to
+  `https://attack.mitre.org` and a missing publisher to `MITRE / CISA / CERT-In`.
+  A guessed citation is worse than none because it survives being checked. It
+  was also reading `text` and `source_id` from `evidence.search`, which returns
+  `excerpt` and `section`, so every excerpt was empty.
+- **The streaming UI announced a model that never runs.** Stage 3 was labelled
+  "Agent 2: Autoencoder Anomaly Detection Agent" and claimed "reconstruction
+  error profiles". The autoencoder scores a chunk only when the chunk carries
+  the seven engineered LANL features, and chunk aggregates never do: the split
+  on `lanl_campaign_all` is 442 heuristic, 0 autoencoder. The label is now
+  derived from the method that actually ran.
+
+Two narrative over-claims were also removed. `reasoner._chain_explanation`
+printed "strongly correlates with known advanced adversary campaign signatures"
+whenever `actor_match` was true, a flag that fires on 34 of 39 LANL chains and
+means only that some documented group uses the technique; and it had dropped the
+corroborating signals from the text, keeping the conclusion while deleting the
+evidence. `predictor.generate_prediction_narrative` closed with "Proactive
+isolation of active pivot hosts will interrupt this path before crown-jewel
+assets are compromised", and described each technique with hand-written prose
+chosen by keyword-matching its name. It now quotes the real ATT&CK description
+and states the measured 38.1% top-3 accuracy inline.
+
+The tests that shipped with the branch asserted the exact marketing headings, so
+they passed for all of the above. `tests/test_twin_and_narratives.py` now checks
+properties instead: no fact appears that was not supplied, no outcome is
+promised, a poisoned citation cannot close its own fence, and the advisor is
+never authoritative.
+
+### Kept unchanged
+
+`attack_graph._best_isolation` is a genuine improvement and replaces a real
+defect. Isolation used to be the highest-betweenness node, which is central but
+need not protect anything; the twin once recommended isolating a user account.
+It now ranks candidates by crown jewels protected and blast-radius reduction,
+and returns no recommendation when no single removal helps. `iter_pipeline` and
+the streaming progress, the Digital Twin screen, the error boundary and the
+attack-graph simulation are kept as written.

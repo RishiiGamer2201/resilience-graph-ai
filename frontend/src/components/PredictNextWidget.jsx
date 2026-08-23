@@ -64,11 +64,31 @@ export default function PredictNextWidget() {
       </button>
 
       {result && (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <span className="section-label">Predicted next techniques</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="section-label">Predicted next moves (Markov Engine + Agent Prediction)</span>
             <LiveBadge live={result.live} />
           </div>
+
+          {result.projection_narrative && (
+            <div
+              style={{
+                padding: '10px 14px',
+                background: 'var(--surface-sunken)',
+                borderRadius: 6,
+                border: '1px solid var(--border-soft)',
+                fontSize: 12.5,
+                lineHeight: 1.55,
+                color: 'var(--text)',
+              }}
+            >
+              <div style={{ fontWeight: 600, color: 'var(--accent)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🎯 Plain-English Next Moves Projection:</span>
+              </div>
+              <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result.projection_narrative}</p>
+            </div>
+          )}
+
           <div className="ranked">
             {result.predictions.map((p) => (
               <div className="pred" key={p.technique_id}>

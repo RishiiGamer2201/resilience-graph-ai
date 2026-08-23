@@ -157,7 +157,7 @@ Live run of the full LANL red-team campaign through the complete pipeline.
 | Attack graph | 473 hosts, 484 movements, 4 attacker pivots |
 | Critical assets reachable | 16 |
 | Total exposure | 469 hosts |
-| Isolate the single best choke point | severs 463 hosts |
+| Isolate the single best choke point | severs 452 hosts |
 
 ## 5. Performance and scalability
 
@@ -200,7 +200,7 @@ clone with no dataset download.
 
 ## 7. Engineering
 
-- 397 automated tests, no network required (pipeline correctness, multi-pivot
+- 415 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

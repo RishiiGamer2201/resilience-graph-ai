@@ -20,6 +20,8 @@ Artifact: `models/next_technique_markov.pkl`.
 """
 from __future__ import annotations
 
+import re
+
 import pickle
 from pathlib import Path
 
@@ -90,6 +92,81 @@ def rank_next(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, flo
 
 def top_ids(technique_ids: list[str], k: int = 3) -> list[str]:
     return [t for t, _ in rank_next(technique_ids, k)[0]]
+
+
+def generate_prediction_narrative(
+    predictions: list[tuple[str, float] | dict],
+    technique_chain: list[str] | None = None,
+) -> str:
+    """Plain-English projection of the attacker's likely next moves.
+
+    Two things were removed from an earlier version:
+
+    - A closing sentence, "Proactive isolation of active pivot hosts will
+      interrupt this path before crown-jewel assets are compromised." That is an
+      unqualified promise about the future, and this function has no basis for
+      one.
+    - Hand-written action prose selected by keyword-matching the technique name,
+      so "Remote Services" became "pivoting laterally to compromise adjacent
+      domain infrastructure" whether or not that had happened. The real ATT&CK
+      description is available from the parsed STIX and is used instead.
+
+    The measured accuracy is stated inline, because a prediction offered without
+    it invites the reader to treat 38.1% top-3 as a forecast.
+    """
+    if not predictions:
+        return ("No next move is projected: the observed technique sequence does "
+                "not match any transition the model learned.")
+
+    try:
+        from src.shared.views import _names
+        names = _names()
+    except Exception:
+        names = {}
+
+    try:
+        from src.shared.attack_mapper import explanation
+    except Exception:
+        def explanation(_tid: str) -> str:
+            return ""
+
+    rows = []
+    for item in predictions[:3]:
+        if isinstance(item, dict):
+            tid = str(item.get("technique_id", ""))
+            prob = float(item.get("probability", item.get("score", 0.0)) or 0.0)
+            name = item.get("name") or names.get(tid, tid)
+        else:
+            tid, prob = str(item[0]), float(item[1])
+            name = names.get(tid, tid)
+        rows.append((tid, name, prob))
+
+    if not rows:
+        return "No next move is projected for this sequence."
+
+    lead = ""
+    if technique_chain:
+        last = technique_chain[-1]
+        lead = (f"The most recent technique observed is {names.get(last, last)} "
+                f"({last}). ")
+
+    parts = [f"{lead}Ranked by how often each technique followed this sequence in "
+             f"205 real ATT&CK campaigns, the next moves are:"]
+
+    for i, (tid, name, prob) in enumerate(rows, start=1):
+        pct = f" — {prob * 100:.0f}% of the time in the training sequences" if prob > 0 else ""
+        # ATT&CK descriptions are markdown and carry inline links; keep the
+        # link text, drop the URL, so the sentence reads as prose everywhere.
+        desc = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", explanation(tid))
+        desc = f" {desc}" if desc else ""
+        parts.append(f"• {i}. {name} ({tid}){pct}.{desc}")
+
+    parts.append("These are transition frequencies, not detections: nothing here "
+                 "has been observed on this network. The predictor gets the right "
+                 "technique in its top three 38.1% of the time, measured against "
+                 "7.1% for a kill-chain-order baseline, so treat a single "
+                 "prediction as a lead to check rather than a forecast.")
+    return " ".join(parts)
 
 
 def demo() -> None:

@@ -16,36 +16,43 @@ import ThreatIntel from './screens/ThreatIntel.jsx'
 import ThreatRadar from './screens/ThreatRadar.jsx'
 import Methodology from './screens/Methodology.jsx'
 
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+import DigitalTwin from './screens/DigitalTwin.jsx'
+
 // Heavy deps (force-graph, recharts) are split off the initial bundle.
 const Graph = lazy(() => import('./screens/Graph.jsx'))
 const Metrics = lazy(() => import('./screens/Metrics.jsx'))
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <SessionProvider>
-      <AnalysisProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route element={<Layout />}>
-              <Route path="/investigate" element={<Investigate />} />
-              <Route path="/analyze" element={<Analyze />} />
-              <Route path="/overview" element={<Overview />} />
-              <Route path="/attackers" element={<Attackers />} />
-              <Route path="/incident" element={<Incident />} />
-              <Route path="/graph" element={<Suspense fallback={<Loading />}><Graph /></Suspense>} />
-              <Route path="/threat-intel" element={<ThreatIntel />} />
-              <Route path="/threat-radar" element={<ThreatRadar />} />
-              <Route path="/metrics" element={<Suspense fallback={<Loading />}><Metrics /></Suspense>} />
-              <Route path="/scoreboard" element={<Scoreboard />} />
-              <Route path="/methodology" element={<Methodology />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AnalysisProvider>
-      </SessionProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <SessionProvider>
+          <AnalysisProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route element={<Layout />}>
+                  <Route path="/investigate" element={<Investigate />} />
+                  <Route path="/analyze" element={<Analyze />} />
+                  <Route path="/overview" element={<Overview />} />
+                  <Route path="/digital-twin" element={<DigitalTwin />} />
+                  <Route path="/twin" element={<Navigate to="/digital-twin" replace />} />
+                  <Route path="/attackers" element={<Attackers />} />
+                  <Route path="/incident" element={<Incident />} />
+                  <Route path="/graph" element={<ErrorBoundary><Suspense fallback={<Loading />}><Graph /></Suspense></ErrorBoundary>} />
+                  <Route path="/threat-intel" element={<ThreatIntel />} />
+                  <Route path="/threat-radar" element={<ThreatRadar />} />
+                  <Route path="/metrics" element={<ErrorBoundary><Suspense fallback={<Loading />}><Metrics /></Suspense></ErrorBoundary>} />
+                  <Route path="/scoreboard" element={<Scoreboard />} />
+                  <Route path="/methodology" element={<Methodology />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </AnalysisProvider>
+        </SessionProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }

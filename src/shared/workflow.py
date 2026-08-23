@@ -371,10 +371,20 @@ def _n_evidence(query: str, technique_ids: list[str], k: int) -> NodeResult:
 
 
 def _n_signals(df: pd.DataFrame, critical: list[str], incident_id: str,
-               account: str | None) -> NodeResult:
+               account: str | None, scenario: str | None) -> NodeResult:
+    from src.shared.enrich import attach_agent_lane, run_agent_lane
     from src.shared.live_analyze import analyze_events
     bundle = analyze_events(df, critical_assets=set(critical), incident_id=incident_id,
                             account=account)
+
+    # The 10-agent lane runs HERE and nowhere else in this investigation. It used
+    # to run twice -- once here and once again inside the cross-check below --
+    # on the same frame with the same scenario. The summary is stashed on the
+    # node so the cross-check reuses it.
+    agent_summary = run_agent_lane(df, scenario or "events", incident_id)
+    if agent_summary:
+        bundle = attach_agent_lane(bundle, agent_summary)
+
     inc, g = bundle["incident"], bundle["graph"]
     return NodeResult(
         "signals", status="ok",
@@ -613,7 +623,7 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                     notes=["conclusions will be reported without citations"])))
 
     signals = trace.run("signals",
-                        lambda: _n_signals(df, critical, incident_id, account),
+                        lambda: _n_signals(df, critical, incident_id, account, scenario),
                         required=True)
     if signals.status == "failed":
         return {"ok": False, "trace": trace.as_dict(), "error": signals.summary,
@@ -640,10 +650,14 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
     cc = None
     if run_crosscheck:
         try:
-            from src.agents.orchestrator import run_pipeline
             from src.shared.crosscheck import crosscheck as compare
-            agent_out = run_pipeline(df, scenario=scenario or "uploaded")
-            agent_dict = agent_out.as_dict() if hasattr(agent_out, "as_dict") else agent_out
+            # Reuse what the signals node already produced. Running the lane a
+            # second time here cost a full duplicate pipeline and could not
+            # disagree with itself usefully -- it is the same computation.
+            agent_dict = (bundle.get("meta", {}) or {}).get("agent_pipeline")
+            if not agent_dict or agent_dict.get("status") == "failed":
+                raise RuntimeError(
+                    (agent_dict or {}).get("error", "the agent lane produced no result"))
             cc = compare({"signals": {"incident": bundle["incident"]}}, agent_dict)
         except Exception as e:                     # advisory only; never fatal
             cc = {"available": False, "authoritative": "workflow",

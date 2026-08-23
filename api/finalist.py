@@ -406,6 +406,28 @@ def twin_candidates(req: TwinRankRequest, p: dict = Depends(principal)):
             "simulated": True}
 
 
+class TwinChatRequest(BaseModel):
+    message: str
+    history: list[dict] = Field(default_factory=list)
+    scenario: str | None = None
+    incident_id: str = "INC-LIVE-001"
+    graph: dict | None = None
+
+
+@router.post("/twin/chat")
+def twin_chat(req: TwinChatRequest, p: dict = Depends(principal)):
+    """Digital Twin AI Advisor: plain-language RAG chatbot for non-technical stakeholders."""
+    _require(p, "read")
+    from src.shared.chat_advisor import ask_advisor
+    return ask_advisor(
+        req.message,
+        history=req.history,
+        graph=req.graph,
+        scenario=req.scenario,
+        incident_id=req.incident_id,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # explainability                                                               #
 # --------------------------------------------------------------------------- #

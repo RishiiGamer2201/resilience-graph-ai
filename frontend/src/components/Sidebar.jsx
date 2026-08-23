@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database, ScanSearch, Satellite, Users, Crosshair, ClipboardCheck } from 'lucide-react'
+import { LayoutDashboard, Radar, Waypoints, Shield, LineChart, Database, ScanSearch, Satellite, Users, Crosshair, ClipboardCheck, Cpu } from 'lucide-react'
 
 const OPERATIONS = [
   { to: '/investigate', label: 'Investigation', icon: Crosshair },
   { to: '/analyze', label: 'Analyze Log', icon: ScanSearch },
   { to: '/overview', label: 'Overview', icon: LayoutDashboard },
+  { to: '/digital-twin', label: 'Digital Twin', icon: Cpu },
   { to: '/attackers', label: 'Attackers', icon: Users },
   { to: '/incident', label: 'Live Incident', icon: Radar, alert: true },
   { to: '/graph', label: 'Attack Graph', icon: Waypoints },

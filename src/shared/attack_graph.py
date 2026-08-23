@@ -68,9 +68,8 @@ def analyze(g: nx.DiGraph, entry_host: str | None = None,
         if best:
             paths[asset] = best
 
-    # betweenness centrality -> choke points to isolate. Skippable: the digital
-    # twin ranks hundreds of candidate isolations and only needs reachability,
-    # and betweenness is by far the most expensive term here.
+    # Betweenness centrality is useful context, but it is not a containment
+    # recommendation: the best central node may protect no crown jewels.
     bc = nx.betweenness_centrality(g) if (choke_points and g.number_of_nodes() > 2) else {}
     choke_points = sorted(bc, key=bc.get, reverse=True)[:3]
 
@@ -80,9 +79,7 @@ def analyze(g: nx.DiGraph, entry_host: str | None = None,
         blast |= nx.descendants(g, p)
     blast = sorted(blast)
 
-    isolation = choke_points[0] if choke_points else entry_host
-    # what isolating that ONE host actually severs — distinct from total exposure
-    isolation_cuts = len(nx.descendants(g, isolation)) if isolation in g else 0
+    isolation, isolation_cuts = _best_isolation(g, pivots, set(paths), len(blast), entry_host)
 
     return {
         "entry_host": entry_host,
@@ -105,3 +102,45 @@ def _infer_entry(g: nx.DiGraph) -> str | None:
     if g.number_of_nodes() == 0:
         return None
     return max(g.nodes, key=lambda n: g.out_degree(n))
+
+
+def _reachable_from_pivots(g: nx.DiGraph, pivots: list[str]) -> set[str]:
+    reachable: set[str] = set()
+    for p in pivots:
+        if p in g:
+            reachable |= nx.descendants(g, p)
+    return reachable
+
+
+def _critical_reachable(g: nx.DiGraph, pivots: list[str], critical: set[str]) -> set[str]:
+    reached: set[str] = set()
+    for asset in critical:
+        if asset not in g:
+            continue
+        if any(p in g and p != asset and nx.has_path(g, p, asset) for p in pivots):
+            reached.add(asset)
+    return reached
+
+
+def _best_isolation(g: nx.DiGraph, pivots: list[str], critical_at_risk: set[str],
+                    blast_radius_size: int, fallback: str | None) -> tuple[str | None, int]:
+    """Pick the host whose removal gives the strongest containment benefit."""
+    candidates = [n for n in g.nodes if g.out_degree(n) > 0]
+    if not candidates:
+        return fallback, 0
+
+    ranked = []
+    for host in candidates:
+        after = g.copy()
+        after.remove_node(host)
+        after_pivots = [p for p in pivots if p != host]
+        after_critical = _critical_reachable(after, after_pivots, critical_at_risk - {host})
+        after_blast = _reachable_from_pivots(after, after_pivots)
+        protected = len(critical_at_risk - after_critical)
+        cut = blast_radius_size - len(after_blast)
+        ranked.append((protected, cut, -g.degree(host), host))
+
+    protected, cut, _, host = max(ranked)
+    if protected <= 0 and cut <= 0:
+        return fallback, 0
+    return host, cut

@@ -21,7 +21,7 @@ from __future__ import annotations
 import time
 
 from src.agents import AgentResult, AgentStatus
-from src.shared.predictor import rank_next
+from src.shared.predictor import generate_prediction_narrative, rank_next
 
 
 def run(reasoner_result: AgentResult) -> AgentResult:
@@ -29,6 +29,7 @@ def run(reasoner_result: AgentResult) -> AgentResult:
 
     Returns AgentResult with:
         output["predictions"]: list of {technique_id, probability, rank}
+        output["projection_narrative"]: plain-English multi-sentence projection
         output["technique_chain_used"]: the observed sequence used as input
     """
     t0 = time.perf_counter()
@@ -60,20 +61,28 @@ def run(reasoner_result: AgentResult) -> AgentResult:
             agent="prediction",
             status=AgentStatus.DEGRADED,
             confidence=0.0,
-            output={"technique_chain_used": technique_chain, "predictions": []},
+            output={"technique_chain_used": technique_chain, "predictions": [], "projection_narrative": ""},
             notes=["Predictor returned no predictions for this sequence."],
             ms=(time.perf_counter() - t0) * 1000,
         )
+
+    try:
+        from src.shared.views import _names
+        names = _names()
+    except Exception:
+        names = {}
 
     predictions = []
     for rank, (tid, prob) in enumerate(raw_predictions, start=1):
         predictions.append({
             "rank": rank,
             "technique_id": str(tid),
+            "name": names.get(str(tid), str(tid)),
             "probability": round(float(prob), 4),
             "source": source,
         })
 
+    projection_narrative = generate_prediction_narrative(predictions, technique_chain)
     top_conf = predictions[0]["probability"] if predictions else 0.0
 
     return AgentResult(
@@ -83,6 +92,7 @@ def run(reasoner_result: AgentResult) -> AgentResult:
         output={
             "technique_chain_used": technique_chain,
             "predictions": predictions,
+            "projection_narrative": projection_narrative,
             "n_predictions": len(predictions),
         },
         evidence_refs=[p["technique_id"] for p in predictions],

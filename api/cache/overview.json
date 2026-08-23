@@ -115,9 +115,9 @@
     "incident_id": "INC-PS7-LANL-CAMPAIGN",
     "scenario": "lanl_campaign_all",
     "severity": "high",
-    "total_ms": 1346.3,
+    "total_ms": 1326.8,
     "point_b_method": "template",
-    "incident_narrative": "Investigation covers 69 actor(s) (U620@DOM1, U748@DOM1, U825@DOM1...) across 442 behavioral windows totalling 2297 events. Observed ATT&CK chain: T1021 \u2192 T1078 \u2192 T1550.002. Key observations: U620@DOM1 made 3 login attempts, all successful, across 2 unique destinations, in 99s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 2 unique destinations, in 3m 44s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 1 unique destination, in 2m 56s, 0% failure rate \u2014 normal destination range",
+    "incident_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
     "agent_traces": [
       {
         "agent": "investigation",
@@ -16213,7 +16213,7 @@
           "entities_seen": 69
         },
         "evidence_refs": [],
-        "ms": 29.0,
+        "ms": 27.2,
         "notes": [
           "Triaged 442 chunks; 358 escalated to Detection."
         ]
@@ -32310,7 +32310,7 @@
           "max_score": 79
         },
         "evidence_refs": [],
-        "ms": 1.9,
+        "ms": 2.0,
         "notes": [
           "Scored 442 chunks; 287 above threshold.",
           "Max anomaly score: 79/100."
@@ -58857,7 +58857,7 @@
           "edge_count": 663
         },
         "evidence_refs": [],
-        "ms": 92.7,
+        "ms": 139.7,
         "notes": [
           "Built entity graph: 307 nodes {'user': 39, 'host': 265, 'technique': 3}, 663 edges."
         ]
@@ -68974,16 +68974,16 @@
               "C11178",
               "C1119"
             ],
-            "recommended_isolation": "C22409",
-            "isolation_cuts": 19
+            "recommended_isolation": "C19932",
+            "isolation_cuts": 1
           }
         },
         "evidence_refs": [
-          "T1078",
+          "T1021",
           "T1550.002",
-          "T1021"
+          "T1078"
         ],
-        "ms": 8.7,
+        "ms": 45.2,
         "notes": [
           "Connected graph: 307 nodes, 663 edges."
         ]
@@ -69708,11 +69708,11 @@
           "total_chains": 39
         },
         "evidence_refs": [
-          "T1078",
+          "T1021",
           "T1550.002",
-          "T1021"
+          "T1078"
         ],
-        "ms": 197.5,
+        "ms": 127.4,
         "notes": [
           "Validated 39 entity chains: 22 confirmed, 12 partial, 5 unconfirmed.",
           "Unconfirmed chains retained \u2014 not discarded."
@@ -70905,7 +70905,7 @@
           "T1550.002",
           "T1550.002"
         ],
-        "ms": 0.8,
+        "ms": 0.7,
         "notes": [
           "Ranked 39 chains. Top entity: U66@DOM1 risk=0.750 (high).",
           "Actor match fired on 34 of 39 chains. It records that a documented group uses the technique, not that this group is responsible."
@@ -70918,7 +70918,7 @@
         "output": {
           "incident_id": "INC-PS7-LANL-CAMPAIGN",
           "severity": "high",
-          "incident_narrative": "Investigation covers 69 actor(s) (U620@DOM1, U748@DOM1, U825@DOM1...) across 442 behavioral windows totalling 2297 events. Observed ATT&CK chain: T1021 \u2192 T1078 \u2192 T1550.002. Key observations: U620@DOM1 made 3 login attempts, all successful, across 2 unique destinations, in 99s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 2 unique destinations, in 3m 44s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 1 unique destination, in 2m 56s, 0% failure rate \u2014 normal destination range",
+          "incident_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
           "point_b_method": "template",
           "point_b_disclaimer": "",
           "chain_explanations": [
@@ -70926,31 +70926,31 @@
               "entity": "U66@DOM1",
               "confirmation": "confirmed",
               "risk_band": "high",
-              "explanation": "Entity 'U66@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:49_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 103 downstream node(s)."
+              "explanation": "Activity on U66@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:49_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 103 system(s) from the reachable set on the observed graph."
             },
             {
               "entity": "U737@DOM1",
               "confirmation": "confirmed",
               "risk_band": "high",
-              "explanation": "Entity 'U737@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement \u2192 Initial Access. Mapped techniques: T1021, T1078, T1550.002. Corroborating evidence: evidence_index:T1021; high_anomaly_score:76; multi_chunk_entity:103_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 30 downstream node(s)."
+              "explanation": "Activity on U737@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Remote Services (T1021), Valid Accounts (T1078), Pass the Hash (T1550.002), spanning Lateral Movement then Initial Access. Supporting evidence: evidence_index:T1021; high_anomaly_score:76; multi_chunk_entity:103_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT18, APT28). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 30 system(s) from the reachable set on the observed graph."
             },
             {
               "entity": "U1600@DOM1",
               "confirmation": "confirmed",
               "risk_band": "high",
-              "explanation": "Entity 'U1600@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; high_anomaly_score:79; multi_chunk_entity:2_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 8 downstream node(s)."
+              "explanation": "Activity on U1600@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; high_anomaly_score:79; multi_chunk_entity:2_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 8 system(s) from the reachable set on the observed graph."
             },
             {
               "entity": "U7507@DOM1",
               "confirmation": "confirmed",
               "risk_band": "high",
-              "explanation": "Entity 'U7507@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:6_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 11 downstream node(s)."
+              "explanation": "Activity on U7507@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:6_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 11 system(s) from the reachable set on the observed graph."
             },
             {
               "entity": "U314@DOM1",
               "confirmation": "confirmed",
               "risk_band": "high",
-              "explanation": "Entity 'U314@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; multi_chunk_entity:3_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 4 downstream node(s)."
+              "explanation": "Activity on U314@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; multi_chunk_entity:3_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 4 system(s) from the reachable set on the observed graph."
             }
           ],
           "technique_chain": [
@@ -70962,11 +70962,11 @@
           "top_risk_score": 0.7499
         },
         "evidence_refs": [
+          "T1021",
           "T1078",
-          "T1550.002",
-          "T1021"
+          "T1550.002"
         ],
-        "ms": 0.1,
+        "ms": 9.0,
         "notes": [
           "Narrative generated via template.",
           "LLM output (if used) is non-authoritative and labelled accordingly."
@@ -70986,6 +70986,7 @@
             {
               "rank": 1,
               "technique_id": "T1005",
+              "name": "Data from Local System",
               "probability": 0.1247,
               "source": "markov-interpolated-order1",
               "confidence_flag": "markov_inconsistent"
@@ -70993,6 +70994,7 @@
             {
               "rank": 2,
               "technique_id": "T1570",
+              "name": "Lateral Tool Transfer",
               "probability": 0.1225,
               "source": "markov-interpolated-order1",
               "confidence_flag": "markov_inconsistent"
@@ -71000,11 +71002,13 @@
             {
               "rank": 3,
               "technique_id": "T1219.001",
+              "name": "IDE Tunneling",
               "probability": 0.0304,
               "source": "markov-interpolated-order1",
               "confidence_flag": "markov_inconsistent"
             }
           ],
+          "projection_narrative": "The most recent technique observed is Pass the Hash (T1550.002). Ranked by how often each technique followed this sequence in 205 real ATT&CK campaigns, the next moves are: \u2022 1. Data from Local System (T1005) \u2014 12% of the time in the training sequences. Adversaries may search local system sources, such as file systems, configuration files, local databases, virtual machine files, or process memory, to find files of interest and sensitive data prior to Exfiltration.\n\nAdversaries may do this using a Command and Scripting Interpreter, such as cmd as well as a Network Device CLI, which have functionality to interact with the file system to gather information.(Citation: show_run_config_cmd_cisco) Adversaries may also use Automated Collection on the local system.. \u2022 2. Lateral Tool Transfer (T1570) \u2014 12% of the time in the training sequences. Adversaries may transfer tools or other files between systems in a compromised environment. \u2022 3. IDE Tunneling (T1219.001) \u2014 3% of the time in the training sequences. Adversaries may abuse Integrated Development Environment (IDE) software with remote development features to establish an interactive command and control channel on target systems within a network. These are transition frequencies, not detections: nothing here has been observed on this network. The predictor gets the right technique in its top three 38.1% of the time, measured against 7.1% for a kill-chain-order baseline, so treat a single prediction as a lead to check rather than a forecast.",
           "n_predictions": 3
         },
         "evidence_refs": [
@@ -71012,7 +71016,7 @@
           "T1570",
           "T1219.001"
         ],
-        "ms": 0.5,
+        "ms": 2.2,
         "notes": [
           "Predicted next 3 move(s) from chain of 3 techniques.",
           "Top prediction: T1005 @ 12.5%"
@@ -72132,37 +72136,38 @@
         "entity": "U66@DOM1",
         "confirmation": "confirmed",
         "risk_band": "high",
-        "explanation": "Entity 'U66@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:49_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 103 downstream node(s)."
+        "explanation": "Activity on U66@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:49_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 103 system(s) from the reachable set on the observed graph."
       },
       {
         "entity": "U737@DOM1",
         "confirmation": "confirmed",
         "risk_band": "high",
-        "explanation": "Entity 'U737@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement \u2192 Initial Access. Mapped techniques: T1021, T1078, T1550.002. Corroborating evidence: evidence_index:T1021; high_anomaly_score:76; multi_chunk_entity:103_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 30 downstream node(s)."
+        "explanation": "Activity on U737@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Remote Services (T1021), Valid Accounts (T1078), Pass the Hash (T1550.002), spanning Lateral Movement then Initial Access. Supporting evidence: evidence_index:T1021; high_anomaly_score:76; multi_chunk_entity:103_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT18, APT28). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 30 system(s) from the reachable set on the observed graph."
       },
       {
         "entity": "U1600@DOM1",
         "confirmation": "confirmed",
         "risk_band": "high",
-        "explanation": "Entity 'U1600@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; high_anomaly_score:79; multi_chunk_entity:2_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 8 downstream node(s)."
+        "explanation": "Activity on U1600@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; high_anomaly_score:79; multi_chunk_entity:2_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 8 system(s) from the reachable set on the observed graph."
       },
       {
         "entity": "U7507@DOM1",
         "confirmation": "confirmed",
         "risk_band": "high",
-        "explanation": "Entity 'U7507@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:6_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 11 downstream node(s)."
+        "explanation": "Activity on U7507@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; high_anomaly_score:76; multi_chunk_entity:6_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 11 system(s) from the reachable set on the observed graph."
       },
       {
         "entity": "U314@DOM1",
         "confirmation": "confirmed",
         "risk_band": "high",
-        "explanation": "Entity 'U314@DOM1' (confirmed, high risk): Observed tactic chain \u2014 Lateral Movement. Mapped techniques: T1550.002. Corroborating evidence: evidence_index:T1550.002; multi_chunk_entity:3_chunks. The technique sequence matches a known advanced persistent threat (APT) group's profile. Isolating this entity would cut access to 4 downstream node(s)."
+        "explanation": "Activity on U314@DOM1 is rated high risk and is confirmed. The techniques mapped from its logs, in the order they were observed, are Pass the Hash (T1550.002), spanning Lateral Movement. Supporting evidence: evidence_index:T1550.002; multi_chunk_entity:3_chunks. At least one of these techniques appears in a documented ATT&CK group profile (APT1, APT28, APT32). That records the technique as known, and is not an attribution of this incident. Isolating this entity would remove 4 system(s) from the reachable set on the observed graph."
       }
     ],
     "predictions": [
       {
         "rank": 1,
         "technique_id": "T1005",
+        "name": "Data from Local System",
         "probability": 0.1247,
         "source": "markov-interpolated-order1",
         "confidence_flag": "markov_inconsistent"
@@ -72170,6 +72175,7 @@
       {
         "rank": 2,
         "technique_id": "T1570",
+        "name": "Lateral Tool Transfer",
         "probability": 0.1225,
         "source": "markov-interpolated-order1",
         "confidence_flag": "markov_inconsistent"
@@ -72177,6 +72183,7 @@
       {
         "rank": 3,
         "technique_id": "T1219.001",
+        "name": "IDE Tunneling",
         "probability": 0.0304,
         "source": "markov-interpolated-order1",
         "confidence_flag": "markov_inconsistent"
@@ -72965,37 +72972,13 @@
           "C2553"
         ],
         "shortest_paths": {
-          "C1015": [
-            "C17693",
-            "C1015"
-          ],
-          "C528": [
-            "C17693",
-            "C528"
-          ],
-          "C743": [
-            "C18025",
-            "C743"
-          ],
-          "C467": [
-            "C17693",
-            "C467"
-          ],
-          "C612": [
-            "C19932",
-            "C612"
-          ],
-          "C585": [
-            "C17693",
-            "C585"
-          ],
           "C625": [
             "C17693",
             "C625"
           ],
-          "C2106": [
+          "C457": [
             "C17693",
-            "C2106"
+            "C457"
           ],
           "C706": [
             "C17693",
@@ -73005,29 +72988,53 @@
             "C17693",
             "C231"
           ],
-          "C457": [
+          "C467": [
             "C17693",
-            "C457"
+            "C467"
+          ],
+          "C2106": [
+            "C17693",
+            "C2106"
+          ],
+          "C3173": [
+            "C17693",
+            "C3173"
           ],
           "C1065": [
             "C18025",
             "C1065"
           ],
-          "C586": [
+          "C528": [
             "C17693",
-            "C586"
+            "C528"
           ],
-          "C801": [
+          "C1015": [
             "C17693",
-            "C801"
+            "C1015"
           ],
           "C529": [
             "C17693",
             "C529"
           ],
-          "C3173": [
+          "C585": [
             "C17693",
-            "C3173"
+            "C585"
+          ],
+          "C743": [
+            "C18025",
+            "C743"
+          ],
+          "C801": [
+            "C17693",
+            "C801"
+          ],
+          "C612": [
+            "C19932",
+            "C612"
+          ],
+          "C586": [
+            "C17693",
+            "C586"
           ]
         },
         "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here \u2014 we do not invent hosts the attacker has not touched."
@@ -73078,7 +73085,7 @@
         "overlap": 0.75
       },
       "agent_lane_degraded": [],
-      "narrative": "Investigation covers 69 actor(s) (U620@DOM1, U748@DOM1, U825@DOM1...) across 442 behavioral windows totalling 2297 events. Observed ATT&CK chain: T1021 \u2192 T1078 \u2192 T1550.002. Key observations: U620@DOM1 made 3 login attempts, all successful, across 2 unique destinations, in 99s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 2 unique destinations, in 3m 44s, 0% failure rate \u2014 normal destination range U748@DOM1 made 2 login attempts, all successful, across 1 unique destination, in 2m 56s, 0% failure rate \u2014 normal destination range",
+      "narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
       "narrative_method": "template",
       "narrative_authoritative": false,
       "partial_independence": {

@@ -68,6 +68,26 @@ def run_agent_lane(df: pd.DataFrame | None, scenario: str | None,
                 "notes": ["agent lane failed; the deterministic analysis is unaffected"]}
 
 
+def attach_agent_lane(bundle: dict, agent_summary: dict) -> dict:
+    """Expose the agent lane on a bundle without changing any screen contract.
+
+    Lives here rather than in api.main so src/shared never has to import the API
+    layer. src.shared.workflow used to do exactly that, inside a function, which
+    hid the inversion from the import graph but not from the design.
+    """
+    bundle.setdefault("meta", {})["agent_pipeline"] = agent_summary
+    bundle["meta"]["pipeline"] = "standard+10-agent"
+    if agent_summary.get("status") != "failed":
+        try:
+            from api.main import _map_agent_bundle
+            bundle = _map_agent_bundle(bundle, agent_summary)
+        except Exception:
+            # The mapping is presentation only. A bundle without it is complete;
+            # a bundle that failed to build is not.
+            pass
+    return bundle
+
+
 def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
                   scenario: str | None = None,
                   critical: list[str] | None = None,

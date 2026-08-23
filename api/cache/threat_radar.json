@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-22 17:53 IST",
+  "fetched_at": "2026-08-23 12:55 IST",
   "items": [
     {
       "source": "ET CISO (India)",
@@ -129,6 +129,41 @@
       ],
       "iocs": [],
       "india": true,
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "TikTok Agrees to $400 Million Settlement in U.S. Child Privacy Lawsuit",
+      "published": "2026-08-22 20:02 IST",
+      "url": "https://thehackernews.com/2026/08/tiktok-agrees-to-400-million-settlement.html",
+      "text": "The U.S. Department of Justice (DoJ) announced on Friday that ByteDance-owned TikTok will pay $400 million to settle a 2024 lawsuit accusing the company of violating child privacy laws in the country. As part of the settlement, the social media platform will pay $300 million immediately, and an additional $100 million \"upon entry of an order vacating a prior consent decree entered against",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Hackers infect Android car head units with proxy botnet malware",
+      "published": "2026-08-22 19:44 IST",
+      "url": "https://www.bleepingcomputer.com/news/security/hackers-infect-android-car-head-units-with-proxy-botnet-malware/",
+      "text": "A supply-chain attack targeting Android-based car head units is using a legitimate device-update app to spread malware that enlists compromised devices in a proxy botnet or uses them for ad fraud. [...]",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1584.005"
+      ]
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "Named Pipes Under Attack: Securing Windows Interprocess Communication",
+      "published": "2026-08-22 18:30 IST",
+      "url": "https://www.bleepingcomputer.com/news/security/named-pipes-under-attack-securing-windows-interprocess-communication/",
+      "text": "Windows named pipes provide fast interprocess communication, but weak access controls can expose privileged services to untrusted processes. ThreatLocker explains how endpoint verification, command authorization, strict input validation, and narrowly scoped privileges can help secure named-pipe communication. [...]",
+      "tags": [],
+      "iocs": [],
+      "india": false,
       "techniques": []
     },
     {
@@ -286,17 +321,6 @@
       "techniques": []
     },
     {
-      "source": "BleepingComputer",
-      "title": "SickKids data breach exposes employee and job applicant info",
-      "published": "2026-08-21 15:40 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/sickkids-data-breach-exposes-employee-and-job-applicant-info/",
-      "text": "Toronto's Hospital for Sick Children (SickKids) says a cybersecurity incident exposed the personal information of some current and former employees and job applicants, stemming from a flaw in third-party software. Clinical systems and patient records were not affected. (264) [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
       "source": "The Hacker News",
       "title": "Cisco Patches Nine Crosswork and Secure Workload Flaws, Five Scoring CVSS 10.0",
       "published": "2026-08-21 15:33 IST",
@@ -373,30 +397,6 @@
       "techniques": [
         "T1059"
       ]
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Hackers poison arrayref Rust crate to push infostealer malware",
-      "published": "2026-08-20 23:23 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/hackers-poison-arrayref-rust-crate-to-push-infostealer-malware/",
-      "text": "Hackers compromised the maintainer account behind the widely used Rust crate arrayref to introduce malware that executed on developers' systems during compilation. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1555"
-      ]
-    },
-    {
-      "source": "The Hacker News",
-      "title": "ThreatsDay: Gogs 10.0 RCE, n8n Workflow-to-RCE, $10M Reward, GLM-5.3 AI Exploit, and More",
-      "published": "2026-08-20 22:53 IST",
-      "url": "https://thehackernews.com/2026/08/threatsday-gogs-100-rce-n8n-workflow-to.html",
-      "text": "A lot of this week\u2019s trouble starts with something trusted doing exactly what it was allowed to do. Signed drivers get turned against defenses. Legitimate apps help malware blend in. A weak header check opens a path to code execution. Elsewhere, exposed systems, old bugs, odd hiding tricks, and AI-assisted exploit research keep lowering the effort needed to cause damage. Nothing here needs",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
     },
     {
       "source": "CISA advisories",
@@ -518,7 +518,6 @@
     "T1195": "Supply Chain Compromise",
     "T1204.002": "Malicious File",
     "T1505": "Server Software Component",
-    "T1555": "Credentials from Password Stores",
     "T1566": "Phishing",
     "T1584.005": "Botnet"
   },

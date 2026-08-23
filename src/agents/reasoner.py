@@ -27,7 +27,27 @@ from src.agents.summarizer import summarize_incident
 
 
 def _chain_explanation(chain: dict) -> str:
-    """Template-based explanation for one ranked chain."""
+    """Plain-English explanation for one ranked chain.
+
+    Readable prose, but every sentence has to survive being checked. Four claims
+    were removed from an earlier version of this function:
+
+    - "The adversary demonstrates a progressive tactical sequence" asserted an
+      adversary and a progression. What we have is an observed ordering of
+      techniques mapped from logs, which is what it now says.
+    - "strongly correlates with known advanced adversary campaign signatures"
+      was printed whenever actor_match was true. That flag means only that some
+      documented ATT&CK group uses one of these techniques, and it fires on 34
+      of 39 chains on LANL. It is not an attribution and no longer reads as one.
+    - "Left unchecked, this vector exposes N systems to compromise" asserted a
+      future. N is graph reachability from this entity, nothing more.
+    - The corroborating signals were dropped from the text entirely. Keeping the
+      conclusion and deleting the evidence is backwards, so they are back.
+
+    Unknowns are also stated rather than filled: the old version substituted
+    "unusual account activity" for an empty technique list and "Active intrusion
+    path" for an empty tactic chain, both of which invent a finding.
+    """
     entity = chain.get("entity", "unknown")
     tids = chain.get("technique_ids", [])
     tactics = chain.get("tactic_chain", [])
@@ -36,23 +56,44 @@ def _chain_explanation(chain: dict) -> str:
     risk_band = chain.get("risk_band", "low")
     blast = chain.get("blast_radius", 0)
     actor_match = chain.get("actor_match", False)
+    actors = chain.get("matched_actors", [])
 
-    tactic_str = " → ".join(tactics) if tactics else "unknown tactic chain"
-    tech_str = ", ".join(tids[:5]) if tids else "no techniques identified"
-    signal_str = "; ".join(signals[:4]) if signals else "no corroborating signals"
+    try:
+        from src.shared.views import _names
+        names = _names()
+        friendly = [f"{names.get(t, t)} ({t})" for t in tids[:4]]
+    except Exception:
+        friendly = list(tids[:4])
 
-    actor_note = (
-        " The technique sequence matches a known advanced persistent threat (APT) group's profile."
-        if actor_match else ""
-    )
-    blast_note = f" Isolating this entity would cut access to {blast} downstream node(s)." if blast > 0 else ""
+    parts = [f"Activity on {entity} is rated {risk_band} risk and is {confirmation}."]
 
-    return (
-        f"Entity '{entity}' ({confirmation}, {risk_band} risk): "
-        f"Observed tactic chain — {tactic_str}. "
-        f"Mapped techniques: {tech_str}. "
-        f"Corroborating evidence: {signal_str}.{actor_note}{blast_note}"
-    )
+    if friendly and tactics:
+        parts.append(f"The techniques mapped from its logs, in the order they were "
+                     f"observed, are {', '.join(friendly)}, spanning "
+                     f"{' then '.join(tactics)}.")
+    elif friendly:
+        parts.append(f"The techniques mapped from its logs are {', '.join(friendly)}. "
+                     f"No tactic ordering was established.")
+    else:
+        parts.append("No ATT&CK technique was mapped for this entity; it is ranked "
+                     "on anomaly score and reachability alone.")
+
+    if signals:
+        parts.append(f"Supporting evidence: {'; '.join(signals[:4])}.")
+    else:
+        parts.append("No corroborating signal was found beyond the anomaly score.")
+
+    if actor_match:
+        who = f" ({', '.join(actors[:3])})" if actors else ""
+        parts.append(f"At least one of these techniques appears in a documented "
+                     f"ATT&CK group profile{who}. That records the technique as "
+                     f"known, and is not an attribution of this incident.")
+
+    if blast > 0:
+        parts.append(f"Isolating this entity would remove {blast} system(s) from "
+                     f"the reachable set on the observed graph.")
+
+    return " ".join(parts)
 
 
 def run(
