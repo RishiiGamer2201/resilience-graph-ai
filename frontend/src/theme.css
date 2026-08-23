@@ -47,6 +47,7 @@
   /* ---- the one non-semantic accent, used for interaction only ---- */
   --accent:#1B4D5A;         /* deep instrument teal: links, focus, selection */
   --accent-soft:#DDE7E9;
+  --on-accent:#FBFCFA;      /* text ON the accent; flips with it */
 
   --shadow:0 1px 0 rgba(20,24,27,.04), 0 1px 3px rgba(20,24,27,.06);
   --shadow-lift:0 1px 0 rgba(20,24,27,.04), 0 8px 24px -12px rgba(20,24,27,.25);
@@ -89,6 +90,7 @@
 
   --accent:#79B9C6;
   --accent-soft:#16252A;
+  --on-accent:#12140F;
 
   --shadow:0 1px 0 rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.5);
   --shadow-lift:0 1px 0 rgba(0,0,0,.5), 0 10px 28px -14px rgba(0,0,0,.8);
@@ -104,7 +106,7 @@
   --unmeasured:#7E847A; --unmeasured-bg:#1B1E18;
   --sev-critical:#E0736B; --sev-high:#D9A05A; --sev-medium:#C4B667;
   --sev-low:#8FB0C6; --sev-normal:#7E847A;
-  --accent:#79B9C6; --accent-soft:#16252A;
+  --accent:#79B9C6; --accent-soft:#16252A; --on-accent:#12140F;
   --shadow:0 1px 0 rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.5);
   --shadow-lift:0 1px 0 rgba(0,0,0,.5), 0 10px 28px -14px rgba(0,0,0,.8);
 }
@@ -119,7 +121,7 @@
   --unmeasured:#8E9196; --unmeasured-bg:#EAEBE9;
   --sev-critical:#8F2B23; --sev-high:#A9600F; --sev-medium:#87721A;
   --sev-low:#3F5B72; --sev-normal:#8E9196;
-  --accent:#1B4D5A; --accent-soft:#DDE7E9;
+  --accent:#1B4D5A; --accent-soft:#DDE7E9; --on-accent:#FBFCFA;
   --shadow:0 1px 0 rgba(20,24,27,.04), 0 1px 3px rgba(20,24,27,.06);
   --shadow-lift:0 1px 0 rgba(20,24,27,.04), 0 8px 24px -12px rgba(20,24,27,.25);
 }

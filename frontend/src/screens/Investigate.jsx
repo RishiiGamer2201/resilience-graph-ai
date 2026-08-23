@@ -30,7 +30,7 @@ function Section({ id, title, subtitle, children, registerRef }) {
     <section className="inv-section" id={id} ref={(el) => registerRef?.(id, el)}>
       <div className="section-label">
         {title}
-        {subtitle && <span className="sl-sub"> — {subtitle}</span>}
+        {subtitle && <span className="sl-sub"> -- {subtitle}</span>}
       </div>
       {children}
     </section>
@@ -107,7 +107,7 @@ export default function Investigate() {
           GUIDED INVESTIGATION
         </span>
         <h2>Weak signals to one verified attack story</h2>
-        <p className="mono">
+        <p className="lede">
           Seven bounded stages. Every number is deterministic Python; every ATT&amp;CK
           conclusion carries an official citation; every action is simulated and gated.
         </p>
@@ -116,7 +116,7 @@ export default function Investigate() {
       {degraded.length > 0 && (
         <div className="degraded-banner">
           <CircleAlert size={15} aria-hidden="true" />
-          Running degraded: {degraded.join(', ')}. The investigation still completes — each
+          Running degraded: {degraded.join(', ')}. The investigation still completes -- each
           stage reports what it could not do instead of hiding it.
         </div>
       )}
@@ -130,12 +130,13 @@ export default function Investigate() {
               <option key={s.name} value={s.name}>{s.label} · {s.n_events} events</option>
             ))}
           </select>
-          <span className="mono dim crit">
-            <Target size={12} aria-hidden="true" /> crown jewels: {crit.join(', ') || 'none designated'}
+          <span className="dim crit">
+            <Target size={12} aria-hidden="true" /> crown jewels:{' '}
+            <span className="mono">{crit.join(', ') || 'none designated'}</span>
           </span>
           <span className="spacer" />
           <button className="btn primary" disabled={running || role === 'viewer'} onClick={run}
-            title={role === 'viewer' ? 'A viewer may not run an analysis — switch role in the top bar' : undefined}>
+            title={role === 'viewer' ? 'A viewer may not run an analysis -- switch role in the top bar' : undefined}>
             <Play size={13} aria-hidden="true" /> {running ? 'Investigating…' : 'Run investigation'}
           </button>
           <button className="btn" disabled={running} onClick={resetDemo}>
@@ -224,7 +225,7 @@ export default function Investigate() {
                     ['Severity', `${inc.severity} · peak score ${inc.max_anomaly_score}/100${scaleSuffix(result.meta?.calibration)}`],
                     ['Collapsed', `${inc.event_count} events → ${inc.alert_count} alerts → ${incidents}`],
                     ['Accounts', `${inc.accounts_involved?.length ?? 0}`],
-                    ['ATT&CK chain', inc.technique_ids.join(' → ') || '—'],
+                    ['ATT&CK chain', inc.technique_ids.join(' → ') || '--'],
                     ['Attacker pivot', graph.entry_host],
                     ['Crown jewels reachable', graph.critical_assets_at_risk.join(', ') || 'none'],
                   ].map(([k, v]) => (
@@ -336,7 +337,7 @@ export default function Investigate() {
               prioritisation has real software to match against the CISA KEV catalogue.
             </p>
             <p className="dim">
-              For real red-team ground truth, choose the LANL campaign — 2,732 authentications
+              For real red-team ground truth, choose the LANL campaign -- 2,732 authentications
               across 104 compromised accounts with 702 labelled red-team events.
             </p>
           </div>

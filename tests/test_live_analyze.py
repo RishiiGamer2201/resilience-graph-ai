@@ -399,3 +399,35 @@ def test_the_note_states_the_trigger_that_actually_fired():
     # two: "0 of 40 name a destination" says more than "the test could not run"
     assert "0 of 40 events name a destination" in cal2["note"], cal2["note"]
     assert "100%" not in cal2["note"], "must not report a share of an empty set"
+
+
+def test_unscorable_rows_are_counted_and_declared():
+    """A blank field must not read as the most ordinary event in the log.
+
+    A missing destination makes dst_rarity NaN, which makes the whole
+    reconstruction error NaN, which was coerced to 0 -- the lowest possible
+    score. So the row with missing data looked quieter than every real event, and
+    nothing reported how many such rows there were. On a 200-event upload with a
+    third of destinations blank that is 67 events presented as unremarkable.
+    """
+    df = pd.DataFrame({
+        "timestamp": range(200),
+        "user": [f"u{i % 10}@d" for i in range(200)],
+        "source_host": [f"W{i % 15}" for i in range(200)],
+        "destination_host": [None if i % 3 == 0 else f"H{i % 25}" for i in range(200)],
+    })
+    cal = analyze_events(df)["meta"]["calibration"]
+    assert cal["unscored_events"] == 67, cal["unscored_events"]
+    assert "67 of 200 events could not be scored" in cal["note"]
+    assert "NOT evidence of anything" in cal["note"]
+
+
+def test_a_clean_upload_reports_no_unscored_events():
+    """The counter must be zero when nothing is missing, or it is just noise."""
+    df = pd.DataFrame({
+        "timestamp": range(120),
+        "user": [f"u{i % 8}@d" for i in range(120)],
+        "source_host": [f"W{i % 12}" for i in range(120)],
+        "destination_host": [f"H{i % 30}" for i in range(120)],
+    })
+    assert analyze_events(df)["meta"]["calibration"]["unscored_events"] == 0

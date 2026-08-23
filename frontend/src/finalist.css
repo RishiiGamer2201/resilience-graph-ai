@@ -58,8 +58,7 @@
   border:1px solid var(--border);flex:0 0 auto}
 .rail-stages .stage .lbl{display:flex;align-items:center;gap:5px;font-size:12.5px;
   font-weight:500;color:var(--text)}
-.rail-stages .stage .sub{display:block;font-size:10.5px;color:var(--text-faint);
-  font-family:var(--mono)}
+.rail-stages .stage .sub{display:block;font-size:10.5px;color:var(--text-faint)}
 .rail-stages .stage.st-ok{border-color:color-mix(in srgb,var(--ok) 45%,var(--border))}
 .rail-stages .stage.st-ok .lbl svg{color:var(--ok)}
 .rail-stages .stage.st-degraded{border-color:color-mix(in srgb,var(--sev-high) 45%,var(--border))}

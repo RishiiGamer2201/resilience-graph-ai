@@ -65,6 +65,13 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     than returning a confident zero.
     """
     X = df[FEATURES].to_numpy("float64")
+    # Rows the detector cannot score at all: a blank destination makes dst_rarity
+    # NaN, and a NaN feature makes the whole reconstruction error NaN. These were
+    # silently coerced to 0 -- the lowest possible score -- so an event with a
+    # missing field looked like the most ordinary event in the log, and nothing
+    # anywhere said how many there were.
+    unscorable = ~np.isfinite(X).all(axis=1)
+    n_unscored = int(unscorable.sum())
     raw = detector.raw_scores(X)
     ref = _ref()
 
@@ -122,11 +129,19 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     else:
         note = ""
 
+    if n_unscored:
+        quality = (f"{n_unscored} of {len(df)} events could not be scored: a blank or "
+                   f"unparseable field leaves the behavioural features undefined for "
+                   f"that row. They are shown at 0 and are NOT evidence of anything "
+                   f"-- an unscored event is missing data, not a quiet one.")
+        note = f"{note} {quality}".strip() if note else quality
+
     return scores, {
         "basis": ref.get("basis", "fixed-anchors-lanl"),
         "out_of_distribution": ood,
         "insufficient_sample": confidence == "insufficient",
         "sample_confidence": confidence,
+        "unscored_events": n_unscored,
         "top_destination_share": top1,
         # kept beside the verdict because it is informative, and explicitly not
         # the verdict: it is a log-size test, see detector.out_of_distribution

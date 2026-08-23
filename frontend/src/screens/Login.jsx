@@ -37,7 +37,7 @@ export default function Login() {
         <p className="desc">
           Every number it shows you carries where it came from. Some are measured
           against real red-team labels, some are inferred from a rule, and some it
-          did not measure at all &mdash; and it says which.
+          did not measure at all -- and it says which.
         </p>
 
         <ul className="marklegend">
@@ -54,7 +54,7 @@ export default function Login() {
           <span>Sign in as</span>
           <select value={role} onChange={(e) => setRole(e.target.value)}>
             {roles.map((r) => (
-              <option key={r.role} value={r.role}>{r.label} &mdash; {r.can}</option>
+              <option key={r.role} value={r.role}>{r.label} -- {r.can}</option>
             ))}
           </select>
         </label>
