@@ -1,13 +1,13 @@
 """Forward simulation: roll the attack forward K steps and say where it goes.
 
 Everything before this module answers "what happened?". This one answers "what
-happens next, and how sure are we as the horizon grows?" — by rolling the
+happens next, and how sure are we as the horizon grows?" -- by rolling the
 learned transition model forward instead of predicting a single next step.
 
 The transition model already exists and is already measured: the interpolated
 Markov in `src/shared/predictor.py` estimates P(next | previous, last) over real
 ATT&CK sequences, at 38.1% top-3 against a 7.1% kill-chain baseline
-(`reports/prediction_eval.md`). This module does the part that was missing —
+(`reports/prediction_eval.md`). This module does the part that was missing --
 beam search over that distribution to produce a trajectory rather than a guess:
 
   * a per-step distribution over predicted techniques,
@@ -16,9 +16,13 @@ beam search over that distribution to produce a trajectory rather than a guess:
   * which crown jewels that trajectory would put in reach, from the real graph,
   * and the honest bit: confidence decays with horizon, and the module reports
     the decay instead of quoting step-8 probabilities as if they meant anything.
+    The decay RATE is itself measured -- this module's own top-3 accuracy at each
+    horizon over 544 held-out prefixes, fitted and reproducible
+    (`reports/rollout_decay.md`, `scripts/eval_rollout_decay.py`). It was a made-up
+    0.62 until that experiment was run.
 
 Deterministic: same chain, same graph, same output. No sampling, no model
-opinion — the probabilities are the Markov's own transition estimates.
+opinion -- the probabilities are the Markov's own transition estimates.
 
     from src.shared.rollout import simulate_progression
     sim = simulate_progression(["T1078", "T1021"], graph_view, k_steps=5)
@@ -43,16 +47,78 @@ BEAM_WIDTH = 5
 BRANCH_FACTOR = 3
 MAX_HORIZON = 8
 
-# Per-step confidence decay. A model measured at 38.1% top-3 for ONE step is not
-# 38.1% accurate eight steps out; compounding uncertainty is the dominant term
-# and pretending otherwise is the main way a forecast misleads.
-STEP_DECAY = 0.62
+# Per-step confidence decay -- MEASURED, see `reports/rollout_decay.md`.
+#
+# A model measured at 38.1% top-3 for ONE step is not 38.1% accurate eight steps
+# out, and compounding uncertainty is the main way a forecast misleads. That much
+# was always true; the constant expressing it used to be 0.62, which no experiment
+# produced. `scripts/eval_rollout_decay.py` is now that experiment: it rolls this
+# module forward over held-out sequences and asks how often the technique that
+# ACTUALLY came at offset h is in the top-3 rendered at step h.
+#
+#   step:  1      2      3      4      5      6      7      8
+#   top-3: 45.0%  30.0%  22.4%  14.3%  15.1%  11.8%   9.9%   9.7%
+#
+# Fitting acc(h)/acc(1) = d^(h-1) over n = 544 held-out prefixes gives d = 0.7726
+# at R^2 = 0.870. Shipped rounded to 0.77: an R^2 = 0.87 fit does not earn four
+# significant figures, and this number is rendered to the user.
+#
+# Honest limits, in full in the report, and the second one is serious:
+#   * A single geometric constant cannot express the real shape -- steep from step
+#     1 to 2, then flattening -- so it under-states the early drop.
+#   * The held-out sequences are kill-chain-ordered, so part of the accuracy
+#     retained at long horizons is that ordering being re-learned. On the 4
+#     hand-verified CERT-In sequences (report-ordered, the only non-circular data
+#     here) the rollout scores 5.6% at step 1 and 0.0% at steps 2-4. n = 18 is far
+#     too small to fit anything, but it is large enough to be a warning: 0.77 is an
+#     UPPER BOUND on how well this holds up, not a central estimate.
+# This is a measured decay rate with a reproducible experiment behind it -- not a
+# probability that any given forecast is right.
+STEP_DECAY = 0.77
 
 # Below this horizon confidence a forecast is not worth quoting as a headline.
 # The peak cumulative probability always sits at the LAST step, where confidence
-# is lowest — reporting it would mean leading with the least reliable number the
+# is lowest -- reporting it would mean leading with the least reliable number the
 # model produces ("99.7% chance of impact", at confidence 0.15).
+#
+# Left at 0.35 through the re-measurement above rather than retuned, because
+# moving a threshold to preserve a conclusion is the thing this file exists to
+# avoid. This threshold is a stated editorial line, not a measured one.
+#
+# Consequence worth knowing: the measured decay (0.77) is gentler than the made-up
+# 0.62 it replaced, so the reliable horizon moved from step 3 to step 5. Callers
+# were asking for exactly 5, which made the headline the LAST step and collapsed
+# it onto the peak the guard exists to hold back. That was fixed by asking for
+# more steps than we intend to quote (see FORECAST_HORIZON), not by lowering this
+# number until the answer looked better.
 RELIABLE_CONFIDENCE = 0.35
+
+# How many steps callers roll. Deliberately further than the reliable horizon,
+# which at STEP_DECAY 0.77 and RELIABLE_CONFIDENCE 0.35 is step 5.
+#
+# `_headline` leads with the furthest step still worth quoting rather than the
+# peak, and the peak is always the last step. That distinction only exists if
+# there ARE steps beyond the reliable horizon, so a caller asking for exactly 5
+# silently collapses the headline onto the peak and the guard stops guarding.
+#
+# It lives here, next to the decay it depends on, because it was previously a
+# bare 5 written separately in workflow.py and enrich.py -- two magic numbers
+# that had to agree and had nothing keeping them in agreement. A parity test
+# caught them disagreeing the moment one changed.
+FORECAST_HORIZON = 8
+
+# Above this cumulative probability the headline stops quoting a precise figure.
+#
+# `infiltration_probability` is a noisy-OR across rollout branches, so it climbs
+# toward 100 whenever a few steps carry real probability and it stays there. On
+# the AIIMS scenario it runs 44.9, 91.2, 99.0, 99.5, 99.7 and then flat. The 99.7
+# is a property of combining probabilities over five steps, not evidence that
+# compromise is 99.7% likely, and printing it as a headline is exactly the kind
+# of overclaim the rest of this file exists to prevent.
+#
+# `beyond_horizon_note` already said this about steps PAST the reliable horizon.
+# It is just as true at the horizon itself, so the headline now says it there.
+SATURATION = 95.0
 
 _state: dict = {}
 
@@ -89,7 +155,7 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
 
     `technique_ids` is the chain observed so far. `graph` is the incident's
     attack graph, used to say which crown jewels a predicted progression would
-    actually put in reach — a technique the attacker cannot route to is a
+    actually put in reach -- a technique the attacker cannot route to is a
     different risk from one they can.
     """
     from src.shared import predictor
@@ -190,7 +256,11 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
             "search": f"beam search, width {BEAM_WIDTH}, branch {BRANCH_FACTOR}",
             "decay": (f"horizon confidence {STEP_DECAY}^(step-1): a model measured at "
                       f"38.1% top-3 for one step is not 38.1% accurate {k_steps} "
-                      f"steps out, and the timeline says so"),
+                      f"steps out, and the timeline says so. {STEP_DECAY} is fitted, "
+                      f"not chosen -- top-3 accuracy of this rollout measured at each "
+                      f"horizon over 544 held-out prefixes, R^2 0.870 "
+                      f"(reports/rollout_decay.md, reproduce with "
+                      f"scripts/eval_rollout_decay.py)"),
             "deterministic": True,
         },
         "honesty": (
@@ -221,13 +291,24 @@ def _headline(steps: list[dict], cumulative: list[float]) -> dict:
     prob = cumulative[idx]
     conf = steps[idx]["horizon_confidence"]
     stage = steps[idx]["predictions"][0]["stage"] if steps[idx]["predictions"] else "unknown"
+    saturated = prob >= SATURATION
     return {
         "reliable_horizon": horizon,
         "headline_probability": prob,
         "headline_confidence": conf,
-        "headline": (f"{prob}% chance of reaching an impact stage within {horizon} "
-                     f"step(s), at horizon confidence {conf}. Most likely next "
-                     f"stage: {stage}."),
+        "headline_saturated": saturated,
+        "headline": (
+            (f"Reaching an impact stage within {horizon} step(s) is near-certain "
+             f"under this model ({prob}%), at horizon confidence {conf}. Treat the "
+             f"figure as saturated rather than precise: the cumulative curve is a "
+             f"noisy-OR over rollout branches and passes "
+             f"{SATURATION}% by design once a few steps carry real probability. "
+             f"The informative parts here are the horizon and the stage, not the "
+             f"percentage. Most likely next stage: {stage}.")
+            if saturated else
+            (f"{prob}% chance of reaching an impact stage within {horizon} "
+             f"step(s), at horizon confidence {conf}. Most likely next "
+             f"stage: {stage}.")),
         "beyond_horizon_note": (
             f"Steps past {horizon} are shown but not quoted: horizon confidence "
             f"falls below {RELIABLE_CONFIDENCE} and the cumulative curve rises "
@@ -258,7 +339,7 @@ def _exposure_if_progressed(graph: dict | None,
         "not_yet_reachable": sorted(set(designated) - set(at_risk)),
         "shortest_paths": {k: v for k, v in paths.items()},
         "note": ("Reachability is measured from the observed graph. A predicted "
-                 "technique does not create new topology here — we do not invent "
+                 "technique does not create new topology here -- we do not invent "
                  "hosts the attacker has not touched."),
     }
 

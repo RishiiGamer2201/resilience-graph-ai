@@ -25,7 +25,7 @@ def sim():
 # --------------------------------------------------------------------------- #
 def test_cumulative_probability_never_decreases(sim):
     """P(reached impact BY step k) cannot fall as k grows. It did, because the
-    curve was being multiplied by a decaying confidence — conflating a
+    curve was being multiplied by a decaying confidence -- conflating a
     probability with how much the probability is worth."""
     cum = sim["infiltration_probability"]
     assert cum == sorted(cum), cum
@@ -47,6 +47,38 @@ def test_confidence_follows_the_declared_decay(sim):
     for i, c in enumerate(sim["horizon_confidence"]):
         # stored rounded to 4dp, so the tolerance has to allow for that
         assert abs(c - STEP_DECAY ** i) < 1e-4, (i, c)
+
+
+def test_the_decay_constant_traces_to_a_measurement(sim):
+    """STEP_DECAY must be the number an experiment produced, not one someone liked.
+
+    It was 0.62 with nothing behind it. `scripts/eval_rollout_decay.py` measures
+    this module's own top-3 accuracy at each horizon over held-out sequences and
+    fits the decay; `reports/rollout_decay.md` records the fit. This pins the two
+    together, so the constant cannot be nudged without redoing the measurement --
+    which is the only property that makes it worth rendering to a user.
+    """
+    import re
+
+    from src.shared.rollout import ROOT
+    report = ROOT / "reports" / "rollout_decay.md"
+    assert report.exists(), "STEP_DECAY has no measurement report behind it"
+    text = report.read_text(encoding="utf-8")
+
+    shipped = re.search(r"shipped as `STEP_DECAY = ([0-9.]+)`", text)
+    assert shipped, "the report does not state which value is shipped"
+    assert float(shipped.group(1)) == STEP_DECAY, (
+        f"code ships {STEP_DECAY}, report measured {shipped.group(1)}")
+
+    # the fit has to disclose what it rests on, or it is decoration
+    n = re.search(r"n = (\d+) held-out prefixes", text)
+    r2 = re.search(r"R² = \*\*([0-9.]+)\*\*", text)
+    assert n and int(n.group(1)) > 100, "sample size missing or too small to quote"
+    assert r2, "fit quality (R²) is not reported"
+
+    # and the user-facing method block has to carry the provenance, not just the source
+    assert "reports/rollout_decay.md" in sim["method"]["decay"]
+    assert "fitted" in sim["method"]["decay"]
 
 
 def test_probabilities_stay_within_bounds(sim):
@@ -150,3 +182,40 @@ def test_the_investigation_carries_a_forecast():
     assert f["available"] is True
     assert f["steps"] and f["headline"]
     assert f["infiltration_probability"] == sorted(f["infiltration_probability"])
+
+
+def test_a_saturated_headline_says_so_instead_of_quoting_a_precise_figure():
+    """99.7% is a property of noisy-OR, not evidence of near-certain compromise.
+
+    The cumulative curve combines per-step probabilities across rollout branches,
+    so it climbs past 95 whenever a few steps carry real probability and then
+    stays flat. On AIIMS it runs 44.9, 91.2, 99.0, 99.5, 99.7. Leading with
+    "99.7% chance of compromise" would be the same overclaim this module already
+    refuses to make about steps past the reliable horizon.
+    """
+    from src.shared.rollout import SATURATION, simulate_progression
+    out = simulate_progression(["T1078", "T1021", "T1550.002"], None, k_steps=8)
+    if out["headline_probability"] < SATURATION:
+        pytest.skip("this chain does not saturate; nothing to assert")
+    assert out["headline_saturated"] is True
+    assert "saturated" in out["headline"], out["headline"]
+    assert "near-certain" in out["headline"]
+    # the figure is still reported, just not presented as precision
+    assert str(out["headline_probability"]) in out["headline"]
+
+
+def test_the_forecast_horizon_rolls_past_the_reliable_one():
+    """Otherwise `_headline` has nothing to hold back and stops guarding.
+
+    The guard leads with the furthest step still worth quoting rather than the
+    peak, and the peak is always the last step. Asking for exactly as many steps
+    as the reliable horizon makes those the same step. This pins the invariant so
+    a future change to STEP_DECAY cannot silently close the gap again.
+    """
+    from src.shared.rollout import (FORECAST_HORIZON, RELIABLE_CONFIDENCE,
+                                    STEP_DECAY)
+    reliable = 1
+    while STEP_DECAY ** reliable >= RELIABLE_CONFIDENCE:
+        reliable += 1
+    assert FORECAST_HORIZON > reliable, (
+        f"horizon {FORECAST_HORIZON} must exceed the reliable horizon {reliable}")

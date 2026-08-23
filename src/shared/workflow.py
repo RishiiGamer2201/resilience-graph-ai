@@ -4,7 +4,7 @@ Replan → Impact → Action.
 This is a state graph, not an agent loop. Seven nodes run in a fixed order with
 exactly one permitted replan, every node is timed, and every node returns a typed
 result. A node that fails degrades to `status: "degraded"` and the investigation
-continues — losing the evidence retriever must not erase the detection.
+continues -- losing the evidence retriever must not erase the detection.
 
 Why hand-rolled instead of LangGraph: the graph is seven nodes with one bounded
 retry, and every node is a call into a domain function that already exists and is
@@ -16,7 +16,7 @@ along with the evidence that would justify revisiting it.
 Hard rules, enforced here rather than promised in a pitch:
   * every number the workflow emits is deterministic Python over typed inputs;
   * the LLM (when one is configured at all) may only reword an explanation and is
-    labelled non-authoritative — it never scores, ranks, gates or approves;
+    labelled non-authoritative -- it never scores, ranks, gates or approves;
   * retrieved document text is evidence, never instruction;
   * no action touches an external system. Ever.
 
@@ -41,7 +41,7 @@ MAX_REPLANS = 1          # bounded by construction: there is no loop to run away
 NODES = ("understand", "plan", "evidence", "signals", "replan", "impact", "action")
 
 # Headline metric weights. Documented here, echoed in the API payload, and shown
-# in the UI behind the number — a judge can check the arithmetic on screen.
+# in the UI behind the number -- a judge can check the arithmetic on screen.
 #
 # LIKELIHOOD only. `evidence_corroboration` used to sit in this weighting, which
 # mixed "how far along does this intrusion look" with "how good is our evidence".
@@ -85,7 +85,7 @@ class Trace:
         except Exception as e:                      # typed degradation, not a 500
             res = NodeResult(node, "failed" if required else "degraded",
                              summary=f"{type(e).__name__}: {e}"[:220],
-                             notes=[("this node is required — the investigation is "
+                             notes=[("this node is required -- the investigation is "
                                      "incomplete") if required else
                                     "the rest of the investigation continued without it"])
         res.ms = (time.perf_counter() - t) * 1000
@@ -108,14 +108,14 @@ class Trace:
 
 
 # --------------------------------------------------------------------------- #
-# headline metrics — deterministic, explainable, checkable on screen           #
+# headline metrics -- deterministic, explainable, checkable on screen           #
 # --------------------------------------------------------------------------- #
 def crown_jewel_exposure(graph: dict, designated: list[str]) -> dict:
     """0-100: how exposed the designated crown jewels are, right now.
 
     Per jewel: 100 if the attacker stands on it or is one hop away, decayed by
     0.9 for each additional hop, 0 if no path exists. The score is the mean over
-    every DESIGNATED jewel — so protecting one of three genuinely moves it.
+    every DESIGNATED jewel -- so protecting one of three genuinely moves it.
     """
     designated = sorted(set(designated or []))
     if not designated:
@@ -189,7 +189,7 @@ def progression_likelihood(incident: dict, graph: dict | None) -> dict:
         "formula": " + ".join(f"{w}×{k}" for k, w in PROGRESSION_WEIGHTS.items()),
         "note": ("How far along an intrusion looks, measured from this log. NOT a "
                  "probability that an attack occurred, and NOT a statement about "
-                 "evidence quality — see evidence confidence, reported beside it."),
+                 "evidence quality -- see evidence confidence, reported beside it."),
     }
 
 
@@ -255,7 +255,7 @@ def evidence_confidence(claims: list[dict], cited_techniques: int,
         "terms": [{"name": g.independence_group, "value": g.strength,
                    "weight": 1.0, "detail": g.detail} for g in groups],
         "formula": ("noisy-OR across independence groups: "
-                    "1 − Π(1 − strength) — duplicate signals inside a group add nothing"),
+                    "1 − Π(1 − strength) -- duplicate signals inside a group add nothing"),
         "actionable_claims": len(actionable),
         "total_claims": len(claims),
         "crosscheck": ({"verdict": crosscheck["verdict"],
@@ -291,7 +291,7 @@ def _n_understand(df: pd.DataFrame, scenario: str | None, critical: list[str],
     if unknown_crit:
         notes.append(f"designated crown jewels absent from this log: {', '.join(unknown_crit)}")
     if not critical:
-        notes.append("no crown jewels designated — exposure cannot be measured")
+        notes.append("no crown jewels designated -- exposure cannot be measured")
     if len(df) > MAX_ROWS:
         notes.append(f"log exceeds the {MAX_ROWS}-row cap and will be rejected")
 
@@ -371,7 +371,7 @@ def _n_evidence(query: str, technique_ids: list[str], k: int) -> NodeResult:
                     "with exact-identifier lookup kept lexical"
                     if ev.active_backend() == "semantic" else
                     "BM25 + exact identifier boost, bundled read-only index, no network")},
-        notes=([] if cites else ["no official evidence matched — say so, do not improvise"]),
+        notes=([] if cites else ["no official evidence matched -- say so, do not improvise"]),
     )
 
 
@@ -401,7 +401,7 @@ def _n_signals(df: pd.DataFrame, critical: list[str], incident_id: str,
 
 
 def _n_replan(evidence: NodeResult, technique_ids: list[str], attempt: int) -> NodeResult:
-    """Detect an evidence gap. Permits at most one retry — by construction."""
+    """Detect an evidence gap. Permits at most one retry -- by construction."""
     cited = {i for c in (evidence.output.get("citations") or []) for i in c["identifiers"]}
     missing = [t for t in technique_ids if t not in cited]
     stale = [c["title"] for c in (evidence.output.get("citations") or [])
@@ -409,7 +409,7 @@ def _n_replan(evidence: NodeResult, technique_ids: list[str], attempt: int) -> N
     retry = bool(missing) and attempt < MAX_REPLANS
     return NodeResult(
         "replan", status="ok",
-        summary=("no gap — evidence covers every observed technique" if not missing else
+        summary=("no gap -- evidence covers every observed technique" if not missing else
                  f"{len(missing)} technique(s) lack a citation"
                  + (" → retrying evidence once" if retry else " → reported as unevidenced")),
         output={"techniques_without_citation": missing,
@@ -450,9 +450,17 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
 
     # Forward simulation: roll the learned transition model K steps ahead so the
     # impact stage answers "where is this going" and not only "where is it now".
-    from src.shared.rollout import simulate_progression
+    # Roll further than we intend to quote. `_headline` exists to avoid leading
+    # with the peak, which always sits at the final step where horizon confidence
+    # is lowest. That guard only separates if there ARE steps past the reliable
+    # horizon: once STEP_DECAY was measured at 0.77 instead of the invented 0.62,
+    # the reliable horizon moved from 3 to 5, and asking for exactly 5 made the
+    # headline and the peak the same step. Asking for 8 restores the gap without
+    # moving RELIABLE_CONFIDENCE, which would be tuning a threshold to preserve a
+    # conclusion.
+    from src.shared.rollout import FORECAST_HORIZON, simulate_progression
     progression = simulate_progression(inc.get("technique_ids", []), graph_view,
-                                       k_steps=5, crown_jewels=critical)
+                                       k_steps=FORECAST_HORIZON, crown_jewels=critical)
 
     candidates = rank_candidates(graph_view, limit=5)
     best = candidates[0]["host"] if candidates else None
@@ -469,7 +477,7 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
     notes = []
     if not vulns["findings"]:
         notes.append("no vulnerability findings: " + (vulns.get("inventory_note") or
-                     "no asset inventory supplied — host software is never guessed"))
+                     "no asset inventory supplied -- host software is never guessed"))
     return NodeResult(
         "impact", status="ok",
         summary=((f"forecast: {progression['peak_infiltration_probability']}% chance of "
@@ -520,7 +528,7 @@ def _rfi(bundle: dict, critical: list[str], counterfactual: dict | None) -> dict
          "why": "routine admin activity can look identical to lateral movement"},
         {"field": "identity_context",
          "ask": f"Are the accounts {accounts} expected to authenticate from {g['entry_host']}?",
-         "why": "the detector is behavioural — a legitimate role change reproduces this pattern"},
+         "why": "the detector is behavioural -- a legitimate role change reproduces this pattern"},
         {"field": "edr_result",
          "ask": f"What does EDR report on {host} and on {jewels} for this window?",
          "why": "auth logs alone cannot confirm code execution or persistence"},
@@ -584,7 +592,7 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
             "note": ("SIMULATION ONLY. Nothing here contacts an external system. "
                      "Approval is recorded in the tamper-evident audit chain."),
         },
-        notes=([] if principal else ["no principal supplied — approval cannot be recorded"]),
+        notes=([] if principal else ["no principal supplied -- approval cannot be recorded"]),
     )
 
 
@@ -624,7 +632,7 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                 if want_evidence else
                 trace.run("evidence", lambda: NodeResult(
                     "evidence", "skipped",
-                    summary="evidence index not built — run scripts.build_evidence_index",
+                    summary="evidence index not built -- run scripts.build_evidence_index",
                     notes=["conclusions will be reported without citations"])))
 
     signals = trace.run("signals",

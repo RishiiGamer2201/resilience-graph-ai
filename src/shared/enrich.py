@@ -1,8 +1,8 @@
 """One enrichment, shared by every path that analyses a log.
 
-There are four ways an analysis bundle gets produced in this repo — the
+There are four ways an analysis bundle gets produced in this repo -- the
 investigation workflow, `POST /api/analyze`, `POST /api/analyze/upload`,
-`GET /api/analyze/stream`, and the offline cache build — and they had drifted
+`GET /api/analyze/stream`, and the offline cache build -- and they had drifted
 into attaching different things. The investigation had claims, the four-number
 assessment, the progression forecast and the agent cross-check; the analyze path
 had only the agent lane; the cache had neither. Same product, same log, different
@@ -33,7 +33,7 @@ import pandas as pd
 def build_claims(incident: dict) -> list[dict]:
     """One claim per distinct technique, from the strongest step that produced it.
 
-    Not one per alert — that would be thousands of duplicates of the same
+    Not one per alert -- that would be thousands of duplicates of the same
     assertion, and duplicates are exactly what the confidence model must not
     reward.
     """
@@ -94,7 +94,7 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
                   cited_techniques: int = 0,
                   agent_summary: dict | None = None,
                   run_agents: bool = True,
-                  k_steps: int = 5) -> dict:
+                  k_steps: int | None = None) -> dict:
     """Attach the full analysis layer to a spine bundle, in place.
 
     `agent_summary` lets a caller that already ran the agent lane pass it in
@@ -102,7 +102,9 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
     """
     from src.shared.claims import Assessment
     from src.shared.crosscheck import crosscheck as compare
-    from src.shared.rollout import simulate_progression
+    from src.shared.rollout import FORECAST_HORIZON, simulate_progression
+    # one horizon, defined next to the decay it depends on
+    k_steps = FORECAST_HORIZON if k_steps is None else k_steps
     from src.shared.workflow import (crown_jewel_exposure, evidence_confidence,
                                      progression_likelihood)
 
