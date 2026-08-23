@@ -16,21 +16,16 @@ export default defineConfig({
     extensions: ['.mjs', '.mts', '.ts', '.tsx', '.js', '.jsx', '.json'],
   },
   build: {
-    rollupOptions: {
-      output: {
-        // Keep the heavy, route-lazy libraries out of the entry chunk. The
-        // 3D scene, the graph and the charts load only on the routes that use
-        // them. Rolldown (Vite 8) wants the function form, not the map.
-        manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            if (/three|@react-three/.test(id)) return 'three'
-            if (/react-force-graph/.test(id)) return 'graph'
-            if (/recharts|d3-/.test(id)) return 'charts'
-          }
-          return undefined
-        },
-      },
-    },
+    // No manualChunks. Naming three.js / the force graph / recharts as manual
+    // chunks looked like an optimisation and was the opposite: rolldown hoisted
+    // them into the entry's static dependency set, so index.html eagerly loaded
+    // 2 MB of libraries that the lazy routes were supposed to defer. First paint
+    // pulled the 3D graph even if you never opened /graph.
+    //
+    // The routes in App.tsx are already React.lazy, and AttackGraph3D/LoginScene
+    // are lazy inside their screens. Left alone, the bundler keeps each behind
+    // its dynamic import, which is what we wanted in the first place.
+    chunkSizeWarningLimit: 1600,
   },
   server: {
     // 8001 avoids colliding with the other local FastAPI services commonly

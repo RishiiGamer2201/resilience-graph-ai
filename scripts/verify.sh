@@ -119,6 +119,7 @@ step 'Backend tests (pytest)'      "$PY" -m pytest tests/ -q
 step 'Module self-checks'          self_checks
 step 'Documented metrics are not stale' "$PY" -m scripts.audit_stale
 step 'Offline API smoke test'      smoke
+step 'Frontend typecheck'     frontend typecheck
 step 'Frontend lint'               frontend lint
 step 'Frontend build'              frontend build
 step 'Docker build + container health' docker_smoke

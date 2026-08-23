@@ -111,14 +111,37 @@ jobs:
       - run: npm run lint
         working-directory: frontend
 
+      # Vite does not typecheck; it strips types and bundles. Without this step
+      # a type error rides all the way to main behind a green build, which is
+      # exactly how a missing @types/three package got here.
+      - run: npm run typecheck
+        working-directory: frontend
+
       - run: npm run build
         working-directory: frontend
 
       - name: The SPA bundle stays lean
         working-directory: frontend
         run: |
-          size=$(du -sk dist | cut -f1)
-          echo "dist is ${size} KB"
-          # A guard rail, not a target: a sudden jump means a heavy dependency
-          # landed in the bundle, which is the thing we said we would not do.
-          test "$size" -lt 4096 || { echo "dist exceeded 4 MB"; exit 1; }
+          # Guard what a visitor actually downloads, not what sits on disk.
+          #
+          # The old check was `du -sk dist < 4 MB`, which stopped meaning
+          # anything once the 3D attack graph landed: react-force-graph-3d and
+          # three.js are ~3 MB of lazy chunks that only load on /graph. Judged by
+          # total size, adding a route you never visit looks identical to
+          # bloating the front page.
+          #
+          # So: the entry is held tight, because everyone pays for it, and the
+          # total gets a loose sanity bound to catch something genuinely
+          # runaway. A regression that put a lazy library back into the entry --
+          # which a manualChunks config silently did once -- fails the first
+          # check immediately.
+          entry=0
+          for f in $(grep -oE '(src|href)="/assets/[^"]+"' dist/index.html                      | sed 's/.*assets\///; s/"//'); do
+            [ -f "dist/assets/$f" ] || continue
+            entry=$((entry + $(du -k "dist/assets/$f" | cut -f1)))
+          done
+          total=$(du -sk dist | cut -f1)
+          echo "first paint: ${entry} KB   ·   dist total: ${total} KB"
+          test "$entry" -lt 900  || { echo "first-paint payload exceeded 900 KB: a lazy library is being loaded eagerly"; exit 1; }
+          test "$total" -lt 12288 || { echo "dist exceeded 12 MB"; exit 1; }
