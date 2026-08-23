@@ -41,6 +41,13 @@ __pycache__/
 .venv/
 venv/
 env/
+
+# Local credentials and machine-specific configuration.
+.env
+.env.*
+!.env.example
+frontend/.env.local
+frontend/.env.*.local
 .ipynb_checkpoints/
 *.egg-info/
 .pytest_cache/

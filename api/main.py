@@ -24,11 +24,13 @@ import pandas as pd
 from fastapi import Depends, FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
 from api.finalist import _require as require_permission
 from api.finalist import principal
 
 ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(ROOT / ".env", override=False)
 CACHE = ROOT / "api" / "cache"
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
 MARKOV = ROOT / "models" / "next_technique_markov.pkl"
