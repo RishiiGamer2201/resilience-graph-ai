@@ -120,7 +120,7 @@ burst appears on both sides.
 
 | Metric | Model | Baseline | |
 |---|---|---|---|
-| Next-window compromise, ROC-AUC | **0.9872** | 0.5 | random |
+| Next-window compromise, ROC-AUC | **0.9872** | _not measured_ | persistence (current window's attack rate) |
 | Next-window compromise, PR-AUC | 0.9333 | | |
 | Attack-rate Brier @ 1 step | **0.02217** | 0.12353 | always predict prevalence |
 | Next-state top-1, online adaptive | **0.3964** | 0.362 | persistence |
@@ -235,7 +235,7 @@ clone with no dataset download.
 | SOAR playbook coverage of observed tactics | 100.0% |
 | MITRE mitigation coverage of observed techniques | 100.0% |
 | Actions executed against real systems | 0 (by design) |
-| Investigation latency, p50 then p95 | 220 ms then 1894 ms |
+| Investigation latency, p50 then p95 | 242 ms then 1928 ms |
 | Evidence recall@1 then recall@5 (lexical, the shipped backend) | 64.3% then 85.7% |
 | Evidence MRR (lexical, the shipped backend) | 0.717 |
 | Citation integrity failures | 0 |
@@ -272,7 +272,7 @@ what would reverse it.
 
 ## 7. Engineering
 
-- 515 automated tests, no network required (pipeline correctness, multi-pivot
+- 536 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

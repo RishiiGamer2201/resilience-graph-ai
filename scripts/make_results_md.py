@@ -138,7 +138,7 @@ burst appears on both sides.
 
 | Metric | Model | Baseline | |
 |---|---|---|---|
-| Next-window compromise, ROC-AUC | **{N['compromise_roc_auc']}** | 0.5 | random |
+| Next-window compromise, ROC-AUC | **{N['compromise_roc_auc']}** | {N.get('compromise_persistence_roc_auc') or '_not measured_'} | persistence (current window's attack rate) |
 | Next-window compromise, PR-AUC | {N['compromise_pr_auc']} | | |
 | Attack-rate Brier @ 1 step | **{N['brier_1step']}** | {N['brier_1step_baseline']} | always predict prevalence |
 | Next-state top-1, online adaptive | **{N['online_top1']}** | {N['persistence_top1']} | persistence |
@@ -436,7 +436,12 @@ clone with no dataset download.
 """
     OUT.write_text(md, encoding="utf-8")
     # guard: the style rule bans em/en dashes
-    assert "--" not in md and "-" not in md, "em/en dash leaked into RESULTS.md"
+    # Guard against em/en dashes, NOT hyphens. A repo-wide dash sweep rewrote the
+    # two characters below into ASCII and turned this into `"-" not in md`, which
+    # fires on any hyphen in a 400-line document -- and it asserts AFTER writing,
+    # so every run clobbered RESULTS.md and then exited non-zero. Written as
+    # escapes so a future sweep cannot reach them.
+    assert "\u2014" not in md and "\u2013" not in md, "em/en dash leaked into RESULTS.md"
     print(f"wrote {OUT.relative_to(ROOT)} ({len(md.splitlines())} lines)")
 
 

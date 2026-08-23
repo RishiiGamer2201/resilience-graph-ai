@@ -163,7 +163,18 @@ def out_of_distribution(X) -> tuple[bool, float]:
     if ae is None or X.size == 0 or X.shape[1] <= RARITY_IDX:
         return False, 0.0
     _, mean, scale = ae
-    shift = float((X[:, RARITY_IDX].mean() - mean[RARITY_IDX]) / scale[RARITY_IDX])
+    col = X[:, RARITY_IDX]
+    col = col[np.isfinite(col)]
+    if col.size == 0:
+        return False, 0.0
+    shift = float((col.mean() - mean[RARITY_IDX]) / scale[RARITY_IDX])
+    if not np.isfinite(shift):
+        # NaN never satisfies `abs(shift) > threshold`, so an unguarded NaN was
+        # silently reported as in-distribution AND travelled into the response as
+        # `rarity_shift_sigma: nan`, which Starlette refuses to serialise
+        # (allow_nan=False) -- a 500 on the public upload endpoint from one blank
+        # destination_host cell. Comparing NaN is always the bug; say so instead.
+        return False, 0.0
     return bool(abs(shift) > RARITY_SHIFT_SIGMA), round(shift, 3)
 
 

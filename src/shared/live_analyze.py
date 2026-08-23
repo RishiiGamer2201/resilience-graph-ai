@@ -115,6 +115,10 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     df = _prepare(df)
     df = engineer(df)                       # 7 behavioral features, per-user chronological
     scores, calibration = _score(df)
+    # A row with a missing host yields a NaN feature and therefore a NaN score.
+    # astype(int) turned that into 0 with only a RuntimeWarning, so the event we
+    # would most want to look at scored lowest possible. Treat it as unscored.
+    scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
     df["anomaly_score"] = scores.astype(int)
     if account:
         df = df[df["user"].astype(str) == account]
