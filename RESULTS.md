@@ -235,7 +235,7 @@ clone with no dataset download.
 | SOAR playbook coverage of observed tactics | 100.0% |
 | MITRE mitigation coverage of observed techniques | 100.0% |
 | Actions executed against real systems | 0 (by design) |
-| Investigation latency, p50 then p95 | 209 ms then 1715 ms |
+| Investigation latency, p50 then p95 | 208 ms then 1793 ms |
 | Evidence recall@1 then recall@5 (lexical, the shipped backend) | 64.3% then 85.7% |
 | Evidence MRR (lexical, the shipped backend) | 0.717 |
 | Citation integrity failures | 0 |

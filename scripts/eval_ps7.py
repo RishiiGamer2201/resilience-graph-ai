@@ -93,6 +93,7 @@ def measure(runs: int = 3) -> dict:
 
     per_scenario, timings = [], []
     total_alerts = mapped_alerts = 0
+    tech_counts: dict[str, int] = {}
     all_tactics: set[str] = set()
     all_techniques: set[str] = set()
     invalid_ids: set[str] = set()
@@ -115,6 +116,9 @@ def measure(runs: int = 3) -> dict:
         mapped = [s for s in alerts if s.get("technique_id") not in (None, "", "-")]
         total_alerts += len(alerts)
         mapped_alerts += len(mapped)
+        for a in alerts:
+            tid = a.get("technique_id") or "unmapped"
+            tech_counts[tid] = tech_counts.get(tid, 0) + 1
         tactics = {s["tactic"] for s in alerts if s["tactic"] != "Normal"}
         all_tactics |= tactics
         all_techniques |= set(inc["technique_ids"])
@@ -214,6 +218,22 @@ def measure(runs: int = 3) -> dict:
             "alerts": total_alerts,
             "alerts_with_technique": mapped_alerts,
             "coverage": round(mapped_alerts / max(1, total_alerts), 4),
+        # Coverage is 100% and CANNOT be otherwise, which the figure alone hides.
+        # `normal_auth` is the only event type that maps to no technique, and
+        # infer_lanl_event_type returns it only when the score is below the alert
+        # line -- the exact condition that makes an event not an alert. So no
+        # alert can reach the unmapped branch. The number is real and it is also
+        # structural, and both belong next to it.
+        "coverage_is_structural": True,
+        "coverage_caveat": (
+            "100% by construction: the only unmapped event type is returned only "
+            "for events below the alert threshold, so no alert can be unmapped. "
+            "Read the technique distribution below instead -- it is what actually "
+            "says how specific the mapping is."),
+        "technique_distribution": {
+            t: {"alerts": c, "share": round(c / max(1, total_alerts), 4)}
+            for t, c in sorted(tech_counts.items(), key=lambda kv: -kv[1])
+        },
             "denominator": ("every correlated alert in every shipped scenario -- NOT "
                             "the incident payload the UI receives, which is capped at "
                             "80 alerts per scenario for display"),
@@ -277,6 +297,13 @@ def write_report(m: dict) -> None:
         "", "## ATT&CK mapping", "",
         f"- alerts carrying a technique: **{am['coverage']:.1%}** "
         f"({am['alerts_with_technique']} of {am['alerts']})",
+        (f"  - **and it is 100% by construction.** {am['coverage_caveat']}"
+         if am.get("coverage_is_structural") else ""),
+        "",
+        "| Technique | Alerts | Share of alerts |",
+        "|---|---|---|",
+        *[f"| `{t}` | {d['alerts']:,} | {d['share']:.1%} |"
+          for t, d in am.get("technique_distribution", {}).items()],
         f"- emitted technique IDs valid against the canonical ATT&CK lookups: "
         f"**{am['id_validity']:.1%}** (invalid: {am['invalid_technique_ids'] or 'none'})",
         f"- event->technique precision: **Not measured** -- {am['ground_truth_note']}",

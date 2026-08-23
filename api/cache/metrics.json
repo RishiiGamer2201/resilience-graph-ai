@@ -58,9 +58,9 @@
       "note": "Logistic regression is trained WITH the red-team labels; the autoencoder never sees one. A supervised linear model is the fair, hard baseline for an unsupervised detector on identical features, which is why it is worth publishing whichever way it lands."
     },
     "clean_log": {
-      "worst_alert_rate": 0.3125,
+      "worst_alert_rate": 0.482,
       "best_alert_rate": 0.1846,
-      "shapes_tested": 5,
+      "shapes_tested": 6,
       "attack_events": 0,
       "seed": 20260824,
       "note": "Synthetic clean logs, no attack events at all. The alert rate is the false-positive rate on a quiet estate, and it is high because features are corpus-relative with no stored baseline and the anchors were measured on LANL. Not a threshold problem: see reports/clean_log.md."
@@ -132,6 +132,26 @@
       "alerts": 1503,
       "alerts_with_technique": 1503,
       "coverage": 1.0,
+      "coverage_is_structural": true,
+      "coverage_caveat": "100% by construction: the only unmapped event type is returned only for events below the alert threshold, so no alert can be unmapped. Read the technique distribution below instead -- it is what actually says how specific the mapping is.",
+      "technique_distribution": {
+        "T1550.002": {
+          "alerts": 691,
+          "share": 0.4597
+        },
+        "T1078": {
+          "alerts": 560,
+          "share": 0.3726
+        },
+        "T1110": {
+          "alerts": 251,
+          "share": 0.167
+        },
+        "T1021": {
+          "alerts": 1,
+          "share": 0.0007
+        }
+      },
       "denominator": "every correlated alert in every shipped scenario -- NOT the incident payload the UI receives, which is capped at 80 alerts per scenario for display",
       "invalid_technique_ids": [],
       "id_validity": 1.0,
@@ -176,9 +196,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 223.4,
-      "p95": 1918.7,
-      "max": 4732.0,
+      "p50": 208.4,
+      "p95": 1793.3,
+      "max": 3775.2,
       "samples": 12,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -246,7 +266,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 204.6,
+          "latency_ms_median": 204.7,
           "degraded_nodes": []
         },
         {
@@ -278,7 +298,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 151.9,
+          "latency_ms_median": 156.0,
           "degraded_nodes": []
         },
         {
@@ -311,7 +331,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1771.4,
+          "latency_ms_median": 1722.6,
           "degraded_nodes": [
             "understand"
           ]
@@ -345,13 +365,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 232.5,
+          "latency_ms_median": 209.9,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-24 00:16 IST"
+      "evaluated_at": "2026-08-24 01:20 IST"
     }
   },
   "engine3": {

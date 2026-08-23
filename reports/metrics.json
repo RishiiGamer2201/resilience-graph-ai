@@ -133,6 +133,26 @@
       "alerts": 1503,
       "alerts_with_technique": 1503,
       "coverage": 1.0,
+      "coverage_is_structural": true,
+      "coverage_caveat": "100% by construction: the only unmapped event type is returned only for events below the alert threshold, so no alert can be unmapped. Read the technique distribution below instead -- it is what actually says how specific the mapping is.",
+      "technique_distribution": {
+        "T1550.002": {
+          "alerts": 691,
+          "share": 0.4597
+        },
+        "T1078": {
+          "alerts": 560,
+          "share": 0.3726
+        },
+        "T1110": {
+          "alerts": 251,
+          "share": 0.167
+        },
+        "T1021": {
+          "alerts": 1,
+          "share": 0.0007
+        }
+      },
       "denominator": "every correlated alert in every shipped scenario -- NOT the incident payload the UI receives, which is capped at 80 alerts per scenario for display",
       "invalid_technique_ids": [],
       "id_validity": 1.0,
@@ -177,9 +197,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 209.3,
-      "p95": 1714.7,
-      "max": 2512.9,
+      "p50": 208.4,
+      "p95": 1793.3,
+      "max": 3775.2,
       "samples": 12,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -247,7 +267,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 204.5,
+          "latency_ms_median": 204.7,
           "degraded_nodes": []
         },
         {
@@ -279,7 +299,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 154.0,
+          "latency_ms_median": 156.0,
           "degraded_nodes": []
         },
         {
@@ -312,7 +332,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1696.2,
+          "latency_ms_median": 1722.6,
           "degraded_nodes": [
             "understand"
           ]
@@ -346,13 +366,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 211.9,
+          "latency_ms_median": 209.9,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-24 01:07 IST"
+      "evaluated_at": "2026-08-24 01:20 IST"
     }
   },
   "engine3": {
