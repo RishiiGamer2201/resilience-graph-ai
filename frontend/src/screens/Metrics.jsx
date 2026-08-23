@@ -1,7 +1,9 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts'
 import { getMetrics } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
+import { useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import { CalibrationNote } from '../components/CalibrationBadge.jsx'
 
 function MetricTable({ rows }) {
   return (
@@ -21,6 +23,12 @@ function MetricTable({ rows }) {
 
 export default function Metrics() {
   const { data, error, loading } = useFetch(getMetrics)
+  // These are the detector's held-out numbers, always true of the model. They
+  // stop describing the loaded log the moment that log is out of distribution,
+  // and the "1% false-positive point" below is exactly the phrase that then
+  // stops applying.
+  const { bundle } = useAnalysis()
+  const cal = bundle?.meta?.calibration
   if (loading) return <Loading />
   if (error) return <ErrorBox error={error} />
 
@@ -64,6 +72,13 @@ export default function Metrics() {
             {lanl.iforest_tpr_at_1pct_fpr != null && (
               <> The autoencoder catches <b>{Math.round(lanl.tpr_at_1pct_fpr * 702)}/702</b> red-team
               events at the 1% false-positive point, up from <b>{Math.round(lanl.iforest_tpr_at_1pct_fpr * 702)}/702</b> for the IsolationForest it replaced.</>
+            )}
+            {cal?.out_of_distribution && (
+              <> <b>These are LANL numbers, not this log&rsquo;s.</b> The analysis currently
+              loaded is out of distribution for this corpus, so its events are scored
+              on a <span className="mono">{cal.basis}</span> basis and no false-positive
+              rate on this card applies to them.
+              <div className="calblock"><CalibrationNote /></div></>
             )}
           </div>
         </Card>

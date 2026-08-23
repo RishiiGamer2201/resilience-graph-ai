@@ -16,6 +16,8 @@ import Progression from '../components/Progression.jsx'
 import { getCapabilities, getScenarios, investigate, resetAudit, twinCandidates } from '../api.js'
 import { useAnalysis } from '../lib/analysis.jsx'
 import { useSession } from '../lib/session.jsx'
+import { scaleSuffix } from '../lib/format.js'
+import { CalibrationNote } from '../components/CalibrationBadge.jsx'
 
 // The hero scenario: a concrete Indian critical-infrastructure story with a named
 // crown jewel and a real asset inventory, so vulnerability prioritisation has
@@ -215,7 +217,7 @@ export default function Investigate() {
                 <CardHeader title="One correlated incident" meta={inc.incident_id} />
                 <div className="card-b pad kv">
                   {[
-                    ['Severity', `${inc.severity} · peak score ${inc.max_anomaly_score}/100`],
+                    ['Severity', `${inc.severity} · peak score ${inc.max_anomaly_score}/100${scaleSuffix(result.meta?.calibration)}`],
                     ['Collapsed', `${inc.event_count} events → ${inc.alert_count} alerts → 1 incident`],
                     ['Accounts', `${inc.accounts_involved?.length ?? 0}`],
                     ['ATT&CK chain', inc.technique_ids.join(' → ') || '—'],
@@ -227,6 +229,11 @@ export default function Investigate() {
                     </div>
                   ))}
                 </div>
+                {result.meta?.calibration?.note && (
+                  <div style={{ padding: '0 16px 14px' }}>
+                    <CalibrationNote cal={result.meta.calibration} />
+                  </div>
+                )}
               </Card>
               <Card>
                 <CardHeader title="Predicted next moves" meta="interpolated Markov" />

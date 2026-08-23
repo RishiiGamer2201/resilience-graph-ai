@@ -59,6 +59,13 @@ export function shortExplanation(explanation) {
   return firstSentence ? firstSentence[0].trim() : explanation
 }
 
+// ---- score calibration (bundle.meta.calibration) ---------------------------
+// Anomaly scores live on one of two scales -- the shipped LANL anchors, or a
+// ranking within the uploaded log -- and they are NOT comparable. Any sentence
+// that quotes a score has to say which. Returns '' when there is no calibration
+// block (the cached sample), because inventing a basis is worse than silence.
+export const scaleSuffix = (cal) => (cal?.basis ? ` · scale: ${cal.basis}` : '')
+
 // Wall-clock timestamp in the operator's timezone (IST) — matches the backend's
 // src/shared/timeutil.fmt_ist so every timestamp in the product reads the same.
 export function nowIST() {

@@ -6,6 +6,7 @@ import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveScoreWidget from '../components/LiveScoreWidget.jsx'
 import IncidentReport from '../components/IncidentReport.jsx'
+import CalibrationBadge, { CalibrationNote } from '../components/CalibrationBadge.jsx'
 import { severityFromStep, fmtTime, describeAccount, describeHost, describeStep, shortExplanation } from '../lib/format.js'
 
 const SEV_LABEL = { critical: 'critical', high: 'high', medium: 'medium', low: 'low', normal: 'normal' }
@@ -42,6 +43,8 @@ export default function Incident() {
   const esRef = useRef(null)
 
   const steps = data?.steps || []
+  // The scale every score in the timeline below is on.
+  const cal = bundle?.meta?.calibration
   // Same enrichment every other path gets (src/shared/enrich), so the forecast
   // shows here whether this came from a live run or the cached sample.
   const forecast = (bundle?.analysis || data?.analysis)?.progression_forecast
@@ -106,6 +109,12 @@ export default function Incident() {
         <span className="tag-pill" style={{ background: 'color-mix(in srgb, var(--sev-critical) 14%, transparent)', color: 'var(--sev-critical)' }}>{data.incident_id}</span>
         <h2 className="s-critical">{data.severity.toUpperCase()}</h2>
         <p>{data.alert_count} alerts from {data.event_count} events · {describeAccount(data.account)} · investigation pivot: {describeHost(data.pivot)}</p>
+        {cal && (
+          <div className="calblock">
+            <CalibrationBadge />
+            <CalibrationNote />
+          </div>
+        )}
       </div>
 
       <div className="grid2 incident-grid">
@@ -122,6 +131,9 @@ export default function Incident() {
               <Play size={13} aria-hidden="true" /> {replaying ? 'Replaying…' : 'Replay'}
             </button>
           </CardHeader>
+          {/* Sits outside the scroll container, so the scale stays on screen
+              next to the score column however far down the timeline you are. */}
+          {cal && <div className="calstrip"><CalibrationBadge label="timeline score scale" /></div>}
           <div className="card-b incident-timeline">
             {shown.map((step, index) => <TimelineRow key={`${step.timestamp}-${index}`} step={step} animate={replaying || streaming} />)}
           </div>
@@ -131,6 +143,14 @@ export default function Incident() {
           <Card>
             <CardHeader title="Live event scoring" meta="POST /score-event"><Zap size={15} aria-hidden="true" style={{ color: 'var(--accent)' }} /></CardHeader>
             <LiveScoreWidget />
+            {cal?.out_of_distribution && (
+              <div className="note">
+                This panel scores one synthetic event on the shipped LANL anchors. That
+                is a <b>different scale</b> from the timeline, which is
+                {' '}<span className="mono">{cal.basis}</span> -- the two numbers are not
+                comparable.
+              </div>
+            )}
           </Card>
           <Card>
             <CardHeader title="What this means" />
@@ -138,8 +158,13 @@ export default function Incident() {
               {data.event_count} raw sign-in events collapsed into a single correlated incident —
               {' '}{data.alert_count} flagged anomalous. The account appears to reuse stolen
               authentication material from {describeHost(data.pivot)}, then attempts repeated
-              password guesses; anomaly scores reached {data.max_anomaly_score}. The scoring panel
-              above runs the same Isolation-Forest model live.
+              password guesses.{' '}
+              {cal?.out_of_distribution
+                ? <>The highest-ranked event in this log scored {data.max_anomaly_score} on
+                  a <span className="mono">{cal.basis}</span> basis, which orders events
+                  against each other rather than against a calibrated threshold.</>
+                : <>Anomaly scores reached {data.max_anomaly_score}.</>}
+              {' '}The scoring panel above runs the same Isolation-Forest model live.
             </div>
           </Card>
         </div>

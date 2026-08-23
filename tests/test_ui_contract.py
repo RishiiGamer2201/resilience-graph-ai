@@ -235,3 +235,25 @@ def test_capabilities_shape(client):
     for name, cap in caps["capabilities"].items():
         _has(cap, "state", "detail")
         assert isinstance(cap["state"], str), name
+
+
+def test_meta_carries_the_calibration_basis(result):
+    """The UI renders a score's scale from this block, so it is load-bearing.
+
+    A 78 produced against the shipped LANL anchors and a 78 produced by ranking
+    within an out-of-distribution log are not the same claim, and the screens now
+    say which one they are showing. If this block stops arriving the badge
+    silently disappears and every score goes back to looking calibrated, which is
+    the bug the OOD work exists to prevent -- so the contract asserts it here
+    rather than leaving the frontend to discover it.
+    """
+    cal = result["meta"].get("calibration")
+    assert cal is not None, "meta.calibration is missing; the UI cannot label the scale"
+    assert isinstance(cal.get("basis"), str) and cal["basis"], "basis must be a non-empty string"
+    assert isinstance(cal.get("out_of_distribution"), bool)
+    assert isinstance(cal.get("rarity_shift_sigma"), (int, float))
+    # the note is the user-facing explanation: required when OOD, empty otherwise
+    if cal["out_of_distribution"]:
+        assert cal.get("note"), "an OOD run must explain itself"
+    else:
+        assert cal.get("note") == "", "a normally-calibrated run must not carry a warning"

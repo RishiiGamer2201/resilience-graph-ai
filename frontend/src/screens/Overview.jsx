@@ -7,6 +7,7 @@ import AgentPipeline from '../components/AgentPipeline.jsx'
 import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
 import Progression from '../components/Progression.jsx'
 import CrossCheck from '../components/CrossCheck.jsx'
+import CalibrationBadge, { CalibrationNote } from '../components/CalibrationBadge.jsx'
 import { Card as SurfaceCard, CardHeader as SurfaceHeader } from '../components/Card.jsx'
 
 export default function Overview() {
@@ -26,6 +27,9 @@ export default function Overview() {
   // same panels render whether this came from a live run, an upload, the SSE
   // replay or the pre-computed sample.
   const analysis = bundle?.analysis || data.analysis
+  // How the scores in the trend tile were calibrated. Absent on the cached
+  // sample, which is why the tile falls back to its plain caption.
+  const cal = bundle?.meta?.calibration
 
   return (
     <>
@@ -48,13 +52,20 @@ export default function Overview() {
           <div className="sub">hosts cut by isolating 1 node</div>
         </div>
 
-        <div className="tile">
+        <div className={`tile${cal?.out_of_distribution ? ' ood' : ''}`}>
           <div className="k">Anomaly-score trend</div>
           <div className="v">{alerts_correlated.alerts}</div>
-          <div className="sub">correlated alerts · live scores</div>
+          <div className="sub">correlated alerts · {cal ? cal.basis : 'live scores'}</div>
           {score_trend?.length > 1 && <Sparkline points={score_trend} />}
         </div>
       </div>
+
+      {cal && (
+        <div className="calblock" style={{ marginTop: 16 }}>
+          <CalibrationBadge />
+          <CalibrationNote />
+        </div>
+      )}
 
       <MttdPanel mttd={mttd} />
 
@@ -77,6 +88,11 @@ export default function Overview() {
           describe the detectors, so they're the same whatever log you analyze. The
           per-incident numbers above ({alerts_correlated.alerts} alerts ← {alerts_correlated.events} events)
           are what changes with the data.
+          {cal?.out_of_distribution && (
+            <> This log is out of distribution for that evaluation, so its per-event
+            scores are <span className="mono">{cal.basis}</span> and the benchmark&rsquo;s
+            operating point does not apply to them.</>
+          )}
         </div>
       </Card>
 

@@ -3,6 +3,7 @@ import { Sun, Moon, UserCog } from 'lucide-react'
 import { useTheme } from '../lib/theme.jsx'
 import { useAnalysis } from '../lib/analysis.jsx'
 import { useSession } from '../lib/session.jsx'
+import CalibrationBadge from './CalibrationBadge.jsx'
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -31,6 +32,9 @@ export default function Topbar({ title, subtitle }) {
         <span className="d" />
         {live ? `LIVE ANALYSIS · ${bundle?.meta?.n_events ?? ''} events` : 'SAMPLE DATA · pre-computed'}
       </span>
+      {/* Which scale the scores below are on. Same provenance job as the pill
+          beside it, so no screen can show a bare number without its basis. */}
+      <CalibrationBadge />
       <div className="spacer" />
       <label className="rolepick" title={`Sent as X-Role and enforced server-side. Signed in as ${actor}.`}>
         <UserCog size={13} aria-hidden="true" />

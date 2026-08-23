@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { RefreshCw, ExternalLink, ShieldAlert, Siren, Check, X, Waypoints, Crosshair } from 'lucide-react'
 import { getThreatRadar, getIncident, getThreatIntel, getGraph } from '../api.js'
-import { useScreenData } from '../lib/analysis.jsx'
+import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import LiveBadge from '../components/LiveBadge.jsx'
-import { nowIST } from '../lib/format.js'
+import { nowIST, scaleSuffix } from '../lib/format.js'
 
 // The distinct techniques behind an item's "where you're exposed" movements —
 // used to deep-link the Attack Graph to exactly those movements.
@@ -54,6 +54,9 @@ function SourceStatus({ sources }) {
 }
 
 function RadarItem({ item, names, onAlert, alerted }) {
+  // These movement scores are detector output, so the tooltip carries their scale.
+  const { bundle } = useAnalysis()
+  const scale = scaleSuffix(bundle?.meta?.calibration)
   const rel = item.relevance || { score: 0, matched_techniques: [], matched_tactics: [], matched_actors: [] }
   const strong = rel.matched_techniques.length > 0 || rel.matched_actors.length > 0
   const related = rel.score > 0
@@ -129,7 +132,7 @@ function RadarItem({ item, names, onAlert, alerted }) {
                 <span style={{ fontSize: 11.5, color: 'var(--text-dim)' }}> — {moves.length} of your movements:</span>
                 <div className="chips" style={{ marginTop: 3 }}>
                   {moves.slice(0, 8).map((m, k) => (
-                    <span key={k} className="chip mono" title={`${m.technique} · anomaly score ${m.score}`}>
+                    <span key={k} className="chip mono" title={`${m.technique} · anomaly score ${m.score}${scale}`}>
                       {m.from}→{m.to}{m.event_count > 1 ? ` ×${m.event_count}` : ''}
                     </span>
                   ))}

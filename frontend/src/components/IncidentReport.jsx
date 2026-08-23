@@ -1,13 +1,19 @@
 import { Download, Printer } from 'lucide-react'
 import { getReport } from '../api.js'
-import { useScreenData } from '../lib/analysis.jsx'
+import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader } from './Card.jsx'
+import CalibrationBadge, { CalibrationNote } from './CalibrationBadge.jsx'
 
-function toMarkdown(r) {
+// `cal` is bundle.meta.calibration. The exported file leaves the app, so the
+// scale has to leave with it -- a bare "/100" in a downloaded report is the same
+// unqualified claim this badge exists to stop.
+function toMarkdown(r, cal) {
   const L = [
     `# Incident Report: ${r.incident_id}`, '',
     `- Generated: ${r.generated_at}`,
     `- Severity: ${r.severity.toUpperCase()} (max anomaly ${r.max_anomaly_score}/100)`,
+    ...(cal ? [`- Score basis: ${cal.basis}`] : []),
+    ...(cal?.note ? [`- Calibration: ${cal.note}`] : []),
     `- Account: ${r.account} · Pivot: ${r.pivot}`, '',
     '## Summary', r.summary, '',
     '## ATT&CK chain',
@@ -29,6 +35,8 @@ function toMarkdown(r) {
 
 export default function IncidentReport() {
   const { data: r, loading } = useScreenData('report', getReport)
+  const { bundle } = useAnalysis()
+  const cal = bundle?.meta?.calibration
   if (loading || !r) return null
 
   const printReport = () => {
@@ -39,7 +47,7 @@ export default function IncidentReport() {
   }
 
   const download = () => {
-    const blob = new Blob([toMarkdown(r)], { type: 'text/markdown' })
+    const blob = new Blob([toMarkdown(r, cal)], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -72,6 +80,14 @@ export default function IncidentReport() {
         <Section title="Summary">
           <div style={{ color: 'var(--text)' }}>{r.summary}</div>
         </Section>
+        {cal && (
+          <Section title="Score basis">
+            <div className="calblock" style={{ marginTop: 0 }}>
+              <CalibrationBadge />
+              <CalibrationNote />
+            </div>
+          </Section>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
           <Section title="ATT&CK chain">
             {r.attack_chain.map((t) => (

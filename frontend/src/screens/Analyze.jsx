@@ -4,6 +4,7 @@ import { Play, Upload, X, FlaskConical, Bot, CheckCircle2, ShieldAlert, Cpu, Arr
 import { getScenarios, agentStreamUrl, analyzeUpload } from '../api.js'
 import { useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
+import CalibrationBadge, { CalibrationNote } from '../components/CalibrationBadge.jsx'
 
 export default function Analyze() {
   const navigate = useNavigate()
@@ -99,6 +100,11 @@ export default function Analyze() {
       setBusy(false)
     }
   }
+
+  // Scores in a finished bundle are on one of two scales; meta.calibration says
+  // which, and the result panel has to say it too.
+  const cal = completedBundle?.meta?.calibration
+  const ood = !!cal?.out_of_distribution
 
   return (
     <>
@@ -197,19 +203,30 @@ export default function Analyze() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  background: 'rgba(56, 189, 248, 0.08)',
+                  gap: 16,
+                  background: ood
+                    ? 'color-mix(in srgb, var(--sev-high) 8%, transparent)'
+                    : 'var(--accent-soft)',
                   padding: '12px 16px',
                   borderRadius: 6,
-                  border: '1px solid var(--accent)',
+                  border: `1px solid ${ood ? 'var(--sev-high)' : 'var(--accent)'}`,
                 }}
               >
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 600, color: 'var(--accent)' }}>
                     All 10 Agents Executed Successfully!
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                     Evidence traceability gates passed with zero ungrounded techniques. Full incident narrative, attack chains, and predictions ready.
                   </div>
+                  {/* What the scores in that bundle actually mean. Straight off
+                      meta.calibration -- nothing here is derived or assumed. */}
+                  {cal && (
+                    <div className="calblock">
+                      <CalibrationBadge cal={cal} />
+                      <CalibrationNote cal={cal} />
+                    </div>
+                  )}
                 </div>
                 <button
                   className="btn primary"
