@@ -37,7 +37,7 @@ const FLAGS: [keyof ScoreFeatures, string, string][] = [
   ],
 ]
 
-const NUMBERS: [keyof ScoreFeatures, string, string, number][] = [
+const NUMBERS: [keyof ScoreFeatures, string, string, number, number?][] = [
   [
     'user_distinct_dst_sofar',
     'Computers contacted so far',
@@ -49,6 +49,7 @@ const NUMBERS: [keyof ScoreFeatures, string, string, number][] = [
     'Recent failure rate',
     'Share of this account’s recent sign-ins that failed, 0–1.',
     0.01,
+    1,
   ],
   [
     'dst_rarity',
@@ -117,7 +118,7 @@ export default function LiveScoreWidget() {
             </span>
           </label>
         ))}
-        {NUMBERS.map(([key, label, help, step]) => (
+        {NUMBERS.map(([key, label, help, step, max]) => (
           <label
             key={key}
             className="flex flex-col gap-1 rounded-md border border-border bg-surface-2 p-2"
@@ -127,6 +128,7 @@ export default function LiveScoreWidget() {
             <input
               type="number"
               min={0}
+              max={max}
               step={step}
               value={feat[key]}
               onChange={(e) => set(key, Number(e.target.value))}

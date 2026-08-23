@@ -82,7 +82,16 @@ export default function AttackGraph3D({
     [nodes, links],
   )
 
-  const signature = `${nodes.length}:${links.length}`
+  // Counts alone are not an identity: account-scoped graphs can replace every
+  // host/edge while retaining the same totals. Include the topology so a route
+  // data change always reheats and refits the new graph.
+  const signature = useMemo(
+    () =>
+      `${nodes.map((node) => node.id).join('\u001f')}\u001e${links
+        .map((link) => `${link.source}\u001f${link.target}`)
+        .join('\u001e')}`,
+    [nodes, links],
+  )
 
   // Loosen repulsion: 400+ hosts at the default charge fling the components
   // apart and zoomToFit then frames mostly empty space.

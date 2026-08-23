@@ -18,6 +18,7 @@ import {
   lazy,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -95,26 +96,60 @@ class GraphCanvasBoundary extends Component<
 function webglAvailable(): boolean {
   try {
     const c = document.createElement('canvas')
-    return Boolean(c.getContext('webgl2') ?? c.getContext('webgl'))
+    const context = c.getContext('webgl2') ?? c.getContext('webgl')
+    context?.getExtension('WEBGL_lose_context')?.loseContext()
+    return Boolean(context)
   } catch {
     return false
   }
 }
 
-function useMeasuredWidth() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [w, setW] = useState(760)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const ro = new ResizeObserver((entries) => {
-      const cw = entries[0]?.contentRect.width
-      if (cw) setW(Math.max(320, Math.floor(cw)))
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-  return [ref, w] as const
+/**
+ * The surface is absent while route data loads, so a one-shot object-ref
+ * effect never sees it on client-side navigation. A callback ref makes the
+ * observer follow the actual DOM lifetime and delays WebGL until the real
+ * responsive width is known.
+ *
+ * The wheel listener intentionally runs in the wrapper's bubble phase. The
+ * canvas receives the event first (OrbitControls zooms), then propagation is
+ * stopped before the page/Lenis scroller can consume the same gesture.
+ */
+function useGraphSurface() {
+  const [surface, setSurface] = useState<HTMLDivElement | null>(null)
+  const [width, setWidth] = useState<number | null>(null)
+  const ref = useCallback((node: HTMLDivElement | null) => setSurface(node), [])
+
+  useLayoutEffect(() => {
+    if (!surface) {
+      setWidth(null)
+      return
+    }
+
+    const measure = () => {
+      const next = Math.floor(surface.getBoundingClientRect().width)
+      if (next > 0) setWidth((current) => (current === next ? current : next))
+    }
+    const containWheel = (event: WheelEvent) => {
+      if (event.cancelable) event.preventDefault()
+      event.stopPropagation()
+    }
+
+    measure()
+    surface.addEventListener('wheel', containWheel, { passive: false })
+
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+    observer?.observe(surface)
+    if (!observer) window.addEventListener('resize', measure)
+
+    return () => {
+      observer?.disconnect()
+      if (!observer) window.removeEventListener('resize', measure)
+      surface.removeEventListener('wheel', containWheel)
+    }
+  }, [surface])
+
+  return [ref, width] as const
 }
 
 interface HostRow extends Graph3DNode {
@@ -131,7 +166,7 @@ export default function Graph() {
     bundleSource,
   )
   const reduced = useReducedMotion() ?? false
-  const [wrapRef, width] = useMeasuredWidth()
+  const [wrapRef, width] = useGraphSurface()
   const [selected, setSelected] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [showPaths, setShowPaths] = useState(false)
@@ -492,34 +527,41 @@ export default function Graph() {
           ) : useCanvas ? (
             <div
               ref={wrapRef}
+              data-lenis-prevent
               onKeyDown={onKeyDown}
               role="group"
               tabIndex={0}
               aria-label="Attack graph, three-dimensional. Press Escape to leave the view. The host list beside it is the keyboard equivalent."
-              className="relative border-b border-border outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
+              className="relative touch-none overscroll-contain border-b border-border outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               style={{ height: CANVAS_HEIGHT }}
             >
-              <GraphCanvasBoundary onFailure={onCanvasFailure}>
-                <Suspense
-                  fallback={
-                    <div className="p-4">
-                      <SkeletonRows rows={6} />
-                    </div>
-                  }
-                >
-                  <AttackGraph3D
-                    nodes={nodes}
-                    links={links}
-                    selected={selected}
-                    onSelect={setSelected}
-                    showPaths={showPaths}
-                    orbit={orbit && !reduced}
-                    reducedMotion={reduced}
-                    height={CANVAS_HEIGHT}
-                    width={width}
-                  />
-                </Suspense>
-              </GraphCanvasBoundary>
+              {width == null ? (
+                <div className="p-4">
+                  <SkeletonRows rows={6} />
+                </div>
+              ) : (
+                <GraphCanvasBoundary onFailure={onCanvasFailure}>
+                  <Suspense
+                    fallback={
+                      <div className="p-4">
+                        <SkeletonRows rows={6} />
+                      </div>
+                    }
+                  >
+                    <AttackGraph3D
+                      nodes={nodes}
+                      links={links}
+                      selected={selected}
+                      onSelect={setSelected}
+                      showPaths={showPaths}
+                      orbit={orbit && !reduced}
+                      reducedMotion={reduced}
+                      height={CANVAS_HEIGHT}
+                      width={width}
+                    />
+                  </Suspense>
+                </GraphCanvasBoundary>
+              )}
             </div>
           ) : (
             <div className="border-b border-border">

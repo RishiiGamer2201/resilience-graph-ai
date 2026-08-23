@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 from fastapi import Depends, FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 from api.finalist import _require as require_permission
@@ -266,13 +266,16 @@ def threat_radar_scored(req: RadarRequest):
 
 # --- LIVE endpoint 1: score an event ---
 class EventFeatures(BaseModel):
-    is_fail: int = 0
-    new_dst_for_user: int = 0
-    new_src_for_user: int = 0
-    user_distinct_dst_sofar: float = 40
-    user_fail_rate_sofar: float = 0.001
-    dst_rarity: float = 4.0
-    is_ntlm: int = 0
+    # These are the exact seven inputs emitted by the TypeScript client. They
+    # are required so a malformed request cannot silently score a fabricated
+    # all-default event and present it as a detector result.
+    is_fail: int = Field(ge=0, le=1)
+    new_dst_for_user: int = Field(ge=0, le=1)
+    new_src_for_user: int = Field(ge=0, le=1)
+    user_distinct_dst_sofar: float = Field(ge=0)
+    user_fail_rate_sofar: float = Field(ge=0, le=1)
+    dst_rarity: float = Field(ge=0)
+    is_ntlm: int = Field(ge=0, le=1)
 
 
 @app.post("/api/score-event")
@@ -288,8 +291,8 @@ def score_event(f: EventFeatures, p: dict = Depends(principal)):
 
 # --- LIVE endpoint 2: predict next technique ---
 class Chain(BaseModel):
-    technique_ids: list[str]
-    k: int = 5
+    technique_ids: list[str] = Field(min_length=1)
+    k: int = Field(default=5, ge=1, le=50)
 
 
 @app.post("/api/predict-next")

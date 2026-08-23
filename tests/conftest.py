@@ -18,6 +18,11 @@ import pytest
 @pytest.fixture(autouse=True, scope="function")
 def _no_ambient_llm(monkeypatch):
     monkeypatch.setenv("NEXTATTACK_LLM_PROVIDER", "off")
+    # A configured key must not change capability/status assertions or leak a
+    # paid provider into integration tests. Provider tests install their own
+    # fake keys after this fixture and stub the outbound transport.
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
 
 def pytest_configure(config):

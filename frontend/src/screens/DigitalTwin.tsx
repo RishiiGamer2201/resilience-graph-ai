@@ -223,7 +223,11 @@ export default function DigitalTwin() {
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-              {source === 'live' ? 'live analysis' : 'sample cache'}
+              {source === 'live'
+                ? 'live analysis'
+                : source === 'restored'
+                  ? 'restored session'
+                  : 'sample cache'}
             </Badge>
             <Badge variant="warn">simulation only</Badge>
           </>

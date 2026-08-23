@@ -67,10 +67,11 @@ function toMarkdown(r: IncidentReportData): string {
 }
 
 export default function IncidentReport() {
-  const { bundle } = useAnalysis()
+  const { bundle, source: bundleSource } = useAnalysis()
   const { data: r, error, loading, reload, source } = useScreenData<IncidentReportData>(
     bundle?.report,
     getReport,
+    bundleSource,
   )
 
   if (loading) {
@@ -121,7 +122,11 @@ export default function IncidentReport() {
         <CardTitle>Audit-ready incident report</CardTitle>
         <div className="report-print-actions flex items-center gap-2">
           <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-            {source === 'live' ? 'live analysis' : 'sample cache'}
+            {source === 'live'
+              ? 'live analysis'
+              : source === 'restored'
+                ? 'restored session'
+                : 'sample cache'}
           </Badge>
           <CardMeta>{r.generated_at}</CardMeta>
           <Button variant="secondary" size="sm" onClick={download}>

@@ -681,10 +681,21 @@ export default function ThreatRadar() {
   // cached call may fail on its own; a failure narrows the cross-reference, it
   // does not take the radar down — and the operator is told which is missing.
   const { bundle, source } = useAnalysis()
-  const incident = useScreenData<Incident>(bundle?.incident, getIncident)
-  const intel = useScreenData<ThreatIntelView>(bundle?.threat_intel, getThreatIntel)
-  const graph = useScreenData<AttackGraph>(bundle?.graph, getGraph)
+  const incident = useScreenData<Incident>(bundle?.incident, getIncident, source)
+  const intel = useScreenData<ThreatIntelView>(bundle?.threat_intel, getThreatIntel, source)
+  const graph = useScreenData<AttackGraph>(bundle?.graph, getGraph, source)
   const settled = !incident.loading && !intel.loading && !graph.loading
+
+  const sliceSources = new Set([incident.source, intel.source, graph.source])
+  const radarSource = sliceSources.size === 1 ? incident.source : 'mixed'
+  const radarSourceLabel =
+    radarSource === 'live'
+      ? 'live analysis'
+      : radarSource === 'restored'
+        ? 'restored session'
+        : radarSource === 'sample'
+          ? 'sample cache'
+          : 'mixed live and sample data'
 
   const incidentData = incident.data
   const intelData = intel.data
@@ -696,8 +707,8 @@ export default function ThreatRadar() {
       title="Threat Radar"
       description="Free, purpose-built CTI feeds mapped to MITRE ATT&CK and cross-referenced with the incident you are investigating."
       actions={
-        <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-          {source === 'live' ? 'live analysis' : 'sample cache'}
+        <Badge variant={radarSource === 'live' ? 'accent' : 'outline'}>
+          {radarSourceLabel}
         </Badge>
       }
     />

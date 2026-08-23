@@ -137,12 +137,16 @@ function ActorRow({ match, rank }: { match: ActorMatch; rank: number }) {
 }
 
 export default function ThreatIntel() {
-  const { bundle, source } = useAnalysis()
-  const cached = useScreenData<ThreatIntelView>(bundle?.threat_intel, getThreatIntel)
+  const { bundle, source: bundleSource } = useAnalysis()
+  const cached = useScreenData<ThreatIntelView>(
+    bundle?.threat_intel,
+    getThreatIntel,
+    bundleSource,
+  )
   // A live analysis publishes its own threat_intel slice; the cached endpoint
   // is the sample. Which one is on screen is stated in the header.
   const data = cached.data
-  const { error, loading, reload } = cached
+  const { error, loading, reload, source } = cached
 
   if (loading && !data) {
     return (
@@ -184,7 +188,11 @@ export default function ThreatIntel() {
         description="Observed techniques with their own ATT&CK descriptions, and the public group profiles that overlap them."
         actions={
           <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-            {source === 'live' ? 'live analysis' : 'sample cache'}
+            {source === 'live'
+              ? 'live analysis'
+              : source === 'restored'
+                ? 'restored session'
+                : 'sample cache'}
           </Badge>
         }
       />

@@ -162,7 +162,7 @@ export default function Incident() {
           if (event === 'done') {
             const bundle = parseAnalysisBundle(raw)
             setBundle(bundle)
-            setStreamSteps(bundle.incident.steps)
+            setStreamSteps(null)
             setStreamError(null)
             setAnnouncement(`Live scoring complete. Loaded incident ${bundle.incident.incident_id}.`)
             completed = true
@@ -177,8 +177,10 @@ export default function Incident() {
         setAnnouncement('Live scoring failed.')
       }
     } finally {
-      if (streamController.current === controller) streamController.current = null
-      setStreaming(false)
+      if (streamController.current === controller) {
+        streamController.current = null
+        setStreaming(false)
+      }
     }
   }
 
@@ -323,12 +325,15 @@ export default function Incident() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  es.current?.close()
+                  streamController.current?.abort()
+                  streamController.current = null
                   setStreaming(false)
                   setStreamSteps(null)
+                  setStreamError(null)
+                  setAnnouncement('Live scoring cancelled. Showing the current incident.')
                 }}
               >
-                Back to the cached chain
+                Cancel stream
               </Button>
             ) : null}
           </div>

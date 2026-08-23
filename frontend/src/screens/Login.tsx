@@ -46,8 +46,21 @@ function Readiness() {
         <div className="p-4">
           <div className="section-label">Operating mode</div>
           <div className="mt-2 flex items-center gap-2 text-sm text-text">
-            <Radio className={cn('size-4', degraded.length ? 'text-sev-high' : 'text-ok')} />
-            {capabilities.loading ? 'checking…' : degraded.length ? `${degraded.length} degraded` : capabilities.data?.usable_offline ? 'offline capable' : 'connected'}
+            <Radio
+              className={cn(
+                'size-4',
+                capabilities.error || degraded.length ? 'text-sev-high' : 'text-ok',
+              )}
+            />
+            {capabilities.loading
+              ? 'checking…'
+              : capabilities.error
+                ? 'unavailable'
+                : degraded.length
+                  ? `${degraded.length} degraded`
+                  : capabilities.data?.usable_offline
+                    ? 'offline capable'
+                    : 'connected'}
           </div>
         </div>
       </div>
@@ -133,7 +146,8 @@ export default function Login() {
         <div className="absolute inset-0 bg-bg/25" aria-hidden />
         <Suspense fallback={null}><AccessScene /></Suspense>
         <div className="relative z-10 flex items-center justify-between p-6 font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
-          <span>Observed topology workspace</span><span className="flex items-center gap-1.5"><Radio className="size-3 text-ok" /> ready</span>
+          <span>Local visual layer</span>
+          <span>decorative · non-evidentiary</span>
         </div>
         <Readiness />
       </aside>

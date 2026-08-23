@@ -51,10 +51,11 @@ import type {
   TwinChatReply,
   TwinSimulation,
 } from '@/types/api'
+import { normalizeApiBase } from '@/lib/apiBase'
 
 // Same-origin "/api" in production (FastAPI serves the built SPA). In dev the
 // Vite proxy forwards /api to the local backend configured in vite.config.ts.
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
+const BASE = normalizeApiBase(import.meta.env.VITE_API_BASE as string | undefined)
 
 // ─── Session ─────────────────────────────────────────────────────────────────
 // The role travels as a header and is enforced SERVER-SIDE on every mutating
