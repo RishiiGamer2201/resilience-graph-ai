@@ -69,6 +69,7 @@ def engineer(df: pd.DataFrame) -> pd.DataFrame:
     cum_n = g.cumcount() + 1
     df["user_fail_rate_sofar"] = (cum_fail / cum_n).astype("float32")
 
+
     # destination rarity: rare targets are more suspicious
     dc = df["destination_host"].value_counts()
     total = len(df)
@@ -286,6 +287,13 @@ def main() -> None:
         _update("engine1", "lanl", {
             "roc_auc": round(float(roc), 3), "tpr_at_1pct_fpr": round(tpr1, 3),
             "tpr_at_5pct_fpr": round(tpr5, 3), "behavioral_only_roc": round(float(roc_beh), 3),
+            # The ablation's TPR at the operating point, which is the number that
+            # actually decides whether NTLM is a crutch. It was computed here and
+            # then dropped, so every downstream surface quoted the ROC (0.906,
+            # barely moved) and concluded "not a crutch" -- while the operating
+            # point collapses from 87.7% to 22.8%. Store both or the honest one
+            # cannot be reported.
+            "behavioral_only_tpr_at_1pct_fpr": round(float(tpr_beh_1), 3),
             "detector": detector_name,
             "iforest_roc_auc": round(float(iso_roc), 3),
             "iforest_tpr_at_1pct_fpr": round(float(iso_tpr1), 3),

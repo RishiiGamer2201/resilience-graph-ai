@@ -78,14 +78,22 @@ export default function LiveScoreWidget() {
   const [result, setResult] = useState(null)
   const [scoredFeat, setScoredFeat] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
   const set = (k, v) => setFeat((f) => ({ ...f, [k]: v }))
 
   async function run(next = feat) {
     const snapshot = { ...next }
     setBusy(true)
+    setError(null)
     try {
       setResult(await scoreEvent(snapshot))
       setScoredFeat(snapshot)
+    } catch (e) {
+      // No fabricated score. If the model is unreachable, say so and show
+      // nothing rather than a plausible number from hand-tuned weights.
+      setResult(null)
+      setScoredFeat(null)
+      setError(e?.message || 'scoring service unreachable')
     } finally {
       setBusy(false)
     }
@@ -142,6 +150,18 @@ export default function LiveScoreWidget() {
         <div className="score-pending">Inputs changed. Click Score event to calculate a new score.</div>
       )}
 
+      {error && (
+        <div className="score-error" role="alert" style={{
+          marginTop: 12, padding: '10px 12px',
+          border: '1px solid var(--sev-critical, #a12c26)', borderRadius: 4,
+          color: 'var(--sev-critical, #a12c26)', fontSize: 13,
+        }}>
+          <strong>No score.</strong> The detector is unreachable ({error}). This
+          panel shows the model&rsquo;s output or nothing at all &mdash; it will not
+          substitute an estimate.
+        </div>
+      )}
+
       {result && (
         <div className="score-out">
           <div><div className={`big s-${sev}`}>{result.anomaly_score}</div><div className={`sevlabel s-${sev}`}>{sev}</div></div>
@@ -154,7 +174,11 @@ export default function LiveScoreWidget() {
           </div>
           <div className="score-model">
             <LiveBadge live={result.live} />
-            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>Isolation-Forest · LANL model</div>
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>
+              {result.detector === 'isolation-forest'
+                ? 'Isolation-Forest · LANL model'
+                : 'Autoencoder · LANL model'}
+            </div>
           </div>
         </div>
       )}

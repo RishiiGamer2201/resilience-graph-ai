@@ -17,7 +17,8 @@
       "detector": "Autoencoder",
       "iforest_roc_auc": 0.988,
       "iforest_tpr_at_1pct_fpr": 0.514,
-      "note": "702 real red-team events; Autoencoder shipped; NTLM ablation"
+      "note": "702 real red-team events; Autoencoder shipped; NTLM ablation. behavioral_only_tpr_at_1pct_fpr transcribed from reports/lanl_redteam_detection.md pending the next full LANL run; src/engine1/lanl_detect.py now emits it directly.",
+      "behavioral_only_tpr_at_1pct_fpr": 0.228
     },
     "unsw": {
       "roc_auc": 0.829,
@@ -121,8 +122,8 @@
   },
   "ps7": {
     "attack_mapping": {
-      "alerts": 320,
-      "alerts_with_technique": 320,
+      "alerts": 212,
+      "alerts_with_technique": 212,
       "coverage": 1.0,
       "invalid_technique_ids": [],
       "id_validity": 1.0,
@@ -167,16 +168,16 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 790.2,
-      "p95": 1411.1,
-      "max": 9847.7,
-      "samples": 4,
+      "p50": 219.9,
+      "p95": 1893.6,
+      "max": 3030.9,
+      "samples": 12,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
     "mttd": {
       "measured_per_scenario": {
-        "aiims_ransomware": 0,
-        "cbse_exam_breach": 0,
+        "aiims_ransomware": 6936,
+        "cbse_exam_breach": 7647,
         "lanl_campaign_all": 0,
         "lanl_redteam_u66": 0
       },
@@ -211,63 +212,65 @@
         {
           "scenario": "aiims_ransomware",
           "events": 125,
-          "alerts": 125,
+          "alerts": 26,
           "incidents": 1,
-          "alert_reduction_ratio": 1.0,
+          "alert_rate": 0.208,
+          "alert_reduction_ratio": 4.81,
           "techniques": [
-            "T1021",
-            "T1078",
             "T1110",
+            "T1078",
             "T1550.002"
           ],
           "tactics": [
+            "Credential Access",
             "Initial Access",
             "Lateral Movement"
           ],
-          "mttd_seconds": 0,
-          "mttd_human": "immediate",
-          "crown_jewel_exposure": 100.0,
-          "attack_progression_likelihood": 52.6,
-          "evidence_confidence": 79.9,
-          "actionable_claims": 0,
-          "total_claims": 2,
+          "mttd_seconds": 6936,
+          "mttd_human": "2 h",
+          "crown_jewel_exposure": 50.0,
+          "attack_progression_likelihood": 60.0,
+          "evidence_confidence": 91.8,
+          "actionable_claims": 1,
+          "total_claims": 3,
           "citations": 6,
           "vuln_findings": 319,
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 9847.7,
+          "latency_ms_median": 222.8,
           "degraded_nodes": []
         },
         {
           "scenario": "cbse_exam_breach",
           "events": 127,
-          "alerts": 127,
+          "alerts": 26,
           "incidents": 1,
-          "alert_reduction_ratio": 1.0,
+          "alert_rate": 0.2047,
+          "alert_reduction_ratio": 4.88,
           "techniques": [
-            "T1021",
-            "T1078",
             "T1110",
+            "T1078",
             "T1550.002"
           ],
           "tactics": [
+            "Credential Access",
             "Initial Access",
             "Lateral Movement"
           ],
-          "mttd_seconds": 0,
-          "mttd_human": "immediate",
-          "crown_jewel_exposure": 100.0,
-          "attack_progression_likelihood": 52.6,
-          "evidence_confidence": 80.0,
-          "actionable_claims": 0,
-          "total_claims": 2,
+          "mttd_seconds": 7647,
+          "mttd_human": "2 h",
+          "crown_jewel_exposure": 0.0,
+          "attack_progression_likelihood": 55.0,
+          "evidence_confidence": 91.8,
+          "actionable_claims": 1,
+          "total_claims": 3,
           "citations": 6,
           "vuln_findings": 224,
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 133.1,
+          "latency_ms_median": 155.1,
           "degraded_nodes": []
         },
         {
@@ -275,6 +278,7 @@
           "events": 2732,
           "alerts": 1243,
           "incidents": 1,
+          "alert_rate": 0.455,
           "alert_reduction_ratio": 2.2,
           "techniques": [
             "T1550.002",
@@ -291,7 +295,7 @@
           "mttd_human": "immediate",
           "crown_jewel_exposure": 80.0,
           "attack_progression_likelihood": 60.0,
-          "evidence_confidence": 63.7,
+          "evidence_confidence": 89.0,
           "actionable_claims": 1,
           "total_claims": 4,
           "citations": 6,
@@ -299,7 +303,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1411.1,
+          "latency_ms_median": 1801.0,
           "degraded_nodes": [
             "understand"
           ]
@@ -309,6 +313,7 @@
           "events": 215,
           "alerts": 208,
           "incidents": 1,
+          "alert_rate": 0.9674,
           "alert_reduction_ratio": 1.03,
           "techniques": [
             "T1550.002",
@@ -324,7 +329,7 @@
           "mttd_human": "immediate",
           "crown_jewel_exposure": 5.0,
           "attack_progression_likelihood": 60.0,
-          "evidence_confidence": 85.0,
+          "evidence_confidence": 91.8,
           "actionable_claims": 1,
           "total_claims": 3,
           "citations": 6,
@@ -332,13 +337,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 169.3,
+          "latency_ms_median": 217.1,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-22 15:57 IST"
+      "evaluated_at": "2026-08-23 21:42 IST"
     }
   },
   "engine3": {

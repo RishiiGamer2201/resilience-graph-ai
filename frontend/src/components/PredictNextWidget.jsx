@@ -11,12 +11,18 @@ export default function PredictNextWidget() {
   const [draft, setDraft] = useState('')
   const [result, setResult] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
 
   async function run(ids = chain) {
     if (!ids.length) { setResult(null); return }
     setBusy(true)
+    setError(null)
     try {
       setResult(await predictNext(ids))
+    } catch (e) {
+      // No hardcoded technique list standing in for the Markov model.
+      setResult(null)
+      setError(e?.message || 'prediction service unreachable')
     } finally {
       setBusy(false)
     }
@@ -62,6 +68,18 @@ export default function PredictNextWidget() {
         style={{ alignSelf: 'flex-start' }}>
         {busy ? 'Predicting…' : 'Predict next technique'}
       </button>
+
+      {error && (
+        <div role="alert" style={{
+          marginTop: 12, padding: '10px 12px',
+          border: '1px solid var(--sev-critical, #a12c26)', borderRadius: 4,
+          color: 'var(--sev-critical, #a12c26)', fontSize: 13,
+        }}>
+          <strong>No prediction.</strong> The Markov model is unreachable ({error}).
+          This panel shows model output or nothing &mdash; it will not fall back to a
+          fixed list of techniques.
+        </div>
+      )}
 
       {result && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

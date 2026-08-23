@@ -147,15 +147,20 @@ def crown_jewel_exposure(graph: dict, designated: list[str]) -> dict:
     }
 
 
-def progression_likelihood(incident: dict, graph: dict) -> dict:
+def progression_likelihood(incident: dict, graph: dict | None) -> dict:
     """0-100: how far along a real intrusion looks, from this log alone.
 
     LIKELIHOOD, not confidence. It says nothing about how good the evidence is;
     `evidence_confidence()` answers that separately, and the UI shows both.
+
+    `graph` may be None. A log that raises no alerts builds no edges, so there is
+    no graph to analyse -- which is the correct outcome for a quiet log, not an
+    error. This used to raise AttributeError and take the whole investigation
+    down with it; a clean estate must be answerable, not a crash.
     """
     tactics = sorted({t for t in incident.get("attack_chain", []) if t and t != "Normal"})
     tech = incident.get("technique_ids", [])
-    paths = graph.get("paths_to_critical") or {}
+    paths = (graph or {}).get("paths_to_critical") or {}
     longest = max((len(p) - 1 for p in paths.values()), default=0)
 
     terms = {

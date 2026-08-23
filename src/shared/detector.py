@@ -119,6 +119,99 @@ def raw_scores(X: np.ndarray) -> np.ndarray:
     return ((a - h) ** 2).mean(axis=1)
 
 
+RARITY_IDX = 5              # dst_rarity in FEATURES order
+RARITY_SHIFT_SIGMA = 1.0    # training sigmas; see below
+
+
+def out_of_distribution(X) -> tuple[bool, float]:
+    """Is this log's CORPUS too unlike the training corpus for the anchors to hold?
+
+    Returns (is_ood, shift_in_training_sigmas).
+
+    The shipped anchors come from LANL: benign p50 -> 0, benign p99 -> 50, the 1%
+    false-positive line. They only mean anything for logs shaped like the corpus
+    they were measured on, and the synthetic India scenarios are not: every one of
+    their 125 events alerted, because a benign-trained autoencoder reconstructs
+    what it saw in training and nothing else.
+
+    The obvious test -- "median reconstruction error above the benign p99" -- is
+    WRONG, and measuring it is how that was established. It fires on
+    lanl_redteam_u66, which is real LANL data and one of the cleanest inputs we
+    have. Its median error is high because the log is *mostly red team*. A
+    score-based test cannot separate "this log is not LANL-shaped" from "this log
+    is largely compromised"; both look identical downstream, and treating the
+    second as the first suppressed 208 real alerts down to 5.
+
+    So test the INPUT, not the output, and test only the feature that is
+    corpus-relative. `dst_rarity` is -log(count / corpus_size): it is a property
+    of the log's own host population, not of any attacker. The other six features
+    are per-user behaviour and are *supposed* to shift under attack -- measured as
+    standardised shift from the training mean stored in the model artifact:
+
+        feature            lanl_campaign  lanl_u66   aiims   cbse
+        is_fail                   +1.94     +3.44    +0.36   +0.35
+        new_dst_for_user          +1.70     +4.09    +2.00   +2.08
+        is_ntlm                   +1.82     +4.03    +0.95   +1.00
+        dst_rarity                -0.09     -0.13    -1.88   -1.83   <-- the tell
+
+    Both LANL logs sit on the training mean for rarity while shifting hard on the
+    attack-driven features. The synthetic logs do the opposite. One threshold on
+    one feature separates them for a reason that can be stated in a sentence.
+    """
+    X = np.asarray(X, dtype="float64")
+    ae = _load()
+    if ae is None or X.size == 0 or X.shape[1] <= RARITY_IDX:
+        return False, 0.0
+    _, mean, scale = ae
+    shift = float((X[:, RARITY_IDX].mean() - mean[RARITY_IDX]) / scale[RARITY_IDX])
+    return bool(abs(shift) > RARITY_SHIFT_SIGMA), round(shift, 3)
+
+
+TRIAGE_PERCENTILE = 80      # see relative_anchors
+
+
+def relative_anchors(raw) -> dict:
+    """Anchors from a log's OWN distribution, for OOD inputs. A ranking, not a rate.
+
+    Deliberately a fallback, never the default. Fixed anchors are what make a
+    score mean the same thing across two uploads, and this project moved from
+    batch min/max to fixed anchors precisely to get that. But an anchor measured
+    on a corpus the input does not resemble is not comparable either -- it is
+    wrong in a stable direction.
+
+    WHAT THIS CANNOT DO. On an OOD log the prevalence is unknown, so no threshold
+    here is a calibrated false-positive rate and none is claimed. The first
+    version of this function mapped the log's own p99 to 50, which pins the alert
+    rate at 1% of any input by construction -- exactly as circular as the 100% it
+    replaced, just in the other direction. On the AIIMS scenario that was 2 alerts
+    against 35 real attack events: recall 5.7%.
+
+    WHAT IT CAN DO. The model's RANKING survives the distribution shift, measured
+    against the labels the synthetic scenarios carry:
+
+        aiims_ransomware   ROC 0.987   PR 0.972
+        cbse_exam_breach   ROC 0.988   PR 0.975
+
+    So rank the events and surface the top slice for triage. At the 80th
+    percentile that is recall 71% / precision 100% on AIIMS and 70% / 100% on
+    CBSE. The percentile is an OPERATIONAL choice -- "show an analyst the top fifth
+    of this log" -- not an estimate of how much of it is malicious, and callers
+    must present it that way.
+    """
+    raw = np.asarray(raw, dtype="float64")
+    p50 = float(np.percentile(raw, 50))
+    cut = float(np.percentile(raw, TRIAGE_PERCENTILE))
+    hi = float(raw.max())
+    if not (cut > p50):
+        cut = p50 + 1e-9
+    if not (hi > cut):
+        hi = cut * 4 + 1e-9
+    # reuses the piecewise-log map: p50 -> 0, cut -> 50 (the display alert line), hi -> 100
+    return {"p50": p50, "p99": cut, "hi": hi,
+            "basis": f"ranked-within-this-log (top {100 - TRIAGE_PERCENTILE}% surfaced)",
+            "triage_percentile": TRIAGE_PERCENTILE}
+
+
 def scores_0_100(X: np.ndarray, ref: dict) -> np.ndarray:
     """Calibrate raw scores to 0-100 with the fixed anchors in `ref`, so a score
     means the same thing across uploads and matches the single-event endpoint."""

@@ -184,7 +184,7 @@ def test_explain_walks_the_whole_chain():
     raw = pd.read_csv("data/demo/scenarios/aiims_ransomware.csv")
     bundle = analyze_events(raw.copy(), critical_assets=set(CRIT))
     df = engineer(coerce(raw.copy()))
-    df["anomaly_score"] = _score(df).round().astype(int)
+    df["anomaly_score"] = _score(df)[0].astype(int)
 
     t = explain_step(df, bundle, 0)
     assert t["available"]

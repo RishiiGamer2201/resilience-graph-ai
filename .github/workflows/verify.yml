@@ -77,6 +77,15 @@ jobs:
           python -m scripts.eval_retrieval
           python -m scripts.eval_ps7 --runs 1
 
+      - name: Dockerfile ships every runtime artifact
+        # The artifact check above proves the files exist in the repo. It does not
+        # prove the image copies them. That gap is exactly how ae_lanl.npz was
+        # left off the COPY line once already, silently swapping the shipped
+        # detector for the retired IsolationForest and applying the wrong
+        # calibration anchors to it. scripts/verify.sh has always run this;
+        # CI did not, so the same bug could still merge green.
+        run: python -m scripts.check_dockerfile
+
       - name: Documented metrics are not stale
         run: python -m scripts.audit_stale
 

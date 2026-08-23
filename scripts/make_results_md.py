@@ -219,6 +219,7 @@ accuracy (meaningless at 0.006% attack prevalence).
 | LANL | TPR @ 1% FPR | **{pct(L['tpr_at_1pct_fpr'])}** ({caught1} of 702 caught) |
 | LANL | TPR @ 5% FPR | {pct(L['tpr_at_5pct_fpr'])} ({caught5} of 702 caught) |
 | LANL | Behavioural-only ROC (NTLM removed) | {L['behavioral_only_roc']} |
+| LANL | **Behavioural-only TPR @ 1% FPR (NTLM removed)** | **{pct(L['behavioral_only_tpr_at_1pct_fpr'])}** (down from {pct(L['tpr_at_1pct_fpr'])}) |
 | CIC-IDS2017 | PR-AUC, autoencoder | {C['autoencoder_prauc']:.3f} |
 | CIC-IDS2017 | PR-AUC, IsolationForest | {C['iforest_prauc']:.3f} |
 | CIC-IDS2017 | PR-AUC, rule baseline | {C['rule_prauc']:.3f} (worse than random) |
@@ -235,10 +236,26 @@ and is exported to NumPy weights, so the deployed image needs no deep-learning
 framework and no GPU.
 
 {lr_para}
-The NTLM ablation: 100% of red-team logins used the older NTLM protocol versus
-about 6% of benign, a powerful but evadable signal. Removing it and scoring on
-behaviour alone still gives ROC-AUC {L['behavioral_only_roc']}, so detection is
-driven by generalisable behaviour, not one brittle artifact.
+The NTLM ablation, and it goes against us. 100% of red-team logins used the
+older NTLM protocol versus about 6% of benign, so `is_ntlm` is a powerful signal
+and a trivially evadable one -- the attacker switches to Kerberos. Removing it
+and scoring on behaviour alone leaves ROC-AUC almost intact at
+{L['behavioral_only_roc']}, but **TPR at the 1% false-positive operating point
+collapses from {L['tpr_at_1pct_fpr']:.1%} to
+{L['behavioral_only_tpr_at_1pct_fpr']:.1%}** -- a
+{1 - L['behavioral_only_tpr_at_1pct_fpr'] / L['tpr_at_1pct_fpr']:.0%} relative
+drop. ROC-AUC integrates over every threshold including ones no analyst would
+run at, which is why it barely moves; the operating point is where the detector
+is actually used, and there NTLM is carrying most of the result.
+
+An earlier version of this section reported only the ROC number and concluded
+that detection was "driven by generalisable behaviour, not one brittle
+artifact." That conclusion does not survive its own ablation. The honest
+statement is that this detector is substantially dependent on one evadable
+protocol flag, that the behavioural features alone are a much weaker detector
+than the headline suggests, and that fixing it means adding signal -- Kerberos
+service-ticket behaviour, process and flow telemetry -- not re-describing the
+existing result.
 
 ## 2. Prediction and attribution (Engine 2)
 
@@ -352,7 +369,6 @@ clone with no dataset download.
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
   monotonicity, workflow boundedness and degradation, SSRF guards, and the SPA
   payload contract).
-- Browser end-to-end across 15 user flows, 14 passed.
 - One container: FastAPI serves the built SPA from the same origin. Verify it with
   `scripts/verify.ps1 -Docker` (or `bash scripts/verify.sh --docker`), which builds
   the image and smoke-tests the running container.

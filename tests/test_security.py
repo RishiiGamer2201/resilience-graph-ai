@@ -9,13 +9,23 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+import api.main as main
 from api.main import app
 from src.shared.nethttp import ALLOWED_HOSTS, BlockedURL, _check, allowed_hosts
+
+HEADER = "timestamp,user,source_host,destination_host\n"
+ROW = "1,u@d,A,B\n"
 
 
 @pytest.fixture(scope="module")
 def client():
     return TestClient(app)
+
+
+def _csv(n_rows: int, pad: str = "") -> bytes:
+    """n_rows of valid schema, optionally padded to make each row fat."""
+    row = f"1,u@d,A{pad},B{pad}\n"
+    return (HEADER + row * n_rows).encode()
 
 
 # --------------------------------------------------------------------------- #
@@ -107,6 +117,176 @@ def test_an_oversized_log_is_refused(client):
     r = client.post("/api/analyze/upload", files={"file": ("big.csv", body, "text/csv")})
     assert r.status_code == 422
     assert "too many events" in r.json()["detail"]
+
+
+# --------------------------------------------------------------------------- #
+# upload size cap -- bytes, before anything parses                              #
+# --------------------------------------------------------------------------- #
+# `MAX_ROWS` is a row cap enforced inside live_analyze._prepare, which only runs
+# after pandas has already materialised the whole file. It cannot save a
+# container from a 2 GB CSV, because the OOM happens first. MAX_UPLOAD_BYTES is
+# the cap that runs while the body is still arriving.
+UPLOAD_ROUTES = ["/api/analyze/upload",
+                 "/api/agents/analyze/upload",
+                 "/api/agents/stream/upload"]
+
+
+@pytest.mark.parametrize("route", UPLOAD_ROUTES)
+def test_an_oversized_upload_is_refused_with_413(client, monkeypatch, route):
+    """Every upload route, not just the one someone remembered to patch."""
+    monkeypatch.setattr(main, "MAX_UPLOAD_BYTES", 4096)
+    body = _csv(400, pad="x" * 40)
+    assert len(body) > 4096
+    r = client.post(route, files={"file": ("big.csv", body, "text/csv")})
+    assert r.status_code == 413, r.text
+    assert "exceeds" in r.json()["detail"]
+
+
+def test_the_oversized_upload_never_reaches_the_parser(client, monkeypatch):
+    """413 must happen while reading, not after `pd.read_csv` has eaten the file.
+
+    A cap applied after parsing is not a cap; it is a post-mortem. So we make the
+    parser fatal: if the request still returns 413, nothing parsed.
+    """
+    def _explode(*a, **k):
+        raise AssertionError("pd.read_csv ran -- the body was parsed before the cap")
+
+    monkeypatch.setattr(main, "MAX_UPLOAD_BYTES", 4096)
+    monkeypatch.setattr(main.pd, "read_csv", _explode)
+    r = client.post("/api/analyze/upload",
+                    files={"file": ("big.csv", _csv(400, pad="x" * 40), "text/csv")})
+    assert r.status_code == 413, r.text
+
+
+def test_the_cap_counts_bytes_not_rows(client, monkeypatch):
+    """A few very wide rows must be refused; MAX_ROWS would have waved them through.
+
+    This is the whole point of the second cap. 200 rows is nowhere near the
+    50,000-row limit, so the row check has no opinion about this file -- but it is
+    over the byte ceiling, and the byte ceiling is what protects the memory.
+    """
+    from src.shared.live_analyze import MAX_ROWS
+
+    monkeypatch.setattr(main, "MAX_UPLOAD_BYTES", 8192)
+    body = _csv(200, pad="x" * 200)
+    assert body.count(b"\n") - 1 < MAX_ROWS, "this test must stay under the row cap"
+    assert len(body) > 8192
+    r = client.post("/api/analyze/upload",
+                    files={"file": ("wide.csv", body, "text/csv")})
+    assert r.status_code == 413
+    assert "too many events" not in r.json()["detail"], "wrong cap fired"
+
+
+def test_the_row_cap_still_applies_below_the_byte_cap(client):
+    """The two caps are complements, not substitutes -- a narrow file with too many
+    rows fits comfortably under 64 MB and must still be refused, by the row cap."""
+    from src.shared.live_analyze import MAX_ROWS
+
+    body = _csv(MAX_ROWS + 1)
+    assert len(body) < main.MAX_UPLOAD_BYTES
+    r = client.post("/api/analyze/upload", files={"file": ("big.csv", body, "text/csv")})
+    assert r.status_code == 422
+    assert "too many events" in r.json()["detail"]
+
+
+# --------------------------------------------------------------------------- #
+# authorisation on the live-analysis surface                                   #
+# --------------------------------------------------------------------------- #
+# These endpoints used to be completely open while eighteen endpoints on the
+# finalist router were gated, so the same product enforced `analyze` on
+# /api/investigate and handed the identical pipeline to anyone on /api/analyze.
+ANALYZE_ROUTES = [
+    ("post", "/api/analyze", {"json": {"scenario": "aiims_ransomware"}}),
+    ("post", "/api/analyze/upload", {"files": {"file": ("x.csv", _csv(3), "text/csv")}}),
+    ("get", "/api/analyze/stream", {"params": {"scenario": "aiims_ransomware", "delay": 0}}),
+    ("post", "/api/agents/analyze", {"json": {"scenario": "aiims_ransomware"}}),
+    ("post", "/api/agents/analyze/upload", {"files": {"file": ("x.csv", _csv(3), "text/csv")}}),
+    ("get", "/api/agents/stream", {"params": {"scenario": "aiims_ransomware"}}),
+    ("post", "/api/agents/stream/upload", {"files": {"file": ("x.csv", _csv(3), "text/csv")}}),
+]
+
+
+@pytest.mark.parametrize("method,path,kw", ANALYZE_ROUTES)
+def test_a_role_without_analyze_is_refused(client, method, path, kw):
+    """`viewer` holds `read`, not `analyze` (src/shared/rbac.PERMISSIONS)."""
+    r = getattr(client, method)(path, headers={"X-Role": "viewer"}, **kw)
+    assert r.status_code == 403, f"{path} let a viewer through: {r.status_code}"
+    assert "analyze" in r.json()["detail"]
+
+
+def test_the_refusal_names_the_roles_that_would_be_allowed(client):
+    r = client.post("/api/analyze", json={"scenario": "aiims_ransomware"},
+                    headers={"X-Role": "viewer"})
+    detail = r.json()["detail"]
+    assert "analyst" in detail and "responder" in detail and "admin" in detail
+
+
+def test_a_role_holding_analyze_is_allowed(client):
+    r = client.post("/api/analyze", headers={"X-Role": "analyst"}, json={
+        "events": [{"timestamp": 1, "user": "u@d", "source_host": "A",
+                    "destination_host": "B"}] * 3})
+    assert r.status_code == 200, r.text
+
+
+def test_configuring_tokens_closes_the_demo_default(client, monkeypatch):
+    """The zero-config demo treats an undeclared caller as the demo operator, and
+    that concession must vanish the moment real credentials are configured.
+
+    In demo-headers mode the role is self-declared, so refusing an anonymous
+    caller would deny nobody -- anyone can send `X-Role: admin`. But once
+    NEXTATTACK_ROLE_TOKENS is set, resolve_principal refuses before any role
+    defaulting can happen, and these endpoints are genuinely shut. That was not
+    achievable at any setting before, because there was no check at all.
+    """
+    monkeypatch.setenv("NEXTATTACK_ROLE_TOKENS", "s3cret:analyst")
+    body = {"scenario": "aiims_ransomware"}
+
+    assert client.post("/api/analyze", json=body).status_code == 401
+    assert client.post("/api/analyze", json=body,
+                       headers={"X-Role": "admin"}).status_code == 401, \
+        "a declared role must not substitute for a token"
+    assert client.post("/api/analyze", json=body,
+                       headers={"Authorization": "Bearer wrong"}).status_code == 401
+    assert client.get("/api/agents/stream", params={"scenario": "aiims_ransomware"}
+                      ).status_code == 401
+
+
+# --------------------------------------------------------------------------- #
+# CORS                                                                         #
+# --------------------------------------------------------------------------- #
+def test_cors_does_not_default_to_a_wildcard(monkeypatch):
+    """`allow_origins=["*"]` meant any page on the internet could make a browser
+    drive this API. The single-container deploy is same-origin and never needed it."""
+    monkeypatch.delenv("NEXTATTACK_CORS_ORIGINS", raising=False)
+    monkeypatch.delenv("NEXTATTACK_DEV", raising=False)
+    origins = main._cors_origins()
+    assert "*" not in origins
+    assert all(o.startswith("http://localhost") or o.startswith("http://127.0.0.1")
+               for o in origins), origins
+
+
+def test_the_wired_middleware_refuses_an_unknown_origin(client):
+    """Not just the helper -- the CORS middleware as actually installed on `app`."""
+    r = client.get("/api/health", headers={"Origin": "https://evil.example.com"})
+    assert r.headers.get("access-control-allow-origin") not in ("*", "https://evil.example.com")
+
+
+def test_the_dev_origin_is_still_allowed(client):
+    r = client.get("/api/health", headers={"Origin": "http://localhost:5173"})
+    assert r.headers.get("access-control-allow-origin") == "http://localhost:5173"
+
+
+def test_an_operator_can_name_their_own_origins(monkeypatch):
+    monkeypatch.setenv("NEXTATTACK_CORS_ORIGINS",
+                       "https://soc.example.org, https://war-room.example.org")
+    assert main._cors_origins() == ["https://soc.example.org",
+                                    "https://war-room.example.org"]
+
+
+def test_the_wildcard_is_reachable_only_by_asking_for_it(monkeypatch):
+    monkeypatch.delenv("NEXTATTACK_CORS_ORIGINS", raising=False)
+    monkeypatch.setenv("NEXTATTACK_DEV", "1")
+    assert main._cors_origins() == ["*"]
 
 
 def test_an_unknown_scenario_is_a_404_not_a_traceback(client):

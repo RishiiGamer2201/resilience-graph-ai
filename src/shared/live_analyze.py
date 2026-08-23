@@ -47,13 +47,40 @@ def _ref():
     return _state["ref"]
 
 
-def _score(df: pd.DataFrame) -> np.ndarray:
-    """Score every row 0-100 with the shipped LANL detector (benign-trained
-    autoencoder, NumPy inference), calibrated with the FIXED score_ref anchors
-    (not batch min/max) so scores are comparable across uploads and consistent
-    with the /score-event endpoint."""
+def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
+    """Score every row 0-100 with the shipped LANL detector.
+
+    Fixed `score_ref` anchors by default, so a score means the same thing across
+    two uploads and matches the /score-event endpoint.
+
+    Out-of-distribution logs are the exception. If the median reconstruction
+    error is above the benign 99th percentile, the anchors were measured on a
+    corpus this log does not resemble and every event lands above the alert line
+    regardless of content -- the measured failure on the synthetic India scenarios,
+    where 125 of 125 events alerted. Those are re-calibrated against their own
+    distribution and the returned `calibration` block says so, so no surface can
+    quote such a score as if it were comparable to a LANL one.
+    """
     X = df[FEATURES].to_numpy("float64")
-    return detector.scores_0_100(X, _ref())
+    raw = detector.raw_scores(X)
+    ref = _ref()
+    ood, shift = detector.out_of_distribution(X)
+    if ood:
+        ref = detector.relative_anchors(raw)
+    return detector.calibrate(raw, ref).round(), {
+        "basis": ref.get("basis", "fixed-anchors-lanl"),
+        "out_of_distribution": ood,
+        "rarity_shift_sigma": shift,
+        "note": (
+            f"This log's host-rarity distribution sits {abs(shift):.1f} training "
+            f"standard deviations from the corpus the detector was calibrated on, "
+            f"so the shipped 1%-false-positive anchor does not transfer. Events are "
+            f"RANKED within this log and the top "
+            f"{100 - ref.get('triage_percentile', 80)}% are surfaced for triage. "
+            f"That cut is an operational choice, not a measured false-positive "
+            f"rate, and these scores are not comparable with scores from another log."
+        ) if ood else "",
+    }
 
 
 def _prepare(df: pd.DataFrame) -> pd.DataFrame:
@@ -87,7 +114,8 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     critical_assets = set(critical_assets or set())
     df = _prepare(df)
     df = engineer(df)                       # 7 behavioral features, per-user chronological
-    df["anomaly_score"] = _score(df).round().astype(int)
+    scores, calibration = _score(df)
+    df["anomaly_score"] = scores.astype(int)
     if account:
         df = df[df["user"].astype(str) == account]
         if df.empty:
@@ -114,7 +142,11 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             "analyzed_at": fmt_ist(),
             "account": account,
             "accounts_involved": len(incident.get("users_involved", [])),
-            "critical_assets": sorted(critical_assets)}
+            "critical_assets": sorted(critical_assets),
+            # How these scores were calibrated, and whether they are comparable
+            # with any other run. Travels with every bundle so a screen can never
+            # present a log-relative score as if it were the shipped scale.
+            "calibration": calibration}
 
     return {
         "overview": views.overview(full, views.SCORECARD),

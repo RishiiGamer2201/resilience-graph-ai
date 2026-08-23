@@ -109,46 +109,30 @@ export async function analyzeUpload(file, critical_assets = [], incident_id = "I
   return r.json();
 }
 
-// ---- LIVE endpoint 1: score an event (with cached fallback) ----
+// ---- LIVE endpoint 1: score an event ----
+//
+// There is deliberately NO offline fallback here, and there used to be one.
+//
+// The old version computed a score from hand-tuned weights when the backend was
+// unreachable -- `new_dst ? 28 : 0` plus `is_ntlm ? 28 : 0` and so on -- and
+// returned it in the same shape as the model's output, flagged only by a small
+// `cached` dot. Those weights were never fitted against anything. They were a
+// plausible-looking number standing in for a trained autoencoder, and the whole
+// product rests on the claim that every number on screen comes from a model or a
+// citation. A demo that keeps working when its model is gone is not a feature.
+//
+// Failing loudly costs a blank panel during a backend blip. Not failing cost the
+// credibility of every other number on the screen.
 export async function scoreEvent(features) {
-  try {
-    return { ...(await post("/score-event", features)), live: true };
-  } catch {
-    // deterministic fallback so the widget still responds if backend is down
-    const distinct = Number(features.user_distinct_dst_sofar || 0);
-    const failRate = Number(features.user_fail_rate_sofar || 0);
-    const rarity = Number(features.dst_rarity || 0);
-    const distinctPressure =
-      distinct <= 5 ? 8 : distinct >= 100 ? Math.min(15, (distinct - 100) / 20) : 0;
-    const s =
-      (features.new_dst_for_user ? 28 : 0) +
-      (features.is_ntlm ? 28 : 0) +
-      (features.is_fail ? 12 : 0) +
-      (features.new_src_for_user ? 10 : 0) +
-      Math.min(17, rarity * 1.4) +
-      Math.min(20, failRate * 40) +
-      distinctPressure;
-    const score = Math.min(100, s);
-    const severity =
-      score >= 90 ? "critical" : score >= 70 ? "high" : score >= 45 ? "medium" : "low";
-    return { anomaly_score: Math.round(score * 10) / 10, severity, live: false };
-  }
+  return { ...(await post("/score-event", features)), live: true };
 }
 
-// ---- LIVE endpoint 2: predict next technique (with cached fallback) ----
-const FALLBACK_NEXT = [
-  { rank: 1, technique_id: "T1021", name: "Remote Services" },
-  { rank: 2, technique_id: "T1059.001", name: "PowerShell" },
-  { rank: 3, technique_id: "T1078", name: "Valid Accounts" },
-  { rank: 4, technique_id: "T1003", name: "OS Credential Dumping" },
-  { rank: 5, technique_id: "T1486", name: "Data Encrypted for Impact" },
-];
+// ---- LIVE endpoint 2: predict next technique ----
+//
+// Same reasoning. This previously returned five hardcoded technique IDs as
+// "predictions" when the Markov model could not be reached.
 export async function predictNext(technique_ids, k = 5) {
-  try {
-    return { ...(await post("/predict-next", { technique_ids, k })), live: true };
-  } catch {
-    return { given: technique_ids, predictions: FALLBACK_NEXT.slice(0, k), live: false };
-  }
+  return { ...(await post("/predict-next", { technique_ids, k })), live: true };
 }
 
 

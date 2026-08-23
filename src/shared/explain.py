@@ -241,7 +241,9 @@ def demo() -> None:
     raw = pd.read_csv("data/demo/scenarios/aiims_ransomware.csv")
     bundle = analyze_events(raw.copy(), critical_assets={"PATIENT-DB-01"})
     df = engineer(coerce(raw.copy()))
-    df["anomaly_score"] = _score(df).round().astype(int)
+    # _score returns (scores, calibration); the calibration block records
+    # whether the shipped anchors applied or the log was scored by rank.
+    df["anomaly_score"] = _score(df)[0].astype(int)
 
     t = explain_step(df, bundle, 0)
     assert t["available"], t

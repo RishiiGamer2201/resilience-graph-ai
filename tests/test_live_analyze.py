@@ -194,7 +194,14 @@ def test_aiims_isolation_recommends_host_not_user_or_weak_choke_point():
     graph = bundle["graph"]
     assert graph["entry_host"] == "WARD-PC-013"
     assert graph["recommended_isolation"] == "WARD-PC-013"
-    assert graph["isolation_cuts"] == 20
+    # 22, not the 20 this test asserted before out-of-distribution calibration
+    # landed. The old number came from a graph built out of 125 alerts on a
+    # 125-event log -- every event alerted, so the graph was the whole log and the
+    # blast radius was an artefact of that. AIIMS is now scored by rank within its
+    # own distribution (26 alerts, recall 74.3%, precision 100.0% against the
+    # scenario's labels), so the graph is built from detections rather than from
+    # everything, and the choke point severs a different, real number of hosts.
+    assert graph["isolation_cuts"] == 22
     assert "DC-AIIMS-01" in graph["critical_assets_at_risk"]
 
 

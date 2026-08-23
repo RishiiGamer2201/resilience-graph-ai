@@ -100,6 +100,12 @@ def measure(runs: int = 3) -> dict:
             "events": inc["event_count"],
             "alerts": inc["alert_count"],
             "incidents": 1,
+            # Share of ingested events that raised an alert. Published because it
+            # is the number that decides whether an analyst can run this, and it
+            # is currently bad: the behavioural features are recomputed per upload
+            # rather than against stored history, so on a small log every first
+            # sighting of a host is "new" and effectively everything alerts.
+            "alert_rate": round(inc["alert_count"] / max(1, inc["event_count"]), 4),
             "alert_reduction_ratio": round(inc["event_count"] / max(1, inc["alert_count"]), 2),
             "techniques": inc["technique_ids"],
             "tactics": sorted(tactics),
@@ -219,14 +225,15 @@ def write_report(m: dict) -> None:
         "# PS7 operational evaluation", "",
         f"Evaluated: {m['evaluated_at']}  ·  {m['runs_per_scenario']} run(s) per scenario",
         "", "## Per scenario", "",
-        "| Scenario | Events | Alerts | Incidents | MTTD | Exposure | Likelihood | "
+        "| Scenario | Events | Alerts | Alert rate | Incidents | MTTD | Exposure | Likelihood | "
         "Evidence conf. | Actionable claims | Citations | Actions (gated) | Executed | "
         "Median latency |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for s in m["scenarios"]:
         lines.append(
-            f"| {s['scenario']} | {s['events']} | {s['alerts']} | {s['incidents']} | "
+            f"| {s['scenario']} | {s['events']} | {s['alerts']} | "
+            f"{s['alert_rate']:.0%} | {s['incidents']} | "
             f"{s['mttd_human']} | "
             f"{s['crown_jewel_exposure'] if s['crown_jewel_exposure'] is not None else 'n/a'} | "
             f"{s['attack_progression_likelihood']} | {s['evidence_confidence']} | "

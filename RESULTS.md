@@ -22,6 +22,7 @@ accuracy (meaningless at 0.006% attack prevalence).
 | LANL | TPR @ 1% FPR | **87.7%** (616 of 702 caught) |
 | LANL | TPR @ 5% FPR | 96.6% (678 of 702 caught) |
 | LANL | Behavioural-only ROC (NTLM removed) | 0.906 |
+| LANL | **Behavioural-only TPR @ 1% FPR (NTLM removed)** | **22.8%** (down from 87.7%) |
 | CIC-IDS2017 | PR-AUC, autoencoder | 0.570 |
 | CIC-IDS2017 | PR-AUC, IsolationForest | 0.473 |
 | CIC-IDS2017 | PR-AUC, rule baseline | 0.098 (worse than random) |
@@ -51,10 +52,26 @@ threshold the regression is unusable, F1 0.004 at a
 the 87.7% headline above, which comes from the day-wise
 protocol in `reports/lanl_redteam_detection.md`; the two are not comparable.
 
-The NTLM ablation: 100% of red-team logins used the older NTLM protocol versus
-about 6% of benign, a powerful but evadable signal. Removing it and scoring on
-behaviour alone still gives ROC-AUC 0.906, so detection is
-driven by generalisable behaviour, not one brittle artifact.
+The NTLM ablation, and it goes against us. 100% of red-team logins used the
+older NTLM protocol versus about 6% of benign, so `is_ntlm` is a powerful signal
+and a trivially evadable one -- the attacker switches to Kerberos. Removing it
+and scoring on behaviour alone leaves ROC-AUC almost intact at
+0.906, but **TPR at the 1% false-positive operating point
+collapses from 87.7% to
+22.8%** -- a
+74% relative
+drop. ROC-AUC integrates over every threshold including ones no analyst would
+run at, which is why it barely moves; the operating point is where the detector
+is actually used, and there NTLM is carrying most of the result.
+
+An earlier version of this section reported only the ROC number and concluded
+that detection was "driven by generalisable behaviour, not one brittle
+artifact." That conclusion does not survive its own ablation. The honest
+statement is that this detector is substantially dependent on one evadable
+protocol flag, that the behavioural features alone are a much weaker detector
+than the headline suggests, and that fixing it means adding signal -- Kerberos
+service-ticket behaviour, process and flow telemetry -- not re-describing the
+existing result.
 
 ## 2. Prediction and attribution (Engine 2)
 
@@ -158,7 +175,7 @@ flag distribution; a port-scan signature built from unique destination ports,
 ports per host and SYN-without-ACK rate; and a retransmission rate counted from
 repeated (flow, sequence) pairs carrying payload.
 
-Two readers: Scapy and a stdlib reader. Classic pcap parses with `struct` alone, so the slim
+Two readers: a stdlib reader (Scapy not installed here). Classic pcap parses with `struct` alone, so the slim
 deployed image keeps every packet feature without a new dependency; Scapy is
 used when present because it handles pcapng and awkward link types properly.
 The two are cross-checked on the same file and must agree exactly. That check
@@ -228,13 +245,12 @@ clone with no dataset download.
 
 ## 7. Engineering
 
-- 490 automated tests, no network required (pipeline correctness, multi-pivot
+- 493 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
   monotonicity, workflow boundedness and degradation, SSRF guards, and the SPA
   payload contract).
-- Browser end-to-end across 15 user flows, 14 passed.
 - One container: FastAPI serves the built SPA from the same origin. Verify it with
   `scripts/verify.ps1 -Docker` (or `bash scripts/verify.sh --docker`), which builds
   the image and smoke-tests the running container.

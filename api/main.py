@@ -21,9 +21,16 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import Depends, FastAPI, Header, HTTPException, UploadFile, File, Form
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+# One RBAC implementation for the whole service. `api/finalist.py` already owns
+# the principal resolution and the deny-and-audit helper; importing them here
+# means there is exactly one place where "who is calling?" and "is that allowed?"
+# are answered, rather than a second copy that drifts.
+from api.finalist import principal as _finalist_principal, _require
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "api" / "cache"
@@ -77,8 +84,46 @@ SCENARIO_META = {
 FEATURES = ["is_fail", "new_dst_for_user", "new_src_for_user",
             "user_distinct_dst_sofar", "user_fail_rate_sofar", "dst_rarity", "is_ntlm"]
 
+# Trust boundary: the largest upload body we will hold in memory at all.
+#
+# `MAX_ROWS` in src/shared/live_analyze is a *row* cap, and it is only reached
+# after pandas has already parsed the entire file -- a 2 GB CSV therefore killed
+# the container before anything got to reject it. This byte cap is checked while
+# the body is still being read, so the oversized upload never becomes a DataFrame.
+MAX_UPLOAD_MB = float(os.environ.get("NEXTATTACK_MAX_UPLOAD_MB", "64"))
+MAX_UPLOAD_BYTES = int(MAX_UPLOAD_MB * 1024 * 1024)
+UPLOAD_CHUNK = 1 << 20                      # 1 MiB per read
+
+
+def _cors_origins() -> list[str]:
+    """Which browser origins may call this API cross-site.
+
+    It used to be `["*"]`, which meant any page on the internet could make a
+    browser drive this API with whatever role header it liked. The single-
+    container deploy serves the SPA from the same origin as /api, so CORS is not
+    involved there at all and the tight default costs that deploy nothing; the
+    default list exists only for `npm run dev`, where Vite is on :5173.
+
+      NEXTATTACK_CORS_ORIGINS="https://soc.example.org,https://x.example.org"
+      NEXTATTACK_DEV=1        # local only: back to "*"
+    """
+    raw = os.environ.get("NEXTATTACK_CORS_ORIGINS", "").strip()
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    if os.environ.get("NEXTATTACK_DEV", "").strip() == "1":
+        return ["*"]
+    return ["http://localhost:5173", "http://127.0.0.1:5173",
+            "http://localhost:8000", "http://127.0.0.1:8000",
+            "http://localhost:4173", "http://127.0.0.1:4173"]   # vite preview
+
+
 app = FastAPI(title="nextATT&CKs — SOC Command Center", version="1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+# Methods and headers are the ones this API actually uses; there is no PUT,
+# DELETE or PATCH anywhere in the service, so there is nothing to allow.
+app.add_middleware(CORSMiddleware,
+                   allow_origins=_cors_origins(),
+                   allow_methods=["GET", "POST", "OPTIONS"],
+                   allow_headers=["Content-Type", "Authorization", "X-Role", "X-Actor"])
 
 
 # --- lazy singletons (loaded once, on first use) ---
@@ -272,8 +317,12 @@ def score_event(f: EventFeatures):
     x = [[getattr(f, k) for k in FEATURES]]
     raw = float(detector.raw_scores(x)[0])
     score = float(detector.calibrate([raw], _score_ref())[0])
+    # Report which detector actually produced this. The UI used to hardcode
+    # "Isolation-Forest" while the autoencoder was the shipped model, so the one
+    # label on screen naming a model named the wrong one.
     return {"anomaly_score": round(score, 1), "severity": _severity(score),
-            "raw": round(raw, 4)}
+            "raw": round(raw, 4),
+            "detector": "autoencoder" if detector.available() else "isolation-forest"}
 
 
 # --- LIVE endpoint 2: predict next technique ---
@@ -306,6 +355,79 @@ def predict_next(c: Chain):
 # This is what makes the app WORK rather than replay one baked incident: score
 # every event → correlate → graph → SOAR → attribute → predict, computed live.
 from src.shared.live_analyze import analyze_events, MAX_ROWS   # noqa: E402
+
+
+async def _read_upload(file: UploadFile) -> bytes:
+    """Read an upload with a hard byte ceiling, refusing before anything parses.
+
+    Every handler here used to do a bare `raw = await file.read()`, which reads
+    the whole body into memory no matter how big it is. The only size check in
+    the product was `MAX_ROWS`, and that lives inside live_analyze._prepare --
+    i.e. *after* `pd.read_csv` has already materialised the entire file. A 2 GB
+    CSV therefore OOM-killed the container before any limit was consulted.
+
+    So: read in chunks, stop the moment the cap is crossed, and 413 with both
+    limits named so the caller knows which wall they hit and which is next.
+    """
+    buf = bytearray()
+    while chunk := await file.read(UPLOAD_CHUNK):
+        buf.extend(chunk)
+        if len(buf) > MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                413, f"upload exceeds the {MAX_UPLOAD_MB:g} MB limit "
+                     f"(NEXTATTACK_MAX_UPLOAD_MB); the row limit is "
+                     f"{MAX_ROWS:,} events -- upload a focused window")
+    return bytes(buf)
+
+
+_GEN_DONE = object()
+
+
+async def _astep(iterator):
+    """Pull one item from a synchronous generator without blocking the loop.
+
+    `iter_pipeline` is a plain generator and each `next()` runs one whole agent --
+    seconds of pandas and model work. Driving it from an SSE `async def gen()`
+    with a normal `for` froze the event loop for the entire stream, which is a
+    particularly silly way to serve a progress feed: nothing else could be
+    answered, and the progress frames could not even be flushed on time.
+    StopIteration cannot cross a threadpool boundary, hence the sentinel.
+    """
+    return await run_in_threadpool(next, iterator, _GEN_DONE)
+
+
+def analyze_principal(
+        x_role: str | None = Header(default=None, alias="X-Role"),
+        x_actor: str | None = Header(default=None, alias="X-Actor"),
+        authorization: str | None = Header(default=None)) -> dict:
+    """The principal for the live-analysis and agent endpoints.
+
+    These endpoints had NO authorisation at all: `/api/analyze`, the two upload
+    routes and the SSE streams were open while eighteen endpoints on the finalist
+    router were gated. They now go through the same `principal` / `_require`
+    pair, so `analyze` is enforced in one place for the whole service.
+
+    One documented concession, and it is worth being blunt about it. When
+    `NEXTATTACK_ROLE_TOKENS` is unset the service runs in demo-headers mode,
+    where the role is self-declared and there is no authentication whatsoever --
+    a caller who does not like being a viewer just sends `X-Role: admin`. In
+    that mode a caller who declares NOTHING is treated as the demo operator
+    ("analyst") rather than as a viewer. That is not laziness: both SSE screens
+    (the incident replay and the agent stream) are driven by `EventSource`, which
+    has no API for setting a request header, so gating them on one would break
+    the zero-config demo without denying a single real attacker -- the header is
+    free to forge in this mode anyway.
+
+    A DECLARED role is always enforced, so `X-Role: viewer` is refused here. And
+    the moment `NEXTATTACK_ROLE_TOKENS` is configured this concession disappears
+    entirely: `resolve_principal` raises before any defaulting happens, so an
+    anonymous caller gets 401 and these endpoints are genuinely closed -- which
+    was not previously possible at any setting.
+    """
+    p = _finalist_principal(x_role, x_actor, authorization)
+    if p["auth_mode"] == "demo-headers" and not (x_role or "").strip():
+        p = {**p, "role": "analyst", "actor": (x_actor or "demo-analyst")}
+    return p
 
 
 @app.get("/api/scenarios")
@@ -634,7 +756,18 @@ def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None,
 
 
 @app.post("/api/analyze")
-def analyze(req: AnalyzeRequest):
+def analyze(req: AnalyzeRequest, p: dict = Depends(analyze_principal)):
+    """Deliberately a plain `def`, unlike its three siblings below.
+
+    The whole body -- pd.read_csv, the scoring pipeline, the agent lane -- is
+    synchronous and takes seconds. FastAPI runs a non-async path operation in its
+    own threadpool automatically, so this one never touches the event loop. The
+    `async def` handlers below got no such treatment: they awaited the upload and
+    then called the identical blocking pipeline *on the loop thread*, stalling
+    every other request in the process until it finished. Hence the explicit
+    `run_in_threadpool` there and nothing here.
+    """
+    _require(p, "analyze")
     if req.scenario:
         path = SCENARIOS / f"{req.scenario}.csv"
         if not path.exists():
@@ -655,46 +788,65 @@ def analyze(req: AnalyzeRequest):
 @app.post("/api/analyze/upload")
 async def analyze_upload(file: UploadFile = File(...),
                          critical_assets: str = Form(""),
-                         incident_id: str = Form("INC-UPLOAD-001")):
+                         incident_id: str = Form("INC-UPLOAD-001"),
+                         p: dict = Depends(analyze_principal)):
     """Analyze an uploaded CSV (rows in the common event schema)."""
-    raw = await file.read()
-    try:
-        df = pd.read_csv(io.BytesIO(raw))
-    except Exception as e:
-        raise HTTPException(422, f"could not parse CSV: {e}")
-    crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
-    return _run_analysis(df, crit, incident_id, scenario=f"upload:{file.filename}")
+    _require(p, "analyze")
+    raw = await _read_upload(file)                  # 413 before anything parses
+
+    def work():
+        try:
+            df = pd.read_csv(io.BytesIO(raw))
+        except Exception as e:
+            raise HTTPException(422, f"could not parse CSV: {e}")
+        crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
+        return _run_analysis(df, crit, incident_id, scenario=f"upload:{file.filename}")
+
+    # pd.read_csv and the pipeline are seconds of pure CPU. Running them inline
+    # in an `async def` froze the event loop for every other request.
+    return await run_in_threadpool(work)
 
 
 @app.get("/api/analyze/stream")
-async def analyze_stream(scenario: str, critical_assets: str = "", delay: float = 0.15):
+async def analyze_stream(scenario: str, critical_assets: str = "", delay: float = 0.15,
+                         p: dict = Depends(analyze_principal)):
     """Server-Sent Events: replay a scenario's real per-event scores one at a time,
     then a final `done` event carrying the full analysis bundle. The scoring is real
     (done up front by analyze_events); the delay just paces the on-stage reveal."""
     import asyncio
     from fastapi.responses import StreamingResponse
 
+    _require(p, "analyze")
     path = SCENARIOS / f"{scenario}.csv"
     if not path.exists():
         raise HTTPException(404, f"unknown scenario '{scenario}'")
     crit = [c.strip() for c in critical_assets.split(",") if c.strip()] \
         or SCENARIO_META.get(scenario, {}).get("critical_default", [])
-    try:
-        df = pd.read_csv(path)
-        bundle = analyze_events(df, critical_assets=set(crit),
-                                incident_id="INC-STREAM-001")
-    except ValueError as e:
-        raise HTTPException(422, str(e))
-    # The streaming and non-streaming paths must return the same contract. The
-    # POST path attaches the agent lane; without this the `done` bundle silently
-    # lacked meta.agent_pipeline and the same screen behaved differently
-    # depending on which button was pressed.
-    from src.shared.enrich import enrich_bundle
-    _agents = _run_agents_for_standard_bundle(df, scenario=scenario,
-                                              incident_id="INC-STREAM-001")
-    bundle = enrich_bundle(_attach_agent_pipeline(bundle, _agents),
-                           df=df, scenario=scenario, critical=list(crit),
-                           agent_summary=_agents)
+
+    def build():
+        """All of it -- read, score, agent lane, enrich -- is blocking CPU work.
+
+        It used to run inline in this `async def`, so the whole server stopped
+        answering for the several seconds it takes, on every stream request.
+        """
+        try:
+            df = pd.read_csv(path)
+            b = analyze_events(df, critical_assets=set(crit),
+                               incident_id="INC-STREAM-001")
+        except ValueError as e:
+            raise HTTPException(422, str(e))
+        # The streaming and non-streaming paths must return the same contract. The
+        # POST path attaches the agent lane; without this the `done` bundle silently
+        # lacked meta.agent_pipeline and the same screen behaved differently
+        # depending on which button was pressed.
+        from src.shared.enrich import enrich_bundle
+        _agents = _run_agents_for_standard_bundle(df, scenario=scenario,
+                                                  incident_id="INC-STREAM-001")
+        return enrich_bundle(_attach_agent_pipeline(b, _agents),
+                             df=df, scenario=scenario, critical=list(crit),
+                             agent_summary=_agents)
+
+    bundle = await run_in_threadpool(build)
     steps = bundle["incident"]["steps"]
 
     async def gen():
@@ -831,7 +983,7 @@ class AgentAnalysisRequest(BaseModel):
 
 
 @app.post("/api/agents/analyze")
-def agents_analyze(req: AgentAnalysisRequest):
+def agents_analyze(req: AgentAnalysisRequest, p: dict = Depends(analyze_principal)):
     """Run the full 10-agent pipeline on a pre-loaded scenario.
 
     Returns the complete PipelineResult including:
@@ -840,8 +992,13 @@ def agents_analyze(req: AgentAnalysisRequest):
       - Point-A chunk summaries + Point-B incident narrative
       - next-move predictions
       - all evidence references
+
+    Plain `def` on purpose -- see the note on /api/analyze; FastAPI already runs
+    this off the event loop, so the blocking pipeline below is fine as it is.
     """
     from src.agents.orchestrator import run_pipeline
+
+    _require(p, "analyze")
 
     # Load scenario events (.csv or .parquet)
     csv_file = SCENARIOS / f"{req.scenario}.csv"
@@ -873,6 +1030,7 @@ async def agents_analyze_upload(
     incident_id: str = Form("INC-001"),
     entity_col: str = Form("user"),
     use_llm: bool = Form(False),
+    p: dict = Depends(analyze_principal),
 ):
     """Run the 10-agent pipeline on an uploaded CSV log file.
 
@@ -882,28 +1040,39 @@ async def agents_analyze_upload(
     from src.agents.orchestrator import run_pipeline
     from src.shared.normalize import normalize
 
-    try:
-        contents = await file.read()
-        df_raw = pd.read_csv(io.BytesIO(contents))
-    except Exception as e:
-        raise HTTPException(400, f"Failed to parse uploaded CSV: {e}")
+    _require(p, "analyze")
+    # Outside the try below on purpose: that block turns every exception into a
+    # 400, which would have relabelled the 413 as a parse failure.
+    contents = await _read_upload(file)
 
-    try:
-        # Attempt normalization; fall back to raw if columns already match
+    def work():
         try:
-            events = normalize(df_raw, source="lanl")
-        except Exception:
-            events = df_raw
-        result = run_pipeline(
-            events,
-            scenario=f"upload:{file.filename}",
-            incident_id=incident_id,
-            entity_col=entity_col,
-            use_llm=use_llm,
-        )
-        return result.as_dict()
-    except Exception as e:
-        raise HTTPException(500, f"Pipeline error: {e}")
+            df_raw = pd.read_csv(io.BytesIO(contents))
+        except Exception as e:
+            raise HTTPException(400, f"Failed to parse uploaded CSV: {e}")
+
+        try:
+            # Attempt normalization; fall back to raw if columns already match
+            try:
+                events = normalize(df_raw, source="lanl")
+            except Exception:
+                events = df_raw
+            result = run_pipeline(
+                events,
+                scenario=f"upload:{file.filename}",
+                incident_id=incident_id,
+                entity_col=entity_col,
+                use_llm=use_llm,
+            )
+            return result.as_dict()
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(500, f"Pipeline error: {e}")
+
+    # The 10-agent pipeline is tens of seconds of synchronous work. Awaiting the
+    # upload and then running it inline blocked the loop for that entire time.
+    return await run_in_threadpool(work)
 
 
 @app.get("/api/agents/stream")
@@ -913,34 +1082,42 @@ async def agents_stream(
     incident_id: str = "INC-STREAM-001",
     entity_col: str = "user",
     use_llm: bool = False,
+    p: dict = Depends(analyze_principal),
 ):
     """Server-Sent Events: stream the 10-agent pipeline executing live agent by agent."""
     import asyncio
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline
 
+    _require(p, "analyze")
     path = SCENARIOS / f"{scenario}.csv"
     if not path.exists():
         raise HTTPException(404, f"unknown scenario '{scenario}'")
     crit = [c.strip() for c in critical_assets.split(",") if c.strip()] \
         or SCENARIO_META.get(scenario, {}).get("critical_default", [])
 
-    try:
-        df = pd.read_csv(path)
-        bundle = analyze_events(df, critical_assets=set(crit), incident_id=incident_id)
-    except Exception as e:
-        raise HTTPException(422, str(e))
+    def build():
+        try:
+            d = pd.read_csv(path)
+            return d, analyze_events(d, critical_assets=set(crit),
+                                     incident_id=incident_id)
+        except Exception as e:
+            raise HTTPException(422, str(e))
+
+    df, bundle = await run_in_threadpool(build)
 
     async def gen():
-        events_df = _prepare_agent_events(df)
+        events_df = await run_in_threadpool(_prepare_agent_events, df)
         final_summary = None
-        for event_type, payload in iter_pipeline(
+        it = iter_pipeline(
             events_df,
             scenario=scenario,
             incident_id=incident_id,
             entity_col=entity_col,
             use_llm=use_llm,
-        ):
+        )
+        while (item := await _astep(it)) is not _GEN_DONE:
+            event_type, payload = item
             if event_type == "agent_progress":
                 yield f"event: progress\ndata: {json.dumps(payload)}\n\n"
                 await asyncio.sleep(0.05)
@@ -968,6 +1145,7 @@ async def agents_upload_stream(
     incident_id: str = Form("INC-UPLOAD-001"),
     entity_col: str = Form("user"),
     use_llm: bool = Form(False),
+    p: dict = Depends(analyze_principal),
 ):
     """Server-Sent Events: stream the 10-agent pipeline executing live on an uploaded log."""
     import asyncio
@@ -975,33 +1153,41 @@ async def agents_upload_stream(
     from src.agents.orchestrator import iter_pipeline
     from src.shared.normalize import normalize
 
-    raw = await file.read()
-    try:
-        df_raw = pd.read_csv(io.BytesIO(raw))
-    except Exception as e:
-        raise HTTPException(422, f"could not parse CSV: {e}")
-
+    _require(p, "analyze")
+    raw = await _read_upload(file)                  # 413 before anything parses
     crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
 
-    try:
+    def build():
         try:
-            df = normalize(df_raw, source="lanl")
-        except Exception:
-            df = df_raw
-        bundle = analyze_events(df, critical_assets=set(crit), incident_id=incident_id)
-    except Exception as e:
-        raise HTTPException(422, str(e))
+            df_raw = pd.read_csv(io.BytesIO(raw))
+        except Exception as e:
+            raise HTTPException(422, f"could not parse CSV: {e}")
+        try:
+            try:
+                d = normalize(df_raw, source="lanl")
+            except Exception:
+                d = df_raw
+            return d, analyze_events(d, critical_assets=set(crit),
+                                     incident_id=incident_id)
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(422, str(e))
+
+    df, bundle = await run_in_threadpool(build)
 
     async def gen():
-        events_df = _prepare_agent_events(df)
+        events_df = await run_in_threadpool(_prepare_agent_events, df)
         final_summary = None
-        for event_type, payload in iter_pipeline(
+        it = iter_pipeline(
             events_df,
             scenario=f"upload:{file.filename}",
             incident_id=incident_id,
             entity_col=entity_col,
             use_llm=use_llm,
-        ):
+        )
+        while (item := await _astep(it)) is not _GEN_DONE:
+            event_type, payload = item
             if event_type == "agent_progress":
                 yield f"event: progress\ndata: {json.dumps(payload)}\n\n"
                 await asyncio.sleep(0.05)

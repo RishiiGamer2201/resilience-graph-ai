@@ -460,7 +460,9 @@ def explain(req: ExplainRequest, p: dict = Depends(principal)):
     try:
         bundle = analyze_events(raw.copy(), critical_assets=set(req.critical_assets))
         df = engineer(coerce(raw.copy()))
-        df["anomaly_score"] = _score(df).round().astype(int)
+        # _score returns (scores, calibration); the calibration block records
+        # whether the shipped anchors applied or the log was scored by rank.
+        df["anomaly_score"] = _score(df)[0].astype(int)
     except ValueError as e:
         raise HTTPException(422, str(e))
 
