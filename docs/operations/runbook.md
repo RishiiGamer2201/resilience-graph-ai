@@ -133,3 +133,35 @@ Warm it before presenting.
 
 **Port already in use.** Something is still running from an earlier session; pick
 another port with `--port 8001`, and remember the Vite dev proxy targets `8000`.
+
+## Before a demo: the two checks nothing else covers
+
+Neither runs in CI, deliberately. Both need something a fresh clone does not have
+(a Docker daemon, a downloaded browser), and this repo's contract is that a clone
+runs offline on nine packages. Run them the night before, not on every push.
+
+**The image, not the working tree.** Every gate up to here tests the source. The
+one defect that shipped to production undetected was a missing COPY line, which
+source tests cannot see.
+
+    docker build -t nextattacks:verify .
+    docker run -d --name nav -p 8099:8000 nextattacks:verify
+    curl -s localhost:8099/api/health
+    curl -s -XPOST localhost:8099/api/score-event -H 'Content-Type: application/json' \
+      -d '{"is_fail":0,"new_dst_for_user":1,"is_ntlm":1,"dst_rarity":9.0}'
+
+The second call must report `"detector":"autoencoder"`. If it says
+`isolation-forest`, the model file is not in the image and every severity number
+the container shows is calibrated against a distribution it is not using.
+
+**The page, not the build.** `npm run build` passing means the bundle compiled,
+not that anything is legible. Four defects reached the day before a demo behind a
+clean build: a title collapsed to one word per line, prose set in monospace, a
+2.19:1 button in dark, and a dark-mode rule firing in light.
+
+    cd /tmp && npm i playwright && npx playwright install chromium
+    node <repo>/scripts/e2e_browser.mjs http://127.0.0.1:8099 --shots /tmp/shots
+
+It drives login to investigation to all 16 screens, asserts a score never renders
+without its calibration basis, toggles the theme and checks the ground actually
+repainted. Exit code is the number of failed steps. Then LOOK at the screenshots.
