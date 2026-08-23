@@ -235,7 +235,7 @@ clone with no dataset download.
 | SOAR playbook coverage of observed tactics | 100.0% |
 | MITRE mitigation coverage of observed techniques | 100.0% |
 | Actions executed against real systems | 0 (by design) |
-| Investigation latency, p50 then p95 | 213 ms then 1745 ms |
+| Investigation latency, p50 then p95 | 209 ms then 1715 ms |
 | Evidence recall@1 then recall@5 (lexical, the shipped backend) | 64.3% then 85.7% |
 | Evidence MRR (lexical, the shipped backend) | 0.717 |
 | Citation integrity failures | 0 |
@@ -272,7 +272,7 @@ what would reverse it.
 
 ## 7. Engineering
 
-- 542 automated tests, no network required (pipeline correctness, multi-pivot
+- 553 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

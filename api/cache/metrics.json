@@ -56,6 +56,14 @@
         "tpr_at_1pct_fpr": 0.9005
       },
       "note": "Logistic regression is trained WITH the red-team labels; the autoencoder never sees one. A supervised linear model is the fair, hard baseline for an unsupervised detector on identical features, which is why it is worth publishing whichever way it lands."
+    },
+    "clean_log": {
+      "worst_alert_rate": 0.3125,
+      "best_alert_rate": 0.1846,
+      "shapes_tested": 5,
+      "attack_events": 0,
+      "seed": 20260824,
+      "note": "Synthetic clean logs, no attack events at all. The alert rate is the false-positive rate on a quiet estate, and it is high because features are corpus-relative with no stored baseline and the anchors were measured on LANL. Not a threshold problem: see reports/clean_log.md."
     }
   },
   "engine2": {
@@ -168,9 +176,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 224.7,
-      "p95": 1764.3,
-      "max": 2588.3,
+      "p50": 223.4,
+      "p95": 1918.7,
+      "max": 4732.0,
       "samples": 12,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -192,7 +200,7 @@
     "audit": {
       "chain_verifies": true,
       "tamper_detected": true,
-      "detection_message": "record 1 (analysis.completed): content hash mismatch \u2014 this record's contents were altered after it was written",
+      "detection_message": "record 1 (analysis.completed): content hash mismatch -- this record's contents were altered after it was written",
       "hash_algorithm": "sha256"
     },
     "rbac": {
@@ -238,7 +246,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 235.3,
+          "latency_ms_median": 204.6,
           "degraded_nodes": []
         },
         {
@@ -270,7 +278,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 152.2,
+          "latency_ms_median": 151.9,
           "degraded_nodes": []
         },
         {
@@ -303,7 +311,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1742.1,
+          "latency_ms_median": 1771.4,
           "degraded_nodes": [
             "understand"
           ]
@@ -337,13 +345,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 214.0,
+          "latency_ms_median": 232.5,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-24 00:13 IST"
+      "evaluated_at": "2026-08-24 00:16 IST"
     }
   },
   "engine3": {

@@ -70,7 +70,13 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
 
     counts = df["destination_host"].value_counts().to_numpy()
     ood, top1 = detector.out_of_distribution(X, dst_counts=counts)
-    small = len(df) < detector.MIN_SAMPLE
+    # The EFFECTIVE sample is the number of usable destination observations, not
+    # the row count. A 40-row log with 18 blank destinations has 22 of them, and
+    # judging the verdict on 22 while describing it as 40 produced a note that
+    # argued against itself: "one destination takes 14%, against a 30% limit,
+    # so the anchor does not transfer".
+    usable = int(counts.sum())
+    confidence = detector.sample_confidence(usable)
 
     if ood:
         ref = detector.relative_anchors(raw)
@@ -78,29 +84,49 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     scores = detector.calibrate(raw, ref).round()
     scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
 
-    if small:
-        note = (f"Only {len(df)} events. Below {detector.MIN_SAMPLE} there is no "
-                f"corpus to compare against: host rarity, fan-out and the "
-                f"concentration test all need a population. Scores are shown "
-                f"ranked within what you supplied and should be read as an "
-                f"ordering, not as severities.")
+    # The note states the ACTUAL trigger. It used to describe concentration in
+    # every case, so a 40-row log that tripped the sample gate was told "one
+    # destination takes 9% of the authentications, so the anchor does not
+    # transfer" -- 9% against a 30% threshold argues the opposite, and a log with
+    # no destinations at all was told one took 100%.
+    if confidence == "insufficient":
+        blanks = len(df) - usable
+        shortfall = (f"Only {usable} of {len(df)} events name a destination"
+                     if blanks else f"Only {usable} events")
+        note = (f"{shortfall}. Below {detector.MIN_SAMPLE} there is no corpus to "
+                f"compare against: host rarity, fan-out and the concentration test "
+                f"all need a population. Scores are ranked within what you supplied "
+                f"and should be read as an ordering, not as severities.")
+    elif ood and top1 is not None:
+        note = (f"One destination takes {top1:.0%} of the authentications in this log, "
+                f"against a {detector.CONCENTRATION_LIMIT:.0%} limit. The corpus the "
+                f"detector was calibrated on has a long tail (LANL's busiest "
+                f"destination takes 6%), so the shipped 1%-false-positive anchor does "
+                f"not transfer. Events are RANKED within this log and the top "
+                f"{100 - ref.get('triage_percentile', 80)}% are surfaced for triage. "
+                f"That cut is an operational choice, not a measured false-positive "
+                f"rate, and these scores are not comparable with scores from another log.")
     elif ood:
-        note = (f"One destination takes {top1:.0%} of the authentications in this "
-                f"log. The corpus the detector was calibrated on has a long tail "
-                f"(LANL's busiest destination takes 6%), so the shipped "
-                f"1%-false-positive anchor does not transfer. Events are RANKED "
-                f"within this log and the top "
-                f"{100 - ref.get('triage_percentile', 80)}% are surfaced for "
-                f"triage. That cut is an operational choice, not a measured "
-                f"false-positive rate, and these scores are not comparable with "
-                f"scores from another log.")
+        note = ("This log has no usable destination field, so the corpus test could "
+                "not run. Events are ranked within the log rather than scored on the "
+                "shipped scale.")
+    elif confidence == "low":
+        # The caveat FADES rather than switching off at exactly MIN_SAMPLE. One
+        # extra benign row used to buy the difference between a 21% alert rate
+        # with an explanation and a 73% one with none.
+        note = (f"{len(df)} events. The corpus test passed, but a top-destination "
+                f"share over this few events is noisy -- one busy host moves it "
+                f"several points, where over {detector.RELIABLE_SAMPLE}+ it barely "
+                f"moves. Scores use the shipped scale, and the judgement that this "
+                f"log resembles the calibration corpus is low-confidence at this size.")
     else:
         note = ""
 
     return scores, {
         "basis": ref.get("basis", "fixed-anchors-lanl"),
         "out_of_distribution": ood,
-        "insufficient_sample": small,
+        "insufficient_sample": confidence == "insufficient",
+        "sample_confidence": confidence,
         "top_destination_share": top1,
         # kept beside the verdict because it is informative, and explicitly not
         # the verdict: it is a log-size test, see detector.out_of_distribution

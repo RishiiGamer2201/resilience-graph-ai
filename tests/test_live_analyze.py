@@ -350,3 +350,49 @@ def test_the_clean_log_false_positive_rate_is_measured_not_assumed():
         f"clean-log alert rate is now {rate:.1%}. If persistent baselines have "
         "landed this is the intended outcome -- update reports/clean_log.md, "
         "which currently states this rate as an unfixed limitation.")
+
+
+def test_the_sample_caveat_fades_rather_than_switching_off():
+    """One benign row must not buy the difference between explained and silent.
+
+    MIN_SAMPLE used to be a hard gate that flipped the verdict AND the
+    user-facing note together, so 29 and 30 rows of the SAME file gave 21% alerts
+    with an explanation and 73% with none, while the badge promised the scores
+    were comparable to any log. The alert rate necessarily jumps somewhere -- the
+    calibration mode has to change -- but the caveat has to survive that jump.
+    """
+    full = pd.read_csv(CAMPAIGN)
+    for k in (29, 30, 31, 60, 120, 250):
+        cal = analyze_events(full.head(k).copy())["meta"]["calibration"]
+        assert cal["note"], (
+            f"head({k}) reports no caveat; a {k}-event log cannot support the "
+            "corpus test well enough to be presented without one")
+        assert cal["sample_confidence"] in ("insufficient", "low"), cal["sample_confidence"]
+
+
+def test_the_note_states_the_trigger_that_actually_fired():
+    """The caveat used to describe concentration whatever the real reason was.
+
+    A 40-row log with 18 blank destinations was told "one destination takes 9% of
+    the authentications, so the anchor does not transfer" -- 9% against a 30%
+    limit argues the opposite -- and a log with no destinations at all was told
+    one took 100% of them, of a set with no members.
+    """
+    blanks = pd.DataFrame({
+        "timestamp": range(40), "user": ["u@d"] * 40, "source_host": ["A"] * 40,
+        "destination_host": [None if i < 18 else f"H{i % 8}" for i in range(40)],
+    })
+    cal = analyze_events(blanks)["meta"]["calibration"]
+    assert "22 of 40 events name a destination" in cal["note"], cal["note"]
+    assert "takes" not in cal["note"], "sample-gate case must not cite concentration"
+
+    empty = pd.DataFrame({
+        "timestamp": range(40), "user": ["u@d"] * 40, "source_host": ["A"] * 40,
+        "destination_host": [None] * 40,
+    })
+    cal2 = analyze_events(empty)["meta"]["calibration"]
+    assert cal2["top_destination_share"] is None, "cannot report a share of nothing"
+    # falls through to the sample gate first, which is the clearer message of the
+    # two: "0 of 40 name a destination" says more than "the test could not run"
+    assert "0 of 40 events name a destination" in cal2["note"], cal2["note"]
+    assert "100%" not in cal2["note"], "must not report a share of an empty set"

@@ -122,6 +122,7 @@ def raw_scores(X: np.ndarray) -> np.ndarray:
 RARITY_IDX = 5              # dst_rarity in FEATURES order, kept as a diagnostic
 CONCENTRATION_LIMIT = 0.30  # share of auth going to ONE destination; see below
 MIN_SAMPLE = 30             # below this, no corpus statistic means anything
+RELIABLE_SAMPLE = 300       # below this, the corpus statistic is noisy, not absent
 
 
 def out_of_distribution(X, dst_counts=None) -> tuple[bool, float]:
@@ -184,13 +185,35 @@ def out_of_distribution(X, dst_counts=None) -> tuple[bool, float]:
         return False, 0.0
     c = np.asarray([v for v in dst_counts if v > 0], dtype="float64")
     total = c.sum()
-    if c.size == 0 or total < MIN_SAMPLE:
-        # Too few events for any corpus statistic. Not "in distribution" -- we
-        # simply cannot tell, and the caller is expected to say so rather than
-        # silently score against anchors that may not apply.
-        return True, float(c.max() / total) if total else 1.0
+    if c.size == 0 or total <= 0:
+        # No destinations at all. Reporting a top-1 share of a set with no
+        # members would be inventing the number that justifies the verdict.
+        return True, None
     top1 = float(c.max() / total)
+    if total < MIN_SAMPLE:
+        return True, round(top1, 3)
     return bool(top1 > CONCENTRATION_LIMIT), round(top1, 3)
+
+
+def sample_confidence(n_events: int) -> str:
+    """How much weight the corpus test can carry at this many events.
+
+    MIN_SAMPLE used to be a hard gate that flipped the verdict AND switched the
+    user-facing caveat off, so 29 events and 30 events of the same file gave 21%
+    alerts with an explanation and 73% with none. One benign row should not buy
+    that much confidence, and the caveat is the part that has to degrade
+    smoothly even where the calibration cannot.
+
+    A top-1 share is a ratio over a small denominator: at 30 events one busy host
+    moves it several points, at 300 it barely moves. So the statistic is reported
+    with how far it can be trusted, rather than being trusted absolutely one row
+    after it was not trusted at all.
+    """
+    if n_events < MIN_SAMPLE:
+        return "insufficient"
+    if n_events < RELIABLE_SAMPLE:
+        return "low"
+    return "ok"
 
 
 def rarity_shift(X) -> float:

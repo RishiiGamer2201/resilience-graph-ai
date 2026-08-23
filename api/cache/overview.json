@@ -115,7 +115,7 @@
     "incident_id": "INC-PS7-LANL-CAMPAIGN",
     "scenario": "lanl_campaign_all",
     "severity": "high",
-    "total_ms": 1506.2,
+    "total_ms": 1472.4,
     "point_b_method": "template",
     "incident_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
     "agent_traces": [
@@ -32310,7 +32310,7 @@
           "max_score": 79
         },
         "evidence_refs": [],
-        "ms": 1.9,
+        "ms": 1.8,
         "notes": [
           "Scored 442 chunks; 287 above threshold.",
           "Max anomaly score: 79/100."
@@ -47338,7 +47338,7 @@
           "T1078",
           "T1078"
         ],
-        "ms": 2.6,
+        "ms": 2.1,
         "notes": [
           "Mapped 269/287 flagged chunks to ATT&CK techniques.",
           "18 chunks could not be mapped (flagged low-confidence by Orchestrator)."
@@ -58857,7 +58857,7 @@
           "edge_count": 663
         },
         "evidence_refs": [],
-        "ms": 126.1,
+        "ms": 124.6,
         "notes": [
           "Built entity graph: 307 nodes {'user': 39, 'host': 265, 'technique': 3}, 663 edges."
         ]
@@ -68979,11 +68979,11 @@
           }
         },
         "evidence_refs": [
-          "T1021",
           "T1550.002",
-          "T1078"
+          "T1078",
+          "T1021"
         ],
-        "ms": 77.7,
+        "ms": 83.0,
         "notes": [
           "Connected graph: 307 nodes, 663 edges."
         ]
@@ -69708,11 +69708,11 @@
           "total_chains": 39
         },
         "evidence_refs": [
-          "T1021",
           "T1550.002",
-          "T1078"
+          "T1078",
+          "T1021"
         ],
-        "ms": 187.9,
+        "ms": 178.7,
         "notes": [
           "Validated 39 entity chains: 22 confirmed, 12 partial, 5 unconfirmed.",
           "Unconfirmed chains retained \u2014 not discarded."
@@ -70962,11 +70962,11 @@
           "top_risk_score": 0.7499
         },
         "evidence_refs": [
-          "T1021",
           "T1550.002",
-          "T1078"
+          "T1078",
+          "T1021"
         ],
-        "ms": 16.9,
+        "ms": 16.0,
         "notes": [
           "Narrative generated via template.",
           "LLM output (if used) is non-authoritative and labelled accordingly."
@@ -71016,7 +71016,7 @@
           "T1570",
           "T1219.001"
         ],
-        "ms": 4.0,
+        "ms": 3.9,
         "notes": [
           "Predicted next 3 move(s) from chain of 3 techniques.",
           "Top prediction: T1005 @ 12.5%"
@@ -73111,69 +73111,69 @@
           "C2553"
         ],
         "shortest_paths": {
-          "C528": [
-            "C17693",
-            "C528"
-          ],
           "C743": [
             "C18025",
             "C743"
-          ],
-          "C467": [
-            "C17693",
-            "C467"
-          ],
-          "C2106": [
-            "C17693",
-            "C2106"
-          ],
-          "C1015": [
-            "C17693",
-            "C1015"
-          ],
-          "C801": [
-            "C17693",
-            "C801"
-          ],
-          "C625": [
-            "C17693",
-            "C625"
-          ],
-          "C706": [
-            "C17693",
-            "C706"
           ],
           "C586": [
             "C17693",
             "C586"
           ],
+          "C801": [
+            "C17693",
+            "C801"
+          ],
+          "C706": [
+            "C17693",
+            "C706"
+          ],
+          "C2106": [
+            "C17693",
+            "C2106"
+          ],
           "C612": [
             "C19932",
             "C612"
-          ],
-          "C529": [
-            "C17693",
-            "C529"
-          ],
-          "C457": [
-            "C17693",
-            "C457"
-          ],
-          "C231": [
-            "C17693",
-            "C231"
-          ],
-          "C3173": [
-            "C17693",
-            "C3173"
           ],
           "C585": [
             "C17693",
             "C585"
           ],
+          "C529": [
+            "C17693",
+            "C529"
+          ],
+          "C231": [
+            "C17693",
+            "C231"
+          ],
+          "C467": [
+            "C17693",
+            "C467"
+          ],
+          "C625": [
+            "C17693",
+            "C625"
+          ],
           "C1065": [
             "C18025",
             "C1065"
+          ],
+          "C3173": [
+            "C17693",
+            "C3173"
+          ],
+          "C1015": [
+            "C17693",
+            "C1015"
+          ],
+          "C528": [
+            "C17693",
+            "C528"
+          ],
+          "C457": [
+            "C17693",
+            "C457"
           ]
         },
         "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here -- we do not invent hosts the attacker has not touched."
@@ -73181,7 +73181,7 @@
       "method": {
         "model": "interpolated Markov over 205 real ATT&CK sequences",
         "search": "beam search, width 5, branch 3",
-        "decay": "horizon confidence 0.77^(step-1): a model measured at 38.1% top-3 for one step is not 38.1% accurate 8 steps out, and the timeline says so. 0.77 is fitted, not chosen -- top-3 accuracy of this rollout measured at each horizon over 544 held-out prefixes, R^2 0.870 (reports/rollout_decay.md, reproduce with scripts/eval_rollout_decay.py)",
+        "decay": "horizon confidence 0.77^(step-1): a model measured at 38.1% top-3 for one step is not 38.1% accurate 8 steps out, and the timeline says so. 0.77 is fitted, not chosen -- top-3 accuracy of this rollout measured at each of 8 horizons and fitted with 1 free parameter, so 8 points in the regression; those 8 accuracies were averaged over 544 held-out prefixes from 29 test sequences, which overlap heavily, so ~29 is nearer the effective sample size and a sequence-level bootstrap puts d in [0.720, 0.804]. R^2 0.739 on the decaying points (0.870 if the r(1)=1 anchor is counted, which explains nothing). A linear-space fit of the same ratios gives 0.7407. (reports/rollout_decay.md, reproduce with scripts/eval_rollout_decay.py)",
         "deterministic": true
       },
       "honesty": "These are the transition model's own probabilities rolled forward, not a simulation of an attacker's intent. Step 1 rests on a measured 38.1% top-3 accuracy; every step after that compounds the same uncertainty, which is why horizon confidence decays and the later steps are shown faded rather than quoted as forecasts."

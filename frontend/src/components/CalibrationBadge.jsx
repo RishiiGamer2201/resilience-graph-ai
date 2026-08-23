@@ -20,9 +20,13 @@ export default function CalibrationBadge({ cal: given, label = 'score scale' }) 
   const cal = useCalibration(given)
   if (!cal?.basis) return null
   const ood = !!cal.out_of_distribution
+  // "low" means the corpus test passed but on too few events to lean on. It gets
+  // the caveat styling too: the previous version promised comparability to any
+  // log the moment the sample gate was cleared, which one extra row could buy.
   return (
-    <span className={`pill cal ${ood ? 'ood' : 'anchored'}`}
-      title={cal.note || 'Fixed calibration anchors: this score means the same thing in any log.'}>
+    <span className={`pill cal ${ood ? 'ood' : cal.sample_confidence === 'low' ? 'ood' : 'anchored'}`}
+      title={cal.note
+        || 'Fixed calibration anchors: this score means the same thing in any log.'}>
       {ood ? <AlertTriangle size={12} aria-hidden="true" /> : <Ruler size={12} aria-hidden="true" />}
       <span className="sr-only">{label}: </span>
       <span className="calbasis">{cal.basis}</span>
