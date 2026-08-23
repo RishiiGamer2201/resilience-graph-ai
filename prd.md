@@ -15,7 +15,7 @@ An AI-augmented SOC (Security Operations Center) layer with **two engines** feed
 |---|---|---|
 | **Engine 1 — Real Detection** | Unsupervised anomaly / lateral-movement detection on real data (CIC-IDS2017, LANL, UNSW-NB15), evaluated against LANL's real red-team ground truth | Technical Excellence (20%) |
 | **Engine 2 — Prediction + Attribution** | Predicts the attacker's next ATT&CK technique(s) (Markov, shipped) and ranks the likely APT group (transparent profile retrieval) | Innovation (25%) |
-| **Shared spine** | normalize → correlate alerts into ONE incident → ATT&CK map → attack-path graph (choke points, blast radius) → confidence-gated SOAR | UX + Business Impact |
+| **Shared spine** | normalize → correlate alerts into incidents → ATT&CK map → attack-path graph (choke points, blast radius) → confidence-gated SOAR | UX + Business Impact |
 | **SOC Command Center** | FastAPI + React demo app: 6 screens, pre-cached data + 2 live model endpoints, audit-ready incident report | UX (15%) |
 
 ## Target Users

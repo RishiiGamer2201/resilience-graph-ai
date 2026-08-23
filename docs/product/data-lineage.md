@@ -62,7 +62,7 @@ raw event log (CSV / rows)
       │                                             chronological                [computed]
       └─ src/shared/detector.py ................... autoencoder reconstruction error
       │                                             → 0-100 via fixed anchors    [MODEL]
-      └─ src/shared/correlate.py .................. score ≥ 50 → alert; alerts → ONE incident
+      └─ src/shared/correlate.py .................. score >= 50 -> alert; alerts cluster into incidents
       └─ src/shared/attack_mapper.py .............. behaviour → ATT&CK technique  [rule, ID-validated]
       └─ src/shared/attack_graph.py ............... pivots, reachability, paths, choke points
       └─ src/shared/evidence.py ................... official citation per technique [VERIFIED]

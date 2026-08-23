@@ -86,7 +86,7 @@ Asked: could we OSINT social media to track attackers and stop attacks? Assessed
 
 ### Demo storyboard (3 min — drives the pitch)
 1. **0:00** Splash → Overview: "attackers dwell for weeks; here's our SOC brain."
-2. **0:30** Live Incident replay on real LANL data → ONE incident → pass-the-hash. *Live: score an event on stage.*
+2. **0:30** Live Incident replay on real LANL data → incidents → pass-the-hash. *Live: score an event on stage.*
 3. **1:15** Attack Graph: path to the database; isolating 1 host cuts 93.
 4. **2:00** Threat Intel: attribute actor; *live: predict next move.*
 5. **2:30** Models & Methodology: "ROC 0.988 on genuine red-team data, honest baselines, no accuracy theater." Weeks → minutes.

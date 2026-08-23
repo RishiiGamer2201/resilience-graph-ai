@@ -155,7 +155,7 @@ Every feature in the product, and the section that shows it:
 - [ ] LIVE / SAMPLE badge — *Intro / Analyze Log*
 - [ ] Analyze any log (pick scenario) — *Analyze Log*
 - [ ] Upload your own CSV — *Analyze Log*
-- [ ] Score every event → 1 incident — *Analyze Log*
+- [ ] Score every event, cluster into incidents -- *Analyze Log*
 - [ ] Measured time-to-detect (MTTD) — *Overview*
 - [ ] Active incident summary — *Overview*
 - [ ] Detector benchmarks — *Overview*

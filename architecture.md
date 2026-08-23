@@ -25,7 +25,7 @@ flowchart TB
   DATA --> E2
 
   subgraph SPINE["SHARED SPINE — src/shared/live_analyze.py (runs per request)"]
-    S["normalize → correlate into ONE incident →<br/>ATT&CK map → attack-path graph → gated SOAR"]
+    S["normalize → correlate into incidents →<br/>ATT&CK map → attack-path graph → gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
   E2 -- "next technique + actor" --> SPINE
@@ -103,7 +103,7 @@ ET_HACK_26/
 │   ├── engine2/                # build_{sequences,embeddings,predictor} · attribution
 │   └── shared/
 │       ├── parse_attack.py     # ATT&CK STIX (Ent+ICS+Mobile) → attack_lookups.pkl
-│       ├── correlate.py        # alerts → ONE incident
+│       ├── correlate.py        # alerts cluster into incidents
 │       ├── attack_mapper.py    # event → ATT&CK technique (no hallucinated IDs)
 │       ├── attack_graph.py     # networkx graph; blast radius / choke points across ALL pivots
 │       ├── soar.py             # gated response actions

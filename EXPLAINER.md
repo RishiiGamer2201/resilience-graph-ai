@@ -42,8 +42,8 @@ they go undetected for a median of ~10 days.
 **nextATT&CKs reads the boring login logs an organisation already collects and finds
 the story hidden across them.** On real red-team attack data it:
 
-- scores **2,732** authentication events, flags **1,243** as anomalous, and collapses them
-  into **one** incident instead of 1,243 separate alerts;
+- scores **2,732** authentication events, flags **1,243** as anomalous, and clusters them
+  into **51** incidents instead of 1,243 disconnected alerts;
 - draws the attacker's movement across **473 machines**, identifies **4 attacker-controlled
   hosts**, and finds that isolating just **one** of them severs **463 machines** of exposure;
 - maps each step to the industry-standard MITRE ATT&CK catalogue, predicts the attacker's
@@ -155,7 +155,7 @@ flowchart TB
   IN["Raw authentication log<br/>(a shipped scenario, or your own CSV)"]
   IN --> F["1 · Feature engineering<br/>7 behavioural features per event"]
   F --> S["2 · Anomaly scoring<br/>IsolationForest → 0–100 per event"]
-  S --> C["3 · Correlation<br/>group alerts into ONE incident"]
+  S --> C["3 · Correlation<br/>cluster alerts into incidents"]
   C --> M["4 · ATT&CK mapping<br/>behaviour → technique ID"]
   M --> G["5 · Attack-path graph<br/>blast radius, choke points, crown jewels"]
   G --> R["6 · Gated SOAR<br/>containment needing human approval"]
@@ -247,11 +247,19 @@ LANL detector is IsolationForest, and we say which is which.
 
 This is the part that turns a pile of alerts into something a human can act on.
 
-### 6.1 Correlation: 1,243 alerts → 1 incident
+### 6.1 Correlation: 1,243 alerts into 51 incidents
 
-Any event scoring ≥ 50 becomes an "alert". Rather than emitting 1,243 alerts, we group them
-into a single incident with a timeline, a severity, an account list, and an ordered chain of
-ATT&CK techniques.
+Any event scoring >= 50 becomes an "alert". Rather than handing an analyst 1,243 rows, we
+cluster them into incidents, each with a timeline, a severity, an account list and an ordered
+chain of ATT&CK techniques.
+
+On the LANL campaign that is **51 incidents**, not one. It used to say one, and that was not a
+result: `correlate()` returned a single incident for any input whatsoever, so "1,243 alerts to
+1 incident" measured the shape of the return value rather than the structure of the attack.
+Two unrelated intrusions a month apart came back as the same incident. Alerts now join when
+they share a user or a host **and** fall within an hour of each other; the CBSE log stays at
+one incident because it genuinely is one continuous breach, and the logs that span weeks are
+the ones that split.
 
 🔬 **Under the hood** (`src/shared/correlate.py`). `ALERT_THRESHOLD = 50`;
 `SESSION_GAP = 3600 s` (an hour of silence starts a new session). Incident severity is the

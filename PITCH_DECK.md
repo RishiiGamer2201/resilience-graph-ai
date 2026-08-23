@@ -91,7 +91,7 @@ flowchart LR
 **Title:** The layer that connects weak signals
 
 **One sentence (center, large):**
-> Real anomaly fires → weak signals correlate into **one** incident → each step maps to MITRE ATT&CK → the attack path to the crown jewel lights up → we predict the next move, name the likely actor, and recommend gated containment.
+> Real anomaly fires → weak signals correlate into **incidents** → each step maps to MITRE ATT&CK → the attack path to the crown jewel lights up → we predict the next move, name the likely actor, and recommend gated containment.
 
 **The funnel, on real data:**
 
@@ -166,7 +166,7 @@ flowchart TB
   DATA --> E2
 
   subgraph SPINE["SHARED SPINE — runs live, per request"]
-    S["normalize → correlate into ONE incident →<br/>ATT&CK map → attack-path graph → gated SOAR"]
+    S["normalize -> correlate into incidents -><br/>ATT&CK map -> attack-path graph -> gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
   E2 -- "next technique + actor" --> SPINE
@@ -281,7 +281,7 @@ flowchart LR
 | Dimension | Today | With nextATT&CKs |
 |---|---|---|
 | **Detection** | ~10-day median dwell | First correlated alert within the log window |
-| **Analyst load** | 1,243 alerts to triage | **1 incident** with a narrative |
+| **Analyst load** | 1,243 alerts to triage | **51 incidents** with narratives, not 1,243 rows |
 | **Containment** | "Which of 473 hosts?" | **Isolate 1 → cut 463** |
 | **Attribution** | Manual CTI reading | Ranked actor + auditable justification |
 | **External intel** | Separate portal | Cross-referenced to *your* techniques |

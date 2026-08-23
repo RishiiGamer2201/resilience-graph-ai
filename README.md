@@ -100,7 +100,7 @@ flowchart TB
   DATA --> E2
 
   subgraph SPINE["SHARED SPINE — live_analyze.py (runs per request)"]
-    S["normalize → correlate into ONE incident →<br/>ATT&CK map → attack-path graph → gated SOAR"]
+    S["normalize -> correlate into incidents -><br/>ATT&CK map -> attack-path graph -> gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
   E2 -- "next technique + actor" --> SPINE
