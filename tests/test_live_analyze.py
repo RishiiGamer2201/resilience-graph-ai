@@ -209,3 +209,59 @@ def test_isolation_cuts_distinct_from_total_exposure(campaign):
     """Isolating one choke point cannot sever hosts that only other pivots reach."""
     g = campaign["graph"]
     assert g["isolation_cuts"] <= g["blast_radius_size"]
+
+
+def test_the_ood_probe_still_points_at_dst_rarity():
+    """RARITY_IDX is a bare index into a feature list defined in another module.
+
+    src/shared/detector.py is deliberately standalone -- pure NumPy, no pandas or
+    sklearn, so the deployed image stays slim -- which means it cannot import
+    FEATURES to look the position up. So the coupling is a hardcoded 5, and
+    reordering FEATURES would silently point the out-of-distribution probe at a
+    different feature. It would not raise; it would just start testing
+    `user_fail_rate_sofar` for corpus drift and quietly mis-route calibration.
+
+    dst_rarity is the ONLY corpus-relative feature -- it is -log(count/corpus
+    size), a property of the log's host population rather than of any attacker --
+    which is exactly why it is the one the probe uses. The other six are per-user
+    behaviour and are supposed to move under attack.
+    """
+    from src.engine1.lanl_detect import FEATURES
+    from src.shared.detector import RARITY_IDX
+
+    assert FEATURES[RARITY_IDX] == "dst_rarity", (
+        f"RARITY_IDX={RARITY_IDX} now points at {FEATURES[RARITY_IDX]!r}. "
+        "The OOD probe must test the corpus-relative feature; update RARITY_IDX "
+        "in src/shared/detector.py to match the new FEATURES order.")
+
+
+def test_ood_detection_survives_degenerate_logs():
+    """A one-row log, or one where every host is equally common, must not explode.
+
+    Both are real: an analyst pasting a single suspicious event, and a log whose
+    destinations all appear the same number of times, which makes dst_rarity a
+    constant and its variance zero.
+    """
+    import numpy as np
+    from src.shared import detector
+
+    # identical rarity everywhere: no spread, still must return a verdict
+    X = np.tile(np.array([[0, 1, 0, 5, 0.0, 4.87, 0]], dtype="float64"), (10, 1))
+    ood, shift = detector.out_of_distribution(X)
+    assert isinstance(ood, bool) and isinstance(shift, float)
+
+    # a single row
+    ood1, shift1 = detector.out_of_distribution(X[:1])
+    assert isinstance(ood1, bool)
+
+    # an empty frame must not raise and must not claim OOD
+    from src.engine1.lanl_detect import FEATURES
+    ood0, shift0 = detector.out_of_distribution(np.empty((0, len(FEATURES)), dtype="float64"))
+    assert ood0 is False and shift0 == 0.0
+
+    # relative_anchors must stay monotone even when every value is identical,
+    # otherwise calibrate() divides by a zero-width segment
+    ref = detector.relative_anchors(np.full(20, 0.5))
+    assert ref["p50"] < ref["p99"] < ref["hi"], ref
+    scores = detector.calibrate(np.full(20, 0.5), ref)
+    assert np.all(np.isfinite(scores)), scores
