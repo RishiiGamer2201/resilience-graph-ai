@@ -59,9 +59,9 @@
       "note": "Logistic regression is trained WITH the red-team labels; the autoencoder never sees one. A supervised linear model is the fair, hard baseline for an unsupervised detector on identical features, which is why it is worth publishing whichever way it lands."
     },
     "clean_log": {
-      "worst_alert_rate": 0.3125,
+      "worst_alert_rate": 0.482,
       "best_alert_rate": 0.1846,
-      "shapes_tested": 5,
+      "shapes_tested": 6,
       "attack_events": 0,
       "seed": 20260824,
       "note": "Synthetic clean logs, no attack events at all. The alert rate is the false-positive rate on a quiet estate, and it is high because features are corpus-relative with no stored baseline and the anchors were measured on LANL. Not a threshold problem: see reports/clean_log.md."

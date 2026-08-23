@@ -339,7 +339,10 @@ def test_the_clean_log_false_positive_rate_is_measured_not_assumed():
     from scripts.eval_clean_log import SEED, clean_log
 
     rng = np.random.default_rng(SEED)
-    bundle = analyze_events(clean_log(800, 300, rng))
+    # ordinary traffic: typos happen and legacy apps still speak NTLM. Measuring
+    # this with neither pinned two of seven features at their most benign value
+    # and halved the answer.
+    bundle = analyze_events(clean_log(2000, 800, rng, fail_rate=0.03, ntlm_rate=0.15))
     inc, cal = bundle["incident"], bundle["meta"]["calibration"]
     rate = inc["alert_count"] / inc["event_count"]
 

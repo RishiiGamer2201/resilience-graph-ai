@@ -50,30 +50,58 @@ SEED = 20260824
 
 # Shapes chosen to look like plausible enterprise authentication: a Zipf-ish
 # destination tail, users touching a handful of hosts, no attack anywhere.
-SHAPES = [(5000, 1500), (5000, 600), (2000, 800), (800, 300), (300, 120)]
+# Shape, and how ordinary the traffic in it is. The last three are the point:
+# an estate with no failed logins and no NTLM at all does not exist.
+SHAPES = [
+    ("5,000 events / 1,500 hosts, no failures, no NTLM", 5000, 1500, 0.0, 0.0, 0.0),
+    ("5,000 events /   600 hosts, no failures, no NTLM", 5000, 600, 0.0, 0.0, 0.0),
+    ("2,000 events /   800 hosts, no failures, no NTLM", 2000, 800, 0.0, 0.0, 0.0),
+    ("5,000 events / 1,500 hosts, 3% failed logins", 5000, 1500, 0.03, 0.0, 0.0),
+    ("5,000 events / 1,500 hosts, 15% NTLM (legacy apps)", 5000, 1500, 0.0, 0.15, 0.0),
+    ("5,000 events / 1,500 hosts, 3% failures AND 15% NTLM", 5000, 1500, 0.03, 0.15, 0.0),
+]
 
 
-def clean_log(n_rows: int, n_hosts: int, rng) -> pd.DataFrame:
+def clean_log(n_rows: int, n_hosts: int, rng, *,
+              fail_rate: float = 0.0, ntlm_rate: float = 0.0,
+              dc_share: float = 0.0) -> pd.DataFrame:
+    """A benign log. The knobs matter more than the size.
+
+    The first version of this script pinned `status` to success and `protocol` to
+    Kerberos on every row, which is two of the seven features held at their most
+    benign constant. That is not an ordinary Tuesday, it is the quietest day an
+    estate ever has, and it understated the answer by roughly half.
+
+    Real authentication has typos, expired passwords, locked accounts, and legacy
+    applications that still negotiate NTLM. Those are the features the detector
+    weighs most heavily, so a clean log that contains none of them flatters it.
+    """
     w = 1.0 / np.arange(1, n_hosts + 1) ** 1.0
+    if dc_share:
+        w = w * (1 - dc_share)
+        w[0] += dc_share * w.sum() / max(w.sum(), 1e-9) * (w.sum() / (1 - dc_share))
+        w[0] = dc_share * (w.sum() / (1 - dc_share)) if dc_share < 1 else w[0]
     w /= w.sum()
+    n_users = max(3, n_hosts // 5)
     return pd.DataFrame({
         "timestamp": np.arange(n_rows) * 7,
-        "user": rng.choice([f"u{i}@corp" for i in range(max(3, n_hosts // 5))], n_rows),
+        "user": rng.choice([f"u{i}@corp" for i in range(n_users)], n_rows),
         "source_host": rng.choice([f"WS{i}" for i in range(max(3, n_hosts // 3))], n_rows),
         "destination_host": rng.choice([f"SRV{i}" for i in range(n_hosts)], n_rows, p=w),
-        "status": "success",
-        "protocol": "Kerberos",
+        "status": np.where(rng.random(n_rows) < fail_rate, "fail", "success"),
+        "protocol": np.where(rng.random(n_rows) < ntlm_rate, "NTLM", "Kerberos"),
     })
 
 
 def main() -> None:
     rng = np.random.default_rng(SEED)
     rows = []
-    for n_rows, n_hosts in SHAPES:
-        bundle = analyze_events(clean_log(n_rows, n_hosts, rng))
+    for label, n_rows, n_hosts, fail, ntlm, dc in SHAPES:
+        bundle = analyze_events(clean_log(n_rows, n_hosts, rng,
+                                          fail_rate=fail, ntlm_rate=ntlm, dc_share=dc))
         inc, cal = bundle["incident"], bundle["meta"]["calibration"]
         rows.append({
-            "shape": f"{n_rows:,} events / {n_hosts:,} hosts",
+            "shape": label,
             "alerts": inc["alert_count"],
             "rate": inc["alert_count"] / max(1, inc["event_count"]),
             "incidents": inc["incident_count"],
@@ -97,8 +125,16 @@ def main() -> None:
     lines += [
         "", "## The finding", "",
         f"**Every one of these logs is entirely benign, and the detector alerts on up",
-        f"to {worst:.0%} of it.** On a real estate that is unusable: an analyst handed",
-        "one alert in four is not being helped.",
+        f"to {worst:.0%} of it.**",
+        "",
+        "The spread between the rows is the important part, and it is not size. The",
+        "quiet rows hold `status` at success and `protocol` at Kerberos on every",
+        "event, which is two of the seven features pinned to their most benign",
+        "constant. That is not an ordinary Tuesday, it is the best day an estate ever",
+        "has. Add 3% failed logins -- typos, expired passwords, a locked account --",
+        "and it roughly doubles. Add legacy applications still negotiating NTLM and it",
+        "doubles again. An earlier version of this report measured only the quiet",
+        "rows and published the low number as the answer.",
         "",
         "The out-of-distribution probe does not catch this, and should not be expected",
         "to. It tests the shape of the host population and these logs have the long",

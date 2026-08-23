@@ -6,17 +6,26 @@ hosts, all successful Kerberos. Seed 20260824, so this reproduces.
 
 | Shape | Alerts | Alert rate | Incidents | Out of distribution? | Top-1 host share |
 |---|---|---|---|---|---|
-| 5,000 events / 1,500 hosts | 923 | **18.5%** | 2 | False | 0.122 |
-| 5,000 events / 600 hosts | 1,120 | **22.4%** | 2 | False | 0.143 |
-| 2,000 events / 800 hosts | 423 | **21.1%** | 3 | False | 0.127 |
-| 800 events / 300 hosts | 250 | **31.2%** | 1 | False | 0.176 |
-| 300 events / 120 hosts | 90 | **30.0%** | 1 | False | 0.163 |
+| 5,000 events / 1,500 hosts, no failures, no NTLM | 923 | **18.5%** | 2 | False | 0.122 |
+| 5,000 events /   600 hosts, no failures, no NTLM | 1,193 | **23.9%** | 1 | False | 0.14 |
+| 2,000 events /   800 hosts, no failures, no NTLM | 420 | **21.0%** | 1 | False | 0.138 |
+| 5,000 events / 1,500 hosts, 3% failed logins | 1,872 | **37.4%** | 19 | False | 0.126 |
+| 5,000 events / 1,500 hosts, 15% NTLM (legacy apps) | 1,611 | **32.2%** | 85 | False | 0.131 |
+| 5,000 events / 1,500 hosts, 3% failures AND 15% NTLM | 2,410 | **48.2%** | 47 | False | 0.131 |
 
 ## The finding
 
 **Every one of these logs is entirely benign, and the detector alerts on up
-to 31% of it.** On a real estate that is unusable: an analyst handed
-one alert in four is not being helped.
+to 48% of it.**
+
+The spread between the rows is the important part, and it is not size. The
+quiet rows hold `status` at success and `protocol` at Kerberos on every
+event, which is two of the seven features pinned to their most benign
+constant. That is not an ordinary Tuesday, it is the best day an estate ever
+has. Add 3% failed logins -- typos, expired passwords, a locked account --
+and it roughly doubles. Add legacy applications still negotiating NTLM and it
+doubles again. An earlier version of this report measured only the quiet
+rows and published the low number as the answer.
 
 The out-of-distribution probe does not catch this, and should not be expected
 to. It tests the shape of the host population and these logs have the long

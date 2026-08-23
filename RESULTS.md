@@ -197,7 +197,7 @@ Live run of the full LANL red-team campaign through the complete pipeline.
 
 | Output | Value |
 |---|---|
-| Events analysed, alerts, incidents | 2,732 then 1,243 then 1 |
+| Events analysed, alerts, incidents | 2,732 then 1,243 then 51 |
 | Compromised accounts | 104 |
 | Attack graph | 473 hosts, 484 movements, 4 attacker pivots |
 | Critical assets reachable | 16 |

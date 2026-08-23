@@ -338,7 +338,7 @@ Live run of the full LANL red-team campaign through the complete pipeline.
 
 | Output | Value |
 |---|---|
-| Events analysed, alerts, incidents | {I['event_count']:,} then {I['alert_count']:,} then 1 |
+| Events analysed, alerts, incidents | {I['event_count']:,} then {I['alert_count']:,} then {I.get('incident_count', '?')} |
 | Compromised accounts | 104 |
 | Attack graph | {G['n_nodes']} hosts, {G['n_edges']} movements, {G['n_pivots']} attacker pivots |
 | Critical assets reachable | {len(G['critical_assets_at_risk'])} |

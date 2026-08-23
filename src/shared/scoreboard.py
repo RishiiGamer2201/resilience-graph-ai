@@ -396,10 +396,11 @@ def scoreboard() -> dict:
         # is hiding, and this is the first question any operator asks.
         _card("clean_log_false_positive_rate", "Detection",
               "Alert rate on a log with no attack in it",
-              definition=("False-positive rate on synthetic clean logs: Zipf destination "
-                          "tail, no attack events at all. The question an operator asks "
-                          "before any recall figure -- what does it do on a Tuesday."),
-              dataset="synthetic clean logs, seeded and reproducible",
+              definition=("False-positive rate on synthetic logs with ZERO attack events: Zipf "
+                          "destination tail, 3% failed logins, 15% NTLM. The quiet "
+                          "variants with neither hold two of seven features at their "
+                          "most benign constant and score about half this."),
+              dataset="synthetic clean logs with ordinary failure and NTLM rates, seeded",
               sample=f"{clean.get('shapes_tested', 0)} log shapes, 0 attack events",
               value=_pct(clean.get("worst_alert_rate")), unit="%",
               higher_is_better=False,
