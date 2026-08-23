@@ -69,8 +69,13 @@
   font-family: var(--sans); font-style: normal; text-transform: none;
   letter-spacing: 0; font-size: 10.5px; color: var(--rule);
 }
-:root[data-theme="dark"] .nav-label em,
-:root:not([data-theme="light"]) .nav-label em { color: var(--faint); opacity: .65; }
+/* The bare `:root:not([data-theme="light"])` form also matches the DEFAULT state,
+ * where no theme attribute is set at all, so it was applying the dark treatment
+ * in system-light mode. It only means "dark" inside the media query. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .nav-label em { color: var(--faint); opacity: .65; }
+}
+:root[data-theme="dark"] .nav-label em { color: var(--faint); opacity: .65; }
 
 .nav { display: flex; flex-direction: column; gap: 1px; }
 .nav a {
