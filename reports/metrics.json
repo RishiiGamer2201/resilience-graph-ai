@@ -122,9 +122,10 @@
   },
   "ps7": {
     "attack_mapping": {
-      "alerts": 212,
-      "alerts_with_technique": 212,
+      "alerts": 1503,
+      "alerts_with_technique": 1503,
       "coverage": 1.0,
+      "denominator": "every correlated alert in every shipped scenario -- NOT the incident payload the UI receives, which is capped at 80 alerts per scenario for display",
       "invalid_technique_ids": [],
       "id_validity": 1.0,
       "ground_truth_precision": null,
@@ -168,9 +169,9 @@
       "note": "Coverage over the tactics/techniques these scenarios actually produce. The event-type -> ATT&CK rule map has 9 entries; techniques outside it are reported unmapped rather than guessed."
     },
     "latency_ms": {
-      "p50": 242.1,
-      "p95": 1928.1,
-      "max": 5624.6,
+      "p50": 223.4,
+      "p95": 1918.7,
+      "max": 4732.0,
       "samples": 12,
       "scope": "full 7-node investigation, warm process, laptop CPU, no GPU"
     },
@@ -192,7 +193,7 @@
     "audit": {
       "chain_verifies": true,
       "tamper_detected": true,
-      "detection_message": "record 1 (analysis.completed): content hash mismatch \u2014 this record's contents were altered after it was written",
+      "detection_message": "record 1 (analysis.completed): content hash mismatch -- this record's contents were altered after it was written",
       "hash_algorithm": "sha256"
     },
     "rbac": {
@@ -238,7 +239,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 220.9,
+          "latency_ms_median": 204.6,
           "degraded_nodes": []
         },
         {
@@ -270,7 +271,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 162.1,
+          "latency_ms_median": 151.9,
           "degraded_nodes": []
         },
         {
@@ -303,7 +304,7 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 1780.1,
+          "latency_ms_median": 1771.4,
           "degraded_nodes": [
             "understand"
           ]
@@ -337,13 +338,13 @@
           "proposals": 5,
           "gated": 4,
           "executed": 0,
-          "latency_ms_median": 263.3,
+          "latency_ms_median": 232.5,
           "degraded_nodes": [
             "understand"
           ]
         }
       ],
-      "evaluated_at": "2026-08-23 22:26 IST"
+      "evaluated_at": "2026-08-24 00:16 IST"
     }
   },
   "engine3": {

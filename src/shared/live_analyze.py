@@ -53,33 +53,59 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     Fixed `score_ref` anchors by default, so a score means the same thing across
     two uploads and matches the /score-event endpoint.
 
-    Out-of-distribution logs are the exception. If the median reconstruction
-    error is above the benign 99th percentile, the anchors were measured on a
-    corpus this log does not resemble and every event lands above the alert line
-    regardless of content -- the measured failure on the synthetic India scenarios,
-    where 125 of 125 events alerted. Those are re-calibrated against their own
-    distribution and the returned `calibration` block says so, so no surface can
-    quote such a score as if it were comparable to a LANL one.
+    Out-of-distribution logs are the exception. The shipped anchors were measured
+    on LANL, and a log whose host population is shaped differently lands entirely
+    above the alert line regardless of content -- the measured failure on the
+    synthetic India scenarios, where 125 of 125 events alerted. Those are scored
+    by RANK within themselves, and the returned `calibration` block says so, so
+    no surface can quote such a score as if it were comparable to a LANL one.
+
+    Below MIN_SAMPLE events nothing is claimed at all: a corpus statistic taken
+    over a handful of rows is not a measurement, and saying so is more useful
+    than returning a confident zero.
     """
     X = df[FEATURES].to_numpy("float64")
     raw = detector.raw_scores(X)
     ref = _ref()
-    ood, shift = detector.out_of_distribution(X)
+
+    counts = df["destination_host"].value_counts().to_numpy()
+    ood, top1 = detector.out_of_distribution(X, dst_counts=counts)
+    small = len(df) < detector.MIN_SAMPLE
+
     if ood:
         ref = detector.relative_anchors(raw)
-    return detector.calibrate(raw, ref).round(), {
+
+    scores = detector.calibrate(raw, ref).round()
+    scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
+
+    if small:
+        note = (f"Only {len(df)} events. Below {detector.MIN_SAMPLE} there is no "
+                f"corpus to compare against: host rarity, fan-out and the "
+                f"concentration test all need a population. Scores are shown "
+                f"ranked within what you supplied and should be read as an "
+                f"ordering, not as severities.")
+    elif ood:
+        note = (f"One destination takes {top1:.0%} of the authentications in this "
+                f"log. The corpus the detector was calibrated on has a long tail "
+                f"(LANL's busiest destination takes 6%), so the shipped "
+                f"1%-false-positive anchor does not transfer. Events are RANKED "
+                f"within this log and the top "
+                f"{100 - ref.get('triage_percentile', 80)}% are surfaced for "
+                f"triage. That cut is an operational choice, not a measured "
+                f"false-positive rate, and these scores are not comparable with "
+                f"scores from another log.")
+    else:
+        note = ""
+
+    return scores, {
         "basis": ref.get("basis", "fixed-anchors-lanl"),
         "out_of_distribution": ood,
-        "rarity_shift_sigma": shift,
-        "note": (
-            f"This log's host-rarity distribution sits {abs(shift):.1f} training "
-            f"standard deviations from the corpus the detector was calibrated on, "
-            f"so the shipped 1%-false-positive anchor does not transfer. Events are "
-            f"RANKED within this log and the top "
-            f"{100 - ref.get('triage_percentile', 80)}% are surfaced for triage. "
-            f"That cut is an operational choice, not a measured false-positive "
-            f"rate, and these scores are not comparable with scores from another log."
-        ) if ood else "",
+        "insufficient_sample": small,
+        "top_destination_share": top1,
+        # kept beside the verdict because it is informative, and explicitly not
+        # the verdict: it is a log-size test, see detector.out_of_distribution
+        "rarity_shift_sigma": detector.rarity_shift(X),
+        "note": note,
     }
 
 

@@ -59,6 +59,28 @@ def scenarios() -> dict[str, list[str]]:
     return out
 
 
+def _all_alerts(scenario: str) -> list[dict]:
+    """EVERY correlated alert in a scenario, scored as the live pipeline scores it.
+
+    Not `result["signals"]["incident"]["steps"]`: that is the frontend payload,
+    which `views.incident_view` caps at 80 alerts. Measuring ATT&CK coverage over
+    it made the denominator a UI display limit (26+26+80+80 = 212) rather than the
+    1,503 alerts the scenarios actually raise. The cap is right for the UI and
+    stays; the harness correlates the log itself instead.
+    """
+    import numpy as np
+    import pandas as pd
+
+    from src.engine1.lanl_detect import engineer
+    from src.shared.correlate import correlate
+    from src.shared.live_analyze import _prepare, _score
+
+    df = engineer(_prepare(pd.read_csv(SCENARIOS / f"{scenario}.csv")))
+    df["anomaly_score"] = np.nan_to_num(_score(df)[0], nan=0.0, posinf=100.0,
+                                        neginf=0.0).astype(int)
+    return correlate(df)["alerts"]
+
+
 def measure(runs: int = 3) -> dict:
     from src.shared.attack_mapper import RULE_MAP
     from src.shared.soar import TACTIC_ACTIONS
@@ -83,8 +105,13 @@ def measure(runs: int = 3) -> dict:
             result = investigate(scenario=name, critical_assets=crit)
             durations.append((time.perf_counter() - t) * 1000)
         inc = result["signals"]["incident"]
-        steps = inc["steps"]
-        alerts = [s for s in steps if s.get("is_alert")]
+        alerts = _all_alerts(name)
+        # If this ever trips, the harness's re-correlation has drifted from the
+        # pipeline the investigation ran and every number below is measuring a
+        # different log.
+        assert len(alerts) == inc["alert_count"], (
+            f"{name}: re-correlated {len(alerts)} alerts, pipeline reported "
+            f"{inc['alert_count']}")
         mapped = [s for s in alerts if s.get("technique_id") not in (None, "", "-")]
         total_alerts += len(alerts)
         mapped_alerts += len(mapped)
@@ -187,6 +214,9 @@ def measure(runs: int = 3) -> dict:
             "alerts": total_alerts,
             "alerts_with_technique": mapped_alerts,
             "coverage": round(mapped_alerts / max(1, total_alerts), 4),
+            "denominator": ("every correlated alert in every shipped scenario -- NOT "
+                            "the incident payload the UI receives, which is capped at "
+                            "80 alerts per scenario for display"),
             "invalid_technique_ids": sorted(invalid_ids),
             "id_validity": round(1.0 - len(invalid_ids) / max(1, len(all_techniques)), 4),
             "ground_truth_precision": None,

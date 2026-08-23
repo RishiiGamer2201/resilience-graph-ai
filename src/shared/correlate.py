@@ -20,6 +20,8 @@ the real clustering read those, or call `correlate_all()`.
 """
 from __future__ import annotations
 
+from bisect import bisect_left, bisect_right
+
 import networkx as nx
 import pandas as pd
 
@@ -56,7 +58,11 @@ def _clusters(steps: list[dict]) -> list[list[dict]]:
     for i, s in enumerate(alerts):
         for kind, name in (("user", s["user"]), ("host", s["source_host"]),
                            ("host", s["destination_host"])):
-            if name:
+            # `name == name` is False only for NaN. A missing user arrives as
+            # float('nan'), which is truthy and stringifies to "nan", so without
+            # this every alert with a missing entity joined one shared
+            # ("user", "nan") bucket and got linked to every other one.
+            if name and name == name:
                 by_entity.setdefault((kind, str(name)), []).append(i)
 
     g = nx.Graph()
@@ -118,7 +124,7 @@ def _incident(steps: list[dict], incident_id: str) -> dict:
         "users_involved": users,
         "hosts_involved": hosts,
         "alert_count": len(alerts),
-        "event_count": len(steps),
+        "event_count": len(steps),   # sub-incidents get the true span in _split()
         "start_time": min((s["timestamp"] for s in steps), default=0),
         "end_time": max((s["timestamp"] for s in steps), default=0),
         "attack_chain": [s["tactic"] for s in alerts if s["tactic"] != "Normal"],
@@ -129,15 +135,31 @@ def _incident(steps: list[dict], incident_id: str) -> dict:
 
 
 def _split(steps: list[dict], incident_id: str) -> list[dict]:
-    return [_incident(grp, f"{incident_id}-{n:02d}")
-            for n, grp in enumerate(_clusters(steps), 1)]
+    """One incident per cluster, each with the true event span of its window.
+
+    `_incident` derives `event_count` from the steps it is handed, and a
+    sub-incident is handed alerts only -- so it reported `event_count ==
+    alert_count` and every caller formatting one printed "N alerts correlated
+    from N events". The honest number is how many events the log actually holds
+    between the incident's first and last alert, which is what we count here.
+    """
+    ts = [s["timestamp"] for s in steps]        # _steps() sorted these
+    out = []
+    for n, grp in enumerate(_clusters(steps), 1):
+        inc = _incident(grp, f"{incident_id}-{n:02d}")
+        inc["event_count"] = (bisect_right(ts, inc["end_time"])
+                              - bisect_left(ts, inc["start_time"]))
+        out.append(inc)
+    return out
 
 
 def correlate_all(events: pd.DataFrame, *, incident_id: str = "INC-PS7-001") -> list[dict]:
     """Every incident in `events`, chronologically, same dict shape as `correlate`.
 
     An incident's `steps` are the alerts that formed it -- the benign events
-    around them stay on the `correlate()` roll-up, which is the whole log.
+    around them stay on the `correlate()` roll-up, which is the whole log. Its
+    `event_count` is therefore NOT `len(steps)`: it is every event in the log
+    inside the incident's window, alerts and benign traffic alike.
     """
     return _split(_steps(events), incident_id)
 

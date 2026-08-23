@@ -77,5 +77,5 @@
       "justification": "FIN5 matches 2/4 observed techniques (profile coverage 50%; semantic similarity 0.77)."
     }
   ],
-  "note": "Attribution is transparent profile retrieval over public ATT&CK group usage \u2014 not a trained classifier."
+  "note": "Attribution is transparent profile retrieval over public ATT&CK group usage -- not a trained classifier."
 }

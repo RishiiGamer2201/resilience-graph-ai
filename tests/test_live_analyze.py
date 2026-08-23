@@ -211,57 +211,85 @@ def test_isolation_cuts_distinct_from_total_exposure(campaign):
     assert g["isolation_cuts"] <= g["blast_radius_size"]
 
 
-def test_the_ood_probe_still_points_at_dst_rarity():
-    """RARITY_IDX is a bare index into a feature list defined in another module.
+def test_the_ood_verdict_is_invariant_to_log_size():
+    """The property the previous two probes both failed.
 
-    src/shared/detector.py is deliberately standalone -- pure NumPy, no pandas or
-    sklearn, so the deployed image stays slim -- which means it cannot import
-    FEATURES to look the position up. So the coupling is a hardcoded 5, and
-    reordering FEATURES would silently point the out-of-distribution probe at a
-    different feature. It would not raise; it would just start testing
-    `user_fail_rate_sofar` for corpus drift and quietly mis-route calibration.
+    dst_rarity is -log(count / len(df)), so its mean carries log(N) directly and
+    a test on it is a log-size test wearing a distribution test's clothes. On
+    truncations of ONE unchanged real corpus it flipped at 26 rows -- head(200)
+    passed by 0.024 sigma and head(60) failed -- and the flip cost recall
+    0.696 -> 0.206, because the triage budget then applied to a log that is
+    mostly attack.
 
-    dst_rarity is the ONLY corpus-relative feature -- it is -log(count/corpus
-    size), a property of the log's host population rather than of any attacker --
-    which is exactly why it is the one the probe uses. The other six are per-user
-    behaviour and are supposed to move under attack.
+    Top-1 destination share is a property of the host population's shape, not of
+    how many rows you kept. Same corpus, every slice, same verdict.
+    """
+    full = pd.read_csv(CAMPAIGN)
+    verdicts = {}
+    for k in (2732, 600, 200, 120, 60, 40):
+        bundle = analyze_events(full.head(k).copy())
+        cal = bundle["meta"]["calibration"]
+        verdicts[k] = cal["out_of_distribution"]
+        assert not cal["insufficient_sample"], f"head({k}) should clear MIN_SAMPLE"
+    assert set(verdicts.values()) == {False}, (
+        f"one real corpus classified inconsistently across slices: {verdicts}")
+
+
+def test_a_concentrated_log_is_out_of_distribution_and_a_long_tailed_one_is_not():
+    """The verdict tracks host-population shape, which is what it claims to test."""
+    from src.shared import detector
+
+    long_tail = [3] * 400                      # 1200 events, busiest takes 0.25%
+    concentrated = [500] + [2] * 100           # 700 events, busiest takes 71%
+    assert detector.out_of_distribution(None, dst_counts=long_tail)[0] is False
+    assert detector.out_of_distribution(None, dst_counts=concentrated)[0] is True
+
+
+def test_a_log_too_small_to_have_a_corpus_says_so():
+    """Below MIN_SAMPLE nothing is claimed, rather than a confident zero.
+
+    Host rarity, fan-out and the concentration test all need a population. A
+    handful of rows has none, and the honest answer is to say the scores are an
+    ordering rather than to calibrate them against anchors that cannot apply.
+    """
+    from src.shared import detector
+    ood, _ = detector.out_of_distribution(None, dst_counts=[3, 2, 1])
+    assert ood is True, "a 6-event log must not be treated as a comparable corpus"
+
+    df = pd.DataFrame({
+        "timestamp": range(10), "user": ["u@d"] * 10,
+        "source_host": ["A"] * 10,
+        "destination_host": [f"H{i}" for i in range(10)],
+    })
+    cal = analyze_events(df)["meta"]["calibration"]
+    assert cal["insufficient_sample"] is True
+    assert "no corpus to compare against" in cal["note"]
+
+
+def test_the_rarity_diagnostic_still_points_at_dst_rarity():
+    """RARITY_IDX is a bare index into a FEATURES list in another module.
+
+    detector.py is standalone on purpose -- pure NumPy, no pandas or sklearn, so
+    the deployed image stays slim -- so it cannot import FEATURES to look the
+    position up. Reordering that list would silently repoint the diagnostic at
+    user_fail_rate_sofar. It no longer decides anything, but a wrong number
+    printed beside a verdict is still a wrong number.
     """
     from src.engine1.lanl_detect import FEATURES
     from src.shared.detector import RARITY_IDX
 
     assert FEATURES[RARITY_IDX] == "dst_rarity", (
-        f"RARITY_IDX={RARITY_IDX} now points at {FEATURES[RARITY_IDX]!r}. "
-        "The OOD probe must test the corpus-relative feature; update RARITY_IDX "
-        "in src/shared/detector.py to match the new FEATURES order.")
+        f"RARITY_IDX={RARITY_IDX} now points at {FEATURES[RARITY_IDX]!r}; "
+        "update it in src/shared/detector.py to match the new FEATURES order.")
 
 
-def test_ood_detection_survives_degenerate_logs():
-    """A one-row log, or one where every host is equally common, must not explode.
-
-    Both are real: an analyst pasting a single suspicious event, and a log whose
-    destinations all appear the same number of times, which makes dst_rarity a
-    constant and its variance zero.
-    """
+def test_relative_anchors_stay_ordered_on_a_degenerate_log():
+    """Identical values everywhere collapse p50/p80/max onto one point, and
+    calibrate() then divides by a zero-width segment."""
     import numpy as np
     from src.shared import detector
 
-    # identical rarity everywhere: no spread, still must return a verdict
-    X = np.tile(np.array([[0, 1, 0, 5, 0.0, 4.87, 0]], dtype="float64"), (10, 1))
-    ood, shift = detector.out_of_distribution(X)
-    assert isinstance(ood, bool) and isinstance(shift, float)
-
-    # a single row
-    ood1, shift1 = detector.out_of_distribution(X[:1])
-    assert isinstance(ood1, bool)
-
-    # an empty frame must not raise and must not claim OOD
-    from src.engine1.lanl_detect import FEATURES
-    ood0, shift0 = detector.out_of_distribution(np.empty((0, len(FEATURES)), dtype="float64"))
-    assert ood0 is False and shift0 == 0.0
-
-    # relative_anchors must stay monotone even when every value is identical,
-    # otherwise calibrate() divides by a zero-width segment
-    ref = detector.relative_anchors(np.full(20, 0.5))
+    ref = detector.relative_anchors(np.full(40, 0.5))
     assert ref["p50"] < ref["p99"] < ref["hi"], ref
-    scores = detector.calibrate(np.full(20, 0.5), ref)
+    scores = detector.calibrate(np.full(40, 0.5), ref)
     assert np.all(np.isfinite(scores)), scores

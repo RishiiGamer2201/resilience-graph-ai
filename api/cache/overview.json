@@ -115,7 +115,7 @@
     "incident_id": "INC-PS7-LANL-CAMPAIGN",
     "scenario": "lanl_campaign_all",
     "severity": "high",
-    "total_ms": 1497.2,
+    "total_ms": 1506.2,
     "point_b_method": "template",
     "incident_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
     "agent_traces": [
@@ -16213,7 +16213,7 @@
           "entities_seen": 69
         },
         "evidence_refs": [],
-        "ms": 33.1,
+        "ms": 32.2,
         "notes": [
           "Triaged 442 chunks; 358 escalated to Detection."
         ]
@@ -32310,7 +32310,7 @@
           "max_score": 79
         },
         "evidence_refs": [],
-        "ms": 2.0,
+        "ms": 1.9,
         "notes": [
           "Scored 442 chunks; 287 above threshold.",
           "Max anomaly score: 79/100."
@@ -58857,7 +58857,7 @@
           "edge_count": 663
         },
         "evidence_refs": [],
-        "ms": 129.7,
+        "ms": 126.1,
         "notes": [
           "Built entity graph: 307 nodes {'user': 39, 'host': 265, 'technique': 3}, 663 edges."
         ]
@@ -68979,11 +68979,11 @@
           }
         },
         "evidence_refs": [
-          "T1550.002",
           "T1021",
+          "T1550.002",
           "T1078"
         ],
-        "ms": 86.0,
+        "ms": 77.7,
         "notes": [
           "Connected graph: 307 nodes, 663 edges."
         ]
@@ -69708,11 +69708,11 @@
           "total_chains": 39
         },
         "evidence_refs": [
-          "T1550.002",
           "T1021",
+          "T1550.002",
           "T1078"
         ],
-        "ms": 185.7,
+        "ms": 187.9,
         "notes": [
           "Validated 39 entity chains: 22 confirmed, 12 partial, 5 unconfirmed.",
           "Unconfirmed chains retained \u2014 not discarded."
@@ -70962,11 +70962,11 @@
           "top_risk_score": 0.7499
         },
         "evidence_refs": [
-          "T1550.002",
           "T1021",
+          "T1550.002",
           "T1078"
         ],
-        "ms": 18.7,
+        "ms": 16.9,
         "notes": [
           "Narrative generated via template.",
           "LLM output (if used) is non-authoritative and labelled accordingly."
@@ -71016,7 +71016,7 @@
           "T1570",
           "T1219.001"
         ],
-        "ms": 7.2,
+        "ms": 4.0,
         "notes": [
           "Predicted next 3 move(s) from chain of 3 techniques.",
           "Top prediction: T1005 @ 12.5%"
@@ -73111,50 +73111,6 @@
           "C2553"
         ],
         "shortest_paths": {
-          "C586": [
-            "C17693",
-            "C586"
-          ],
-          "C625": [
-            "C17693",
-            "C625"
-          ],
-          "C457": [
-            "C17693",
-            "C457"
-          ],
-          "C706": [
-            "C17693",
-            "C706"
-          ],
-          "C585": [
-            "C17693",
-            "C585"
-          ],
-          "C3173": [
-            "C17693",
-            "C3173"
-          ],
-          "C1065": [
-            "C18025",
-            "C1065"
-          ],
-          "C1015": [
-            "C17693",
-            "C1015"
-          ],
-          "C231": [
-            "C17693",
-            "C231"
-          ],
-          "C529": [
-            "C17693",
-            "C529"
-          ],
-          "C612": [
-            "C19932",
-            "C612"
-          ],
           "C528": [
             "C17693",
             "C528"
@@ -73171,9 +73127,53 @@
             "C17693",
             "C2106"
           ],
+          "C1015": [
+            "C17693",
+            "C1015"
+          ],
           "C801": [
             "C17693",
             "C801"
+          ],
+          "C625": [
+            "C17693",
+            "C625"
+          ],
+          "C706": [
+            "C17693",
+            "C706"
+          ],
+          "C586": [
+            "C17693",
+            "C586"
+          ],
+          "C612": [
+            "C19932",
+            "C612"
+          ],
+          "C529": [
+            "C17693",
+            "C529"
+          ],
+          "C457": [
+            "C17693",
+            "C457"
+          ],
+          "C231": [
+            "C17693",
+            "C231"
+          ],
+          "C3173": [
+            "C17693",
+            "C3173"
+          ],
+          "C585": [
+            "C17693",
+            "C585"
+          ],
+          "C1065": [
+            "C18025",
+            "C1065"
           ]
         },
         "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here -- we do not invent hosts the attacker has not touched."

@@ -1,31 +1,31 @@
 # PS7 operational evaluation
 
-Evaluated: 2026-08-23 22:26 IST  ·  3 run(s) per scenario
+Evaluated: 2026-08-24 00:16 IST  ·  3 run(s) per scenario
 
 ## Per scenario
 
 | Scenario | Events | Alerts | Alert rate | Incidents | MTTD | Exposure | Likelihood | Evidence conf. | Actionable claims | Citations | Actions (gated) | Executed | Median latency |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| aiims_ransomware | 125 | 26 | 21% | 2 | 2 h | 50.0 | 60.0 | 91.8 | 1/3 | 6 | 5 (4) | 0 | 221 ms |
-| cbse_exam_breach | 127 | 26 | 20% | 1 | 2 h | 0.0 | 55.0 | 91.8 | 1/3 | 6 | 5 (4) | 0 | 162 ms |
-| lanl_campaign_all | 2732 | 1243 | 46% | 51 | immediate | 80.0 | 60.0 | 89.0 | 1/4 | 6 | 5 (4) | 0 | 1780 ms |
-| lanl_redteam_u66 | 215 | 208 | 97% | 9 | immediate | 5.0 | 60.0 | 91.8 | 1/3 | 6 | 5 (4) | 0 | 263 ms |
+| aiims_ransomware | 125 | 26 | 21% | 2 | 2 h | 50.0 | 60.0 | 91.8 | 1/3 | 6 | 5 (4) | 0 | 205 ms |
+| cbse_exam_breach | 127 | 26 | 20% | 1 | 2 h | 0.0 | 55.0 | 91.8 | 1/3 | 6 | 5 (4) | 0 | 152 ms |
+| lanl_campaign_all | 2732 | 1243 | 46% | 51 | immediate | 80.0 | 60.0 | 89.0 | 1/4 | 6 | 5 (4) | 0 | 1771 ms |
+| lanl_redteam_u66 | 215 | 208 | 97% | 9 | immediate | 5.0 | 60.0 | 91.8 | 1/3 | 6 | 5 (4) | 0 | 232 ms |
 
 ## ATT&CK mapping
 
-- alerts carrying a technique: **100.0%** (212 of 212)
+- alerts carrying a technique: **100.0%** (1503 of 1503)
 - emitted technique IDs valid against the canonical ATT&CK lookups: **100.0%** (invalid: none)
-- event->technique precision: **Not measured** — Not measured: no public dataset used here carries a per-event ATT&CK technique label, so event->technique precision cannot be computed. We report coverage and ID validity, which we can.
+- event->technique precision: **Not measured** -- Not measured: no public dataset used here carries a per-event ATT&CK technique label, so event->technique precision cannot be computed. We report coverage and ID validity, which we can.
 
 ## SOAR coverage
 
 - observed tactics with a playbook action: **100.0%** (Credential Access, Initial Access, Lateral Movement)
 - observed techniques with real MITRE mitigations: **100.0%**
-- actions executed against a real system: **0** (by design — every action is simulated and human-gated)
+- actions executed against a real system: **0** (by design -- every action is simulated and human-gated)
 
 ## Latency
 
-- p50 **242 ms**, p95 **1928 ms**, max 5625 ms over 12 runs (full 7-node investigation, warm process, laptop CPU, no GPU)
+- p50 **223 ms**, p95 **1919 ms**, max 4732 ms over 12 runs (full 7-node investigation, warm process, laptop CPU, no GPU)
 
 ## MTTD / MTTR
 
@@ -34,5 +34,5 @@ Evaluated: 2026-08-23 22:26 IST  ·  3 run(s) per scenario
 
 ## Auditability and authorisation
 
-- hash chain verifies: **True**; tampering detected: **True** (`record 1 (analysis.completed): content hash mismatch — this record's contents were altered after it was written`)
+- hash chain verifies: **True**; tampering detected: **True** (`record 1 (analysis.completed): content hash mismatch -- this record's contents were altered after it was written`)
 - viewer denied `approve_critical`: **True**; crown-jewel action gated: **True**; low-impact pre-approved: **True**

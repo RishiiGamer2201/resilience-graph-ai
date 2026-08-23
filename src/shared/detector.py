@@ -119,63 +119,98 @@ def raw_scores(X: np.ndarray) -> np.ndarray:
     return ((a - h) ** 2).mean(axis=1)
 
 
-RARITY_IDX = 5              # dst_rarity in FEATURES order
-RARITY_SHIFT_SIGMA = 1.0    # training sigmas; see below
+RARITY_IDX = 5              # dst_rarity in FEATURES order, kept as a diagnostic
+CONCENTRATION_LIMIT = 0.30  # share of auth going to ONE destination; see below
+MIN_SAMPLE = 30             # below this, no corpus statistic means anything
 
 
-def out_of_distribution(X) -> tuple[bool, float]:
-    """Is this log's CORPUS too unlike the training corpus for the anchors to hold?
+def out_of_distribution(X, dst_counts=None) -> tuple[bool, float]:
+    """Is this log's CORPUS unlike the one the anchors were measured on?
 
-    Returns (is_ood, shift_in_training_sigmas).
+    Returns (is_ood, top1_share).
 
     The shipped anchors come from LANL: benign p50 -> 0, benign p99 -> 50, the 1%
-    false-positive line. They only mean anything for logs shaped like the corpus
-    they were measured on, and the synthetic India scenarios are not: every one of
-    their 125 events alerted, because a benign-trained autoencoder reconstructs
-    what it saw in training and nothing else.
+    false-positive line. They only mean anything for logs shaped like that
+    corpus, and the synthetic India scenarios are not: every one of their 125
+    events alerted, because a benign-trained autoencoder reconstructs what it saw
+    in training and nothing else.
 
-    The obvious test -- "median reconstruction error above the benign p99" -- is
-    WRONG, and measuring it is how that was established. It fires on
-    lanl_redteam_u66, which is real LANL data and one of the cleanest inputs we
-    have. Its median error is high because the log is *mostly red team*. A
-    score-based test cannot separate "this log is not LANL-shaped" from "this log
-    is largely compromised"; both look identical downstream, and treating the
-    second as the first suppressed 208 real alerts down to 5.
+    TWO probes were rejected before this one, and both failures are instructive.
 
-    So test the INPUT, not the output, and test only the feature that is
-    corpus-relative. `dst_rarity` is -log(count / corpus_size): it is a property
-    of the log's own host population, not of any attacker. The other six features
-    are per-user behaviour and are *supposed* to shift under attack -- measured as
-    standardised shift from the training mean stored in the model artifact:
+    Median reconstruction error above the benign p99 -- rejected because it fires
+    on lanl_redteam_u66, real LANL data whose median is high because the log is
+    mostly red team. A score-based test cannot separate "not LANL-shaped" from
+    "largely compromised", and treating the second as the first suppressed 208
+    real alerts to 5.
 
-        feature            lanl_campaign  lanl_u66   aiims   cbse
-        is_fail                   +1.94     +3.44    +0.36   +0.35
-        new_dst_for_user          +1.70     +4.09    +2.00   +2.08
-        is_ntlm                   +1.82     +4.03    +0.95   +1.00
-        dst_rarity                -0.09     -0.13    -1.88   -1.83   <-- the tell
+    Standardised shift of mean `dst_rarity` -- rejected because it is a LOG-SIZE
+    test wearing a distribution test's clothes. dst_rarity is
+    -log(count / len(df)) = log(N) - log(count), so its mean carries log(N)
+    directly. Measured on truncations of one unchanged real corpus:
 
-    Both LANL logs sit on the training mean for rarity while shifting hard on the
-    attack-driven features. The synthetic logs do the opposite. One threshold on
-    one feature separates them for a reason that can be stated in a sentence.
+        lanl_campaign_all  2732 rows   shift -0.09   in-distribution
+        lanl head(600)      600 rows   shift -0.68   in-distribution
+        lanl head(200)      200 rows   shift -0.98   in-distribution, by 0.02
+        lanl head(60)        60 rows   shift -1.04   OUT of distribution
+
+    Same data, same hosts, same everything. A 26-row log tested out and a 27-row
+    log tested in, and the flip cost recall 0.696 -> 0.206 because the triage
+    budget then applied to a log that is mostly attack.
+
+    THIS probe is the share of authentications going to the single most common
+    destination. It is a property of the host population's shape and is
+    completely invariant to row count:
+
+        log                       top-1 share
+        lanl_campaign_all               0.064
+        lanl head(600/200/60)     0.115 / 0.130 / 0.100   <- stable under truncation
+        lanl_redteam_u66                0.051
+        aiims_ransomware                0.408
+        cbse_exam_breach                0.386
+        synthetic benign, 5000 rows / 1500 hosts, zipf   0.126
+        synthetic benign, 2000 rows /  800 hosts, zipf   0.233
+
+    Real enterprise authentication has a long destination tail; these synthetic
+    scenarios were built on a handful of hosts where a pivot or the DC takes four
+    events in ten. That is a difference a sentence can explain, and unlike the
+    rarity shift it does not move when you truncate the file.
+
+    The threshold sits in an EMPTY BAND. Every log measured falls below 0.24 or
+    above 0.38, so any cut in (0.24, 0.38) classifies all of them identically;
+    0.30 is the middle of that gap rather than a fitted value, and this docstring
+    is the evidence for the band rather than an argument for the number.
+    """
+    if dst_counts is None:
+        return False, 0.0
+    c = np.asarray([v for v in dst_counts if v > 0], dtype="float64")
+    total = c.sum()
+    if c.size == 0 or total < MIN_SAMPLE:
+        # Too few events for any corpus statistic. Not "in distribution" -- we
+        # simply cannot tell, and the caller is expected to say so rather than
+        # silently score against anchors that may not apply.
+        return True, float(c.max() / total) if total else 1.0
+    top1 = float(c.max() / total)
+    return bool(top1 > CONCENTRATION_LIMIT), round(top1, 3)
+
+
+def rarity_shift(X) -> float:
+    """Standardised shift of mean dst_rarity. DIAGNOSTIC ONLY.
+
+    Kept because it is informative next to the concentration figure, and
+    explicitly not used as the verdict: see out_of_distribution for why it is a
+    log-size test rather than a distribution test.
     """
     X = np.asarray(X, dtype="float64")
     ae = _load()
     if ae is None or X.size == 0 or X.shape[1] <= RARITY_IDX:
-        return False, 0.0
+        return 0.0
     _, mean, scale = ae
     col = X[:, RARITY_IDX]
     col = col[np.isfinite(col)]
     if col.size == 0:
-        return False, 0.0
+        return 0.0
     shift = float((col.mean() - mean[RARITY_IDX]) / scale[RARITY_IDX])
-    if not np.isfinite(shift):
-        # NaN never satisfies `abs(shift) > threshold`, so an unguarded NaN was
-        # silently reported as in-distribution AND travelled into the response as
-        # `rarity_shift_sigma: nan`, which Starlette refuses to serialise
-        # (allow_nan=False) -- a 500 on the public upload endpoint from one blank
-        # destination_host cell. Comparing NaN is always the bug; say so instead.
-        return False, 0.0
-    return bool(abs(shift) > RARITY_SHIFT_SIGMA), round(shift, 3)
+    return round(shift, 3) if np.isfinite(shift) else 0.0
 
 
 TRIAGE_PERCENTILE = 80      # see relative_anchors

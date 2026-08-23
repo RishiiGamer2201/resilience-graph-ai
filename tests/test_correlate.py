@@ -87,6 +87,46 @@ def test_benign_events_never_form_an_incident():
     assert inc["event_count"] == 4 and inc["alert_count"] == 0
 
 
+def test_missing_entity_does_not_join_a_shared_bucket():
+    """A missing user arrives as NaN. `bool(nan)` is True and `str(nan) == "nan"`,
+    so the entity index used to file every entity-less alert under one shared
+    ("user", "nan") key and link them all together."""
+    df = _events([(1_000_000, float("nan"), "WS-A", "WS-A-DC"),
+                  (1_000_300, float("nan"), "WS-Z", "WS-Z-DC")])
+    assert C.correlate(df)["incident_count"] == 2, \
+        "two alerts sharing only a MISSING user are not one incident"
+
+    # a real shared user still merges them -- the guard drops NaN, not entities
+    df = _events([(1_000_000, "alice@CORP", "WS-A", "WS-A-DC"),
+                  (1_000_300, "alice@CORP", "WS-Z", "WS-Z-DC")])
+    assert C.correlate(df)["incident_count"] == 1
+
+    # ...and the same for a missing host, which reaches the index as NaN too
+    df = _events([(1_000_000, "alice@CORP", float("nan"), float("nan")),
+                  (1_000_300, "bob@CORP", float("nan"), float("nan"))])
+    assert C.correlate(df)["incident_count"] == 2
+
+
+def test_sub_incident_event_count_is_the_window_not_the_alert_count():
+    """A sub-incident is built from alerts only, so `len(steps)` made every one
+    report `event_count == alert_count` -- and any caller formatting it printed
+    "N alerts correlated from N events". It must be the log's true event span."""
+    df = _events([(1_000_000, "alice@CORP", "WS-A", "WS-A-DC"),          # alert
+                  (1_000_100, "alice@CORP", "WS-A", "WS-A-DC"),          # benign
+                  (1_000_200, "alice@CORP", "WS-A", "WS-A-DC"),          # benign
+                  (1_000_600, "alice@CORP", "WS-A", "WS-A-DC"),          # alert
+                  (1_000_000 + MONTH, "bob@CORP", "WS-B", "WS-B-DC")])   # alert
+    df.loc[[1, 2], "anomaly_score"] = 10
+    inc = C.correlate(df)
+
+    first, lone = inc["incidents"]
+    assert first["alert_count"] == 2
+    assert first["event_count"] == 4, "benign events inside the window are events"
+    assert (lone["alert_count"], lone["event_count"]) == (1, 1)
+    # and the roll-up still describes the whole log
+    assert (inc["alert_count"], inc["event_count"]) == (3, 5)
+
+
 # --- 3. SESSION_GAP is actually read ---------------------------------------
 def test_session_gap_is_read_not_dead_code(monkeypatch):
     """The regression this whole module exists for: `SESSION_GAP` was declared,
