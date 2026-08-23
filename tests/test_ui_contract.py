@@ -178,7 +178,9 @@ def test_approval_response_shape(result, client):
     assert r.status_code == 200, r.text
     body = r.json()
     _has(body, "recorded", "executed", "decision", "policy", "record", "chain", "note")
-    _has(body["record"], "seq", "hash", "at")
+    _has(body["record"], "seq", "hash", "at", "actor", "role")
+    assert body["record"]["actor"] == "contract@test"
+    assert body["record"]["role"] == "responder"
 
 
 # --- AuditPanel.jsx --------------------------------------------------------

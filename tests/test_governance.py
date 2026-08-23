@@ -212,6 +212,8 @@ def test_approval_is_recorded_and_nothing_is_executed(client, investigation):
     body = r.json()
     assert body["executed"] is False
     assert body["decision"] == "approved"
+    assert body["record"]["actor"] == "ravi@soc"
+    assert body["record"]["role"] == "responder"
     assert len(body["record"]["hash"]) == 64
     assert client.get("/api/audit/verify", headers=VIEWER).json()["verified"] is True
 

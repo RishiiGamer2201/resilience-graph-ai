@@ -11,9 +11,10 @@
  * screen says so rather than inventing a plausible value.
  */
 import { Activity, GitBranch, ShieldAlert, Users } from 'lucide-react'
-import { getOverview } from '@/lib/api'
-import { useFetch } from '@/hooks/useFetch'
+import { getOverviewBundle } from '@/lib/api'
+import { useAnalysis, useScreenData } from '@/providers/analysis'
 import { PageHeader } from '@/components/Layout'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
 import { Table, TBody, TD, TDMono, TH, THead, TR } from '@/components/ui/table'
@@ -30,13 +31,14 @@ import {
   SeverityBadge,
   StatRow,
 } from '@/components/primitives'
-import type { AnalysisBundle, Claim, Measured } from '@/types/api'
-
-const num = (v: unknown): number | null =>
-  typeof v === 'number' && Number.isFinite(v) ? v : null
+import type { AnalysisBundle, InvestigationClaim } from '@/types/api'
 
 export default function Overview() {
-  const { data, error, loading, reload } = useFetch<AnalysisBundle>(getOverview)
+  const { bundle } = useAnalysis()
+  const { data, error, loading, reload, source } = useScreenData<AnalysisBundle>(
+    bundle,
+    getOverviewBundle,
+  )
 
   if (loading) {
     return (
@@ -68,12 +70,11 @@ export default function Overview() {
 
   const incident = data.incident
   const graph = data.graph
-  const analysis = data.analysis
-  const alerts = num(data.alerts_correlated)
-  const accounts = Array.isArray(data.accounts_involved)
-    ? (data.accounts_involved as string[])
-    : (incident?.accounts_involved ?? [])
-  const mttd = data.mttd as Measured | number | null | undefined
+  const overview = data.overview
+  const analysis = data.analysis ?? overview?.analysis
+  const alerts = overview?.alerts_correlated.alerts
+  const accounts = incident.accounts_involved ?? []
+  const mttd = overview?.mttd
 
   return (
     <>
@@ -81,7 +82,14 @@ export default function Overview() {
         eyebrow="Operations"
         title="Overview"
         description="The current incident as the deterministic pipeline sees it."
-        actions={incident ? <SeverityBadge severity={incident.severity} /> : null}
+        actions={
+          <>
+            <Badge variant={source === 'live' ? 'accent' : 'outline'}>
+              {source === 'live' ? 'live analysis' : 'sample cache'}
+            </Badge>
+            <SeverityBadge severity={incident.severity} />
+          </>
+        }
       />
 
       {/* Headline figures. Every one carries its unit and its context. */}
@@ -116,8 +124,8 @@ export default function Overview() {
           />
           <MetricCard
             label="Mean time to detect"
-            value={<MeasuredValue m={mttd ?? null} />}
-            context="From first malicious event to first alert."
+            value={mttd?.value ?? <NotMeasured why="Detection time was not computed." />}
+            context={mttd?.note ?? 'From first malicious event to first alert.'}
           />
         </div>
       </Reveal>
@@ -141,8 +149,8 @@ export default function Overview() {
                   ] as const
                 ).map(([label, m]) => (
                   <StatRow key={label} label={label}>
-                    {m?.label ? (
-                      <span className="mr-2 font-sans text-dim">{m.label}</span>
+                    {m?.band ? (
+                      <span className="mr-2 font-sans text-dim">{m.band}</span>
                     ) : null}
                     <MeasuredValue m={m ?? null} />
                   </StatRow>
@@ -212,12 +220,12 @@ export default function Overview() {
               </TR>
             </THead>
             <TBody>
-              {analysis.claims.map((c: Claim) => (
-                <TR key={c.technique_id}>
+              {analysis.claims.map((c: InvestigationClaim) => (
+                <TR key={c.external_id}>
                   <TDMono>
-                    <span className="text-text">{c.technique_id}</span>
-                    {c.technique ? (
-                      <span className="ml-2 font-sans text-dim">{c.technique}</span>
+                    <span className="text-text">{c.external_id}</span>
+                    {c.object ? (
+                      <span className="ml-2 font-sans text-dim">{c.object}</span>
                     ) : null}
                   </TDMono>
                   <TD>

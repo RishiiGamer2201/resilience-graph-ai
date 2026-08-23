@@ -253,3 +253,27 @@
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 32px 32px;
 }
+
+/* Print only the audit artifact, never the surrounding dashboard chrome. */
+@media print {
+  body.printing-incident-report * {
+    visibility: hidden;
+  }
+
+  body.printing-incident-report .incident-report-print,
+  body.printing-incident-report .incident-report-print * {
+    visibility: visible;
+  }
+
+  body.printing-incident-report .incident-report-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+  }
+
+  body.printing-incident-report .report-print-actions {
+    display: none;
+  }
+}

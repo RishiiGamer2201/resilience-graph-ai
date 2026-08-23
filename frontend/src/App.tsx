@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ThemeProvider } from '@/providers/theme'
 import { SessionProvider } from '@/providers/session'
+import { AnalysisProvider } from '@/providers/analysis'
 import Layout from '@/components/Layout'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { SkeletonRows } from '@/components/ui/skeleton'
@@ -37,27 +38,29 @@ export default function App() {
   return (
     <ThemeProvider>
       <SessionProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={page(<Login />)} />
-            <Route element={<Layout />}>
-              <Route path="/investigate" element={page(<Investigate />)} />
-              <Route path="/analyze" element={page(<Analyze />)} />
-              <Route path="/overview" element={page(<Overview />)} />
-              <Route path="/digital-twin" element={page(<DigitalTwin />)} />
-              <Route path="/twin" element={<Navigate to="/digital-twin" replace />} />
-              <Route path="/attackers" element={page(<Attackers />)} />
-              <Route path="/incident" element={page(<Incident />)} />
-              <Route path="/graph" element={page(<Graph />)} />
-              <Route path="/threat-intel" element={page(<ThreatIntel />)} />
-              <Route path="/threat-radar" element={page(<ThreatRadar />)} />
-              <Route path="/metrics" element={page(<Metrics />)} />
-              <Route path="/scoreboard" element={page(<Scoreboard />)} />
-              <Route path="/methodology" element={page(<Methodology />)} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <AnalysisProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={page(<Login />)} />
+              <Route element={<Layout />}>
+                <Route path="/investigate" element={page(<Investigate />)} />
+                <Route path="/analyze" element={page(<Analyze />)} />
+                <Route path="/overview" element={page(<Overview />)} />
+                <Route path="/digital-twin" element={page(<DigitalTwin />)} />
+                <Route path="/twin" element={<Navigate to="/digital-twin" replace />} />
+                <Route path="/attackers" element={page(<Attackers />)} />
+                <Route path="/incident" element={page(<Incident />)} />
+                <Route path="/graph" element={page(<Graph />)} />
+                <Route path="/threat-intel" element={page(<ThreatIntel />)} />
+                <Route path="/threat-radar" element={page(<ThreatRadar />)} />
+                <Route path="/metrics" element={page(<Metrics />)} />
+                <Route path="/scoreboard" element={page(<Scoreboard />)} />
+                <Route path="/methodology" element={page(<Methodology />)} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </AnalysisProvider>
       </SessionProvider>
     </ThemeProvider>
   )

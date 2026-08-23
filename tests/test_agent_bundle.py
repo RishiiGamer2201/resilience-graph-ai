@@ -140,6 +140,22 @@ def test_the_streaming_path_returns_the_same_contract(client):
     assert done is not None, "stream produced no done event"
     assert "agent_pipeline" in done["meta"]
     assert done["meta"]["pipeline"] == "standard+10-agent"
+    assert "analysis" in done
+
+
+def test_the_agent_stream_returns_the_enriched_contract(client):
+    """The animated agent lane must publish the same analysis layer as POST."""
+    done = None
+    with client.stream(
+        "GET", "/api/agents/stream?scenario=aiims_ransomware"
+    ) as response:
+        for line in response.iter_lines():
+            if line.startswith("data: ") and '"meta"' in line:
+                done = json.loads(line[6:])
+    assert done is not None, "agent stream produced no done event"
+    assert "analysis" in done
+    assert done["analysis"]["claims"]
+    assert done["meta"]["pipeline"] == "standard+10-agent"
 
 
 def test_an_agent_failure_still_returns_a_usable_bundle(monkeypatch, client):
@@ -158,6 +174,8 @@ def test_an_agent_failure_still_returns_a_usable_bundle(monkeypatch, client):
 def test_the_upload_path_carries_auth_headers():
     """analyze and analyzeUpload were calling fetch without the role header, so
     the backend saw an anonymous caller."""
-    js = (__import__("pathlib").Path("frontend/src/api.js")).read_text(encoding="utf-8")
-    upload = js[js.index("export async function analyzeUpload"):]
+    client = (__import__("pathlib").Path("frontend/src/lib/api.ts")).read_text(
+        encoding="utf-8"
+    )
+    upload = client[client.index("export async function analyzeUpload"):]
     assert "authHeaders()" in upload[:600], "upload still omits the role header"

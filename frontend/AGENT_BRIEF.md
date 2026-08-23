@@ -11,8 +11,8 @@ every field, every honesty affordance in the old screen survives the port.
    structure, its density, its use of primitives, its handling of loading,
    error and empty. If you find yourself writing something it does not do, ask
    whether the exemplar is wrong or you are.
-3. Read the old `.jsx` for the screen you own. It is the behavioural spec:
-   which endpoint, which fields, which states.
+3. Read the corresponding pre-redesign screen from commit `d9365a1^` when you
+   need the behavioural history: which endpoint, which fields, which states.
 
 ## Hard rules
 
@@ -34,7 +34,8 @@ every field, every honesty affordance in the old screen survives the port.
 - **Keep the honesty affordances.** Claim status visible. `Not measured` as
   words. Provenance lines kept. Lane disagreement shown. Confidence and
   probability separate. Actions read as proposals awaiting approval.
-- Delete the old `.jsx` for a screen only once its `.tsx` is complete.
+- Keep the source tree TypeScript-only. The build-integrity check rejects a
+  `.js`/`.jsx` module beside its `.ts`/`.tsx` replacement.
 
 ## Definition of done
 

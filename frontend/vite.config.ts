@@ -7,7 +7,14 @@ import path from 'node:path'
 // "/api" in both dev and production (where FastAPI serves the built SPA).
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+    // Vite's default order puts .jsx BEFORE .tsx, so while a pre-redesign
+    // Screen.jsx still sits next to its ported Screen.tsx, a bare
+    // "@/screens/Screen" silently resolves to the old file — the whole
+    // redesign builds as dead code and nobody sees an error. TypeScript first.
+    extensions: ['.mjs', '.mts', '.ts', '.tsx', '.js', '.jsx', '.json'],
+  },
   build: {
     rollupOptions: {
       output: {

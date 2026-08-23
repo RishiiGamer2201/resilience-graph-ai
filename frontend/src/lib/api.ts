@@ -19,21 +19,37 @@
  * it does not show a confident answer nobody computed.
  */
 import type {
+  ActionProposal,
+  AnalysisBundle,
   ApiError,
+  ApprovalResult,
   AttackGraph,
-  AuditRecord,
+  AuditChain,
+  AuditExport,
+  AuditVerification,
   Capabilities,
+  CaseFile,
+  ContainmentCandidate,
+  ExplainTraceResult,
   Health,
   Incident,
+  IncidentReportData,
   InvestigationResult,
   LlmStatus,
+  MethodologyPayload,
+  MetricsPayload,
+  OverviewView,
   PredictNextResult,
   Role,
   Scoreboard,
+  AttackerList,
+  ThreatIntelView,
+  ThreatRadarPayload,
   ScoreFeatures,
   ScoreResult,
+  ScenarioList,
   TwinChatReply,
-  AnalysisBundle,
+  TwinSimulation,
 } from '@/types/api'
 
 // Same-origin "/api" in production (FastAPI serves the built SPA). In dev the
@@ -94,20 +110,37 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 // ─── Cached endpoints ────────────────────────────────────────────────────────
-export const getOverview = () => get<AnalysisBundle>('/overview')
+export const getOverview = () => get<OverviewView>('/overview')
 export const getIncident = () => get<Incident>('/incident')
 export const getGraph = () => get<AttackGraph>('/graph')
-export const getThreatIntel = () => get<Record<string, unknown>>('/threat-intel')
-export const getMetrics = () => get<Record<string, unknown>>('/metrics')
-export const getMethodology = () => get<Record<string, unknown>>('/methodology')
-export const getReport = () => get<Record<string, unknown>>('/report')
-export const getAttackers = () => get<Record<string, unknown>>('/attackers')
+
+/** `/overview` is a summary view, not a full analysis bundle. Compose the
+ *  cached slices the redesigned command center actually renders. */
+export async function getOverviewBundle(): Promise<AnalysisBundle> {
+  const [overview, incident, graph] = await Promise.all([
+    getOverview(),
+    getIncident(),
+    getGraph(),
+  ])
+  return {
+    overview,
+    incident,
+    graph,
+    analysis: overview.analysis,
+    agent_pipeline: overview.agent_pipeline,
+  }
+}
+export const getThreatIntel = () => get<ThreatIntelView>('/threat-intel')
+export const getMetrics = () => get<MetricsPayload>('/metrics')
+export const getMethodology = () => get<MethodologyPayload>('/methodology')
+export const getReport = () => get<IncidentReportData>('/report')
+export const getAttackers = () => get<AttackerList>('/attackers')
 export const getHealth = () => get<Health>('/health')
 export const getLlm = () => get<LlmStatus>('/llm')
 export const getScoreboard = () => get<Scoreboard>('/scoreboard')
 export const getCapabilities = () => get<Capabilities>('/capabilities')
 export const getReadiness = () => get<Record<string, unknown>>('/readiness')
-export const getScenarios = () => get<Record<string, unknown>>('/scenarios')
+export const getScenarios = () => get<ScenarioList>('/scenarios')
 
 // ─── Threat radar ────────────────────────────────────────────────────────────
 // Scoring happens server-side, in one implementation. `refresh` re-fetches the
@@ -121,7 +154,7 @@ export interface ThreatRadarRequest {
 }
 export function getThreatRadar(req: ThreatRadarRequest = {}) {
   const { technique_ids = [], actors = [], edges = [], refresh = false } = req
-  return post<Record<string, unknown>>('/threat-radar', {
+  return post<ThreatRadarPayload>('/threat-radar', {
     technique_ids,
     actors,
     edges,
@@ -204,7 +237,7 @@ export const investigate = (body: Record<string, unknown>) =>
 /** The verified public record behind a scenario. A 404 means the scenario is
  *  purely synthetic, which is the honest answer and not an error to hide. */
 export const getCasefile = (scenario: string) =>
-  get<Record<string, unknown>>(`/casefile/${encodeURIComponent(scenario)}`)
+  get<CaseFile>(`/casefile/${encodeURIComponent(scenario)}`)
 
 export const searchEvidence = (body: Record<string, unknown>) =>
   post<Record<string, unknown>>('/evidence/search', body)
@@ -216,27 +249,38 @@ export const getVulnConfig = () => get<Record<string, unknown>>('/vulnerabilitie
 
 // Digital twin: counterfactual containment on a clone of the incident graph.
 export const twinSimulate = (body: Record<string, unknown>) =>
-  post<Record<string, unknown>>('/twin/simulate', body)
+  post<TwinSimulation>('/twin/simulate', body)
 export const twinCandidates = (body: Record<string, unknown>) =>
-  post<Record<string, unknown>>('/twin/candidates', body)
+  post<{ candidates: ContainmentCandidate[] }>('/twin/candidates', body)
 export const twinChat = (body: Record<string, unknown>) =>
   post<TwinChatReply>('/twin/chat', body)
 
 /** Raw event to proposed action, every stage in between. */
 export const explainStep = (body: Record<string, unknown>) =>
-  post<Record<string, unknown>>('/explain', body)
+  post<ExplainTraceResult>('/explain', body)
 
-/** A human decision on a simulated action. Nothing is ever executed. */
-export const approveAction = (body: Record<string, unknown>) =>
-  post<Record<string, unknown>>('/actions/approve', body)
+/** A human decision on a simulated action. Nothing is ever executed.
+ *
+ *  RBAC is enforced server-side: a role without the permission gets a 403 whose
+ *  `detail` is the refusal to show the operator. Do not pre-empt it client-side. */
+export interface ApproveActionRequest {
+  incident_id: string
+  action: ActionProposal
+  decision: 'approve' | 'reject'
+  reason: string
+  technique_ids: string[]
+  evidence: unknown[]
+  affected_assets: string[]
+}
+export const approveAction = (body: ApproveActionRequest) =>
+  post<ApprovalResult>('/actions/approve', body)
 
 // ─── Audit chain ─────────────────────────────────────────────────────────────
-export const getAudit = (limit = 100) =>
-  get<{ records: AuditRecord[]; [k: string]: unknown }>(`/audit?limit=${limit}`)
-export const verifyAudit = () => get<Record<string, unknown>>('/audit/verify')
-export const exportAudit = () => get<Record<string, unknown>>('/audit/export')
-export const verifyAuditExport = (exp: unknown) =>
-  post<Record<string, unknown>>('/audit/verify-export', exp)
+export const getAudit = (limit = 100) => get<AuditChain>(`/audit?limit=${limit}`)
+export const verifyAudit = () => get<AuditVerification>('/audit/verify')
+export const exportAudit = () => get<AuditExport>('/audit/export')
+export const verifyAuditExport = (exp: AuditExport) =>
+  post<AuditVerification>('/audit/verify-export', exp)
 export const resetAudit = () => post<Record<string, unknown>>('/audit/reset', {})
 
 /** Markdown export goes through fetch rather than a plain <a href>: the role

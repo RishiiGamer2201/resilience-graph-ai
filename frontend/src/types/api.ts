@@ -70,13 +70,31 @@ export interface Incident {
 export interface GraphNode {
   id: string
   type?: string
+  /** In `critical_assets_at_risk`: a crown jewel the attacker can reach. */
   critical?: boolean
+  /** In `attacker_pivots`: an attacker-controlled source host. */
+  pivot?: boolean
+  /** The single `entry_host`. */
+  entry?: boolean
   [k: string]: unknown
 }
 
+/** An edge of the attack graph as the backend really sends it: `from`/`to`,
+ *  not source/target (see tests/test_ui_contract.py, which reads edges[0].from).
+ *  A force-graph view maps these to its own source/target at the boundary. */
 export interface GraphEdge {
-  source: string
-  target: string
+  from: string
+  to: string
+  technique?: string
+  technique_name?: string
+  tactic?: string
+  score?: number
+  event_count?: number
+  users?: string[]
+  user?: string
+  first_seen?: number
+  last_seen?: number
+  explanation?: string
   [k: string]: unknown
 }
 
@@ -139,6 +157,8 @@ export interface CrossCheck {
     agent_lane_only: string[]
     overlap: number
   }
+  /** One sentence saying what the two lanes agreed or disagreed about. */
+  explanation?: string
   narrative?: string
   narrative_method?: string
   narrative_authoritative?: boolean
@@ -170,20 +190,13 @@ export interface Forecast {
 }
 
 export interface AnalysisLayer {
-  claims: Claim[]
-  assessment: Assessment
-  attack_progression_likelihood?: Measured
-  evidence_confidence?: Measured & {
-    terms?: unknown[]
-    formula?: string
-    actionable_claims?: number
-    total_claims?: number
-    crosscheck?: unknown
-    missing_evidence?: string[]
-  }
-  crown_jewel_exposure?: Measured
-  progression_forecast?: Forecast
-  crosscheck?: CrossCheck
+  claims: InvestigationClaim[]
+  assessment?: WorkflowAssessment | null
+  attack_progression_likelihood?: ExplainedMetric | null
+  evidence_confidence?: ExplainedMetric | null
+  crown_jewel_exposure?: ExplainedMetric | null
+  progression_forecast?: ProgressionForecast | null
+  crosscheck?: CrossCheck | null
   note?: string
 }
 
@@ -219,16 +232,48 @@ export interface BundleMeta {
   [k: string]: unknown
 }
 
-/** What /api/analyze and the cached overview both return. */
+export interface OverviewMttd {
+  ours_seconds: number
+  value: string
+  was: string
+  traditional_days: number
+  ours_minutes: number
+  citation: string
+  note: string
+}
+
+/** The actual GET /api/overview cache view. */
+export interface OverviewView {
+  mttd: OverviewMttd
+  active_incident: {
+    id: string
+    severity: Severity
+    account: string
+    summary: string
+  }
+  blast_radius_contained: number
+  alerts_correlated: { alerts: number; events: number }
+  score_trend: number[]
+  accounts_involved: number
+  is_campaign: boolean
+  scorecard: Array<Record<string, unknown>>
+  agent_pipeline?: AgentPipeline
+  analysis?: AnalysisLayer
+}
+
+/** What /api/analyze returns and the live-analysis store carries. */
 export interface AnalysisBundle {
-  overview?: Record<string, unknown>
+  overview?: OverviewView
   incident: Incident
   graph: AttackGraph
-  threat_intel?: Record<string, unknown>
-  report?: Record<string, unknown>
-  attackers?: unknown
+  threat_intel?: ThreatIntelView
+  report?: IncidentReportData
+  attackers?: AttackerRow[]
   soar?: unknown
   analysis?: AnalysisLayer
+  /** The cached GET /api/overview carries the agent lane at the top level;
+   *  POST /api/analyze carries it under meta. Both are real. */
+  agent_pipeline?: AgentPipeline
   meta?: BundleMeta
   [k: string]: unknown
 }
@@ -262,54 +307,167 @@ export interface InvestigationResult {
     crown_jewels_not_in_log: string[]
     [k: string]: unknown
   }
-  evidence: Record<string, unknown>
+  evidence: EvidenceBundle
   signals: {
-    overview: Record<string, unknown>
+    overview: OverviewView
     incident: Incident
     graph: AttackGraph
-    threat_intel: Record<string, unknown>
-    report: Record<string, unknown>
-    attackers: unknown
+    threat_intel: ThreatIntelView
+    report: IncidentReportData
+    attackers: AttackerRow[]
     soar: unknown
     [k: string]: unknown
   }
-  impact: Record<string, unknown>
-  action: Record<string, unknown>
-  headline: Record<string, unknown>
-  crosscheck?: CrossCheck
-  casefile?: Record<string, unknown> | null
+  impact: ImpactOutput
+  action: ActionOutput
+  headline: {
+    attack_progression_likelihood: ExplainedMetric | null
+    evidence_confidence: ExplainedMetric | null
+    assessment: WorkflowAssessment | null
+    crown_jewel_exposure: ExplainedMetric | null
+  }
+  crosscheck?: CrossCheck | null
+  casefile?: CaseFile | null
   meta: Record<string, unknown>
-  llm: Record<string, unknown>
+  /** Provenance for the narrative text. Stays on screen. */
+  llm: { provider: string; used_for: string[]; note: string }
+  generated_at?: string
+  scenario?: string | null
+  incident_id?: string
   principal: Record<string, unknown>
   audit: Record<string, unknown>
   error?: string
 }
 
 // ─── Scoreboard ──────────────────────────────────────────────────────────────
+// Shapes follow src/shared/scoreboard.py exactly. Note `state` is the literal
+// "not_measured" with an underscore there; anything that is not "measured" is
+// treated as unmeasured by the screen, which is the safe direction.
+export interface ScoreBaseline {
+  name: string
+  /** Null where the baseline itself has never been measured. */
+  value: number | null
+}
+
 export interface ScoreCard {
   id: string
   group: string
   name: string
   definition: string
-  dataset?: string
+  dataset: string
   sample?: string
+  state: 'measured' | 'not_measured' | string
   value: number | null
   unit?: string
-  state: 'measured' | 'not measured' | string
-  baseline?: { name: string; value: number | null }
-  report?: string
-  why?: string
+  baseline?: ScoreBaseline | null
+  /** value − baseline.value, where both exist. */
+  delta?: number | null
+  /** value ÷ baseline.value, where the baseline is non-zero. */
+  lift?: number | null
+  higher_is_better: boolean
+  /** Repo-relative path to the evidence file behind the number. */
+  report?: string | null
+  report_exists?: boolean
+  /** Why a card was not measured. Required whenever state is not "measured". */
+  why?: string | null
   note?: string
+  provenance?: string
+}
+
+export interface ScoreGroup {
+  name: string
+  cards: ScoreCard[]
+}
+
+export interface ScoreboardSummary {
+  total: number
+  measured: number
+  not_measured: number
+  /** Card ids whose evidence file is missing on disk. */
+  missing_reports: string[]
 }
 
 export interface Scoreboard {
+  generated_at: string
+  groups: ScoreGroup[]
   cards: ScoreCard[]
-  groups: string[]
-  summary: Record<string, unknown>
-  sources?: unknown
-  refused_claims?: unknown[]
+  summary: ScoreboardSummary
+  sources: { metrics_store: string; regenerate: string[] }
+  /** Claim → the reason we decline to make it. */
+  refused_claims: Record<string, string>
+  note: string
+}
+
+// ─── Metrics (reports/metrics.json, served by /api/metrics) ──────────────────
+// Every field is optional: the evaluation scripts write what they could run,
+// and a screen must render "Not measured" for the rest rather than a zero.
+export interface LanlMetrics {
+  roc_auc?: number
+  tpr_at_1pct_fpr?: number
+  tpr_at_5pct_fpr?: number
+  behavioral_only_roc?: number
+  detector?: string
+  iforest_roc_auc?: number
+  iforest_tpr_at_1pct_fpr?: number
   note?: string
-  generated_at?: string
+}
+
+export interface CicidsMetrics {
+  autoencoder_prauc?: number
+  iforest_prauc?: number
+  iforest_roc?: number
+  rule_prauc?: number
+  random_prauc?: number
+  note?: string
+}
+
+export interface UnswMetrics {
+  roc_auc?: number
+  prauc?: number
+  note?: string
+}
+
+export interface PredictorMetrics {
+  most_frequent_top3?: number
+  killchain_top3?: number
+  lstm_top3?: number
+  markov_top3?: number
+  markov_interp_top3?: number
+  /** Key of the method actually shipped, e.g. "markov_interp". */
+  shipped?: string
+  shipped_top3?: number
+  note?: string
+}
+
+export interface EmbeddingMetrics {
+  same_tactic_cos?: number
+  random_cos?: number
+}
+
+export interface MetricsPayload {
+  engine1?: {
+    lanl?: LanlMetrics
+    cicids?: CicidsMetrics
+    unsw?: UnswMetrics
+  }
+  engine2?: {
+    predictor?: PredictorMetrics
+    embeddings?: EmbeddingMetrics
+    manual_cert_in_top3?: number
+  }
+}
+
+// ─── Methodology (/api/methodology) ──────────────────────────────────────────
+export interface DatasetRow {
+  name: string
+  /** Free text: "2.3M flows", "11.2M auth · 702 red-team". Not a number. */
+  rows: string
+  feeds: string
+}
+
+export interface MethodologyPayload {
+  datasets?: DatasetRow[]
+  honesty_notes?: string[]
 }
 
 // ─── Capabilities, health, LLM ───────────────────────────────────────────────
@@ -347,16 +505,6 @@ export interface Health {
 }
 
 // ─── Digital twin ────────────────────────────────────────────────────────────
-export interface TwinCandidate {
-  host: string
-  crown_jewels_saved: string[]
-  blast_cut: number
-  blast_cut_pct?: number
-  sessions_disrupted?: number
-  users_disrupted?: number
-  [k: string]: unknown
-}
-
 export interface TwinChatSource {
   title: string
   source: string
@@ -387,6 +535,9 @@ export interface Prediction {
   rank: number
   technique_id: string
   name: string
+  /** The interpolated Markov transition probability the endpoint returns.
+   *  POST /api/predict-next calls this field `score`. */
+  score?: number
   probability?: number
   source?: string
 }
@@ -394,6 +545,11 @@ export interface Prediction {
 export interface PredictNextResult {
   given: string[]
   predictions: Prediction[]
+  /** Deterministic plain-English projection built by
+   *  src/shared/predictor.generate_prediction_narrative. Template, not a model. */
+  projection_narrative?: string
+  /** `markov-interpolated-order2` | `markov-interpolated-order1` |
+   *  `frequency-fallback`. The last one means no observed context matched. */
   source?: string
 }
 
@@ -424,6 +580,7 @@ export interface AuditRecord {
   actor?: string
   role?: string
   decision?: string
+  at?: string
   timestamp?: string
   evidence?: unknown
   technique_ids?: string[]
@@ -434,4 +591,608 @@ export interface AuditRecord {
 export interface ApiError extends Error {
   status?: number
   path?: string
+}
+
+// ─── The seven-node investigation, in detail ─────────────────────────────────
+// Everything below is read directly by Investigate.tsx / Analyze.tsx and the
+// panels they compose. Shapes come from src/shared/workflow.py, claims.py,
+// rollout.py, twin.py, vuln.py, casefile.py and api/finalist.py — not invented.
+
+/** One shipped demo event log, from GET /api/scenarios. */
+export interface Scenario {
+  name: string
+  label: string
+  description: string
+  /** null when the file could not be counted. Never render this as 0. */
+  n_events: number | null
+  critical_default: string[]
+}
+
+export interface ScenarioList {
+  scenarios: Scenario[]
+}
+
+/** One line of a headline metric's arithmetic. The backend uses two shapes:
+ *  weighted terms (`name`/`weight`/`value`) and per-asset terms
+ *  (`asset`/`hops`/`score`). Both are shown as the backend sends them. */
+export interface MetricTerm {
+  name?: string
+  asset?: string
+  weight?: number
+  value?: number
+  score?: number
+  hops?: number | null
+  detail?: string
+  why?: string
+}
+
+/** A 0-100 figure that carries its own arithmetic, or says it was not measured. */
+export interface ExplainedMetric extends Measured {
+  reason?: string
+  formula?: string
+  terms?: MetricTerm[]
+  designated?: string[]
+  actionable_claims?: number
+  total_claims?: number
+  missing_evidence?: string[]
+}
+
+/** One of the four axes. `value` is null when the axis was not measured. */
+export interface AssessmentAxis {
+  value: number | null
+  band: string
+  question: string
+}
+
+/** src/shared/claims.py Assessment.as_dict(). Four questions, never collapsed. */
+export interface WorkflowAssessment {
+  anomaly: AssessmentAxis
+  likelihood: AssessmentAxis
+  impact: AssessmentAxis
+  confidence: AssessmentAxis
+  missing_evidence: string[]
+  summary: string
+  note: string
+}
+
+/** One piece of support behind a claim, tagged with its independence group so
+ *  duplicate signals cannot inflate confidence. */
+export interface ClaimEvidence {
+  id: string
+  kind: string
+  source: string
+  independence_group: string
+  strength: number
+  reliability: number
+  support: number
+  detail: string
+}
+
+/** src/shared/claims.py Claim.as_dict(). Distinct from the `Claim` the enrich
+ *  layer returns: this one is subject/predicate/object with an external_id. */
+export interface InvestigationClaim {
+  subject: string
+  predicate: string
+  object: string
+  external_id: string
+  status: ClaimStatusValue
+  actionable: boolean
+  confidence: number
+  confidence_band: string
+  independent_groups: number
+  mapper: string
+  evidence: ClaimEvidence[]
+  contradicted_by: ClaimEvidence[]
+  missing_evidence: string[]
+  alternatives: string[]
+  note: string
+}
+
+/** One retrieved chunk of an official document, with everything a reviewer
+ *  needs to check it themselves. */
+export interface EvidenceHit {
+  chunk_id: string
+  title: string
+  url: string
+  publisher: string
+  authority: string
+  section: string
+  /** The source's own date. Empty when the source states none. */
+  published?: string
+  retrieved_at?: string
+  excerpt: string
+  match_reason?: string
+  why_relevant?: string
+  sha256?: string
+}
+
+export interface EvidenceBundle {
+  citations: EvidenceHit[]
+  hits?: EvidenceHit[]
+  corpus: Record<string, number>
+  index_built_at: string | null
+  retrieval: string
+  query: string
+  technique_ids: string[]
+  disclosure?: string | null
+}
+
+// ─── Case file: the verified public record ───────────────────────────────────
+export interface CaseFileSource {
+  id: string
+  url: string
+  chamber?: string
+  question_no?: string
+  answered_on?: string
+  ministry?: string
+  verified: boolean
+  note?: string
+}
+
+export interface CaseFileFact {
+  quote: string
+  source_id: string
+}
+
+export interface CaseFileClaim {
+  external_id: string
+  object: string
+  tactic?: string
+  status: ClaimStatusValue
+  confidence: number
+  confidence_band: string
+  note: string
+}
+
+export interface ControlWeakness {
+  weakness: string
+  note: string
+}
+
+export interface CaseFile {
+  title: string
+  provenance: string
+  sources: CaseFileSource[]
+  sources_verified: number
+  established_facts: CaseFileFact[]
+  claims: CaseFileClaim[]
+  control_weaknesses: ControlWeakness[]
+  not_established: string[]
+  why_this_matters: string
+  relationship_to_scenario: { note: string; [k: string]: unknown }
+  summary: string
+}
+
+// ─── Impact: forecast, twin, vulnerabilities ─────────────────────────────────
+export interface ForecastPrediction {
+  technique_id: string
+  name: string
+  stage: string
+  probability: number
+  is_impact: boolean
+}
+
+export interface ProgressionStep {
+  step: number
+  horizon_confidence: number
+  predictions: ForecastPrediction[]
+  impact_mass: number
+  model_source: string
+}
+
+export interface ProgressionPath {
+  path: string[]
+  predicted: string[]
+  probability: number
+  stages: string[]
+  reaches_impact: boolean
+}
+
+/** Probability and horizon confidence are two separate series, on purpose.
+ *  Multiplying them made the cumulative curve fall, which is nonsense. */
+export interface ProgressionForecast {
+  available: boolean
+  reason?: string
+  k_steps: number
+  observed_chain?: string[]
+  steps?: ProgressionStep[]
+  infiltration_probability?: number[]
+  horizon_confidence?: number[]
+  peak_infiltration_probability?: number
+  reliable_horizon?: number
+  headline?: string
+  most_likely_paths?: ProgressionPath[]
+  beyond_horizon_note?: string
+  honesty?: string
+  method?: { model: string; search: string; decay: string; deterministic: boolean }
+}
+
+export interface ContainmentCandidate {
+  host: string
+  crown_jewels_protected: string[]
+  blast_radius_reduction: number
+  blast_radius_reduction_pct: number
+  sessions_severed: number
+  accounts_disrupted: number
+  is_crown_jewel: boolean
+  verdict: string
+}
+
+export interface TwinExposure {
+  blast_radius: number
+  crown_jewels_reachable: string[]
+  paths_to_critical: Record<string, string[]>
+  attacker_pivots: string[]
+  choke_points: string[]
+  n_nodes: number
+  n_edges: number
+}
+
+export interface OperationalCost {
+  action: string
+  hosts_taken_offline: number
+  sessions_severed: number
+  accounts_disrupted: string[]
+  adjacent_hosts_losing_a_link: string[]
+  host_is_crown_jewel: boolean
+}
+
+export interface TwinSimulation {
+  candidate: { isolate_host: string | null; cut_edge: string[] | null }
+  before: TwinExposure
+  after: TwinExposure
+  delta: {
+    blast_radius: number
+    blast_radius_reduction_pct: number
+    crown_jewels_protected: string[]
+    crown_jewels_still_reachable: string[]
+    hosts_no_longer_reachable: number
+  }
+  operational_cost: OperationalCost
+  verdict: string
+  method: string
+  note?: string
+}
+
+/** `value: null` means the factor is unknown. It is excluded from the weighted
+ *  average and lowers confidence; it is never scored as zero. */
+export interface VulnFactor {
+  value: number | null
+  fact: string
+}
+
+export interface VulnFinding {
+  cve: string
+  host: string
+  asset_name: string
+  owner: string
+  software: string
+  title: string
+  priority_score: number
+  band: string
+  confidence: number
+  unknown_factors: string[]
+  factors: Record<string, VulnFactor>
+  citation: {
+    chunk_id: string
+    url: string
+    publisher: string
+    title: string
+    published?: string
+  }
+  provenance: string
+}
+
+export interface VulnReport {
+  findings: VulnFinding[]
+  total_findings: number
+  assets_considered: number
+  assets_without_software_data?: string[]
+  kev_catalog_size?: number
+  config?: {
+    version: string
+    sha256: string
+    weights: Record<string, number>
+    bands: Record<string, number>
+  }
+  inventory_provenance: string
+  inventory_note?: string
+  evaluated_on?: string
+  note?: string
+  disclosure?: string
+}
+
+export interface ImpactOutput {
+  crown_jewel_exposure: ExplainedMetric | null
+  attack_progression_likelihood: ExplainedMetric | null
+  evidence_confidence: ExplainedMetric | null
+  assessment: WorkflowAssessment | null
+  claims: InvestigationClaim[]
+  crosscheck: CrossCheck | null
+  blast_radius: number | null
+  paths_to_critical: Record<string, string[]>
+  containment_candidates: ContainmentCandidate[]
+  counterfactual: TwinSimulation | null
+  progression_forecast: ProgressionForecast | null
+  vulnerabilities: VulnReport
+}
+
+// ─── Action: proposals, gates, requests for information ──────────────────────
+/** Decided server-side by src/shared/rbac.py. Hiding a button is a courtesy;
+ *  this is the mechanism. */
+export interface ActionPolicy {
+  gate: string
+  requires_approval: boolean
+  reasons: string[]
+  [k: string]: unknown
+}
+
+export interface ActionProposal {
+  id: string
+  kind: string
+  tactic: string
+  action: string
+  touches_crown_jewel: boolean
+  blast_radius_affected: number
+  hosts_taken_offline: number
+  /** Always true. Nothing in this product contacts a real system. */
+  simulated: boolean
+  policy: ActionPolicy
+}
+
+export interface RfiQuestion {
+  field: string
+  ask: string
+  why: string
+}
+
+export interface Rfi {
+  to: string
+  subject: string
+  context: string
+  questions: RfiQuestion[]
+  generated_by: string
+  note: string
+}
+
+export interface ActionOutput {
+  proposals: ActionProposal[]
+  mitre_mitigations: string[]
+  gating_policy: string
+  rfi: Rfi | null
+  executed: number
+  note: string
+}
+
+/** POST /api/actions/approve. A human decision, recorded, never executed. */
+export interface ApprovalResult {
+  decision: string
+  record: AuditRecord & {
+    seq: number
+    hash: string
+    at: string
+    actor: string
+    role: string
+  }
+}
+
+// ─── Explainability ──────────────────────────────────────────────────────────
+export interface ExplainStage {
+  stage: string
+  produced_by: string
+  value: unknown
+  explanation: string
+}
+
+export interface ExplainTraceResult {
+  available: boolean
+  reason?: string
+  alerts_available: number
+  step: {
+    user?: string
+    source_host?: string
+    destination_host?: string
+    anomaly_score?: number
+    technique_id?: string
+    [k: string]: unknown
+  }
+  stages: ExplainStage[]
+  note: string
+}
+
+// ─── Audit chain ─────────────────────────────────────────────────────────────
+export interface AuditChain {
+  records: AuditRecord[]
+  count: number
+  head: string
+  verified: boolean
+  problem?: string
+}
+
+export interface AuditVerification {
+  verified: boolean
+  problem?: string
+  records: number
+  hash_algorithm: string
+  claim: string
+}
+
+export interface AuditExport {
+  records: AuditRecord[]
+  [k: string]: unknown
+}
+
+// ─── SSE ─────────────────────────────────────────────────────────────────────
+/** One `progress` frame from GET /api/agents/stream. */
+export interface AgentProgress {
+  stage_num: number
+  total_stages: number
+  agent: string
+  name: string
+  status: string
+  ms: number
+  confidence: number
+  summary: string
+}
+
+/** One `step` frame from GET /api/analyze/stream — a real per-event score. */
+export interface AnalyzeStreamStep {
+  i: number
+  total: number
+  step: IncidentStep
+}
+
+// ─── The "who" table: GET /api/attackers ─────────────────────────────────────
+/** One compromised account's own footprint, computed from its alerts only
+ *  (src/shared/views.py::attackers_view). `first_seen`/`last_seen` are LANL
+ *  integer timestamps in seconds, not ISO strings. */
+export interface AttackerRow {
+  user: string
+  alerts: number
+  hosts: string[]
+  hosts_reached: number
+  pivots: string[]
+  techniques: string[]
+  max_score: number
+  first_seen: number
+  last_seen: number
+  critical_reached: string[]
+  severity: Severity
+}
+
+export interface AttackerList {
+  attackers: AttackerRow[]
+}
+
+// ─── Threat intel and attribution: GET /api/threat-intel ─────────────────────
+export interface TechniqueMapping {
+  technique_id: string
+  name: string
+  /** The technique's own ATT&CK description, not a generated one. */
+  explanation: string
+}
+
+/** One ranked ATT&CK group profile.
+ *
+ *  This is weighted retrieval over public group profiles, NOT a trained actor
+ *  classifier and NOT an identification. `score` is the weighted figure,
+ *  `coverage` the observed-technique overlap fraction, `matched` the techniques
+ *  that produced it and `justification` the printed arithmetic. A screen that
+ *  renders `actor` without those three has misrepresented the result. */
+export interface ActorMatch {
+  actor: string
+  score: number
+  coverage: number
+  matched: string[]
+  justification: string
+}
+
+export interface ThreatIntelView {
+  mapping: TechniqueMapping[]
+  attribution: ActorMatch[]
+  note?: string
+}
+
+// ─── External CTI: POST /api/threat-radar ────────────────────────────────────
+/** A feed the backend tried. `ok: false` means skipped or unreachable and the
+ *  reason is in `note` (commonly a missing free API key). Never omit these. */
+export interface RadarSourceStatus {
+  source: string
+  ok: boolean
+  items: number
+  note?: string
+}
+
+/** Three separately-reported signals. A tactic-level match is a weaker hit than
+ *  a technique-level one and is never presented as the same thing. */
+export interface RadarRelevance {
+  score: number
+  matched_techniques: string[]
+  matched_tactics: string[]
+  matched_actors: string[]
+}
+
+/** One of YOUR graph edges that uses a technique an external report describes. */
+export interface ExposureMove {
+  from: string | null
+  to: string | null
+  score: number | null
+  event_count: number
+  technique: string | null
+}
+
+export interface RadarItem {
+  source: string
+  title: string
+  published: string
+  url: string
+  text?: string
+  tags?: string[]
+  iocs?: string[]
+  india?: boolean
+  techniques: string[]
+  relevance?: RadarRelevance
+  /** technique id -> your movements using it. Strongest bridge. */
+  your_exposure?: Record<string, ExposureMove[]>
+  /** tactic -> your movements in that tactic. Broader, weaker, still real. */
+  your_exposure_tactic?: Record<string, ExposureMove[]>
+}
+
+export interface ThreatRadarPayload {
+  fetched_at: string
+  items: RadarItem[]
+  sources: RadarSourceStatus[]
+  technique_names?: Record<string, string>
+  india_count?: number
+  relevant_count?: number
+  note?: string
+  /** `live` = the feeds answered just now. `cache` = the bundled snapshot,
+   *  which must never be presented as live. Set by api/main.py on every
+   *  response, including a refresh where no source responded. */
+  meta?: { source?: 'live' | 'cache' | string; [k: string]: unknown }
+}
+
+// ─── Report (GET /api/report, src/shared/views.py::report_view) ──────────────
+export interface ReportTechnique {
+  technique_id: string
+  name: string
+}
+
+/** A proposed response. `mode` carries the gate — nothing here executes. */
+export interface ReportAction {
+  tactic?: string
+  action: string
+  mode: string
+}
+
+export interface IncidentReportData {
+  incident_id: string
+  generated_at: string
+  severity: Severity
+  max_anomaly_score: number
+  account: string | null
+  pivot: string | null
+  summary: string
+  attack_chain: { tactic: string; count: number }[]
+  techniques: ReportTechnique[]
+  attack_path: string[]
+  attributed_actor: { actor: string; justification: string }
+  predicted_next: ReportTechnique[]
+  response_actions: ReportAction[]
+  mitigations: string[]
+  mttd: {
+    traditional_days: number | null
+    ours_minutes: number | null
+    ours_seconds: number | null
+    value: string
+    citation: string
+    note: string
+  }
+  /** `lanl_roc_auc` is null when reports/metrics.json has no such card. */
+  evidence: {
+    lanl_roc_auc: number | null
+    detector: string
+    basis: string
+    source: string
+  }
 }

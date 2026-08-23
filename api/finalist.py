@@ -517,7 +517,13 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
         "executed": False,
         "decision": rec["decision"],
         "policy": policy,
-        "record": {"seq": rec["seq"], "hash": rec["hash"], "at": rec["at"]},
+        "record": {
+            "seq": rec["seq"],
+            "hash": rec["hash"],
+            "at": rec["at"],
+            "actor": rec["actor"],
+            "role": rec["role"],
+        },
         "chain": {"records": len(audit_mod.chain()), "head": audit_mod.chain().head()},
         "note": ("SIMULATION ONLY. The decision is recorded in the tamper-evident audit "
                  "chain; no external system was contacted."),

@@ -918,6 +918,7 @@ async def agents_stream(
     import asyncio
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline
+    from src.shared.enrich import enrich_bundle
 
     path = SCENARIOS / f"{scenario}.csv"
     if not path.exists():
@@ -948,11 +949,17 @@ async def agents_stream(
                 pipeline_res = payload["result"]
                 final_summary = _agent_pipeline_summary(pipeline_res)
 
-        if final_summary:
-            final_bundle = _attach_agent_pipeline(bundle, final_summary)
-            yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
-        else:
-            yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+        final_bundle = (_attach_agent_pipeline(bundle, final_summary)
+                        if final_summary else bundle)
+        final_bundle = enrich_bundle(
+            final_bundle,
+            df=df,
+            scenario=scenario,
+            critical=crit,
+            agent_summary=final_summary,
+            run_agents=False,
+        )
+        yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
 
     return StreamingResponse(
         gen(),
@@ -974,6 +981,7 @@ async def agents_upload_stream(
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline
     from src.shared.normalize import normalize
+    from src.shared.enrich import enrich_bundle
 
     raw = await file.read()
     try:
@@ -1009,11 +1017,17 @@ async def agents_upload_stream(
                 pipeline_res = payload["result"]
                 final_summary = _agent_pipeline_summary(pipeline_res)
 
-        if final_summary:
-            final_bundle = _attach_agent_pipeline(bundle, final_summary)
-            yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
-        else:
-            yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+        final_bundle = (_attach_agent_pipeline(bundle, final_summary)
+                        if final_summary else bundle)
+        final_bundle = enrich_bundle(
+            final_bundle,
+            df=df,
+            scenario=f"upload:{file.filename}",
+            critical=crit,
+            agent_summary=final_summary,
+            run_agents=False,
+        )
+        yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
 
     return StreamingResponse(
         gen(),

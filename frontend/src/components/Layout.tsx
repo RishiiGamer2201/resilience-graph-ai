@@ -4,7 +4,7 @@
  * The chrome is deliberately quiet. Everything here is a hairline and a label;
  * colour is reserved for data. See frontend/DESIGN.md.
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import Lenis from 'lenis'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
@@ -161,9 +161,16 @@ function ThemeToggle() {
 }
 
 function Clock() {
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
   return (
-    <span className="font-mono text-xs text-faint">
-      {new Date().toLocaleString('en-IN', {
+    <span className="font-mono text-xs text-faint" aria-live="off">
+      {now.toLocaleString('en-IN', {
         timeZone: 'Asia/Kolkata',
         dateStyle: 'medium',
         timeStyle: 'medium',
