@@ -108,6 +108,11 @@ docker_smoke() {
   echo "   container ready, investigation ran, nothing executed"
 }
 
+# Everything below verifies the OFFLINE guarantee: no key, no network,
+# no cost. A developer .env that enables a paid provider must not leak in
+# and must not be billed on every verification run.
+export NEXTATTACK_LLM_PROVIDER=off
+
 step 'Required runtime artifacts' check_artifacts
 step 'Dockerfile COPY sources exist' "$PY" -m scripts.check_dockerfile
 step 'Backend tests (pytest)'      "$PY" -m pytest tests/ -q

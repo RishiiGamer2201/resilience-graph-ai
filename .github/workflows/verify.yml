@@ -19,6 +19,11 @@ concurrency:
   group: verify-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # CI verifies the offline path. It has no keys, and must never
+  # acquire the habit of needing them.
+  NEXTATTACK_LLM_PROVIDER: 'off'
+
 jobs:
   backend:
     name: Backend tests and API smoke

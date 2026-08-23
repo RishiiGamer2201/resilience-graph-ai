@@ -23,6 +23,9 @@ param(
     [switch]$SkipFrontend
 )
 
+# Offline guarantee: never bill a developer .env on a verification run.
+$env:NEXTATTACK_LLM_PROVIDER = 'off'
+
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
