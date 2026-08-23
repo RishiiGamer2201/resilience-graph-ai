@@ -49,7 +49,15 @@ everything else.
 - [evaluation/methodology.md](evaluation/methodology.md) — how every number is
   produced, every baseline, and what we deliberately do not measure
 - [../RESULTS.md](../RESULTS.md) — the consolidated results sheet *(root, generated)*
-- `../reports/` — the generated evidence each script writes
+- `../reports/` -- the generated evidence each script writes. Three of them
+  report against us rather than for us, and are the ones to read first:
+  - [`clean_log.md`](../reports/clean_log.md) -- what the detector does to a log
+    with no attack in it. 18% to 31% of it alerts. Not a threshold problem.
+  - [`lr_baseline.md`](../reports/lr_baseline.md) -- a supervised logistic
+    regression beats the shipped detector on ranking, and why we ship the one
+    that loses.
+  - [`triage_cut.md`](../reports/triage_cut.md) -- what the 20% triage budget
+    costs, and evidence that the default is conservative rather than tuned.
 
 ### Security
 - [security/threat-model.md](security/threat-model.md) — assets, trust boundaries,
