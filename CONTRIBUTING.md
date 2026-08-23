@@ -13,7 +13,7 @@ cd frontend; npm install; cd ..
 Two terminals:
 
 ```powershell
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8001
 cd frontend; npm run dev                    # http://localhost:5173
 ```
 

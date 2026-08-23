@@ -12,7 +12,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import { Activity, Radio, Play, Users } from 'lucide-react'
-import { getIncident, getScenarios, streamUrl } from '@/lib/api'
+import { getIncident, getScenarios, readEventStream, streamUrl } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalysis, useScreenData } from '@/providers/analysis'
 import { fmtTime, severityFromStep } from '@/lib/format'
@@ -33,7 +33,12 @@ import {
 } from '@/components/primitives'
 import IncidentReport from '@/components/IncidentReport'
 import LiveScoreWidget from '@/components/LiveScoreWidget'
-import type { Incident as IncidentData, IncidentStep, ScenarioList } from '@/types/api'
+import type {
+  AnalysisBundle,
+  Incident as IncidentData,
+  IncidentStep,
+  ScenarioList,
+} from '@/types/api'
 
 const REPLAY_MS = 180
 
@@ -44,12 +49,43 @@ function prefersReducedMotion(): boolean {
   )
 }
 
+/** The stream's terminal frame is the same full bundle returned by /api/analyze.
+ * Validate the fields this route and the shared analysis store require before
+ * replacing the current incident. */
+function parseAnalysisBundle(raw: string): AnalysisBundle {
+  const value: unknown = JSON.parse(raw)
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('The completed stream did not return an analysis bundle.')
+  }
+
+  const candidate = value as Record<string, unknown>
+  const incident = candidate.incident
+  if (
+    typeof incident !== 'object' ||
+    incident === null ||
+    typeof (incident as Record<string, unknown>).incident_id !== 'string' ||
+    !Array.isArray((incident as Record<string, unknown>).steps) ||
+    typeof candidate.graph !== 'object' ||
+    candidate.graph === null
+  ) {
+    throw new Error('The completed stream omitted its incident or graph layer.')
+  }
+
+  return value as AnalysisBundle
+}
+
 export default function Incident() {
-  const { bundle } = useAnalysis()
-  const { data, error, loading, reload, source } = useScreenData<IncidentData>(
+  const { bundle, setBundle, source: bundleSource } = useAnalysis()
+  const { data: fetchedData, error, loading, reload, source } = useScreenData<IncidentData>(
     bundle?.incident,
     getIncident,
+    bundleSource,
   )
+  // Prefer the provider value immediately after an SSE completion. The screen
+  // data hook synchronises in an effect, so reading only its state would leave
+  // one render where streamed rows belong to the new scenario while the header,
+  // ATT&CK summary and report still describe the old cached incident.
+  const data = bundle?.incident ?? fetchedData
   const { data: scenarioList } = useFetch<ScenarioList>(getScenarios)
 
   const [visible, setVisible] = useState<number | null>(null) // null = show all
@@ -61,12 +97,12 @@ export default function Incident() {
   const [scenario, setScenario] = useState('')
 
   const timer = useRef<number | null>(null)
-  const es = useRef<EventSource | null>(null)
+  const streamController = useRef<AbortController | null>(null)
 
   useEffect(
     () => () => {
       if (timer.current) window.clearInterval(timer.current)
-      es.current?.close()
+      streamController.current?.abort()
     },
     [],
   )
@@ -97,38 +133,52 @@ export default function Incident() {
     }, REPLAY_MS)
   }
 
-  function streamLive() {
+  async function streamLive() {
     if (!scenario) return
     if (timer.current) window.clearInterval(timer.current)
     setReplaying(false)
     setVisible(null)
-    es.current?.close()
+    streamController.current?.abort()
     setStreamSteps([])
     setStreamError(null)
     setStreaming(true)
     setAnnouncement(`Scoring ${scenario} live.`)
 
-    const source = new EventSource(streamUrl(scenario))
-    es.current = source
-    source.addEventListener('step', (e: MessageEvent<string>) => {
-      try {
-        const payload = JSON.parse(e.data) as { step: IncidentStep }
-        setStreamSteps((s) => [...(s ?? []), payload.step])
-      } catch {
-        /* a malformed frame is dropped rather than shown as data */
-      }
-    })
-    source.addEventListener('done', () => {
-      source.close()
-      setStreaming(false)
-      setAnnouncement('Live scoring complete.')
-    })
-    source.onerror = () => {
-      source.close()
-      setStreaming(false)
-      setStreamError(
-        `The stream for '${scenario}' closed before it finished. The backend may be unreachable.`,
+    const controller = new AbortController()
+    streamController.current = controller
+    let completed = false
+    try {
+      await readEventStream(
+        streamUrl(scenario),
+        (event, raw) => {
+          if (event === 'step') {
+            try {
+              const payload = JSON.parse(raw) as { step: IncidentStep }
+              setStreamSteps((steps) => [...(steps ?? []), payload.step])
+            } catch {
+              /* malformed progress is never rendered as evidence */
+            }
+          }
+          if (event === 'done') {
+            const bundle = parseAnalysisBundle(raw)
+            setBundle(bundle)
+            setStreamSteps(bundle.incident.steps)
+            setStreamError(null)
+            setAnnouncement(`Live scoring complete. Loaded incident ${bundle.incident.incident_id}.`)
+            completed = true
+          }
+        },
+        controller.signal,
       )
+      if (!completed) throw new Error(`The stream for '${scenario}' closed before it finished.`)
+    } catch (error: unknown) {
+      if (!controller.signal.aborted) {
+        setStreamError(error instanceof Error ? error.message : 'The live stream failed.')
+        setAnnouncement('Live scoring failed.')
+      }
+    } finally {
+      if (streamController.current === controller) streamController.current = null
+      setStreaming(false)
     }
   }
 
@@ -171,7 +221,7 @@ export default function Incident() {
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-              {source === 'live' ? 'live analysis' : 'sample cache'}
+              {source === 'live' ? 'live analysis' : source === 'restored' ? 'restored session' : 'sample cache'}
             </Badge>
             <span className="font-mono text-xs text-faint">{data.incident_id}</span>
             <SeverityBadge severity={data.severity} />

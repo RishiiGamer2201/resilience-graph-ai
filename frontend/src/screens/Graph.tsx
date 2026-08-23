@@ -12,7 +12,17 @@
  * produced. It is not ported. `paths_to_critical` is the real version of that
  * story and it is shown as a table, in the order the backend computed it.
  */
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Component,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useReducedMotion } from 'motion/react'
 import {
@@ -25,7 +35,8 @@ import {
   ShieldAlert,
   X,
 } from 'lucide-react'
-import { getGraph } from '@/lib/api'
+import { analyze, getAttackers, getGraph } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { useAnalysis, useScreenData } from '@/providers/analysis'
 import { fmtTime, severityFromScore } from '@/lib/format'
 import {
@@ -57,7 +68,28 @@ import type { AttackGraph, GraphEdge } from '@/types/api'
 // three.js and the WebGL renderer live behind this boundary and nowhere else.
 const AttackGraph3D = lazy(() => import('@/components/AttackGraph3D'))
 
-const CANVAS_HEIGHT = 460
+const CANVAS_HEIGHT = 620
+
+/** Contains lazy-module, WebGL-context and renderer failures. The parent moves
+ *  to the complete host list, so a failed canvas never leaves a blank panel. */
+class GraphCanvasBoundary extends Component<
+  { children: ReactNode; onFailure: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  componentDidCatch() {
+    this.props.onFailure()
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
+}
 
 /** A browser without WebGL gets the list, not a blank rectangle. */
 function webglAvailable(): boolean {
@@ -91,10 +123,12 @@ interface HostRow extends Graph3DNode {
 }
 
 export default function Graph() {
-  const { bundle } = useAnalysis()
+  const { bundle, setBundle, source: bundleSource } = useAnalysis()
+  const roster = useFetch(getAttackers)
   const { data, error, loading, reload, source } = useScreenData<AttackGraph>(
     bundle?.graph,
     getGraph,
+    bundleSource,
   )
   const reduced = useReducedMotion() ?? false
   const [wrapRef, width] = useMeasuredWidth()
@@ -104,7 +138,36 @@ export default function Graph() {
   const [orbit, setOrbit] = useState(false)
   const [mode, setMode] = useState<'3d' | 'list'>('3d')
   const [webgl] = useState(webglAvailable)
+  const [canvasFailed, setCanvasFailed] = useState(false)
+  const [account, setAccount] = useState('')
+  const [scopeBusy, setScopeBusy] = useState(false)
+  const [scopeError, setScopeError] = useState<unknown>(null)
   const modeButtonRef = useRef<HTMLButtonElement>(null)
+
+  const onCanvasFailure = useCallback(() => {
+    setCanvasFailed(true)
+    setMode('list')
+  }, [])
+
+  async function scopeToAccount() {
+    if (
+      !account ||
+      !roster.data?.scenario ||
+      bundle?.meta?.scenario !== roster.data.scenario ||
+      scopeBusy
+    ) return
+    setScopeBusy(true)
+    setScopeError(null)
+    try {
+      const scoped = await analyze({ scenario: roster.data.scenario, account })
+      setBundle(scoped)
+      setSelected(null)
+    } catch (cause: unknown) {
+      setScopeError(cause)
+    } finally {
+      setScopeBusy(false)
+    }
+  }
 
   // Threat Radar links here with ?techniques=T1550.002,… to show only the
   // movements that used them.
@@ -174,20 +237,32 @@ export default function Graph() {
     return set
   }, [data])
 
-  const links = useMemo<Graph3DLink[]>(
-    () =>
-      edges
-        .filter((e) => e.from && e.to)
-        .map((e) => ({
-          source: e.from,
-          target: e.to,
-          technique: e.technique ?? '',
-          score: typeof e.score === 'number' ? e.score : 0,
-          eventCount: typeof e.event_count === 'number' ? e.event_count : 1,
-          onPath: pathEdges.has(`${e.from}->${e.to}`),
-        })),
-    [edges, pathEdges],
-  )
+  const { links, canvasMetricsComplete } = useMemo(() => {
+    const connected = edges.filter((e) => e.from && e.to)
+    const complete = connected.filter(
+      (e) => typeof e.score === 'number' && typeof e.event_count === 'number',
+    )
+    return {
+      links: complete.map<Graph3DLink>((e) => ({
+        source: e.from,
+        target: e.to,
+        technique: e.technique ?? '',
+        score: e.score as number,
+        eventCount: e.event_count as number,
+        onPath: pathEdges.has(`${e.from}->${e.to}`),
+      })),
+      canvasMetricsComplete: complete.length === connected.length,
+    }
+  }, [edges, pathEdges])
+
+  const canvasAvailable = webgl && !canvasFailed && canvasMetricsComplete
+
+  // The 3D renderer requires numeric score/count encodings. If the backend did
+  // not measure either one, keep every edge in the honest list representation
+  // instead of inventing a zero or one for the canvas.
+  useEffect(() => {
+    if (!canvasAvailable && mode === '3d') setMode('list')
+  }, [canvasAvailable, mode])
 
   const nodes = useMemo<Graph3DNode[]>(
     () =>
@@ -241,8 +316,21 @@ export default function Graph() {
     )
   }
 
-  const useCanvas = mode === '3d' && webgl
+  const useCanvas = mode === '3d' && canvasAvailable
   const rolesPresent = ROLE_ORDER.filter((r) => rows.some((n) => n.roles.includes(r)))
+  const criticalAssets = Array.isArray(data.critical_assets_at_risk)
+    ? data.critical_assets_at_risk
+    : null
+  const listFallbackReason = canvasFailed
+    ? 'The 3D renderer failed, so the complete graph is shown as a list.'
+    : !webgl
+      ? 'WebGL is unavailable in this browser, so the graph is listed rather than rendered.'
+      : !canvasMetricsComplete
+        ? 'At least one movement has no measured anomaly score or event count, so the complete graph is listed rather than assigning invented canvas values.'
+        : null
+  const canScopeAccounts = Boolean(
+    bundle?.meta?.scenario && bundle.meta.scenario === roster.data?.scenario,
+  )
 
   return (
     <>
@@ -253,14 +341,15 @@ export default function Graph() {
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-              {source === 'live' ? 'live analysis' : 'sample cache'}
+              {source === 'live' ? 'live analysis' : source === 'restored' ? 'restored session' : 'sample cache'}
             </Badge>
             <Button
               ref={modeButtonRef}
               variant="secondary"
               size="sm"
-              aria-pressed={mode === '3d'}
-              disabled={!webgl}
+              aria-pressed={useCanvas}
+              disabled={!canvasAvailable}
+              title={listFallbackReason ?? undefined}
               onClick={() => setMode(mode === '3d' ? 'list' : '3d')}
             >
               {mode === '3d' ? <List className="size-3.5" /> : <Box className="size-3.5" />}
@@ -314,6 +403,34 @@ export default function Graph() {
         </div>
       ) : null}
 
+      {canScopeAccounts ? <div className="mb-4 flex flex-col gap-3 border border-border bg-surface p-3 sm:flex-row sm:items-end">
+        <label className="min-w-0 flex-1">
+          <span className="section-label mb-1 block">Account scope</span>
+          <select
+            value={account}
+            disabled={roster.loading || scopeBusy || !roster.data?.attackers.length}
+            onChange={(event) => setAccount(event.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-surface-2 px-2 text-sm text-text"
+          >
+            <option value="">Choose an account to scope this graph</option>
+            {(roster.data?.attackers ?? []).map((item) => (
+              <option key={item.user} value={item.user}>{item.user} · {item.alerts} alerts</option>
+            ))}
+          </select>
+        </label>
+        <Button
+          variant="secondary"
+          disabled={!account || scopeBusy || !roster.data?.scenario}
+          onClick={() => void scopeToAccount()}
+        >
+          <Crosshair className="size-3.5" />
+          {scopeBusy ? 'Building scoped graph…' : 'Build scoped graph'}
+        </Button>
+      </div> : null}
+      {scopeError ? (
+        <Card className="mb-4"><ErrorState error={scopeError} retry={() => void scopeToAccount()} /></Card>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Hosts in view"
@@ -341,14 +458,20 @@ export default function Graph() {
         />
         <MetricCard
           label="Crown jewels reachable"
-          value={data.critical_assets_at_risk?.length ?? 0}
-          severity={data.critical_assets_at_risk?.length ? 'critical' : undefined}
+          value={
+            criticalAssets ? (
+              criticalAssets.length
+            ) : (
+              <NotMeasured why="The graph response did not include critical-asset reachability." />
+            )
+          }
+          severity={criticalAssets?.length ? 'critical' : undefined}
           context="Designated critical assets on a path from a pivot."
         />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
+      <div className="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <Card>
           <CardHeader>
             <CardTitle>{useCanvas ? 'Topology · 3D' : 'Topology · list'}</CardTitle>
             <CardMeta>
@@ -371,37 +494,39 @@ export default function Graph() {
               ref={wrapRef}
               onKeyDown={onKeyDown}
               role="group"
+              tabIndex={0}
               aria-label="Attack graph, three-dimensional. Press Escape to leave the view. The host list beside it is the keyboard equivalent."
-              className="relative border-b border-border"
+              className="relative border-b border-border outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               style={{ height: CANVAS_HEIGHT }}
             >
-              <Suspense
-                fallback={
-                  <div className="p-4">
-                    <SkeletonRows rows={6} />
-                  </div>
-                }
-              >
-                <AttackGraph3D
-                  nodes={nodes}
-                  links={links}
-                  selected={selected}
-                  onSelect={setSelected}
-                  showPaths={showPaths}
-                  orbit={orbit && !reduced}
-                  reducedMotion={reduced}
-                  height={CANVAS_HEIGHT}
-                  width={width}
-                />
-              </Suspense>
+              <GraphCanvasBoundary onFailure={onCanvasFailure}>
+                <Suspense
+                  fallback={
+                    <div className="p-4">
+                      <SkeletonRows rows={6} />
+                    </div>
+                  }
+                >
+                  <AttackGraph3D
+                    nodes={nodes}
+                    links={links}
+                    selected={selected}
+                    onSelect={setSelected}
+                    showPaths={showPaths}
+                    orbit={orbit && !reduced}
+                    reducedMotion={reduced}
+                    height={CANVAS_HEIGHT}
+                    width={width}
+                  />
+                </Suspense>
+              </GraphCanvasBoundary>
             </div>
           ) : (
             <div className="border-b border-border">
-              {!webgl ? (
+              {listFallbackReason ? (
                 <p className="border-b border-border bg-surface-2 px-4 py-2 text-xs text-faint">
-                  WebGL is unavailable in this browser, so the graph is listed rather
-                  than rendered. Every host, role and degree below is the same data the
-                  3D view would show.
+                  {listFallbackReason} Every host, role and degree below comes from the
+                  same graph response.
                 </p>
               ) : null}
               <div className="max-h-[460px] overflow-y-auto">
@@ -583,7 +708,7 @@ export default function Graph() {
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="find host"
                   aria-label="Find host"
-                  className="w-full bg-transparent font-mono text-xs text-text outline-none placeholder:text-faint"
+                  className="w-full bg-transparent font-mono text-xs text-text outline-none placeholder:text-faint focus-visible:outline-2 focus-visible:outline-accent"
                 />
               </div>
               {filtered.length ? (
@@ -642,12 +767,14 @@ export default function Graph() {
                 )}
               </StatRow>
               <StatRow label="Crown jewels at risk">
-                {data.critical_assets_at_risk?.length ? (
+                {criticalAssets?.length ? (
                   <span className="text-sev-critical">
-                    {data.critical_assets_at_risk.length}
+                    {criticalAssets.length}
                   </span>
-                ) : (
+                ) : criticalAssets ? (
                   <span className="text-faint">none marked reachable</span>
+                ) : (
+                  <NotMeasured why="The graph response did not include critical-asset reachability." />
                 )}
               </StatRow>
               <StatRow label="Choke points">
@@ -743,7 +870,7 @@ function MovementList({
             <span className="ml-auto font-mono text-xs tabular-nums text-dim">
               {score != null ? score : <NotMeasured />}
             </span>
-            {(e.event_count ?? 0) > 1 ? (
+            {typeof e.event_count === 'number' && e.event_count > 1 ? (
               <span className="font-mono text-xs text-faint">×{e.event_count}</span>
             ) : null}
             {typeof e.first_seen === 'number' ? (

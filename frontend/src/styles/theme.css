@@ -19,7 +19,7 @@
 
   --text: #16202e;
   --text-dim: #5a6678;
-  --text-faint: #8894a6;
+  --text-faint: #667085;
 
   --accent: #2f6fed;
   --accent-hover: #2560d8;
@@ -49,7 +49,7 @@
 
   --text: #e6ecf5;
   --text-dim: #94a1b6;
-  --text-faint: #64748b;
+  --text-faint: #8b98ad;
 
   --accent: #4c8dff;
   --accent-hover: #6ba0ff;
@@ -78,7 +78,7 @@
   --border-strong: #c6d0e0;
   --text: #16202e;
   --text-dim: #5a6678;
-  --text-faint: #8894a6;
+  --text-faint: #667085;
   --accent: #2f6fed;
   --accent-hover: #2560d8;
   --accent-soft: #e7eefd;
@@ -167,8 +167,7 @@
   html {
     color-scheme: dark;
   }
-  :root[data-theme="light"] html,
-  html:has(:root[data-theme="light"]) {
+  :root[data-theme="light"] {
     color-scheme: light;
   }
 
@@ -256,6 +255,38 @@
 
 /* Print only the audit artifact, never the surrounding dashboard chrome. */
 @media print {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.printing-incident-report {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f5f6f8;
+    --surface-3: #eef0f3;
+    --border: #d5d9e0;
+    --border-strong: #b7bec9;
+    --text: #111827;
+    --text-dim: #374151;
+    --text-faint: #4b5563;
+    background: #ffffff !important;
+    color: #111827 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.printing-incident-report #root,
+  body.printing-incident-report #root > div,
+  body.printing-incident-report main {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
   body.printing-incident-report * {
     visibility: hidden;
   }

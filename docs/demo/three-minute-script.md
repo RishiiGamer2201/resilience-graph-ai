@@ -13,7 +13,7 @@ offline steps at the foot of this page.
 See [`../operations/runbook.md`](../operations/runbook.md) for the full checklist.
 The short version:
 
-1. `python -m uvicorn api.main:app --port 8000` and `cd frontend && npm run dev`
+1. `python -m uvicorn api.main:app --port 8001` and `cd frontend && npm run dev`
    (or one container on `:8000`).
 2. Open `/api/readiness` — expect `"ready": true` and an empty `degraded_optional`.
 3. Open `/investigate`, run the AIIMS scenario **once** to warm every import, then

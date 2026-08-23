@@ -53,7 +53,7 @@ import type {
 } from '@/types/api'
 
 // Same-origin "/api" in production (FastAPI serves the built SPA). In dev the
-// Vite proxy forwards /api to http://localhost:8000.
+// Vite proxy forwards /api to the local backend configured in vite.config.ts.
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
 
 // ─── Session ─────────────────────────────────────────────────────────────────
@@ -63,6 +63,7 @@ const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
 export interface Session {
   role: Role
   actor: string
+  token?: string
 }
 
 let session: Session = { role: 'analyst', actor: 'analyst@soc' }
@@ -71,10 +72,14 @@ export const setSession = (s: Partial<Session>): void => {
 }
 export const getSession = (): Session => ({ ...session })
 
-const authHeaders = (): Record<string, string> => ({
-  'X-Role': session.role,
-  'X-Actor': session.actor,
-})
+const authHeaders = (): Record<string, string> => {
+  const token = session.token?.trim()
+  return {
+    'X-Role': session.role,
+    'X-Actor': session.actor,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
 
 // ─── Transport ───────────────────────────────────────────────────────────────
 /** Surface the backend's own message (a 403 reason, a 422 detail) rather than a
@@ -82,8 +87,25 @@ const authHeaders = (): Record<string, string> => ({
 async function fail(path: string, r: Response): Promise<ApiError> {
   let detail = `${r.status}`
   try {
-    const body = (await r.json()) as { detail?: string }
-    detail = body.detail ?? detail
+    const body = (await r.json()) as { detail?: unknown }
+    if (typeof body.detail === 'string') {
+      detail = body.detail
+    } else if (Array.isArray(body.detail)) {
+      detail = body.detail
+        .map((item) => {
+          if (typeof item === 'string') return item
+          if (typeof item === 'object' && item !== null) {
+            const record = item as Record<string, unknown>
+            const location = Array.isArray(record.loc) ? record.loc.join('.') : ''
+            const message = typeof record.msg === 'string' ? record.msg : JSON.stringify(record)
+            return location ? `${location}: ${message}` : message
+          }
+          return String(item)
+        })
+        .join('; ')
+    } else if (body.detail != null) {
+      detail = JSON.stringify(body.detail)
+    }
   } catch {
     /* not json */
   }
@@ -128,6 +150,41 @@ export async function getOverviewBundle(): Promise<AnalysisBundle> {
     graph,
     analysis: overview.analysis,
     agent_pipeline: overview.agent_pipeline,
+  }
+}
+
+/** Read a server-sent event stream through fetch so role/auth headers travel
+ * with the request. Native EventSource cannot send those headers. */
+export async function readEventStream(
+  url: string,
+  onEvent: (event: string, data: string) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(url, {
+    headers: { Accept: 'text/event-stream', ...authHeaders() },
+    signal,
+  })
+  if (!response.ok) throw await fail(url, response)
+  if (!response.body) throw new Error('The server returned no event stream body.')
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { value, done } = await reader.read()
+    buffer += decoder.decode(value, { stream: !done })
+    const frames = buffer.split(/\r?\n\r?\n/)
+    buffer = frames.pop() ?? ''
+    for (const frame of frames) {
+      let event = 'message'
+      const data: string[] = []
+      for (const line of frame.split(/\r?\n/)) {
+        if (line.startsWith('event:')) event = line.slice(6).trim()
+        if (line.startsWith('data:')) data.push(line.slice(5).trimStart())
+      }
+      if (data.length) onEvent(event, data.join('\n'))
+    }
+    if (done) break
   }
 }
 export const getThreatIntel = () => get<ThreatIntelView>('/threat-intel')

@@ -62,7 +62,7 @@ legible, but it is the secondary theme.
 | Role | Token | Use |
 |---|---|---|
 | Page ground | `bg` | The window behind everything |
-| Panel | `surface` | Cards, panels, the sidebar |
+| Panel | `surface` | Cards, panes, the command bar and mobile sheet |
 | Raised | `surface-2` | Table header rows, inset wells, hover states |
 | Line | `border` | 1px hairlines. Most separation is a hairline, not a shadow |
 | Body text | `text` | |

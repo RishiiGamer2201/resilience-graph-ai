@@ -144,7 +144,7 @@ export function NotMeasured({ why, className }: { why?: string; className?: stri
       <Minus className="size-3" aria-hidden />
       <span className="text-xs">Not measured</span>
       {why ? (
-        <InfoTip label={why}>
+        <InfoTip label={why} accessibleLabel="Why this value was not measured">
           <HelpCircle className="size-3" />
         </InfoTip>
       ) : null}

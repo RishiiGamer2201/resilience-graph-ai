@@ -607,7 +607,7 @@ committed, **the whole app runs from a fresh clone with no dataset download**.
 ```bash
 # run the app (no 11 GB download needed)
 pip install -r requirements-deploy.txt
-python -m uvicorn api.main:app --port 8000
+python -m uvicorn api.main:app --port 8001
 cd frontend && npm install && npm run dev     # → localhost:5173
 
 # retrain from raw data (needs the datasets — see data/README.md)

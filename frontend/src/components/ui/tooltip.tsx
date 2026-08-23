@@ -28,17 +28,29 @@ export const TooltipContent = React.forwardRef<
 TooltipContent.displayName = 'TooltipContent'
 
 /** The common case: an info affordance explaining a number or a caveat. */
-export const InfoTip = ({ children, label }: { children: React.ReactNode; label: string }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <button
-        type="button"
-        aria-label={label}
-        className="cursor-help text-faint hover:text-dim"
-      >
-        {children}
-      </button>
-    </TooltipTrigger>
-    <TooltipContent>{label}</TooltipContent>
-  </Tooltip>
-)
+export const InfoTip = ({
+  children,
+  label,
+  accessibleLabel,
+}: {
+  children: React.ReactNode
+  label: string
+  accessibleLabel?: string
+}) => {
+  const descriptionId = React.useId()
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={accessibleLabel}
+          aria-describedby={descriptionId}
+          className="cursor-help text-faint hover:text-dim"
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent id={descriptionId}>{label}</TooltipContent>
+    </Tooltip>
+  )
+}

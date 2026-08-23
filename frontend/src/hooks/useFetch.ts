@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export interface FetchState<T> {
   data: T | null
@@ -19,24 +19,22 @@ export function useFetch<T>(fn: () => Promise<T>, deps: unknown[] = []): FetchSt
   const [error, setError] = useState<unknown>(null)
   const [loading, setLoading] = useState(true)
   const [nonce, setNonce] = useState(0)
-  const alive = useRef(true)
-
   useEffect(() => {
-    alive.current = true
+    let cancelled = false
     setLoading(true)
     setError(null)
     fn()
       .then((d) => {
-        if (alive.current) setData(d)
+        if (!cancelled) setData(d)
       })
       .catch((e: unknown) => {
-        if (alive.current) setError(e)
+        if (!cancelled) setError(e)
       })
       .finally(() => {
-        if (alive.current) setLoading(false)
+        if (!cancelled) setLoading(false)
       })
     return () => {
-      alive.current = false
+      cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce])

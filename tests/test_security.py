@@ -88,13 +88,15 @@ def test_the_radar_fetcher_goes_through_the_guard():
 # --------------------------------------------------------------------------- #
 def test_a_non_csv_upload_is_rejected(client):
     r = client.post("/api/analyze/upload",
-                    files={"file": ("x.csv", b"\x00\x01\x02not a csv at all", "text/csv")})
+                    files={"file": ("x.csv", b"\x00\x01\x02not a csv at all", "text/csv")},
+                    headers={"X-Role": "analyst"})
     assert r.status_code == 422
 
 
 def test_a_csv_without_the_required_columns_is_rejected_with_a_useful_message(client):
     r = client.post("/api/analyze/upload",
-                    files={"file": ("x.csv", b"foo,bar\n1,2\n", "text/csv")})
+                    files={"file": ("x.csv", b"foo,bar\n1,2\n", "text/csv")},
+                    headers={"X-Role": "analyst"})
     assert r.status_code == 422
     assert "user" in r.json()["detail"]
 
@@ -104,7 +106,8 @@ def test_an_oversized_log_is_refused(client):
     header = "timestamp,user,source_host,destination_host\n"
     row = "1,u@d,A,B\n"
     body = (header + row * (MAX_ROWS + 1)).encode()
-    r = client.post("/api/analyze/upload", files={"file": ("big.csv", body, "text/csv")})
+    r = client.post("/api/analyze/upload", files={"file": ("big.csv", body, "text/csv")},
+                    headers={"X-Role": "analyst"})
     assert r.status_code == 422
     assert "too many events" in r.json()["detail"]
 

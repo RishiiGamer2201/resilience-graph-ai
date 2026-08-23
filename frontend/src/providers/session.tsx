@@ -25,28 +25,33 @@ export const ROLES: Principal[] = [
 
 interface SessionValue extends Principal {
   setRole: (role: Role) => void
+  token: string
+  setToken: (token: string) => void
   roles: Principal[]
 }
 
 const SessionContext = createContext<SessionValue>({
   ...ROLES[1],
   setRole: () => {},
+  token: '',
+  setToken: () => {},
   roles: ROLES,
 })
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [current, setCurrent] = useState<Principal>(ROLES[1])
+  const [token, setToken] = useState('')
 
   useEffect(() => {
-    setApiSession({ role: current.role, actor: current.actor })
-  }, [current])
+    setApiSession({ role: current.role, actor: current.actor, token: token || undefined })
+  }, [current, token])
 
   const setRole = useCallback((role: Role) => {
     setCurrent(ROLES.find((r) => r.role === role) ?? ROLES[1])
   }, [])
 
   return (
-    <SessionContext.Provider value={{ ...current, setRole, roles: ROLES }}>
+    <SessionContext.Provider value={{ ...current, setRole, token, setToken, roles: ROLES }}>
       {children}
     </SessionContext.Provider>
   )

@@ -29,7 +29,8 @@ def client():
 @pytest.fixture(scope="module")
 def bundle(client):
     r = client.post("/api/analyze",
-                    json={"scenario": "aiims_ransomware", "critical_assets": CRIT})
+                    json={"scenario": "aiims_ransomware", "critical_assets": CRIT},
+                    headers=ANALYST)
     assert r.status_code == 200, r.text
     return r.json()
 
@@ -133,7 +134,8 @@ def test_the_streaming_path_returns_the_same_contract(client):
     same screen behaved differently depending on which button was pressed."""
     done = None
     with client.stream("GET",
-                       "/api/analyze/stream?scenario=aiims_ransomware&delay=0") as r:
+                       "/api/analyze/stream?scenario=aiims_ransomware&delay=0",
+                       headers=ANALYST) as r:
         for line in r.iter_lines():
             if line.startswith("data: ") and '"meta"' in line:
                 done = json.loads(line[6:])
@@ -147,7 +149,7 @@ def test_the_agent_stream_returns_the_enriched_contract(client):
     """The animated agent lane must publish the same analysis layer as POST."""
     done = None
     with client.stream(
-        "GET", "/api/agents/stream?scenario=aiims_ransomware"
+        "GET", "/api/agents/stream?scenario=aiims_ransomware", headers=ANALYST
     ) as response:
         for line in response.iter_lines():
             if line.startswith("data: ") and '"meta"' in line:
@@ -163,7 +165,7 @@ def test_an_agent_failure_still_returns_a_usable_bundle(monkeypatch, client):
     monkeypatch.setattr(main, "_run_agents_for_standard_bundle",
                         lambda *a, **k: {"enabled": True, "status": "failed",
                                          "error": "lane down", "agent_traces": []})
-    r = client.post("/api/analyze", json={"scenario": "aiims_ransomware"})
+    r = client.post("/api/analyze", json={"scenario": "aiims_ransomware"}, headers=ANALYST)
     assert r.status_code == 200
     b = r.json()
     assert b["incident"]["alert_count"] > 0

@@ -8,7 +8,7 @@ Serves the pre-computed cache (fast, reliable) plus two genuinely LIVE endpoints
 Cached GETs are just JSON files built by `scripts/build_cache.py`.
 
 Run:
-    ./.venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8000
+    ./.venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8001
 """
 from __future__ import annotations
 
@@ -21,9 +21,12 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import Depends, FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from api.finalist import _require as require_permission
+from api.finalist import principal
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "api" / "cache"
@@ -176,7 +179,11 @@ def report():
 @app.get("/api/attackers")
 def attackers():
     """Per-account breakdown of the campaign — the 'who' table."""
-    return {"attackers": _cached("attackers")}
+    provenance = _cached("attackers_meta")
+    scenario = provenance.get("scenario")
+    if not isinstance(scenario, str) or scenario not in SCENARIO_META:
+        raise HTTPException(503, "attacker cache provenance is missing or invalid")
+    return {"scenario": scenario, "attackers": _cached("attackers")}
 
 
 @app.get("/api/threat-radar")
@@ -267,7 +274,8 @@ class EventFeatures(BaseModel):
 
 
 @app.post("/api/score-event")
-def score_event(f: EventFeatures):
+def score_event(f: EventFeatures, p: dict = Depends(principal)):
+    require_permission(p, "analyze")
     from src.shared import detector
     x = [[getattr(f, k) for k in FEATURES]]
     raw = float(detector.raw_scores(x)[0])
@@ -283,12 +291,13 @@ class Chain(BaseModel):
 
 
 @app.post("/api/predict-next")
-def predict_next(c: Chain):
+def predict_next(c: Chain, p: dict = Depends(principal)):
     """Next-technique ranking from the shipped interpolated Markov model.
 
     Scores are real interpolated transition probabilities
     (l2*order2 + l1*order1 + l0*unigram), not a bare ranked list.
     """
+    require_permission(p, "analyze")
     from src.shared import predictor
     _, names, _ = _markov()                    # technique_id -> display name
     top, source = predictor.rank_next(list(c.technique_ids), max(1, c.k))
@@ -634,7 +643,8 @@ def _run_analysis(df: pd.DataFrame, critical_assets, incident_id, account=None,
 
 
 @app.post("/api/analyze")
-def analyze(req: AnalyzeRequest):
+def analyze(req: AnalyzeRequest, p: dict = Depends(principal)):
+    require_permission(p, "analyze")
     if req.scenario:
         path = SCENARIOS / f"{req.scenario}.csv"
         if not path.exists():
@@ -655,8 +665,10 @@ def analyze(req: AnalyzeRequest):
 @app.post("/api/analyze/upload")
 async def analyze_upload(file: UploadFile = File(...),
                          critical_assets: str = Form(""),
-                         incident_id: str = Form("INC-UPLOAD-001")):
+                         incident_id: str = Form("INC-UPLOAD-001"),
+                         p: dict = Depends(principal)):
     """Analyze an uploaded CSV (rows in the common event schema)."""
+    require_permission(p, "analyze")
     raw = await file.read()
     try:
         df = pd.read_csv(io.BytesIO(raw))
@@ -667,10 +679,12 @@ async def analyze_upload(file: UploadFile = File(...),
 
 
 @app.get("/api/analyze/stream")
-async def analyze_stream(scenario: str, critical_assets: str = "", delay: float = 0.15):
+async def analyze_stream(scenario: str, critical_assets: str = "", delay: float = 0.15,
+                         p: dict = Depends(principal)):
     """Server-Sent Events: replay a scenario's real per-event scores one at a time,
     then a final `done` event carrying the full analysis bundle. The scoring is real
     (done up front by analyze_events); the delay just paces the on-stage reveal."""
+    require_permission(p, "analyze")
     import asyncio
     from fastapi.responses import StreamingResponse
 
@@ -831,7 +845,7 @@ class AgentAnalysisRequest(BaseModel):
 
 
 @app.post("/api/agents/analyze")
-def agents_analyze(req: AgentAnalysisRequest):
+def agents_analyze(req: AgentAnalysisRequest, p: dict = Depends(principal)):
     """Run the full 10-agent pipeline on a pre-loaded scenario.
 
     Returns the complete PipelineResult including:
@@ -841,6 +855,7 @@ def agents_analyze(req: AgentAnalysisRequest):
       - next-move predictions
       - all evidence references
     """
+    require_permission(p, "analyze")
     from src.agents.orchestrator import run_pipeline
 
     # Load scenario events (.csv or .parquet)
@@ -873,12 +888,14 @@ async def agents_analyze_upload(
     incident_id: str = Form("INC-001"),
     entity_col: str = Form("user"),
     use_llm: bool = Form(False),
+    p: dict = Depends(principal),
 ):
     """Run the 10-agent pipeline on an uploaded CSV log file.
 
     The CSV must have at minimum: timestamp, user, source_host, destination_host.
     Schema normalization is applied automatically.
     """
+    require_permission(p, "analyze")
     from src.agents.orchestrator import run_pipeline
     from src.shared.normalize import normalize
 
@@ -913,8 +930,10 @@ async def agents_stream(
     incident_id: str = "INC-STREAM-001",
     entity_col: str = "user",
     use_llm: bool = False,
+    p: dict = Depends(principal),
 ):
     """Server-Sent Events: stream the 10-agent pipeline executing live agent by agent."""
+    require_permission(p, "analyze")
     import asyncio
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline
@@ -975,8 +994,10 @@ async def agents_upload_stream(
     incident_id: str = Form("INC-UPLOAD-001"),
     entity_col: str = Form("user"),
     use_llm: bool = Form(False),
+    p: dict = Depends(principal),
 ):
     """Server-Sent Events: stream the 10-agent pipeline executing live on an uploaded log."""
+    require_permission(p, "analyze")
     import asyncio
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline

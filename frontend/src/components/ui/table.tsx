@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 /** Dense data table. Wrap in a div with overflow-x-auto for wide content. */
 export const Table = ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
-  <div className="w-full overflow-x-auto">
+  <div className="w-full overflow-x-auto" data-lenis-prevent>
     <table className={cn('w-full border-collapse text-sm', className)} {...props} />
   </div>
 )

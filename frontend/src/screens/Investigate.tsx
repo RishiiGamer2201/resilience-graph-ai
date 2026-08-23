@@ -18,6 +18,7 @@
  */
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useReducedMotion } from 'motion/react'
 import { CircleAlert, Crosshair, Play, RotateCcw, Search, Target } from 'lucide-react'
 
 import {
@@ -119,6 +120,7 @@ function Section({
 
 export default function Investigate() {
   const navigate = useNavigate()
+  const reducedMotion = useReducedMotion()
   const { setBundle } = useAnalysis()
   const { role, label: roleLabel } = useSession()
 
@@ -135,6 +137,24 @@ export default function Investigate() {
   const [auditKey, setAuditKey] = React.useState(0)
   const [active, setActive] = React.useState<string | null>(null)
   const refs = React.useRef<Record<string, HTMLElement | null>>({})
+
+  React.useEffect(() => {
+    if (!result || typeof IntersectionObserver === 'undefined') return
+    const sections = Object.entries(refs.current).filter(
+      (entry): entry is [string, HTMLElement] => entry[1] instanceof HTMLElement,
+    )
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible?.target.id) setActive(visible.target.id)
+      },
+      { rootMargin: '-15% 0px -65% 0px', threshold: [0, 0.15, 0.5] },
+    )
+    sections.forEach(([, element]) => observer.observe(element))
+    return () => observer.disconnect()
+  }, [result])
 
   const registerRef = React.useCallback((id: string, el: HTMLElement | null) => {
     refs.current[id] = el
@@ -218,7 +238,10 @@ export default function Investigate() {
 
   function jump(node: string) {
     setActive(node)
-    refs.current[node]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    refs.current[node]?.scrollIntoView({
+      behavior: reducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    })
   }
 
   const header = (
@@ -321,8 +344,13 @@ export default function Investigate() {
             {resetting ? 'Resetting…' : 'Reset demo'}
           </Button>
         </CardBody>
-        <StageRail trace={result?.trace} running={running} onJump={jump} active={active} />
       </Card>
+
+      {!result ? (
+        <div className="mt-4 lg:hidden">
+          <StageRail trace={null} running={running} onJump={jump} active={active} />
+        </div>
+      ) : null}
 
       {/* Live region: an analysis completing is announced. */}
       <div className="sr-only" role="status" aria-live="polite">
@@ -353,7 +381,15 @@ export default function Investigate() {
       ) : null}
 
       {result && inc && graph ? (
-        <>
+        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
+          <aside className="sticky top-4 z-20 hidden lg:block">
+            <div className="section-label mb-2">Investigation path</div>
+            <StageRail trace={result.trace} running={running} onJump={jump} active={active} />
+          </aside>
+          <div className="min-w-0">
+            <div className="mb-4 lg:hidden">
+              <StageRail trace={result.trace} running={running} onJump={jump} active={active} />
+            </div>
           <Reveal>
             <div className="mt-4">
               <Headline headline={result.headline} />
@@ -622,7 +658,8 @@ export default function Investigate() {
             <Crosshair className="size-3" aria-hidden />
             LLM: {result.llm.provider}. {result.llm.note}
           </p>
-        </>
+          </div>
+        </div>
       ) : null}
 
       {!result && !running && !runError ? (

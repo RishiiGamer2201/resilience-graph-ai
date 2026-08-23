@@ -13,7 +13,7 @@
 import { ArrowRight, TrendingUp } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
-import { EmptyState, SectionLabel } from '@/components/primitives'
+import { EmptyState, NotMeasured, SectionLabel } from '@/components/primitives'
 import { Disclosure, FinePrint } from '@/components/Disclosure'
 import { DURATION, EASE, STAGGER, STAGGER_MAX } from '@/lib/motion'
 import type { ProgressionForecast } from '@/types/api'
@@ -75,30 +75,32 @@ export default function Progression({
         <div
           className="flex items-end gap-2"
           role="img"
-          aria-label={`Infiltration probability across ${probs.length} predicted steps, with horizon confidence`}
+          aria-label={`Infiltration probability and horizon confidence: ${steps
+            .map((step, index) => `step ${step.step}, ${probs[index] != null ? `${probs[index]} percent probability` : 'probability not measured'}, ${confs[index] ?? step.horizon_confidence} confidence`)
+            .join('; ')}`}
         >
           {steps.map((s, i) => {
-            const p = probs[i] ?? 0
+            const p = probs[i]
             const conf = confs[i] ?? s.horizon_confidence
             const beyond = s.step > horizon
             const stage = s.predictions[0]?.stage
             return (
               <div key={s.step} className="flex min-w-0 flex-1 flex-col items-center gap-1">
                 <div className="flex h-28 w-full items-end rounded-md border border-border bg-surface-2 p-1">
-                  <motion.div
-                    className={`w-full rounded-sm ${beyond ? 'bg-sev-normal' : 'bg-accent'}`}
-                    style={{ opacity: 0.25 + conf * 0.75 }}
-                    initial={reduced ? false : { height: 0 }}
-                    animate={{ height: `${(p / maxP) * 100}%` }}
-                    transition={{
-                      duration: DURATION.slow,
-                      ease: EASE,
-                      delay: reduced ? 0 : i * stagger,
-                    }}
-                    title={`step ${s.step}: ${p}% at horizon confidence ${conf}`}
-                  />
+                  {p != null ? (
+                    <motion.div
+                      className={`w-full rounded-sm ${beyond ? 'bg-sev-normal' : 'bg-accent'}`}
+                      style={{ opacity: 0.25 + conf * 0.75 }}
+                      initial={reduced ? false : { height: 0 }}
+                      animate={{ height: `${(p / maxP) * 100}%` }}
+                      transition={{ duration: DURATION.slow, ease: EASE, delay: reduced ? 0 : i * stagger }}
+                      title={`step ${s.step}: ${p}% at horizon confidence ${conf}`}
+                    />
+                  ) : null}
                 </div>
-                <div className="font-mono text-xs tabular-nums text-text">{p}%</div>
+                <div className="font-mono text-xs tabular-nums text-text">
+                  {p != null ? `${p}%` : <NotMeasured />}
+                </div>
                 <div className="font-mono text-xs text-faint">t+{s.step}</div>
                 <div
                   className={`truncate text-center text-xs ${STAGE_CLASS[stage ?? ''] ?? 'text-dim'}`}

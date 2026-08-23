@@ -141,7 +141,7 @@ export function TwinPanel({
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={busy === c.host}
+                    disabled={busy !== null}
                     onClick={() => void run(c.host)}
                   >
                     <Scissors className="size-3" aria-hidden />

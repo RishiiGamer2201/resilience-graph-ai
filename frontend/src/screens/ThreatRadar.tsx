@@ -445,9 +445,14 @@ function Radar({
   const wantLive = React.useRef(false)
   const [askedLive, setAskedLive] = React.useState(false)
   const [queue, setQueue] = React.useState<QueueEntry[]>([])
+  const requestKey = React.useMemo(
+    () => JSON.stringify({ techniqueIds, actors, edges }),
+    [techniqueIds, actors, edges],
+  )
 
-  const { data, error, loading, reload } = useFetch<ThreatRadarPayload>(() =>
-    getThreatRadar({
+  const { data, error, loading, reload } = useFetch<ThreatRadarPayload>(() => {
+    const refresh = wantLive.current
+    return getThreatRadar({
       technique_ids: techniqueIds,
       actors,
       // Only the five fields the exposure bridge reads. The full edge carries
@@ -459,8 +464,12 @@ function Radar({
         score: e.score,
         event_count: e.event_count,
       })),
-      refresh: wantLive.current,
-    }),
+      refresh,
+    }).finally(() => {
+      if (refresh) wantLive.current = false
+    })
+  },
+    [requestKey],
   )
 
   const refresh = () => {

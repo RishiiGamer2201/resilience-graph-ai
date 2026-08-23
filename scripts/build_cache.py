@@ -170,6 +170,7 @@ def main() -> None:
           f"{bundle['graph']['n_nodes']} hosts")
     for name in ("overview", "incident", "graph", "threat_intel", "report", "attackers"):
         _write(name, bundle[name])
+    _write("attackers_meta", {"scenario": "lanl_campaign_all"})
 
     _write("metrics", metrics())
     _write("methodology", methodology())

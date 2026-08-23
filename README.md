@@ -40,7 +40,7 @@ no torch, no 11 GB download):
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements-deploy.txt
-python -m uvicorn api.main:app --port 8000
+python -m uvicorn api.main:app --port 8001
 ```
 
 **macOS / Linux:**
@@ -48,10 +48,11 @@ python -m uvicorn api.main:app --port 8000
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-deploy.txt
-python -m uvicorn api.main:app --port 8000
+python -m uvicorn api.main:app --port 8001
 ```
 
-Backend is up when `http://127.0.0.1:8000/api/health` returns `{"ok":true,"cache_built":true}`.
+Backend is up when `http://127.0.0.1:8001/api/health` returns `{"ok":true,"cache_built":true}`.
+Vite proxies `/api` to this port by default; set `NEXTATTACK_DEV_API` to override it.
 
 ### 3. Frontend (React + Vite) — in a second terminal
 ```bash
@@ -60,6 +61,14 @@ npm install          # first time only
 npm run dev          # → http://localhost:5173
 #   npm run dev -- --host   # to open it from other devices on your Wi-Fi
 ```
+
+The access screen uses the repository-owned WebGL topology by default. To use a
+project Spline scene, set `VITE_SPLINE_SCENE_URL` to your `.splinecode` URL; the
+scene is decorative and safely falls back if it cannot load.
+
+When the backend uses `NEXTATTACK_ROLE_TOKENS`, enter the matching token on the
+access screen. It stays in memory and is sent on both regular and streaming API
+requests; it is never persisted by the frontend.
 
 ### 4. Open it
 Go to **http://localhost:5173** → **Enter demo environment** → **Investigation** →

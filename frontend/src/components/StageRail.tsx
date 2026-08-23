@@ -74,9 +74,9 @@ export default function StageRail({
   const done = Object.keys(byNode).length
 
   return (
-    <div className="border-t border-border">
+    <div className="overflow-hidden rounded-lg border border-border bg-surface">
       <ol
-        className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4 lg:grid-cols-7"
+        className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4 lg:block lg:bg-transparent"
         aria-label="Investigation stages"
       >
         {STAGES.map((s, i) => {
@@ -85,7 +85,7 @@ export default function StageRail({
           const Icon = ICONS[state] ?? CircleDashed
           const isActive = active === s.node
           return (
-            <li key={s.node} className="bg-surface">
+            <li key={s.node} className="bg-surface lg:border-b lg:border-border lg:last:border-b-0">
               <button
                 type="button"
                 onClick={() => onJump?.(s.node)}
@@ -93,7 +93,7 @@ export default function StageRail({
                 aria-current={isActive ? 'step' : undefined}
                 title={r ? `${r.status} · ${Math.round(r.ms)} ms — ${r.summary}` : s.hint}
                 className={cn(
-                  'relative flex w-full items-start gap-2 px-3 py-2 text-left',
+                  'relative flex w-full items-start gap-2 px-3 py-2.5 text-left lg:py-3',
                   'transition-colors duration-[120ms]',
                   r ? 'hover:bg-surface-2' : 'cursor-default',
                 )}
@@ -109,7 +109,7 @@ export default function StageRail({
                     {s.label}
                     <Icon className="size-3" aria-hidden />
                   </span>
-                  <span className="mt-0.5 block truncate font-mono text-xs text-faint">
+                  <span className="mt-0.5 block truncate font-mono text-[10px] text-faint lg:whitespace-normal">
                     {r
                       ? `${Math.round(r.ms)} ms${r.passes > 1 ? ` · ${r.passes}×` : ''}`
                       : state === 'running'
@@ -121,11 +121,11 @@ export default function StageRail({
                   <motion.span
                     layoutId="stage-rail-active"
                     transition={spring}
-                    className="absolute inset-x-0 bottom-0 h-0.5 bg-accent"
+                    className="absolute inset-x-0 bottom-0 h-0.5 bg-accent lg:inset-y-0 lg:left-0 lg:right-auto lg:h-auto lg:w-0.5"
                   />
                 ) : null}
                 {isActive && reduced ? (
-                  <span className="absolute inset-x-0 bottom-0 h-0.5 bg-accent" />
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 bg-accent lg:inset-y-0 lg:left-0 lg:right-auto lg:h-auto lg:w-0.5" />
                 ) : null}
               </button>
             </li>

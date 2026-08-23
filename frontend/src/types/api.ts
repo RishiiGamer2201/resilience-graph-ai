@@ -1061,6 +1061,8 @@ export interface AttackerRow {
 }
 
 export interface AttackerList {
+  /** Shipped scenario from which this account roster was derived. */
+  scenario: string
   attackers: AttackerRow[]
 }
 

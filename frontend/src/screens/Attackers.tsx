@@ -13,7 +13,7 @@
  * different incident under this account's name, and never know.
  */
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Crosshair, Loader2, Search, Users } from 'lucide-react'
 import { analyze, getAttackers, getIncident } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
@@ -36,14 +36,10 @@ import {
 } from '@/components/primitives'
 import { fmtTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { AnalysisBundle, AttackerRow, Incident } from '@/types/api'
-
-// The campaign log every per-account incident is carved out of. A request
-// parameter naming a shipped scenario file, not data shown to the operator.
-const CAMPAIGN_SCENARIO = 'lanl_campaign_all'
+import type { AnalysisBundle, Incident } from '@/types/api'
 
 /** What the pipeline returned for one account, just now. */
-function AnalysedAccount({ user, bundle }: { user: string; bundle: AnalysisBundle }) {
+function AnalysedAccount({ user, bundle, scenario }: { user: string; bundle: AnalysisBundle; scenario: string }) {
   const inc = bundle.incident
   const graph = bundle.graph
   return (
@@ -54,7 +50,7 @@ function AnalysedAccount({ user, bundle }: { user: string; bundle: AnalysisBundl
             Live analysis · <span className="font-mono">{user}</span>
           </CardTitle>
           <div className="flex items-center gap-3">
-            <CardMeta>POST /analyze · scenario {CAMPAIGN_SCENARIO}</CardMeta>
+            <CardMeta>POST /analyze · scenario {scenario}</CardMeta>
             <Button asChild size="sm" variant="secondary">
               <Link to="/incident">
                 Open in Live Incident
@@ -131,18 +127,17 @@ function AnalysedAccount({ user, bundle }: { user: string; bundle: AnalysisBundl
 }
 
 export default function Attackers() {
+  const navigate = useNavigate()
   // The roster is always the campaign's accounts, from the cached view.
-  const { data: cached, error, loading, reload } = useFetch<AttackerRow[]>(() =>
-    getAttackers().then((d) => d.attackers),
-  )
+  const { data: roster, error, loading, reload } = useFetch(getAttackers)
   // Only to mark which row the currently loaded incident belongs to. A failure
   // here costs a highlight, not the screen.
   const { data: incident } = useFetch<Incident>(getIncident)
   // Publishing the run is what lets the rest of the console render it.
-  const { setBundle } = useAnalysis()
+  const { bundle: liveBundle, setBundle } = useAnalysis()
   // This route is the fixed campaign roster. A live bundle from another
   // scenario must not replace it while row actions still analyse LANL.
-  const data = cached
+  const data = roster?.attackers ?? null
 
   const [q, setQ] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
@@ -168,9 +163,11 @@ export default function Attackers() {
     setRunError(null)
     try {
       // Crown jewels are left to the backend default, which derives them.
-      const bundle = await analyze({ scenario: CAMPAIGN_SCENARIO, account: user })
+      if (!roster?.scenario) throw new Error('The attacker roster did not identify its source scenario.')
+      const bundle = await analyze({ scenario: roster.scenario, account: user })
       setBundle(bundle)
       setAnalysed({ user, bundle })
+      navigate('/incident')
     } catch (e: unknown) {
       setRunError(e)
     } finally {
@@ -271,7 +268,9 @@ export default function Attackers() {
       ) : null}
 
       <div className="mt-4">
-        {analysed ? <AnalysedAccount user={analysed.user} bundle={analysed.bundle} /> : null}
+        {analysed && roster?.scenario ? (
+          <AnalysedAccount user={analysed.user} bundle={analysed.bundle} scenario={roster.scenario} />
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -314,7 +313,7 @@ export default function Attackers() {
                     <TR
                       key={a.user}
                       className={cn(
-                        incident?.account === a.user && 'bg-surface-2',
+                        (liveBundle?.incident?.account ?? incident?.account) === a.user && 'bg-surface-2',
                         analysed?.user === a.user && 'bg-accent-soft',
                       )}
                     >

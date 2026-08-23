@@ -32,7 +32,11 @@ def client():
 
 @pytest.fixture(scope="module")
 def pipeline(client):
-    r = client.post("/api/agents/analyze", json={"scenario": "aiims_ransomware"})
+    r = client.post(
+        "/api/agents/analyze",
+        json={"scenario": "aiims_ransomware"},
+        headers={"X-Role": "analyst"},
+    )
     assert r.status_code == 200, r.text
     return r.json()
 

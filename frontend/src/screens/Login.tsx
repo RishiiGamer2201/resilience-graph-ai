@@ -1,121 +1,142 @@
-/**
- * Login — the first thing anyone sees.
- *
- * There is no authentication here and there is not meant to be. The product
- * ships authorisation WITHOUT authentication on purpose so the demo needs no
- * signup: you pick a role, the role travels as a header on every request, and
- * the API enforces it server-side. Choosing "Responder" on this screen grants
- * nothing — it only changes which refusal comes back. That sentence stays on
- * screen because hiding it would make the RBAC demo look like a UI trick.
- *
- * The background is a code-authored 3D network (see components/LoginScene).
- * It is lazy so three.js never reaches the entry chunk, it sits behind a static
- * `grid-bg` layer that is painted unconditionally, and a boundary swallows any
- * failure — no WebGL, no chunk, no driver — leaving that static layer as the
- * background. Nothing on this screen depends on the scene rendering.
- */
-import { Component, lazy, Suspense, type ReactNode } from 'react'
+import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Check, Database, Radio, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { motion } from 'motion/react'
+import { getCapabilities, getScenarios } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { useSession } from '@/providers/session'
 import { Button } from '@/components/ui/button'
-import { SectionLabel } from '@/components/primitives'
 import { cn } from '@/lib/utils'
-import type { Role } from '@/types/api'
+import type { Capabilities, Role, ScenarioList } from '@/types/api'
 
-const LoginScene = lazy(() => import('@/components/LoginScene'))
+const AccessScene = lazy(() => import('@/components/AccessScene'))
 
-/** Renders nothing when the scene cannot run. The static background is already
- *  underneath it, so "nothing" is the correct fallback and not a blank hole. */
-class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  state = { failed: false }
-  static getDerivedStateFromError() {
-    return { failed: true }
-  }
-  render() {
-    return this.state.failed ? null : this.props.children
-  }
+function Readiness() {
+  const capabilities = useFetch<Capabilities>(getCapabilities)
+  const scenarios = useFetch<ScenarioList>(getScenarios)
+  const capValues = capabilities.data
+    ? Array.isArray(capabilities.data.capabilities)
+      ? capabilities.data.capabilities
+      : Object.values(capabilities.data.capabilities)
+    : []
+  const degraded = capabilities.data?.degraded ?? []
+
+  return (
+    <div className="relative z-10 mt-auto border-t border-border bg-surface/95">
+      <div className="grid divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="p-4">
+          <div className="section-label">API readiness</div>
+          <div className="mt-2 flex items-center gap-2 text-sm text-text">
+            {capabilities.loading ? (
+              <span className="text-faint">checking…</span>
+            ) : capabilities.error ? (
+              <><TriangleAlert className="size-4 text-sev-high" /> unavailable</>
+            ) : (
+              <><Check className="size-4 text-ok" /> {capValues.length} capabilities</>
+            )}
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="section-label">Scenario inventory</div>
+          <div className="mt-2 flex items-center gap-2 text-sm text-text">
+            <Database className="size-4 text-accent" />
+            {scenarios.loading ? 'loading…' : scenarios.error ? 'unavailable' : `${scenarios.data?.scenarios.length ?? 0} available`}
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="section-label">Operating mode</div>
+          <div className="mt-2 flex items-center gap-2 text-sm text-text">
+            <Radio className={cn('size-4', degraded.length ? 'text-sev-high' : 'text-ok')} />
+            {capabilities.loading ? 'checking…' : degraded.length ? `${degraded.length} degraded` : capabilities.data?.usable_offline ? 'offline capable' : 'connected'}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function Login() {
-  const { role, roles, setRole, can } = useSession()
+  const { role, roles, setRole, can, token, setToken } = useSession()
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-bg">
-      {/* Painted unconditionally: this is what remains if the 3D never runs. */}
-      <div className="grid-bg pointer-events-none absolute inset-0 opacity-60" aria-hidden />
-      <SceneBoundary>
-        <Suspense fallback={null}>
-          <LoginScene />
-        </Suspense>
-      </SceneBoundary>
-      {/* Keeps the card legible over the network without a blur or a glow. */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-bg/40"
-        aria-hidden
-      />
+    <div className="grid h-full min-h-0 overflow-y-auto bg-bg lg:grid-cols-[minmax(22rem,0.82fr)_1.18fr]">
+      <main className="relative z-20 flex min-h-full flex-col border-r border-border bg-bg px-6 py-6 sm:px-10 sm:py-8 lg:px-[clamp(2.5rem,6vw,6rem)] lg:py-10">
+        <header className="flex items-center gap-3">
+          <span className="relative grid size-10 place-items-center border border-accent/40 bg-accent-soft font-mono font-bold text-accent">
+            N<span className="absolute -right-px -top-px size-1.5 bg-accent" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-text">nextATT&amp;CKs</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">response intelligence</span>
+          </span>
+        </header>
 
-      <header className="relative flex items-center gap-2.5 px-6 py-4">
-        <div className="grid size-7 place-items-center rounded-md bg-accent font-mono text-sm font-semibold text-accent-fg">
-          n
-        </div>
-        <div className="text-sm font-medium text-text">nextATT&amp;CKs</div>
-        <div className="ml-auto font-mono text-xs text-faint">PS7 · Cyber Resilience</div>
-      </header>
-
-      <main className="relative flex flex-1 items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-lg border border-border bg-surface p-6">
-          <SectionLabel>SOC Command Center</SectionLabel>
-          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-text">
-            nextATT&amp;CKs
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+          className="my-auto max-w-xl py-12"
+        >
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">SOC command center / PS7</div>
+          <h1 className="mt-4 text-[clamp(2.7rem,7vw,5.7rem)] font-semibold leading-[0.9] tracking-[-0.065em] text-text">
+            See the attack.<br />Prove the response.
           </h1>
-          <p className="mt-2 text-sm text-dim">
-            Real-time anomaly detection, attack-path reasoning and ATT&amp;CK-driven
-            attribution for critical national infrastructure.
+          <p className="mt-6 max-w-lg text-base leading-7 text-dim">
+            Turn weak log signals into a bounded, cited investigation with attack-path reasoning and human-gated containment.
           </p>
 
-          <label className="mt-6 block">
-            <span className="section-label">Sign in as</span>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as Role)}
-              className={cn(
-                'mt-1.5 h-8 w-full rounded-md border border-border bg-surface-2 px-2',
-                'text-sm text-text focus-visible:outline-2 focus-visible:outline-accent',
-              )}
-            >
-              {roles.map((r) => (
-                <option key={r.role} value={r.role}>
-                  {r.label} — {r.can}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="mt-9 border-y border-border py-5">
+            <label htmlFor="access-role" className="grid gap-2 sm:grid-cols-[8rem_1fr] sm:items-center">
+              <span className="section-label">Enter as</span>
+              <select
+                id="access-role"
+                value={role}
+                onChange={(event) => setRole(event.target.value as Role)}
+                className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-text"
+              >
+                {roles.map((item) => (
+                  <option key={item.role} value={item.role}>{item.label} — {item.can}</option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor="access-token" className="mt-4 grid gap-2 sm:grid-cols-[8rem_1fr] sm:items-center">
+              <span className="section-label">Bearer token</span>
+              <input
+                id="access-token"
+                type="password"
+                value={token}
+                onChange={(event) => setToken(event.target.value)}
+                autoComplete="off"
+                placeholder="optional · only for configured token mode"
+                className="h-10 w-full rounded-md border border-border bg-surface px-3 font-mono text-sm text-text placeholder:text-faint"
+              />
+            </label>
+          </div>
 
-          <p className="mt-3 flex gap-2 text-xs text-faint">
-            <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-            <span>
-              The role travels with every request and is enforced by the API, not by
-              this screen. Picking Responder here does not grant anything — try
-              approving a crown-jewel action as an Analyst and the server refuses.
-              This is authorisation without authentication, on purpose, so the demo
-              needs no signup.
-            </span>
-          </p>
-
-          <Button asChild className="mt-6 w-full" size="lg">
-            <Link to="/investigate">
-              Enter demo environment
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
+          <Button asChild size="lg" className="mt-6 w-full justify-between sm:w-auto sm:min-w-64">
+            <Link to="/investigate">Open investigation <ArrowRight className="size-4" /></Link>
           </Button>
 
-          <div className="mt-4 flex items-center justify-between border-t border-border pt-3 font-mono text-xs text-faint">
-            <span>no credentials · no API key</span>
-            <span>{can}</span>
-          </div>
-        </div>
+          <p className="mt-5 flex max-w-lg gap-2 text-xs leading-5 text-faint">
+            <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
+            <span>Your selected role is sent with every request and enforced by the API. This demo intentionally uses authorization without signup; changing the selector does not bypass server policy.</span>
+          </p>
+        </motion.div>
+
+        <footer className="flex items-center justify-between border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
+          <span>No credentials required</span><span>{can}</span>
+        </footer>
       </main>
+
+      <aside className="relative hidden min-h-full overflow-hidden bg-surface lg:flex lg:flex-col" aria-label="System readiness">
+        <div className="grid-bg absolute inset-0 opacity-60" aria-hidden />
+        <div className="absolute inset-0 bg-bg/25" aria-hidden />
+        <Suspense fallback={null}><AccessScene /></Suspense>
+        <div className="relative z-10 flex items-center justify-between p-6 font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
+          <span>Observed topology workspace</span><span className="flex items-center gap-1.5"><Radio className="size-3 text-ok" /> ready</span>
+        </div>
+        <Readiness />
+      </aside>
     </div>
   )
 }

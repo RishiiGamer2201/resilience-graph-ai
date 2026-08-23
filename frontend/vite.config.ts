@@ -33,6 +33,13 @@ export default defineConfig({
     },
   },
   server: {
-    proxy: { '/api': { target: 'http://localhost:8000', changeOrigin: true } },
+    // 8001 avoids colliding with the other local FastAPI services commonly
+    // using 8000. Override without editing source when a different port is used.
+    proxy: {
+      '/api': {
+        target: process.env.NEXTATTACK_DEV_API ?? 'http://127.0.0.1:8001',
+        changeOrigin: true,
+      },
+    },
   },
 })

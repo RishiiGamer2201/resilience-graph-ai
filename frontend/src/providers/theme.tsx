@@ -12,8 +12,12 @@ const ThemeContext = createContext<{ theme: Theme; setTheme: (t: Theme) => void 
 // stored choice always wins over it.
 function initial(): Theme {
   if (typeof window === 'undefined') return 'dark'
-  const saved = localStorage.getItem(STORAGE_KEY)
-  return saved === 'light' || saved === 'dark' ? saved : 'dark'
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    return saved === 'light' || saved === 'dark' ? saved : 'dark'
+  } catch {
+    return 'dark'
+  }
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

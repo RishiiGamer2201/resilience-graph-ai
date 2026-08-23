@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-import { agentStreamUrl, analyzeUpload, getScenarios, streamUrl } from '@/lib/api'
+import { agentStreamUrl, analyzeUpload, getScenarios, readEventStream, streamUrl } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalysis } from '@/providers/analysis'
 import { DURATION, EASE, fadeUp } from '@/lib/motion'
@@ -111,11 +111,11 @@ export default function Analyze() {
   const [stages, setStages] = React.useState<Stage[]>([])
   const [current, setCurrent] = React.useState<Stage | null>(null)
   const [done, setDone] = React.useState<AnalysisBundle | null>(null)
-  const es = React.useRef<EventSource | null>(null)
+  const streamController = React.useRef<AbortController | null>(null)
 
   React.useEffect(
     () => () => {
-      es.current?.close()
+      streamController.current?.abort()
     },
     [],
   )
@@ -127,7 +127,7 @@ export default function Analyze() {
   }
 
   function reset(which: Lane, label: string) {
-    es.current?.close()
+    streamController.current?.abort()
     setLane(which)
     setBusy(true)
     setError(null)
@@ -140,57 +140,46 @@ export default function Analyze() {
   /** Both lanes share this: open the stream, normalise its progress frames into
    *  Stage, and land the `done` bundle. */
   function open(url: string, which: Lane, progressEvent: string, toStage: (d: unknown) => Stage | null) {
-    const source = new EventSource(url)
-    es.current = source
-
-    source.addEventListener(progressEvent, (e) => {
-      const msg = e as MessageEvent<string>
-      let parsed: unknown
-      try {
-        parsed = JSON.parse(msg.data)
-      } catch {
-        setError(new Error('The stream sent a frame this client could not parse.'))
-        return
-      }
-      const stage = toStage(parsed)
-      if (!stage) return
-      setCurrent(stage)
-      setStages((prev) =>
-        // The event lane emits one frame per row; only the latest is kept as a
-        // stage so a 2,700-row replay does not build a 2,700-item list.
-        which === 'events' ? [stage] : [...prev, stage],
-      )
-    })
-
-    source.addEventListener('done', (e) => {
-      const msg = e as MessageEvent<string>
-      try {
-        const bundle = JSON.parse(msg.data) as AnalysisBundle
-        if (!bundle.analysis) {
-          throw new Error('The completed stream omitted its analysis layer.')
+    const controller = new AbortController()
+    streamController.current = controller
+    let completed = false
+    void readEventStream(
+      url,
+      (event, raw) => {
+        if (event === progressEvent) {
+          let parsed: unknown
+          try {
+            parsed = JSON.parse(raw)
+          } catch {
+            setError(new Error('The stream sent a frame this client could not parse.'))
+            return
+          }
+          const stage = toStage(parsed)
+          if (!stage) return
+          setCurrent(stage)
+          setStages((previous) => which === 'events' ? [stage] : [...previous, stage])
         }
-        setBundle(bundle)
-        setDone(bundle)
-        setStatus('Pipeline complete. The bundle is loaded into the console.')
-      } catch {
-        setError(new Error('The stream completed but the final bundle could not be parsed.'))
-      } finally {
-        setBusy(false)
-        setCurrent(null)
-        source.close()
+        if (event === 'done') {
+          const bundle = JSON.parse(raw) as AnalysisBundle
+          if (!bundle.analysis) throw new Error('The completed stream omitted its analysis layer.')
+          setBundle(bundle)
+          setDone(bundle)
+          setStatus('Pipeline complete. The bundle is loaded into the console.')
+          completed = true
+        }
+      },
+      controller.signal,
+    ).then(() => {
+      if (!completed) throw new Error('The stream closed before returning a completed analysis.')
+    }).catch((cause: unknown) => {
+      if (!controller.signal.aborted) {
+        setError(cause instanceof Error ? cause : new Error(`The connection to ${url} failed.`))
       }
-    })
-
-    source.onerror = () => {
-      setError(
-        new Error(
-          `The connection to ${url} failed. No partial result is shown: a half-finished pipeline is not an analysis.`,
-        ),
-      )
+    }).finally(() => {
+      if (streamController.current === controller) streamController.current = null
       setBusy(false)
       setCurrent(null)
-      source.close()
-    }
+    })
   }
 
   function runAgents(s: Scenario) {
@@ -234,7 +223,7 @@ export default function Analyze() {
 
   async function runUpload() {
     if (!file) return
-    es.current?.close()
+    streamController.current?.abort()
     setLane('agents')
     setBusy(true)
     setError(null)
@@ -369,8 +358,8 @@ export default function Analyze() {
                     {done.incident?.severity ?? 'not reported'}
                   </span>
                   <span>
-                    {done.incident?.event_count?.toLocaleString() ?? '0'} events ·{' '}
-                    {done.incident?.alert_count ?? 0} alerts
+                    {done.incident?.event_count != null ? done.incident.event_count.toLocaleString() : <NotMeasured />} events ·{' '}
+                    {done.incident?.alert_count != null ? done.incident.alert_count : <NotMeasured />} alerts
                   </span>
                   <span>
                     techniques {done.incident?.technique_ids?.join(' → ') || 'none mapped'}

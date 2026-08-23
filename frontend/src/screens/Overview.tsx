@@ -23,7 +23,6 @@ import {
   EmptyState,
   ErrorState,
   MeasuredValue,
-  MetricCard,
   NotMeasured,
   Reveal,
   RevealList,
@@ -34,10 +33,11 @@ import {
 import type { AnalysisBundle, InvestigationClaim } from '@/types/api'
 
 export default function Overview() {
-  const { bundle } = useAnalysis()
+  const { bundle, source: bundleSource } = useAnalysis()
   const { data, error, loading, reload, source } = useScreenData<AnalysisBundle>(
     bundle,
     getOverviewBundle,
+    bundleSource,
   )
 
   if (loading) {
@@ -80,53 +80,51 @@ export default function Overview() {
     <>
       <PageHeader
         eyebrow="Operations"
-        title="Overview"
-        description="The current incident as the deterministic pipeline sees it."
+        title="Incident brief"
+        description="One operational picture: observed scope, evidence strength and the decisions the pipeline can justify."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
-              {source === 'live' ? 'live analysis' : 'sample cache'}
+              {source === 'live' ? 'live analysis' : source === 'restored' ? 'restored session' : 'sample cache'}
             </Badge>
             <SeverityBadge severity={incident.severity} />
           </>
         }
       />
 
-      {/* Headline figures. Every one carries its unit and its context. */}
+      {/* One connected status ledger, not four disconnected KPI cards. */}
       <Reveal>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            label="Severity"
-            value={incident?.severity ?? '—'}
-            context={incident?.incident_id}
-            severity={incident?.severity}
-          />
-          <MetricCard
-            label="Events correlated"
-            value={incident ? incident.event_count.toLocaleString() : <NotMeasured />}
-            context={
-              alerts != null
-                ? `${alerts.toLocaleString()} alerts above threshold`
-                : undefined
-            }
-          />
-          <MetricCard
-            label="Blast radius"
-            value={
-              graph?.blast_radius_size != null ? (
-                graph.blast_radius_size.toLocaleString()
-              ) : (
-                <NotMeasured why="No attack graph was built for this incident." />
-              )
-            }
-            unit="hosts"
-            context="Reachable on the observed graph, not hosts already affected."
-          />
-          <MetricCard
-            label="Mean time to detect"
-            value={mttd?.value ?? <NotMeasured why="Detection time was not computed." />}
-            context={mttd?.note ?? 'From first malicious event to first alert.'}
-          />
+        <div className="grid overflow-hidden border border-border bg-surface sm:grid-cols-2 xl:grid-cols-4">
+          <div className="min-h-32 border-b border-border p-4 sm:border-r xl:border-b-0">
+            <div className="section-label">Incident state</div>
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              {incident?.severity ? <SeverityBadge severity={incident.severity} /> : <NotMeasured />}
+              <span className="font-mono text-xs text-faint">{incident?.incident_id}</span>
+            </div>
+          </div>
+          <div className="min-h-32 border-b border-border p-4 xl:border-b-0 xl:border-r">
+            <div className="section-label">Signals collapsed</div>
+            <div className="mt-3 font-mono text-2xl tabular-nums text-text">
+              {incident ? incident.event_count.toLocaleString() : <NotMeasured />}
+            </div>
+            <div className="mt-1 text-xs text-dim">
+              {alerts != null ? `${alerts.toLocaleString()} alerts above threshold` : <NotMeasured />}
+            </div>
+          </div>
+          <div className="min-h-32 border-b border-border p-4 sm:border-r sm:border-b-0">
+            <div className="section-label">Reachable blast radius</div>
+            <div className="mt-3 font-mono text-2xl tabular-nums text-text">
+              {graph?.blast_radius_size != null ? graph.blast_radius_size.toLocaleString() : <NotMeasured why="No attack graph was built for this incident." />}
+            </div>
+            <div className="mt-1 text-xs text-dim">hosts reachable on the observed graph</div>
+          </div>
+          <div className="min-h-32 p-4">
+            <div className="section-label">Mean time to detect</div>
+            <div className="mt-3 font-mono text-2xl tabular-nums text-text">
+              {mttd?.value ?? <NotMeasured why="Detection time was not computed." />}
+            </div>
+            <div className="mt-1 text-xs text-dim">{mttd?.note ?? 'From first malicious event to first alert.'}</div>
+          </div>
         </div>
       </Reveal>
 

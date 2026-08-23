@@ -11,7 +11,7 @@ Operating the demo: warm-up, degraded states, and what to do when something is o
 ```powershell
 # 1. backend
 .\.venv\Scripts\Activate.ps1
-python -m uvicorn api.main:app --port 8000
+python -m uvicorn api.main:app --port 8001
 
 # 2. frontend, second terminal
 cd frontend; npm run dev

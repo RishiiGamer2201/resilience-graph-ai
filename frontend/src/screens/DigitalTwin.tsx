@@ -326,8 +326,8 @@ export default function DigitalTwin() {
                             <Button
                               variant={chosen ? 'default' : 'secondary'}
                               size="sm"
-                              disabled={simBusy === c.host}
-                              onClick={() => simulate(c.host)}
+                              disabled={simBusy !== null}
+                              onClick={() => void simulate(c.host)}
                             >
                               <Scissors className="size-3" />
                               {simBusy === c.host ? 'Simulating…' : 'Simulate'}
@@ -444,7 +444,12 @@ export default function DigitalTwin() {
             </p>
           ) : null}
 
-          <div className="flex min-h-[420px] flex-1 flex-col gap-4 overflow-y-auto p-4">
+          <div
+            className="flex min-h-[420px] flex-1 flex-col gap-4 overflow-y-auto p-4"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions text"
+          >
             {!messages.length ? (
               <EmptyState
                 title="Ask the advisor about this incident"
@@ -524,7 +529,7 @@ export default function DigitalTwin() {
               disabled={chatBusy}
               aria-label="Ask the advisor"
               placeholder="Ask what is exposed, what isolation costs, or what this analysis cannot tell you"
-              className="flex-1 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-sm text-text outline-none placeholder:text-faint"
+              className="flex-1 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-sm text-text outline-none placeholder:text-faint focus-visible:outline-2 focus-visible:outline-accent"
             />
             <Button type="submit" size="sm" disabled={chatBusy || !input.trim()}>
               <Send className="size-3.5" />
