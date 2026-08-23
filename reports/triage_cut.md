@@ -10,38 +10,38 @@ It applies only to logs that are out of distribution for the shipped anchors.
 
 | Surfaced | Alerts | Recall | Precision |
 |---|---|---|---|
-| top 5% | 7 | 20.0% | 100.0% |
-| top 10% | 13 | 37.1% | 100.0% |
-| top 15% | 19 | 54.3% | 100.0% |
-| top 18% | 23 | 65.7% | 100.0% |
-| top 20% | 25 | 71.4% | 100.0%  **<- shipped** |
-| top 22% | 28 | 80.0% | 100.0% |
-| top 25% | 34 | 85.7% | 88.2% |
-| top 28% | 38 | 85.7% | 78.9% |
-| top 30% | 38 | 85.7% | 78.9% |
-| top 35% | 86 | 100.0% | 40.7% |
-| top 40% | 86 | 100.0% | 40.7% |
+| top 5% (actually 6%) | 7 | 20.0% | 100.0% |
+| top 10% (actually 11%) | 14 | 40.0% | 100.0% |
+| top 15% (actually 16%) | 20 | 57.1% | 100.0% |
+| top 18% (actually 18%) | 23 | 65.7% | 100.0% |
+| top 20% (actually 21%) | 26 | 74.3% | 100.0%  **<- shipped** |
+| top 22% (actually 22%) | 28 | 80.0% | 100.0% |
+| top 25% (actually 27%) | 34 | 85.7% | 88.2% |
+| top 28% (actually 30%) | 38 | 85.7% | 78.9% |
+| top 30% (actually 30%) | 38 | 85.7% | 78.9% |
+| top 35% (actually 34%) | 43 | 100.0% | 81.4% |
+| top 40% (actually 34%) | 43 | 100.0% | 81.4% |
 
 ## cbse_exam_breach
 
 | Surfaced | Alerts | Recall | Precision |
 |---|---|---|---|
-| top 5% | 7 | 18.9% | 100.0% |
-| top 10% | 13 | 35.1% | 100.0% |
-| top 15% | 19 | 51.4% | 100.0% |
-| top 18% | 23 | 62.2% | 100.0% |
-| top 20% | 26 | 70.3% | 100.0%  **<- shipped** |
-| top 22% | 28 | 75.7% | 100.0% |
-| top 25% | 32 | 86.5% | 100.0% |
-| top 28% | 36 | 86.5% | 88.9% |
-| top 30% | 38 | 86.5% | 84.2% |
-| top 35% | 45 | 100.0% | 82.2% |
-| top 40% | 82 | 100.0% | 45.1% |
+| top 5% (actually 6%) | 7 | 18.9% | 100.0% |
+| top 10% (actually 11%) | 14 | 37.8% | 100.0% |
+| top 15% (actually 16%) | 20 | 54.1% | 100.0% |
+| top 18% (actually 19%) | 24 | 64.9% | 100.0% |
+| top 20% (actually 20%) | 26 | 70.3% | 100.0%  **<- shipped** |
+| top 22% (actually 23%) | 29 | 78.4% | 100.0% |
+| top 25% (actually 27%) | 34 | 86.5% | 94.1% |
+| top 28% (actually 28%) | 36 | 86.5% | 88.9% |
+| top 30% (actually 30%) | 38 | 86.5% | 84.2% |
+| top 35% (actually 35%) | 45 | 100.0% | 82.2% |
+| top 40% (actually 35%) | 45 | 100.0% | 82.2% |
 
 ## Reading
 
-- **aiims_ransomware**: precision holds at 100% all the way to top 22%, where recall is 80.0%. The shipped cut stops at 71.4%, so it leaves 3 true positives on the table at no precision cost. The default is CONSERVATIVE on this log, not tuned to flatter it.
-- **cbse_exam_breach**: precision holds at 100% all the way to top 25%, where recall is 86.5%. The shipped cut stops at 70.3%, so it leaves 6 true positives on the table at no precision cost. The default is CONSERVATIVE on this log, not tuned to flatter it.
+- **aiims_ransomware**: precision holds at 100% all the way to top 22%, where recall is 80.0%. The shipped cut stops at 74.3%, so it leaves 2 true positives on the table at no precision cost. The default is CONSERVATIVE on this log, not tuned to flatter it.
+- **cbse_exam_breach**: precision holds at 100% all the way to top 22%, where recall is 78.4%. The shipped cut stops at 70.3%, so it leaves 3 true positives on the table at no precision cost. The default is CONSERVATIVE on this log, not tuned to flatter it.
 
 Two things this table is evidence FOR, and one it is evidence against.
 

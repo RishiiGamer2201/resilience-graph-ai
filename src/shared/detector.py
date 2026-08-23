@@ -239,7 +239,7 @@ def rarity_shift(X) -> float:
 TRIAGE_PERCENTILE = 80      # see relative_anchors
 
 
-def relative_anchors(raw) -> dict:
+def relative_anchors(raw, percentile: float | None = None) -> dict:
     """Anchors from a log's OWN distribution, for OOD inputs. A ranking, not a rate.
 
     Deliberately a fallback, never the default. Fixed anchors are what make a
@@ -273,15 +273,17 @@ def relative_anchors(raw) -> dict:
     capped by the budget rather than by the detector.
 
     The cut is not fitted, and `reports/triage_cut.md` is the evidence rather than
-    the assertion. It sweeps every cut on both labelled logs and shows the default
-    is CONSERVATIVE: precision holds at 100% to top 22% on AIIMS and top 25% on
-    CBSE, so 20% leaves 3 and 6 true positives unreported at no precision cost. A
-    cut chosen to flatter the demo would sit at the other end of that range, and
-    a test fails if it ever moves there.
+    the assertion. It sweeps every cut THROUGH THIS SAME PATH -- calibrate, round,
+    threshold at 50, rather than thresholding raw error, which is a distinction
+    worth 3 percentage points of recall -- and shows the default is CONSERVATIVE:
+    precision holds at 100% to top 22% on both logs, so 20% leaves 2 and 3 true
+    positives unreported at no precision cost. A cut chosen to flatter the demo
+    would sit at the other end of that range, and a test fails if it moves there.
     """
     raw = np.asarray(raw, dtype="float64")
     p50 = float(np.percentile(raw, 50))
-    cut = float(np.percentile(raw, TRIAGE_PERCENTILE))
+    pct = TRIAGE_PERCENTILE if percentile is None else percentile
+    cut = float(np.percentile(raw, pct))
     hi = float(raw.max())
     if not (cut > p50):
         cut = p50 + 1e-9
@@ -289,8 +291,8 @@ def relative_anchors(raw) -> dict:
         hi = cut * 4 + 1e-9
     # reuses the piecewise-log map: p50 -> 0, cut -> 50 (the display alert line), hi -> 100
     return {"p50": p50, "p99": cut, "hi": hi,
-            "basis": f"ranked-within-this-log (top {100 - TRIAGE_PERCENTILE}% surfaced)",
-            "triage_percentile": TRIAGE_PERCENTILE}
+            "basis": f"ranked-within-this-log (top {100 - pct:.0f}% surfaced)",
+            "triage_percentile": pct}
 
 
 def scores_0_100(X: np.ndarray, ref: dict) -> np.ndarray:

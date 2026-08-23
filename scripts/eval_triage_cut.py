@@ -8,9 +8,9 @@ false-positive rate. This script is the evidence for how much choosing it costs.
 It exists because of a specific criticism, which is worth stating plainly: a
 fixed percentile means precision cannot fall below 1.0 until the ranking puts a
 benign event above the cut, so "100% precision" on these scenarios is a property
-of the budget, not an achievement. And recall is capped by arithmetic: 20% of 125
-events is 25 alerts against 35 positives, so 71.4% is the ceiling the budget
-allows, not a limit of the detector.
+of the budget, not an achievement. And recall is capped by arithmetic: roughly a
+fifth of 125 events is 26 alerts against 35 positives, so 74.3% is the ceiling
+the budget allows, not a limit of the detector.
 
 The two synthetic India scenarios are the only shipped logs with per-event
 labels. Two files is far too few to fit a threshold on, which is exactly why
@@ -52,16 +52,34 @@ def _scored(name: str):
 
 
 def sweep(y, s) -> list[dict]:
+    """Sweep the cut THROUGH THE SHIPPED PATH, not through the raw scores.
+
+    The product does not threshold raw reconstruction error. It builds relative
+    anchors at TRIAGE_PERCENTILE, calibrates to 0-100 with a piecewise-log map,
+    rounds to an integer, and alerts at >= ALERT_THRESHOLD. Rounding moves the
+    boundary: an earlier version of this script swept `raw >= percentile(raw)`
+    and reported 25 alerts and 71.4% recall for AIIMS where the product produces
+    26 and 74.3%. A report that does not reproduce the thing it describes is
+    worse than no report.
+
+    The `surfaced` column is the share actually surfaced, not the nominal cut.
+    Ties at a percentile boundary mean `>=` can surface materially more than the
+    label implies, and the label was the number being printed.
+    """
+    from src.shared.correlate import ALERT_THRESHOLD
+
     pos = int(y.sum())
     out = []
     for pct in CUTS:
-        thr = float(np.percentile(s, pct))
-        pred = s >= thr
+        ref = detector.relative_anchors(s, percentile=pct)
+        scored = np.nan_to_num(detector.calibrate(s, ref).round(), nan=0.0)
+        pred = scored >= ALERT_THRESHOLD
         tp = int((pred & (y == 1)).sum())
         fp = int((pred & (y == 0)).sum())
         out.append({
             "pct": pct,
             "alerts": int(pred.sum()),
+            "surfaced": float(pred.mean()),
             "recall": tp / max(1, pos),
             "precision": tp / max(1, tp + fp),
         })
@@ -85,7 +103,7 @@ def main() -> None:
                   "| Surfaced | Alerts | Recall | Precision |", "|---|---|---|---|"]
         for r in rows:
             mark = "  **<- shipped**" if r["pct"] == shipped else ""
-            lines.append(f"| top {100 - r['pct']}% | {r['alerts']} | "
+            lines.append(f"| top {100 - r['pct']}% (actually {r['surfaced']:.0%}) | {r['alerts']} | "
                          f"{r['recall']:.1%} | {r['precision']:.1%}{mark} |")
         lines.append("")
 
