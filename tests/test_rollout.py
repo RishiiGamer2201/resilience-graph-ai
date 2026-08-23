@@ -49,36 +49,208 @@ def test_confidence_follows_the_declared_decay(sim):
         assert abs(c - STEP_DECAY ** i) < 1e-4, (i, c)
 
 
-def test_the_decay_constant_traces_to_a_measurement(sim):
-    """STEP_DECAY must be the number an experiment produced, not one someone liked.
+# --------------------------------------------------------------------------- #
+# the constant must trace to a RECOMPUTED measurement, not to prose            #
+# --------------------------------------------------------------------------- #
+# The measured top-3 hit counts per horizon, over the fixed population of 544
+# held-out prefixes. These integers -- not any number parsed out of the markdown
+# -- are what the cheap tests below refit STEP_DECAY from.
+# `test_the_whole_measurement_reproduces_from_the_corpus` re-derives these counts
+# from the corpus itself, so they cannot quietly rot into magic numbers.
+MEASURED_HITS = [245, 163, 122, 78, 82, 64, 54, 53]
+MEASURED_PREFIXES = 544
+MEASURED_SEQUENCES = 29
+REGRESSION_POINTS = 8          # one accuracy per horizon; NOT the prefix count
 
-    It was 0.62 with nothing behind it. `scripts/eval_rollout_decay.py` measures
-    this module's own top-3 accuracy at each horizon over held-out sequences and
-    fits the decay; `reports/rollout_decay.md` records the fit. This pins the two
-    together, so the constant cannot be nudged without redoing the measurement --
-    which is the only property that makes it worth rendering to a user.
-    """
-    import re
 
+def _eval_script():
+    """Import scripts/eval_rollout_decay.py (not a package, so path it in)."""
+    import sys
+
+    from src.shared.rollout import ROOT
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import eval_rollout_decay
+    return eval_rollout_decay
+
+
+def _measured_accuracy():
+    return [100 * h / MEASURED_PREFIXES for h in MEASURED_HITS]
+
+
+def _report_text():
     from src.shared.rollout import ROOT
     report = ROOT / "reports" / "rollout_decay.md"
     assert report.exists(), "STEP_DECAY has no measurement report behind it"
-    text = report.read_text(encoding="utf-8")
+    return report.read_text(encoding="utf-8")
 
-    shipped = re.search(r"shipped as `STEP_DECAY = ([0-9.]+)`", text)
-    assert shipped, "the report does not state which value is shipped"
-    assert float(shipped.group(1)) == STEP_DECAY, (
-        f"code ships {STEP_DECAY}, report measured {shipped.group(1)}")
 
-    # the fit has to disclose what it rests on, or it is decoration
-    n = re.search(r"n = (\d+) held-out prefixes", text)
-    r2 = re.search(r"R² = \*\*([0-9.]+)\*\*", text)
-    assert n and int(n.group(1)) > 100, "sample size missing or too small to quote"
-    assert r2, "fit quality (R²) is not reported"
+def _rollout_source():
+    import pathlib
 
-    # and the user-facing method block has to carry the provenance, not just the source
-    assert "reports/rollout_decay.md" in sim["method"]["decay"]
-    assert "fitted" in sim["method"]["decay"]
+    import src.shared.rollout as rollout
+    return pathlib.Path(rollout.__file__).read_text(encoding="utf-8")
+
+
+def test_the_decay_constant_is_what_the_fit_recomputes():
+    """STEP_DECAY must be the number the fit produces, RECOMPUTED here.
+
+    This used to regex the value out of the committed markdown and compare it to
+    the constant, which meant editing one number in the .md made any constant
+    pass. The report is prose; it cannot be the authority for the thing it
+    describes. So the fit is re-run from the measured hit counts instead.
+    """
+    d, r2, r2_anchored = _eval_script().fit_decay(_measured_accuracy())
+
+    assert round(d, 2) == STEP_DECAY, (
+        f"code ships STEP_DECAY = {STEP_DECAY}, the fit recomputes {d:.4f}")
+    assert abs(d - 0.7726) < 5e-5, d
+    assert abs(r2 - 0.739) < 5e-4, r2
+    assert abs(r2_anchored - 0.870) < 5e-4, r2_anchored
+
+
+def test_the_reported_r2_is_the_one_that_explains_the_decay():
+    """R^2 must not be inflated by the r(1) = 1 anchor.
+
+    `fit_decay` enumerates from 0, so step 1 enters as
+    `(0, log(acc[0]/acc[0])) = (0, 0.0)`. That point is the definition of the
+    ratio, not an observation: it sits exactly on the line so it adds nothing to
+    ss_res, while adding its full squared deviation to ss_tot. Counting it took
+    R^2 from 0.739 to 0.870 without the curve explaining anything more.
+    """
+    fit_decay = _eval_script().fit_decay
+    acc = _measured_accuracy()
+    d, r2, r2_anchored = fit_decay(acc)
+
+    assert r2 < r2_anchored, "the anchor is supposed to inflate R^2; it did not"
+    assert r2_anchored - r2 > 0.1, (r2, r2_anchored)
+
+    # the anchor cannot move the slope -- dropping it must leave d untouched
+    import math
+    pts = [(h, math.log(a / acc[0])) for h, a in enumerate(acc)]
+    slope_all = sum(h * y for h, y in pts) / sum(h * h for h, _ in pts)
+    slope_no_anchor = (sum(h * y for h, y in pts[1:])
+                       / sum(h * h for h, _ in pts[1:]))
+    assert abs(slope_all - slope_no_anchor) < 1e-12, "the anchor moved the slope"
+
+    # and the report must lead with the honest one
+    text = _report_text()
+    import re
+    headline = re.search(r"R² = \*\*([0-9.]+)\*\*", text)
+    assert headline, "fit quality (R²) is not reported"
+    assert abs(float(headline.group(1)) - r2) < 5e-4, (
+        f"report leads with R² {headline.group(1)}, the decay R² is {r2:.3f}")
+    assert f"{r2_anchored:.3f}" in text, (
+        "the inflated R² should still be disclosed, labelled as inflated")
+
+
+def test_the_report_does_not_call_the_prefix_count_the_regressions_n():
+    """544 is the population behind the accuracies, not the fit's sample size.
+
+    `fit_decay` takes ONE argument: a list of 8 accuracies. The least squares has
+    8 data points and 1 free parameter. 544 never enters it. The report used to
+    print "n = 544 held-out prefixes" in the slot where a regression's n belongs.
+    """
+    text = _report_text()
+    assert "n = 544 held-out prefixes" not in text, (
+        "544 is being presented as the regression's n again")
+
+    # both numbers must appear, distinctly labelled
+    assert f"{REGRESSION_POINTS} data points" in text
+    assert str(MEASURED_PREFIXES) in text and str(MEASURED_SEQUENCES) in text
+    assert "never a row in the fit" in text
+
+
+def test_the_prefixes_are_not_claimed_to_be_independent():
+    """544 overlapping prefixes from 29 sequences are not 544 observations."""
+    text = _report_text()
+    assert "effective sample size" in text
+    assert "bootstrap" in text.lower(), "no interval on d is reported"
+    # the interval has to be sequence-level, and it has to be stated
+    import re
+    ci = re.search(r"sequence bootstrap, 95%.*?\*\*\[([0-9.]+), ([0-9.]+)\]\*\*", text)
+    assert ci, "the sequence bootstrap interval is not reported"
+    lo, hi = float(ci.group(1)), float(ci.group(2))
+    assert lo < STEP_DECAY < hi, (lo, hi)
+    assert hi - lo > 0.05, "a sequence-level interval this narrow is suspicious"
+
+
+def test_the_reliable_horizon_margin_is_disclosed_next_to_the_claim():
+    """"The horizon moved from 3 to 5" survives on 0.00084. Say so, or drop it.
+
+    Step 5 clears RELIABLE_CONFIDENCE only when d^4 >= 0.35, i.e.
+    d >= 0.35 ** 0.25 = 0.769161. Shipped 0.77 clears by 0.00084 -- far inside
+    the band of d values the fit cannot tell apart. A report that simultaneously
+    says the fit "does not support four significant figures" and asserts step 5
+    unqualified is claiming both sides of the same digit.
+    """
+    d_min = RELIABLE_CONFIDENCE ** 0.25
+    margin = STEP_DECAY - d_min
+    assert 0 < margin < 0.001, (
+        f"margin is now {margin:.5f}; the disclosures below assume it is tiny")
+
+    # the 5% SSE band straddles the flip point, so the flip is unresolvable
+    band = _eval_script().sse_band(_measured_accuracy())
+    assert band[0] < d_min < band[1], (
+        f"flip point {d_min:.6f} no longer sits inside the SSE band {band}")
+
+    for name, text in (("report", _report_text()),
+                       ("rollout.py", _rollout_source())):
+        assert f"{margin:.5f}" in text, (
+            f"{name} does not state the {margin:.5f} margin the step-5 claim rests on")
+        assert "0.769161" in text, f"{name} does not state the flip threshold"
+
+
+def test_the_alternative_fit_is_disclosed():
+    """A linear-space fit on the same ratios fits them better and gives 0.7407.
+
+    Not mentioning it would make log space look like the only option rather than
+    a choice -- and the choice moves d by more than the bootstrap's resolution.
+    """
+    ev = _eval_script()
+    acc = _measured_accuracy()
+    d = ev.fit_decay(acc)[0]
+    d_lin, r2_lin, r2_lin_of_d_log = ev.fit_decay_linear(acc, d)
+
+    assert abs(d_lin - 0.7407) < 5e-4, d_lin
+    assert r2_lin > r2_lin_of_d_log, "linear space was supposed to fit better"
+
+    text = _report_text()
+    assert f"{d_lin:.4f}" in text, "the linear-space alternative is not reported"
+    assert f"{r2_lin:.3f}" in text and f"{r2_lin_of_d_log:.3f}" in text
+    assert "Log space is a CHOICE" in _rollout_source()
+
+
+def test_the_shipped_method_string_labels_its_sample_sizes(sim):
+    """The API payload carried "over 544 held-out prefixes, R^2 0.870" -- both
+    mislabelled. Whatever ships to a caller has to be the honest version."""
+    decay = sim["method"]["decay"]
+    assert "reports/rollout_decay.md" in decay
+    assert "fitted" in decay
+    assert "544 held-out prefixes from 29" in decay, (
+        "the payload must say what the 544 are and how many clusters they form")
+    assert "8 points in the regression" in decay or "points in the regression" in decay
+    assert "0.739" in decay, "the payload still quotes an R^2 it did not earn"
+    assert "R^2 0.870" not in decay
+
+
+def test_the_whole_measurement_reproduces_from_the_corpus():
+    """Re-run the experiment end to end and check every pinned number.
+
+    Slowest test in the file (~10s): it rolls 544 prefixes forward 8 steps each.
+    Worth it -- this is what stops MEASURED_HITS above from rotting into a second
+    set of magic numbers, and the only check that would catch the model itself
+    changing underneath the constant. The cheap tests above cover the fit
+    arithmetic and the disclosures; this one covers the corpus.
+    """
+    R = _eval_script().measure(quiet=True)
+
+    assert R["n"] == MEASURED_PREFIXES
+    assert R["n_seqs"] == MEASURED_SEQUENCES
+    assert R["n_points"] == REGRESSION_POINTS
+    assert [round(a * MEASURED_PREFIXES / 100) for a in R["acc"]] == MEASURED_HITS
+    assert round(R["d"], 2) == STEP_DECAY
+    assert abs(R["r2"] - 0.739) < 5e-4
+    assert R["horizon"] == 5
 
 
 def test_probabilities_stay_within_bounds(sim):

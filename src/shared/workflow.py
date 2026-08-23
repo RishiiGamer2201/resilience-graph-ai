@@ -454,10 +454,16 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
     # with the peak, which always sits at the final step where horizon confidence
     # is lowest. That guard only separates if there ARE steps past the reliable
     # horizon: once STEP_DECAY was measured at 0.77 instead of the invented 0.62,
-    # the reliable horizon moved from 3 to 5, and asking for exactly 5 made the
-    # headline and the peak the same step. Asking for 8 restores the gap without
-    # moving RELIABLE_CONFIDENCE, which would be tuning a threshold to preserve a
-    # conclusion.
+    # the reliable horizon moved out past 3, and asking for exactly as many steps
+    # as the horizon made the headline and the peak the same step. Asking for 8
+    # restores the gap without moving RELIABLE_CONFIDENCE, which would be tuning a
+    # threshold to preserve a conclusion.
+    #
+    # Deliberately not "moved from 3 to 5": whether it is 4 or 5 is inside the
+    # fit's own uncertainty -- 0.77^4 clears the 0.35 threshold by 0.0008, and a
+    # sequence-level bootstrap puts the horizon at step 5 in 52.5% of resamples
+    # and step 4 in 46.2% (reports/rollout_decay.md). This argument does not
+    # depend on which: roll further than you quote, whatever the answer is.
     from src.shared.rollout import FORECAST_HORIZON, simulate_progression
     progression = simulate_progression(inc.get("technique_ids", []), graph_view,
                                        k_steps=FORECAST_HORIZON, crown_jewels=critical)

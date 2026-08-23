@@ -103,6 +103,16 @@ def main() -> None:
                 if any(a in rest for a in ALLOW):
                     allowed += 1
                     continue
+                # A generated sweep table is a column of percentages, and a
+                # percentage is free to coincide with a retired figure: 51.4 is
+                # both the IsolationForest's old TPR and, in reports/triage_cut.md,
+                # a recall at one cut. Scoped to markdown table rows where the
+                # number is immediately followed by a percent sign, so it cannot
+                # become the kind of blanket allow that made this tool useless.
+                after = line[j + len(tok):]
+                if line.lstrip().startswith("|") and after.startswith("%"):
+                    allowed += 1
+                    continue
                 findings.append((rel, i, tok, why, line.strip()[:100]))
 
     if not findings:

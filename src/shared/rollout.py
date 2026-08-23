@@ -17,9 +17,10 @@ beam search over that distribution to produce a trajectory rather than a guess:
   * and the honest bit: confidence decays with horizon, and the module reports
     the decay instead of quoting step-8 probabilities as if they meant anything.
     The decay RATE is itself measured -- this module's own top-3 accuracy at each
-    horizon over 544 held-out prefixes, fitted and reproducible
-    (`reports/rollout_decay.md`, `scripts/eval_rollout_decay.py`). It was a made-up
-    0.62 until that experiment was run.
+    horizon, fitted and reproducible (`reports/rollout_decay.md`,
+    `scripts/eval_rollout_decay.py`). It was a made-up 0.62 until that experiment
+    was run. The fit is small (8 points, 1 parameter, from 544 prefixes in 29
+    sequences) and the report states what it does and does not support.
 
 Deterministic: same chain, same graph, same output. No sampling, no model
 opinion -- the probabilities are the Markov's own transition estimates.
@@ -59,13 +60,32 @@ MAX_HORIZON = 8
 #   step:  1      2      3      4      5      6      7      8
 #   top-3: 45.0%  30.0%  22.4%  14.3%  15.1%  11.8%   9.9%   9.7%
 #
-# Fitting acc(h)/acc(1) = d^(h-1) over n = 544 held-out prefixes gives d = 0.7726
-# at R^2 = 0.870. Shipped rounded to 0.77: an R^2 = 0.87 fit does not earn four
-# significant figures, and this number is rendered to the user.
+# Fitting acc(h)/acc(1) = d^(h-1) gives d = 0.7726, shipped rounded to 0.77.
 #
-# Honest limits, in full in the report, and the second one is serious:
+# Three different n's, none of them interchangeable -- the report used to print
+# the middle one wherever a regression's n belongs, which overstated the fit 68x:
+#   * 8   data points in the regression (one accuracy per horizon), 1 free
+#     parameter. This is the fit's actual n. `fit_decay()` takes a list of 8
+#     accuracies and nothing else.
+#   * 544 held-out prefixes the 8 accuracies were averaged FROM. Not rows in the
+#     least squares.
+#   * 29  test sequences those 544 prefixes come from. Consecutive prefixes of one
+#     sequence share 7 of their 8 targets and the top 5 sequences supply 57% of
+#     the prefixes, so ~29 is far closer to the effective sample size than 544.
+#     Resampling SEQUENCES puts the 95% interval on d at [0.720, 0.804].
+#
+# R^2 = 0.739 on the 7 decaying points. (0.870 if the r(1)=1 anchor is counted,
+# which is what was reported before -- that point is (0, log(acc[0]/acc[0])) = 0
+# by construction, so it cannot move the slope but does inflate ss_tot. It stays
+# in the fit as a real constraint; it stays out of the quoted R^2.)
+#
+# Honest limits, in full in the report, and the last one is serious:
 #   * A single geometric constant cannot express the real shape -- steep from step
 #     1 to 2, then flattening -- so it under-states the early drop.
+#   * Log space is a CHOICE. A linear-space fit on the same ratios gives d = 0.7407
+#     and fits those ratios better (R^2 0.942 vs 0.914 on that scale). Log space is
+#     kept because the constant is used multiplicatively, so relative error is what
+#     matters -- but the fit space, not the data, is what decides the 2nd decimal.
 #   * The held-out sequences are kill-chain-ordered, so part of the accuracy
 #     retained at long horizons is that ordering being re-learned. On the 4
 #     hand-verified CERT-In sequences (report-ordered, the only non-circular data
@@ -85,16 +105,35 @@ STEP_DECAY = 0.77
 # moving a threshold to preserve a conclusion is the thing this file exists to
 # avoid. This threshold is a stated editorial line, not a measured one.
 #
-# Consequence worth knowing: the measured decay (0.77) is gentler than the made-up
-# 0.62 it replaced, so the reliable horizon moved from step 3 to step 5. Callers
-# were asking for exactly 5, which made the headline the LAST step and collapsed
-# it onto the peak the guard exists to hold back. That was fixed by asking for
-# more steps than we intend to quote (see FORECAST_HORIZON), not by lowering this
-# number until the answer looked better.
+# Consequence worth knowing, WITH its sensitivity, because the two must be quoted
+# together: the measured decay (0.77) is gentler than the made-up 0.62 it replaced,
+# so the reliable horizon moved from step 3 to step 5 -- but that "5" is decided by
+# a margin of 0.00084 and is not a robust finding.
+#
+#     step 5 is reliable iff d^4 >= 0.35, i.e. d >= 0.35^(1/4) = 0.769161
+#     shipped d = 0.77  ->  0.77^4 = 0.35153  ->  clears by 0.00084
+#
+# Any d in [0.765, 0.780] is within 5% of the fit's minimum SSE, and that band
+# straddles 0.769161. Of 2000 sequence-level bootstrap replicates, 52.5% give
+# step 5 and 46.2% give step 4 -- as does the linear-space fit (d = 0.7407), and
+# as would rounding one 2dp tick down to 0.76. The fit cannot resolve the side.
+#
+# So: the horizon moved somewhere NORTH OF 3. "3 to 5" is the point estimate, not
+# an established result, and it must not be quoted as one -- the same report that
+# ships this constant also says the fit does not earn four significant figures,
+# and this conclusion turns on the fourth. See reports/rollout_decay.md.
+#
+# Callers were asking for exactly 5, which made the headline the LAST step and
+# collapsed it onto the peak the guard exists to hold back. That was fixed by
+# asking for more steps than we intend to quote (see FORECAST_HORIZON), not by
+# lowering this number until the answer looked better -- and note that
+# FORECAST_HORIZON = 8 leaves headroom whether the true horizon is 4 or 5.
 RELIABLE_CONFIDENCE = 0.35
 
 # How many steps callers roll. Deliberately further than the reliable horizon,
-# which at STEP_DECAY 0.77 and RELIABLE_CONFIDENCE 0.35 is step 5.
+# which at STEP_DECAY 0.77 and RELIABLE_CONFIDENCE 0.35 is step 5 -- though see
+# above: that 5 clears its threshold by 0.00084 and could as easily be 4. 8 leaves
+# headroom either way, which is part of why it is not pinned to the horizon.
 #
 # `_headline` leads with the furthest step still worth quoting rather than the
 # peak, and the peak is always the last step. That distinction only exists if
@@ -258,7 +297,14 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
                       f"38.1% top-3 for one step is not 38.1% accurate {k_steps} "
                       f"steps out, and the timeline says so. {STEP_DECAY} is fitted, "
                       f"not chosen -- top-3 accuracy of this rollout measured at each "
-                      f"horizon over 544 held-out prefixes, R^2 0.870 "
+                      f"of {MAX_HORIZON} horizons and fitted with 1 free parameter, so "
+                      f"{MAX_HORIZON} points in the regression; those {MAX_HORIZON} "
+                      f"accuracies were averaged over 544 held-out prefixes from 29 "
+                      f"test sequences, which overlap heavily, so ~29 is nearer the "
+                      f"effective sample size and a sequence-level bootstrap puts d in "
+                      f"[0.720, 0.804]. R^2 0.739 on the decaying points (0.870 if the "
+                      f"r(1)=1 anchor is counted, which explains nothing). A "
+                      f"linear-space fit of the same ratios gives 0.7407. "
                       f"(reports/rollout_decay.md, reproduce with "
                       f"scripts/eval_rollout_decay.py)"),
             "deterministic": True,
