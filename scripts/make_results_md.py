@@ -25,6 +25,7 @@ L, C, U = M["engine1"]["lanl"], M["engine1"]["cicids"], M["engine1"]["unsw"]
 P, E = M["engine2"]["predictor"], M["engine2"]["embeddings"]
 PS7 = M.get("ps7", {})
 RET = M.get("retrieval", {}).get("gold_set", {})
+CMP = M.get("retrieval", {}).get("comparison", {})
 
 
 def pct(x):
@@ -183,6 +184,48 @@ this model consumes flow records.
 ### Packet-level features
 
 {packet_para}
+"""
+
+
+def retrieval_backend_note() -> str:
+    """Say which retriever produced the retrieval rows, and which one ships.
+
+    The gold-set numbers in section 6 are the LEXICAL index, because that is the
+    only retriever in the deploy image: `requirements-deploy.txt` ships neither
+    chromadb nor sentence-transformers, and the Dockerfile never COPYs the Chroma
+    store. The semantic numbers are real but unshipped, so they get labelled here
+    rather than headlined anywhere. Reasoning and cost recorded in ADR 0008.
+    """
+    lx, sm = CMP.get("lexical"), CMP.get("semantic")
+    if not lx or not sm:
+        return ""
+    return f"""
+**Which retriever produced those rows: the lexical one, and it is the one that
+ships.** `requirements-deploy.txt` deliberately excludes `chromadb` and
+`sentence-transformers`, so the deployed container answers every query from the
+bundled BM25 index. The retrieval rows above are the numbers that container
+produces, not a better number measured on a machine with more installed.
+
+A semantic retriever (MiniLM + ChromaDB) does score better on a shared subset,
+and it is **full install only, not in the deployed image**:
+
+| Retriever | Recall@1 | Recall@5 | MRR | p50 | In the deployed image |
+|---|---|---|---|---|---|
+| Lexical BM25, bundled | {pct(lx['recall_at_1'])} | {pct(lx['recall_at_5'])} | {lx['mrr']:.3f} | {lx['latency_ms_median']} ms | **yes, this is what ships** |
+| MiniLM + ChromaDB | {pct(sm['recall_at_1'])} | {pct(sm['recall_at_5'])} | {sm['mrr']:.3f} | {sm['latency_ms_median']} ms | no, full install only |
+
+Scored over {CMP.get('shared_queries', 0)} shared queries at k={CMP.get('k', 5)}; the
+{CMP.get('bundled_only_queries', 0)} queries answerable only from the bundled index
+are excluded from both sides. Full workings in `reports/retrieval_compare.md`.
+
+The cost of shipping the weaker one is
+{(sm['recall_at_5'] - lx['recall_at_5']) * 100:.0f} percentage points of recall@5.
+The reason is measured, not assumed: `sentence-transformers` pulls torch for
+1.09 GB of installed dependencies against a 512 MB free-tier instance, and the
+query path loads MiniLM at request time from a weights file that is neither
+vendored nor pre-fetched, so the first query in a fresh container would reach out
+to HuggingFace and break the offline guarantee. ADR 0008 records the decision and
+what would reverse it.
 """
 
 
@@ -354,13 +397,13 @@ clone with no dataset download.
 | MITRE mitigation coverage of observed techniques | {mit_cov} |
 | Actions executed against real systems | {executed} (by design) |
 | Investigation latency, p50 then p95 | {p50} ms then {p95} ms |
-| Evidence recall@1 then recall@5 | {r1} then {r5} |
-| Evidence MRR | {mrr} |
+| Evidence recall@1 then recall@5 (lexical, the shipped backend) | {r1} then {r5} |
+| Evidence MRR (lexical, the shipped backend) | {mrr} |
 | Citation integrity failures | {integrity} |
 | Audit tampering detected | {tamper} |
 | Unauthorised approval blocked server side | {denied} |
 | Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
-
+{retrieval_backend_note()}
 ## 7. Engineering
 
 - {n_tests} automated tests, no network required (pipeline correctness, multi-pivot
@@ -393,7 +436,7 @@ clone with no dataset download.
 """
     OUT.write_text(md, encoding="utf-8")
     # guard: the style rule bans em/en dashes
-    assert "—" not in md and "–" not in md, "em/en dash leaked into RESULTS.md"
+    assert "--" not in md and "-" not in md, "em/en dash leaked into RESULTS.md"
     print(f"wrote {OUT.relative_to(ROOT)} ({len(md.splitlines())} lines)")
 
 

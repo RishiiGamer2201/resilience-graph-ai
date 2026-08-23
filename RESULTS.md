@@ -235,17 +235,44 @@ clone with no dataset download.
 | SOAR playbook coverage of observed tactics | 100.0% |
 | MITRE mitigation coverage of observed techniques | 100.0% |
 | Actions executed against real systems | 0 (by design) |
-| Investigation latency, p50 then p95 | 790 ms then 1411 ms |
-| Evidence recall@1 then recall@5 | 64.3% then 85.7% |
-| Evidence MRR | 0.717 |
+| Investigation latency, p50 then p95 | 220 ms then 1894 ms |
+| Evidence recall@1 then recall@5 (lexical, the shipped backend) | 64.3% then 85.7% |
+| Evidence MRR (lexical, the shipped backend) | 0.717 |
 | Citation integrity failures | 0 |
 | Audit tampering detected | yes |
 | Unauthorised approval blocked server side | yes |
 | Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
 
+**Which retriever produced those rows: the lexical one, and it is the one that
+ships.** `requirements-deploy.txt` deliberately excludes `chromadb` and
+`sentence-transformers`, so the deployed container answers every query from the
+bundled BM25 index. The retrieval rows above are the numbers that container
+produces, not a better number measured on a machine with more installed.
+
+A semantic retriever (MiniLM + ChromaDB) does score better on a shared subset,
+and it is **full install only, not in the deployed image**:
+
+| Retriever | Recall@1 | Recall@5 | MRR | p50 | In the deployed image |
+|---|---|---|---|---|---|
+| Lexical BM25, bundled | 60.0% | 80.0% | 0.683 | 2.7 ms | **yes, this is what ships** |
+| MiniLM + ChromaDB | 70.0% | 100.0% | 0.850 | 6.3 ms | no, full install only |
+
+Scored over 10 shared queries at k=5; the
+4 queries answerable only from the bundled index
+are excluded from both sides. Full workings in `reports/retrieval_compare.md`.
+
+The cost of shipping the weaker one is
+20 percentage points of recall@5.
+The reason is measured, not assumed: `sentence-transformers` pulls torch for
+1.09 GB of installed dependencies against a 512 MB free-tier instance, and the
+query path loads MiniLM at request time from a weights file that is neither
+vendored nor pre-fetched, so the first query in a fresh container would reach out
+to HuggingFace and break the offline guarantee. ADR 0008 records the decision and
+what would reverse it.
+
 ## 7. Engineering
 
-- 493 automated tests, no network required (pipeline correctness, multi-pivot
+- 515 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
