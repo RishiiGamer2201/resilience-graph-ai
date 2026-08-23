@@ -293,3 +293,30 @@ def test_relative_anchors_stay_ordered_on_a_degenerate_log():
     assert ref["p50"] < ref["p99"] < ref["hi"], ref
     scores = detector.calibrate(np.full(40, 0.5), ref)
     assert np.all(np.isfinite(scores)), scores
+
+
+def test_the_triage_cut_is_not_tuned_to_flatter_the_demo():
+    """The strongest available answer to "did you pick 80 because it looks good?"
+
+    A fixed percentile means precision cannot fall until the ranking puts a
+    benign event above the cut, so "100% precision" on these scenarios is partly
+    a property of the budget. The defence is not that the number is impressive,
+    it is that a DEEPER cut would report a better one: on both labelled logs
+    precision holds at 100% well past the shipped cut, so the default leaves true
+    positives unreported at no precision cost.
+
+    If someone later moves TRIAGE_PERCENTILE to squeeze the headline, this fails.
+    """
+    from scripts.eval_triage_cut import _scored, sweep
+    from src.shared import detector
+
+    for name in ("aiims_ransomware", "cbse_exam_breach"):
+        rows = sweep(*_scored(name))
+        shipped = next(r for r in rows if r["pct"] == detector.TRIAGE_PERCENTILE)
+        deeper = [r for r in rows
+                  if r["pct"] < detector.TRIAGE_PERCENTILE and r["precision"] >= 1.0]
+        assert deeper, f"{name}: no deeper cut keeps perfect precision"
+        best = max(deeper, key=lambda r: r["recall"])
+        assert best["recall"] > shipped["recall"], (
+            f"{name}: the shipped cut is now the best-scoring one available at "
+            f"perfect precision, which is what tuning to the demo would look like")

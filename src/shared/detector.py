@@ -239,10 +239,22 @@ def relative_anchors(raw) -> dict:
         cbse_exam_breach   ROC 0.988   PR 0.975
 
     So rank the events and surface the top slice for triage. At the 80th
-    percentile that is recall 71% / precision 100% on AIIMS and 70% / 100% on
-    CBSE. The percentile is an OPERATIONAL choice -- "show an analyst the top fifth
-    of this log" -- not an estimate of how much of it is malicious, and callers
-    must present it that way.
+    percentile that is recall 71.4% / precision 100% on AIIMS and 70.3% / 100% on
+    CBSE. The percentile is an OPERATIONAL choice -- "show an analyst the top
+    fifth of this log" -- not an estimate of how much of it is malicious, and
+    callers must present it that way.
+
+    Both of those figures are precision@k and recall@k, and should never be
+    quoted without the cut beside them: a fixed budget means precision cannot
+    fall until the ranking puts a benign event above the line, and recall is
+    capped by the budget rather than by the detector.
+
+    The cut is not fitted, and `reports/triage_cut.md` is the evidence rather than
+    the assertion. It sweeps every cut on both labelled logs and shows the default
+    is CONSERVATIVE: precision holds at 100% to top 22% on AIIMS and top 25% on
+    CBSE, so 20% leaves 3 and 6 true positives unreported at no precision cost. A
+    cut chosen to flatter the demo would sit at the other end of that range, and
+    a test fails if it ever moves there.
     """
     raw = np.asarray(raw, dtype="float64")
     p50 = float(np.percentile(raw, 50))
