@@ -146,6 +146,34 @@ descriptions, the K sweep and three rejected lambda-fitting protocols. Engine 3
 is **not in the live demo path**: the demo scenarios are authentication logs and
 this model consumes flow records.
 
+### Packet-level features
+
+`src/engine3/packets.py` reads a capture file and extracts
+**30 packet-level features** per window, emitting the same
+60-dimensional vector the flow model uses, so a PCAP feeds the world
+model above unchanged. Covered: TTL mean, variance and cardinality; TCP window
+mean, deviation and zero rate; fragment, don't-fragment and more-fragments
+rates; payload length mean, deviation, zero rate and Shannon entropy; the TCP
+flag distribution; a port-scan signature built from unique destination ports,
+ports per host and SYN-without-ACK rate; and a retransmission rate counted from
+repeated (flow, sequence) pairs carrying payload.
+
+Two readers: Scapy and a stdlib reader. Classic pcap parses with `struct` alone, so the slim
+deployed image keeps every packet feature without a new dependency; Scapy is
+used when present because it handles pcapng and awkward link types properly.
+The two are cross-checked on the same file and must agree exactly. That check
+earned its keep immediately: the stdlib reader had been parsing the leading
+bytes of a non-first IP fragment as a TCP header, inventing ports and sequence
+numbers out of payload continuation and manufacturing retransmissions from them.
+
+**Detection accuracy on packet data is Not measured.** No labelled capture
+ships with this repository, so there is no honest number and none is given. What
+is verified is that every feature computes what it claims, against frames whose
+properties the tests chose: 29 tests in `tests/test_packets.py`. Running
+`python -m scripts.eval_pcap <file>` against a labelled capture produces a real
+number with no code changes.
+
+
 ## 4. Operational output (live campaign analysis)
 
 Live run of the full LANL red-team campaign through the complete pipeline.
@@ -200,7 +228,7 @@ clone with no dataset download.
 
 ## 7. Engineering
 
-- 415 automated tests, no network required (pipeline correctness, multi-pivot
+- 490 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

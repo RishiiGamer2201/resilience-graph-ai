@@ -33,6 +33,16 @@ uvicorn>=0.29          # ASGI server
 httpx>=0.27            # TestClient + live-endpoint checks
 matplotlib>=3.7        # charts (PR curves, graphs)
 
+# --- Packet-level features (src/engine3/packets.py) ---
+# OPTIONAL. Pure Python, no C extension, no libpcap needed for file reading.
+# Deliberately NOT in requirements-deploy.txt: the module ships a stdlib reader
+# that parses classic pcap with `struct` alone, so the slim image keeps every
+# packet feature without the dependency. Scapy is used when present because it
+# handles pcapng, unusual link types and malformed frames properly, and because
+# the SIH problem statement names it. The two readers are cross-checked against
+# each other in tests/test_packets.py and must agree exactly.
+scapy>=2.5
+
 # --- Utilities ---
 tqdm>=4.65             # progress bars (streaming LANL, etc.)
 pyyaml>=6.0            # configs/

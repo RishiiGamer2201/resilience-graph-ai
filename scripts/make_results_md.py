@@ -72,13 +72,55 @@ protocol in `reports/lanl_redteam_detection.md`; the two are not comparable.
 """
 
 
+def packet_paragraph() -> str:
+    """Requirements 7 and 8. Implemented and correctness-tested; not measured.
+
+    Written as a function rather than prose so the feature count and the reader
+    availability come from the module instead of from memory.
+    """
+    try:
+        from src.engine3.packets import (PACKET_FEATURES, STATE_DIM,
+                                         scapy_available)
+    except Exception:
+        return "**Not available.** src/engine3/packets.py failed to import."
+    reader = ("Scapy and a stdlib reader" if scapy_available()
+              else "a stdlib reader (Scapy not installed here)")
+    return f"""`src/engine3/packets.py` reads a capture file and extracts
+**{len(PACKET_FEATURES)} packet-level features** per window, emitting the same
+{STATE_DIM}-dimensional vector the flow model uses, so a PCAP feeds the world
+model above unchanged. Covered: TTL mean, variance and cardinality; TCP window
+mean, deviation and zero rate; fragment, don't-fragment and more-fragments
+rates; payload length mean, deviation, zero rate and Shannon entropy; the TCP
+flag distribution; a port-scan signature built from unique destination ports,
+ports per host and SYN-without-ACK rate; and a retransmission rate counted from
+repeated (flow, sequence) pairs carrying payload.
+
+Two readers: {reader}. Classic pcap parses with `struct` alone, so the slim
+deployed image keeps every packet feature without a new dependency; Scapy is
+used when present because it handles pcapng and awkward link types properly.
+The two are cross-checked on the same file and must agree exactly. That check
+earned its keep immediately: the stdlib reader had been parsing the leading
+bytes of a non-first IP fragment as a TCP header, inventing ports and sequence
+numbers out of payload continuation and manufacturing retransmissions from them.
+
+**Detection accuracy on packet data is Not measured.** No labelled capture
+ships with this repository, so there is no honest number and none is given. What
+is verified is that every feature computes what it claims, against frames whose
+properties the tests chose: 29 tests in `tests/test_packets.py`. Running
+`python -m scripts.eval_pcap <file>` against a labelled capture produces a real
+number with no code changes.
+"""
+
+
 def netstate_section() -> str:
     """Engine 3: the world model over network state. Both halves of the result."""
+    packet_para = packet_paragraph()
     N = M.get("engine3", {}).get("netstate")
     if not N:
         return ("## 3. World model over network state (Engine 3)\n\n"
                 "**Not measured.** Run `python -m scripts.eval_netstate` with the "
-                "CIC-IDS2017 parquet present.\n")
+                "CIC-IDS2017 parquet present.\n\n### Packet-level features\n\n"
+                + packet_para + "\n")
     return f"""## 3. World model over network state (Engine 3)
 
 `P(S_t+1 | S_t)` where `S_t` is observed traffic, not an ATT&CK label. Written
@@ -137,6 +179,10 @@ leave-one-day-out; reading them off the test days instead would have scored
 descriptions, the K sweep and three rejected lambda-fitting protocols. Engine 3
 is **not in the live demo path**: the demo scenarios are authentication logs and
 this model consumes flow records.
+
+### Packet-level features
+
+{packet_para}
 """
 
 

@@ -16,8 +16,12 @@ it. Purely offline it only draws with persistence at 0.357.
 `reports/netstate.md` carries both figures and the two failed attempts between
 them.
 
-What remains genuinely absent is packet-level analysis (requirements 7 and 8)
-and results on CTU-13 or CIC-IDS2018 (requirement 9).
+Packet-level features and PCAP ingestion (requirements 7 and 8) are now
+implemented in `src/engine3/packets.py`, with the honest caveat that no
+detection accuracy is claimed for them: no labelled capture ships with this
+repository. What remains genuinely absent is requirement 9, CTU-13 and
+CIC-IDS2018 — which is also what would turn the packet path from *implemented*
+into *measured*.
 
 ---
 
@@ -31,8 +35,8 @@ and results on CTU-13 or CIC-IDS2018 (requirement 9).
 | 4 | Map predicted behaviour to MITRE ATT&CK stages | **Yes** | Every predicted step carries its ATT&CK tactic; every emitted ID is validated against parsed STIX (100% ID validity, `reports/ps7_eval.md`) |
 | 5 | Explainability via attention or feature attribution | **Yes** | **EXACT Shapley values** per feature (`src/shared/attribution.py`), surfaced in stage 4 of the explainability trace. Seven features means 128 coalitions, so the full enumeration is computed rather than approximated — no sampling error, and the efficiency axiom is asserted at runtime. Plus the 11-stage provenance trace and per-factor attribution in vulnerability scoring |
 | 6 | Flow-level features (TCP flags, IAT statistics, bidirectional ratios) | **Yes, in engine3** | All three are in the engine3 state vector by name: FIN/SYN/RST/PSH/ACK/URG flag counts, Flow IAT mean/std/max/min, Down/Up ratio and forward/backward packet rates. Not in the *live demo* path, which ingests authentication logs — see the integration note below |
-| 7 | Packet-level features (TTL variance, TCP window, fragment flags, payload distribution, port-scan signatures, retransmissions) | **Absent** | Nothing packet-level anywhere in the codebase |
-| 8 | PCAP ingestion via Scapy or PyShark | **Absent** | We ingest CSV only |
+| 7 | Packet-level features (TTL variance, TCP window, fragment flags, payload distribution, port-scan signatures, retransmissions) | **Implemented, not measured** | `src/engine3/packets.py`: **30 features**, covering every category the PS names. `ttl_var` / `ttl_mean` / `ttl_unique`; `tcp_window_mean` / `_std` / `_zero_rate`; `frag_rate` / `dont_fragment_rate` / `more_fragments_rate`; `payload_mean` / `_std` / `_zero_rate` / `_entropy`; `unique_dst_ports` / `unique_dst_hosts` / `syn_without_ack_rate` / `ports_per_host` / `portscan_score`; `retransmission_rate`. **No detection accuracy is claimed** — no labelled capture is bundled. What is verified is that each feature computes what it claims, against frames whose properties the test chose (29 tests) |
+| 8 | PCAP ingestion via Scapy or PyShark | **Yes, two readers** | **Scapy** when installed (pcapng, unusual link types, malformed frames) and a **stdlib reader** parsing classic pcap with `struct` alone, so the slim deployed image keeps every packet feature with no new dependency. The two are cross-checked on the same file in `tests/test_packets.py` and must agree exactly, which is how a real bug was caught (see below) |
 | 9 | CIC-IDS2018 or CTU-13 | **Absent** | We use CIC-IDS2017 (engine1 and engine3), UNSW-NB15 and LANL. The PS names 2018 and CTU-13 explicitly, though it also lists ours as acceptable |
 | 10 | Benchmark vs a logistic-regression baseline on the same features | **Yes, and we lose it** | `scripts/eval_lr_baseline.py`. Supervised LR on the identical seven features reaches TPR@1%FPR **0.919 vs our 0.901** and PR-AUC **0.088 vs 0.009**. Published in `reports/lr_baseline.md` with its three qualifiers: LR trains on labels a novel campaign would not have, the stratified split puts one campaign on both sides, and at a usable threshold LR collapses (F1 0.004 at 3.1% FPR) |
 | 11 | Offline demo interface, no cloud APIs | **Yes** | React SPA + FastAPI in one container, runs with no key and no network |
@@ -89,10 +93,12 @@ Hyperparameters were fitted leave-one-day-out on the training days. Reading them
 off the test days instead would have scored 0.4243; that number appears nowhere
 except as a note on what tuning on the test set buys.
 
-**What would still improve it**, in order: closing the remaining five points to
-the oracle; a time-based rather than count-based window, which needs a timestamp
-column CIC-IDS2017 does not ship; and per-host state, which needs the address
-columns this parquet drops.
+**What would still improve it**, in order: a labelled packet capture, because
+`src/engine3/packets.py` already emits the same window vector and the model
+would take it unchanged; closing the remaining five points to the oracle; a
+time-based rather than count-based window, which needs a timestamp column
+CIC-IDS2017 does not ship; and per-host state, which needs the address columns
+this parquet drops but a PCAP does carry.
 
 ### Integration note
 
@@ -111,7 +117,8 @@ results appear on the scoreboard and in `RESULTS.md`; the model runs from
 | ~~SHAP attribution on the detector~~ | done | — | **Closed.** Exact Shapley, not approximated |
 | ~~K-step forward simulation~~ | done | — | **Closed.** `src/shared/rollout.py`, requirement 3 |
 | ~~Network-state transition model~~ | done | — | **Closed** on CIC-IDS2017. `src/engine3/netstate.py`, requirements 1, 2, 3 and 6 |
-| PCAP ingestion + packet features (Scapy) | 2–3 days | Unlocks requirements 7 and 8 outright | **Do it** if targeting this PS |
+| ~~PCAP ingestion + packet features~~ | done | — | **Closed.** `src/engine3/packets.py`, requirements 7 and 8. Two cross-checked readers, 30 features, 29 tests |
+| Point the packet path at a labelled capture | 1 day once the data is in hand | Turns requirement 7 from *implemented* into *measured* | **Do it** — this is data, not code |
 | ~~Beat persistence on next-state prediction~~ | done | — | **Closed** by causal online adaptation, 0.396 vs 0.362. A higher-order model was tried first and lost |
 | Close the remaining gap to the oracle, 0.396 → 0.448 | 3–5 days | Five points of headroom that provably exist | **Optional** — the oracle proves they are reachable |
 | Re-run engine3 on CTU-13 / CIC-IDS2018 | 2–3 days | Requirement 9, and evidence the model is not CIC-IDS2017-specific | **Do it** if targeting this PS |
@@ -142,17 +149,24 @@ results appear on the scoreboard and in `RESULTS.md`; the model runs from
   days reaches 0.448, so about five points provably remain;
 - that engine3 runs in the live demo. It does not — the demo ingests auth logs
   and engine3 consumes flow records;
-- packet-level analysis of any kind;
+- any measured detection performance on packet data. The features are
+  implemented and their correctness is tested against frames we constructed;
+  accuracy is **Not measured**, because no labelled capture ships here;
 - results on CTU-13 or CIC-IDS2018;
 - that we beat a supervised baseline on this dataset. We do not. Logistic
   regression on the same features ranks better, and the reasons that matters
   less than it looks are written down rather than left out.
 
-Six requirements have closed: network-state representation (1), transition
-dynamics (2), forecasting (3), forward simulation (3), exact Shapley attribution
-(5), flow-level features (6) and the logistic-regression benchmark (10).
+Eight requirements have closed: network-state representation (1), transition
+dynamics (2), forecasting and forward simulation (3), exact Shapley attribution
+(5), flow-level features (6), packet-level features (7), PCAP ingestion (8) and
+the logistic-regression benchmark (10).
 Requirement 2 closed with a measured weakness rather than a clean win, and the
 weakness is the interesting part: a first-order transition matrix over quantised
 traffic states is a good risk model and a mediocre forecaster, and we can show
-exactly how mediocre. What stays open is packet-level analysis (7, 8) and the
-two datasets the PS names first (9).
+exactly how mediocre.
+
+What stays open is requirement 9, the two datasets the PS names first, and it is
+now the single thing standing between *implemented* and *measured* for the
+packet path: CTU-13 and CIC-IDS2018 ship the labelled captures that
+`python -m scripts.eval_pcap <file>` needs in order to produce a real number.

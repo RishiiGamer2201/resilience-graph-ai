@@ -70,7 +70,7 @@ self_checks() {
            src.shared.evidence src.shared.vuln src.shared.twin src.shared.rbac \
            src.shared.audit src.shared.scoreboard src.shared.explain src.shared.claims \
            src.shared.casefile src.shared.crosscheck src.shared.rollout src.shared.enrich src.shared.attribution \
-                 src.engine3.netstate src.shared.chat_advisor src.shared.llm \
+                 src.engine3.netstate src.engine3.packets src.shared.chat_advisor src.shared.llm \
            src.shared.workflow; do
     "$PY" -m "$m" || return 1
   done
