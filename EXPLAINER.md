@@ -508,11 +508,19 @@ is mobile-heavy.
 
 **Two results worth dwelling on.**
 
-*The NTLM ablation.* 100% of the red-team logins used the older NTLM protocol versus ~6% of
-benign ones — a powerful but **dataset-specific and evadable** signal (the attacker could just
-switch protocols). So we deleted that feature and re-ran: **ROC-AUC 0.906**. The detection is
-driven by generalisable behaviour, not one brittle artifact. Most teams would have kept the
-0.992 quietly.
+*The NTLM ablation, and it goes against us.* 100% of the red-team logins used the older NTLM
+protocol versus ~6% of benign ones, a powerful but **dataset-specific and evadable** signal
+(the attacker just switches to Kerberos). So we deleted that feature and re-ran. ROC-AUC
+barely moves, **0.992 to 0.906** -- and for a while that was the only number we quoted, with
+the conclusion that NTLM was "not a brittle artifact". It was the wrong metric to quote. At
+the 1% false-positive operating point an analyst actually runs at, recall collapses **87.7%
+to 22.8%**, a 74% relative drop. ROC-AUC integrates over thresholds nobody would ever use,
+which is precisely why it concealed this.
+
+The honest reading: this detector leans heavily on one evadable protocol flag, the
+behavioural features alone are much weaker than the headline implies, and the fix is more
+signal rather than better wording. We publish both numbers now, and the withdrawn conclusion,
+because the ablation was worth running only if we were willing to lose it.
 
 *The rule baseline is worse than random.* A naive "high packet rate" rule scores PR-AUC 0.098
 against a random floor of 0.155 — because stealthy attacks have *low* volume. We report this

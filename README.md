@@ -4,8 +4,10 @@
 
 > Detect low-and-slow attacks in real infrastructure logs, connect weak signals into an
 > explainable MITRE ATT&CK attack chain, predict the attacker's next moves, name the likely
-> actor, cross-reference live external threat intel, and recommend gated containment —
-> cutting detection time from weeks to minutes.
+> actor, cross-reference live external threat intel, and recommend gated containment.
+> On the shipped synthetic scenarios the first correlated alert lands 2 hours into
+> the log; the "weeks" it is compared against is a cited Mandiant dwell median,
+> not something we measured.
 
 An AI-augmented **SOC Command Center**: a FastAPI backend + React SPA where every screen
 renders a **live analysis** of an event log you choose or upload — no hardcoded demo data.

@@ -191,7 +191,8 @@ flowchart TB
 | **LANL** (the moat) | **ROC-AUC** | **0.992** | vs **702 real red-team events** |
 | LANL | TPR @ 5% FPR | **96.6%** | 678 / 702 caught |
 | LANL | TPR @ 1% FPR | 87.7% | strict operating point |
-| LANL | Behavioural-only ROC (NTLM ablated) | **0.906** | not a protocol crutch |
+| LANL | Behavioural-only ROC (NTLM ablated) | 0.906 | ROC barely moves |
+| LANL | **Behavioural-only TPR @ 1% FPR (NTLM ablated)** | **22.8%** | **down from 87.7%: NTLM carries most of it** |
 | CIC-IDS2017 | PR-AUC (autoencoder) | **0.570** | best model |
 | CIC-IDS2017 | PR-AUC (IsolationForest) | 0.473 | **3.1× random**, **4.8× rule** |
 | UNSW-NB15 | ROC-AUC | **0.829** | 2nd benchmark, official split |
