@@ -436,19 +436,21 @@ def _map_ranked_chains(agent_summary: dict) -> list[dict]:
     return out
 
 
-def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
+def _map_agent_graph(agent_summary: dict, base_graph: dict | None) -> dict:
     """Map the KB Connector's entity graph as advisory data.
 
     This graph is not the attack-path topology used by the twin. It may contain
     users or external IPs, so it must never replace the host graph's nodes/edges.
     """
+    base_graph = base_graph if isinstance(base_graph, dict) else {}
+
     kb_graph = _agent_output(agent_summary, "kb_connector").get("graph_view", {})
     observer_nodes = _agent_output(agent_summary, "graph_observer").get("nodes", [])
     raw_nodes = kb_graph.get("nodes") or observer_nodes
     raw_edges = kb_graph.get("edges") or []
 
     if not raw_nodes:
-        return None
+        return base_graph
 
     # The KB connector emits an ENTITY graph (users, external IPs). The attack
     # graph is a HOST topology, and the digital twin simulates containment on it.
@@ -473,8 +475,8 @@ def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
             "type": node_type,
             "label": node.get("label", node_id),
             "critical": bool(node.get("critical") or node_type == "critical_asset" or node_id in critical_assets),
-            "pivot": node_id == entry_host or node_type in {"user", "external_ip"},
-            "entry": node_id == entry_host,
+            "pivot": bool(node.get("pivot") or node_id == entry_host or node_type in {"user", "external_ip"}),
+            "entry": bool(node.get("entry") or node_id == entry_host),
             "meta": node.get("meta", {}),
         })
 
@@ -492,8 +494,8 @@ def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
             "relation": edge.get("relation", "related"),
             "technique": edge.get("technique") or "-",
             "tactic": edge.get("tactic", ""),
-            "score": edge.get("score", 0),
-            "event_count": edge.get("event_count", 1),
+            "score": float(edge.get("score") if edge.get("score") is not None else 50.0),
+            "event_count": int(edge.get("event_count") if edge.get("event_count") is not None else 1),
             "users": edge.get("users", []),
             "first_seen": edge.get("timestamp", edge.get("first_seen", 0)),
             "last_seen": edge.get("timestamp", edge.get("last_seen", 0)),
@@ -529,6 +531,8 @@ def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
     if not graph.get("attacker_pivots"):
         graph["attacker_pivots"] = [n["id"] for n in nodes if n["pivot"]][:5]
     graph["n_pivots"] = len(graph.get("attacker_pivots", []))
+    graph.setdefault("paths_to_critical", {})
+    graph.setdefault("critical_assets_at_risk", list(critical_assets))
     return graph
 
 

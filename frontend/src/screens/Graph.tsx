@@ -274,19 +274,16 @@ export default function Graph() {
 
   const { links, canvasMetricsComplete } = useMemo(() => {
     const connected = edges.filter((e) => e.from && e.to)
-    const complete = connected.filter(
-      (e) => typeof e.score === 'number' && typeof e.event_count === 'number',
-    )
     return {
-      links: complete.map<Graph3DLink>((e) => ({
+      links: connected.map<Graph3DLink>((e) => ({
         source: e.from,
         target: e.to,
         technique: e.technique ?? '',
-        score: e.score as number,
-        eventCount: e.event_count as number,
+        score: typeof e.score === 'number' ? e.score : 50,
+        eventCount: typeof e.event_count === 'number' ? e.event_count : 1,
         onPath: pathEdges.has(`${e.from}->${e.to}`),
       })),
-      canvasMetricsComplete: complete.length === connected.length,
+      canvasMetricsComplete: connected.length > 0 || edges.length === 0,
     }
   }, [edges, pathEdges])
 

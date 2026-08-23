@@ -51,6 +51,14 @@ from dataclasses import dataclass, field
 
 from src.shared.nethttp import fetch_url
 
+try:
+    from dotenv import load_dotenv
+    from pathlib import Path
+    _ROOT = Path(__file__).resolve().parents[2]
+    load_dotenv(_ROOT / ".env", override=False)
+except Exception:
+    pass
+
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 GEMINI_URL_FMT = ("https://generativelanguage.googleapis.com/v1beta/models/"
                   "{model}:generateContent")
@@ -197,8 +205,13 @@ def _openai(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
                  "Authorization": f"Bearer {_key('OPENAI_API_KEY')}"},
         data=body, timeout=timeout, max_bytes=MAX_BYTES,
     )
-    text = json.loads(raw)["choices"][0]["message"]["content"].strip()
-    return LLMResult(text=text, provider="openai", model=model, ok=bool(text))
+    data = json.loads(raw)
+    choices = data.get("choices", [])
+    if not choices or not isinstance(choices[0], dict) or "message" not in choices[0]:
+        return LLMResult(provider="openai", model=model, ok=False, error="malformed OpenAI response")
+    text = choices[0]["message"].get("content", "").strip()
+    return LLMResult(text=text, provider="openai", model=model, ok=bool(text),
+                     error="" if text else "empty OpenAI response")
 
 
 def _gemini(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
@@ -214,8 +227,15 @@ def _gemini(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
                  "x-goog-api-key": _key("GEMINI_API_KEY")},
         data=body, timeout=timeout, max_bytes=MAX_BYTES,
     )
-    text = json.loads(raw)["candidates"][0]["content"]["parts"][0]["text"].strip()
-    return LLMResult(text=text, provider="gemini", model=model, ok=bool(text))
+    data = json.loads(raw)
+    candidates = data.get("candidates", [])
+    if candidates and "content" in candidates[0]:
+        parts = candidates[0]["content"].get("parts", [])
+        text = "".join(p.get("text", "") for p in parts).strip()
+        return LLMResult(text=text, provider="gemini", model=model, ok=bool(text))
+    if "error" in data:
+        return LLMResult(provider="gemini", model=model, error=str(data["error"]))
+    return LLMResult(provider="gemini", model=model, ok=False, error="No content in Gemini response")
 
 
 def complete(system: str, prompt: str, *, provider: str | None = None,
