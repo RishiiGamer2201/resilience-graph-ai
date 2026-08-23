@@ -618,3 +618,14 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .pred .pscore { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* ---- claims table: the provenance gutter, applied ---------------------------
+ * The first column is the gutter. It carries no data of its own, only the mark,
+ * so the left edge of the table becomes a scannable column of evidence strength.
+ * Status text is coloured by the SAME token as its mark, never by severity. */
+.claims .tbl td.gut { width: var(--gutter); padding-right: 0; vertical-align: top; }
+.claims .tbl td.gut .mark { margin-top: 1px; cursor: help; }
+.st-observed   { color: var(--observed) }
+.st-inferred   { color: var(--inferred) }
+.st-disputed   { color: var(--disputed) }
+.st-unmeasured { color: var(--unmeasured) }

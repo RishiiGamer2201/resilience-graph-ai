@@ -88,10 +88,22 @@ export default function Assessment({ assessment, likelihood, confidence }) {
   )
 }
 
-const STATUS_CLASS = {
-  observed: 's-low', confirmed: 's-low', inferred: 's-medium',
-  predicted: 's-high', disputed: 's-critical', retracted: 's-normal',
+/* Status is HOW SURE, severity is HOW BAD. These used to share a scale:
+ * `observed` rendered as `s-low`, which reads as "low severity" when observed is
+ * in fact the strongest thing this system can say. Two axes, two vocabularies.
+ *
+ * The glyph is what appears in the provenance gutter, so a reader can scan the
+ * left edge of the table and see the shape of the evidence without reading a
+ * single technique id. */
+const STATUS_MARK = {
+  observed:  { cls: 'observed',   g: 'O', tip: 'seen directly in the log' },
+  confirmed: { cls: 'observed',   g: 'C', tip: 'corroborated by an independent signal' },
+  inferred:  { cls: 'inferred',   g: 'I', tip: 'a rule fired, but the evidence is indirect' },
+  predicted: { cls: 'inferred',   g: 'P', tip: 'forecast, not yet seen' },
+  disputed:  { cls: 'disputed',   g: 'D', tip: 'another signal contradicts this' },
+  retracted: { cls: 'unmeasured', g: '\u00b7', tip: 'withdrawn' },
 }
+const FALLBACK_MARK = { cls: 'unmeasured', g: '\u00b7', tip: 'status not recorded' }
 
 // What we actually claim about each ATT&CK technique, and what would settle it.
 // An anomaly means unusual; a technique means adversary behaviour. The gap
@@ -113,6 +125,7 @@ export function ClaimsPanel({ claims }) {
         <caption className="sr-only">ATT&amp;CK claims with status and confidence</caption>
         <thead>
           <tr>
+            <th scope="col"><span className="sr-only">Evidence strength</span></th>
             <th scope="col">Technique</th><th scope="col">Status</th>
             <th scope="col">Confidence</th><th scope="col">Independent sources</th>
             <th scope="col">Act on it?</th><th scope="col"><span className="sr-only">Detail</span></th>
@@ -121,9 +134,15 @@ export function ClaimsPanel({ claims }) {
         <tbody>
           {claims.map((c) => (
             <tr key={c.external_id}>
+              <td className="gut">
+                <span className={`mark ${(STATUS_MARK[c.status] || FALLBACK_MARK).cls}`}
+                  title={`${c.status}: ${(STATUS_MARK[c.status] || FALLBACK_MARK).tip}`}>
+                  {(STATUS_MARK[c.status] || FALLBACK_MARK).g}
+                </span>
+              </td>
               <th scope="row" className="mono">{c.external_id}
                 <span className="dim"> {c.object}</span></th>
-              <td><span className={STATUS_CLASS[c.status]}>{c.status}</span></td>
+              <td className={`st-${(STATUS_MARK[c.status] || FALLBACK_MARK).cls}`}>{c.status}</td>
               <td className="mono">{c.confidence} <span className="band">{c.confidence_band}</span></td>
               <td className="mono">{c.independent_groups}</td>
               <td>{c.actionable

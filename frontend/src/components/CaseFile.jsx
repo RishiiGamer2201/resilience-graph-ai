@@ -11,7 +11,11 @@ import { Card, CardHeader } from './Card.jsx'
 // chain here is fabricating most of it, so this shows what is known, what is a
 // hypothesis, and what nobody has established.
 const STATUS_ICON = { confirmed: CircleCheck, inferred: CircleHelp, predicted: CircleHelp }
-const STATUS_CLASS = { confirmed: 's-low', inferred: 's-medium', predicted: 's-high' }
+/* Epistemic status, not severity. `confirmed` is the strongest claim this
+ * system makes and used to render in the same blue as a low-severity alert. */
+const STATUS_CLASS = { confirmed: 'st-observed', observed: 'st-observed',
+  inferred: 'st-inferred', predicted: 'st-inferred', disputed: 'st-disputed',
+  retracted: 'st-unmeasured' }
 
 export default function CaseFile({ casefile }) {
   const [open, setOpen] = useState(false)
