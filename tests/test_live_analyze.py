@@ -320,3 +320,33 @@ def test_the_triage_cut_is_not_tuned_to_flatter_the_demo():
         assert best["recall"] > shipped["recall"], (
             f"{name}: the shipped cut is now the best-scoring one available at "
             f"perfect precision, which is what tuning to the demo would look like")
+
+
+def test_the_clean_log_false_positive_rate_is_measured_not_assumed():
+    """The number a judge asks for first: what does it do on a Tuesday.
+
+    A log with no attack in it still alerts on roughly a fifth to a third of its
+    events, because the features are corpus-relative and the anchors were
+    measured on LANL. That is published in reports/clean_log.md rather than left
+    to be discovered, and this test exists so the report cannot quietly go stale
+    while the claim stays on the page.
+
+    It asserts the defect is still there, deliberately. When persistent baselines
+    land this test SHOULD fail, and its failure is the signal to rewrite the
+    report rather than to delete the test.
+    """
+    import numpy as np
+    from scripts.eval_clean_log import SEED, clean_log
+
+    rng = np.random.default_rng(SEED)
+    bundle = analyze_events(clean_log(800, 300, rng))
+    inc, cal = bundle["incident"], bundle["meta"]["calibration"]
+    rate = inc["alert_count"] / inc["event_count"]
+
+    assert not cal["out_of_distribution"], (
+        "a long-tailed clean log must pass the corpus-shape probe; if it does "
+        "not, the probe has started catching shape it should accept")
+    assert rate > 0.05, (
+        f"clean-log alert rate is now {rate:.1%}. If persistent baselines have "
+        "landed this is the intended outcome -- update reports/clean_log.md, "
+        "which currently states this rate as an unfixed limitation.")
