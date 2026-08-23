@@ -164,6 +164,11 @@ export const twinSimulate = (body) => post("/twin/simulate", body);
 export const twinCandidates = (body) => post("/twin/candidates", body);
 export const twinChat = (body) => post("/twin/chat", body);
 
+// The reasoning lane: an Investigator and a Critic over the graph tools.
+// Advisory by construction -- see ADR 0007. Slower than everything else here
+// because it is several model round trips, so it is asked for, never automatic.
+export const reasonWithAgents = (body) => post("/agents/reason", body);
+
 // Full raw-event -> action provenance chain for one alert.
 export const explainStep = (body) => post("/explain", body);
 

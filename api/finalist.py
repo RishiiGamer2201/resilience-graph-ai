@@ -414,6 +414,67 @@ class TwinChatRequest(BaseModel):
     graph: dict | None = None
 
 
+class AgentInvestigateRequest(BaseModel):
+    scenario: str | None = None
+    events: list[dict] | None = None
+    critical_assets: list[str] = Field(default_factory=list)
+    incident_id: str = "INC-LIVE-001"
+
+
+@router.post("/agents/reason")
+def agents_reason(req: AgentInvestigateRequest, p: dict = Depends(principal)):
+    """Investigator and Critic over the graph tools. Advisory, never authoritative.
+
+    ADR 0007 holds: the workflow decides, this lane comments. What makes it worth
+    running is that the two are built differently -- the workflow follows a fixed
+    seven-node path, this one lets a model choose which of seven graph questions
+    to ask next, then puts a second model on refuting the answer.
+
+    Citations are filtered against tool output in `agent_loop`, so a hypothesis
+    that cites evidence it never saw arrives here with an empty `evidence_ids`
+    and zero confidence. That has already happened on a live run, which is the
+    reason the filter is code rather than a line in the prompt.
+    """
+    _require(p, "read")
+    from src.shared.agent_loop import investigate_with_agents
+    from src.shared.workflow import investigate as run
+
+    df = pd.DataFrame(req.events) if req.events else None
+    if df is None and not req.scenario:
+        raise HTTPException(422, "provide either 'scenario' or 'events'")
+
+    crit = list(req.critical_assets)
+    if req.scenario and not crit:
+        from api.main import SCENARIO_META
+        crit = SCENARIO_META.get(req.scenario, {}).get("critical_default", [])
+
+    result = run(df=df, scenario=req.scenario, critical_assets=crit,
+                 incident_id=req.incident_id, principal=p, evidence_k=1)
+    if not result.get("ok"):
+        raise HTTPException(422, result.get("error", "investigation failed"))
+
+    # The agents read the finished analysis. They do not re-run detection, so
+    # nothing they say can change a score -- only comment on one.
+    bundle = {**result["signals"], "meta": result["meta"],
+              "claims": result["impact"].get("claims") or []}
+    out = investigate_with_agents(bundle)
+
+    inc = result["signals"]["incident"]
+    audit_mod.chain().append(
+        "agents.reasoned", actor=p["actor"], role=p["role"],
+        incident_id=inc["incident_id"], technique_ids=out.get("techniques") or [],
+        reason="advisory agent lane run over the graph tools",
+        details={"provider": out.get("provider"),
+                 "tool_calls": len(out.get("tool_calls") or []),
+                 "cited": len(out.get("evidence_ids") or []),
+                 "rejected_citations": len(out.get("rejected_citations") or []),
+                 "refuted": out.get("refuted"), "authoritative": False})
+    out["incident_id"] = inc["incident_id"]
+    out["workflow_severity"] = inc.get("severity")
+    out["workflow_techniques"] = inc.get("technique_ids") or []
+    return out
+
+
 @router.post("/twin/chat")
 def twin_chat(req: TwinChatRequest, p: dict = Depends(principal)):
     """Digital Twin AI Advisor: plain-language RAG chatbot for non-technical stakeholders."""

@@ -84,17 +84,24 @@ TOOL_SCHEMA = {
 }
 
 
-def _args_from(reply: dict) -> dict:
-    """Flatten the strict-schema fields back into real kwargs."""
+def _args_from(reply: dict, name: str) -> dict:
+    """Flatten the strict-schema fields back into real kwargs for ONE tool.
+
+    Strict mode requires every declared key, so the model dutifully sends
+    `host` and `limit` to all seven tools -- including the five that take
+    neither. Filtering against the tool's own signature is what stops that
+    becoming "bad arguments for graph_summary" seven times in a row.
+    """
+    ok = agent_tools.accepts(name)
     out: dict = {}
     host = (reply.get("host") or "").strip()
-    if host:
+    if host and "host" in ok:
         out["host"] = host
     try:
         limit = int(reply.get("limit") or 0)
     except (TypeError, ValueError):
         limit = 0
-    if limit > 0:
+    if limit > 0 and "limit" in ok:
         out["limit"] = min(limit, 50)
     return out
 
@@ -145,6 +152,10 @@ withheld one. An anomaly means unusual, never adversarial."""
 class AgentRun:
     """One agent lane, with everything needed to audit it after the fact."""
     provider: str = "template"
+    # Which path produced this. `provider` alone is ambiguous: a run that called
+    # groq, was rate limited, and fell back to the template still reports
+    # provider="groq", which read on screen as though a model had answered.
+    method: str = "template"             # "agents" | "template"
     hypothesis: str = ""
     techniques: list[str] = field(default_factory=list)
     confidence: float = 0.0
@@ -211,7 +222,7 @@ def _run_agent(system: str, opening: str, bundle: dict, run: AgentRun,
         if name in called:
             transcript += f"\n\n{name} was already called."
             continue
-        args = _args_from(reply)
+        args = _args_from(reply, name)
         result = agent_tools.call(name, bundle, **args)
         seen.append(result)
         called.append(name)
@@ -252,8 +263,17 @@ def _template(bundle: dict) -> AgentRun:
         f"of reachability. Techniques observed: {', '.join(techs) or 'none mapped'}.")
     run.techniques = techs
     run.confidence = 0.0
-    run.notes.append("no language model configured: this is the deterministic "
-                     "summary, which states graph facts and does not interpret them")
+    # Which of the two reasons applies is not cosmetic. "No provider" is the
+    # designed default; "the provider failed" is an operational fact someone
+    # needs to see. Printing the first for both made a live 429 look like a
+    # deliberate configuration.
+    if llm.chosen_provider():
+        run.notes.append("the language model did not produce a usable answer, so "
+                         "this is the deterministic summary: it states graph facts "
+                         "and does not interpret them")
+    else:
+        run.notes.append("no language model configured: this is the deterministic "
+                         "summary, which states graph facts and does not interpret them")
     return run
 
 
@@ -278,11 +298,10 @@ def investigate_with_agents(bundle: dict) -> dict:
     if not final or "hypothesis" not in final:
         out = _template(bundle)
         out.provider = run.provider or "template"
-        out.tool_calls = run.tool_calls
-        out.notes.append("the model did not return a usable hypothesis; fell back "
-                         "to the deterministic summary")
+        out.tool_calls = run.tool_calls   # _template already names the reason
         return out.as_dict()
 
+    run.method = "agents"
     run.hypothesis = str(final.get("hypothesis", ""))[:1200]
     run.techniques = [t for t in (final.get("techniques") or []) if isinstance(t, str)][:12]
     try:

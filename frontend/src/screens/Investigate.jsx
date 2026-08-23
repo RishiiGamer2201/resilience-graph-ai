@@ -8,6 +8,7 @@ import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
 import EvidenceList from '../components/EvidenceList.jsx'
 import CaseFile from '../components/CaseFile.jsx'
 import CrossCheck from '../components/CrossCheck.jsx'
+import ReasoningAgents from '../components/ReasoningAgents.jsx'
 import ActionPanel from '../components/ActionPanel.jsx'
 import AuditPanel from '../components/AuditPanel.jsx'
 import ExplainTrace from '../components/ExplainTrace.jsx'
@@ -275,6 +276,14 @@ export default function Investigate() {
                 evidence confidence. */}
             <div style={{ marginTop: 18 }}>
               <CrossCheck crosscheck={result.crosscheck} />
+            </div>
+            {/* Both lanes above are deterministic. This one is not: it is the
+                only place a model decides what to look at next, which is why
+                it is opt-in and why its citations are checked in code. */}
+            <div style={{ marginTop: 18 }}>
+              <ReasoningAgents scenario={result.scenario}
+                criticalAssets={result.understand?.crown_jewels_designated}
+                incidentId={result.incident_id} />
             </div>
           </Section>
 

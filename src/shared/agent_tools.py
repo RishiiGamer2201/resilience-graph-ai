@@ -146,6 +146,25 @@ def describe() -> str:
     return "\n".join(f"- {name}: {desc}" for name, (_, desc) in TOOLS.items())
 
 
+def accepts(name: str) -> set[str]:
+    """Which keyword arguments this tool actually takes.
+
+    Read off the signature rather than listed, because a list drifts. The caller
+    needs it because the model is answering a strict schema that requires every
+    argument key to be present, so it sends `host` and `limit` to all seven
+    tools. Passing those through unfiltered made five of the seven return
+    "bad arguments for ...", the agent correctly concluded it had no evidence,
+    and the whole lane fell back to the template while looking like a model
+    failure. It was a plumbing failure.
+    """
+    fn, _ = TOOLS.get(name, (None, ""))
+    if fn is None:
+        return set()
+    import inspect
+    return {p.name for p in inspect.signature(fn).parameters.values()
+            if p.kind is inspect.Parameter.KEYWORD_ONLY}
+
+
 def call(name: str, bundle: dict, **kwargs: Any) -> dict:
     """Run one tool. Unknown names are refused rather than guessed at."""
     if name not in TOOLS:
@@ -196,6 +215,13 @@ def demo() -> None:
 
     # a bad argument must be an error the agent can read, not a traceback
     assert "bad arguments" in call("twin_isolate", bundle, nope=1)["error"]
+
+    # the model sends every schema key to every tool; only the accepted ones
+    # may reach the function, or five of seven tools answer with an error
+    assert accepts("twin_isolate") == {"host"}, accepts("twin_isolate")
+    assert accepts("list_alerts") == {"limit"}
+    assert accepts("graph_summary") == set()
+    assert accepts("no_such_tool") == set()
     print(f"agent tools ok: {len(TOOLS)} tools, {len(ids)} evidence ids, "
           "unknown names and bad arguments refused")
 
