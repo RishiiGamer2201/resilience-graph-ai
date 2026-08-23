@@ -16,7 +16,8 @@
       "detector": "Autoencoder",
       "iforest_roc_auc": 0.988,
       "iforest_tpr_at_1pct_fpr": 0.514,
-      "note": "702 real red-team events; Autoencoder shipped; NTLM ablation"
+      "note": "702 real red-team events; Autoencoder shipped; NTLM ablation. behavioral_only_tpr_at_1pct_fpr transcribed from reports/lanl_redteam_detection.md pending the next full LANL run; src/engine1/lanl_detect.py now emits it directly.",
+      "behavioral_only_tpr_at_1pct_fpr": 0.228
     },
     "unsw": {
       "roc_auc": 0.829,
