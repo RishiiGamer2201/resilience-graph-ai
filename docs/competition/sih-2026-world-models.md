@@ -25,6 +25,13 @@ into *measured*.
 
 ---
 
+
+> **Caveat added after review:** the 0.987 compromise ROC-AUC below was
+> reported against random (0.5), which is the wrong reference class for
+> autocorrelated traffic. A persistence baseline is now computed by
+> `scripts/eval_netstate.py` but needs the CIC-IDS2017 parquet to fill in.
+> Until then, treat 0.987 as unbaselined. See `reports/netstate.md`.
+
 ## Requirement-by-requirement
 
 | # | PS requirement | Status | Evidence / gap |

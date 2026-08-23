@@ -22,7 +22,17 @@ techniques. Written for SIH 2026 requirement 2.
 | Next-state top-1, second order | 0.2357 | 0.362 | persistence |
 | Next-state top-1, ORACLE (cheats) | 0.4475 | 0.362 | ceiling for any order-1 model |
 | Attack-rate Brier @ 1 step | 0.02217 | 0.12353 | always predict prevalence |
-| Next-window compromise ROC-AUC | 0.9872 | 0.5 | random |
+| Next-window compromise ROC-AUC | 0.9872 | _pending_ | persistence (current window's attack rate) |
+
+> **The compromise row's baseline is withdrawn, pending a re-run.** It previously
+> read "0.5, random". That is the wrong reference class: traffic is autocorrelated
+> and attacks arrive in bursts, so "the current window is compromised" already
+> predicts the next one well, and the next-state rows above were already being
+> scored against persistence for exactly that reason. `scripts/eval_netstate.py`
+> now computes a persistence baseline for the compromise forecast and for the
+> Brier score, but filling the number in requires the CIC-IDS2017 parquet, which
+> is not committed. Until that run happens the cell is blank rather than
+> flattering. Do not quote 0.9872 against 0.5.
 
 ## Verdict
 

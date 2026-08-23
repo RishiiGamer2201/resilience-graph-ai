@@ -194,7 +194,26 @@ def scoreboard() -> dict:
               dataset="CIC-IDS2017, trained Mon-Wed, tested Thu-Fri",
               sample=_ns("n_windows_test", fmt="{:,} held-out windows"),
               value=_pct(_ns("compromise_roc_auc")), unit="%",
-              baseline={"name": "random", "value": 50.0},
+              # Persistence, not random. Traffic is autocorrelated and attacks
+              # arrive in bursts, so "the current window is compromised" already
+              # predicts the next one well; a coin does not. Scoring this against
+              # 0.5 overstated the result by roughly the whole distance that
+              # matters, and the next-state card a few rows down was already
+              # being held to persistence for exactly this reason.
+              #
+              # scripts/eval_netstate.py now computes it, but the value cannot be
+              # filled in from a clone: it needs the CIC-IDS2017 parquet, which is
+              # not committed. Until that run happens the card reports the
+              # baseline as unmeasured rather than substituting an easier one.
+              baseline=({"name": "persistence (current window's attack rate)",
+                         "value": _pct(_ns("compromise_persistence_roc_auc"))}
+                        if _ns("compromise_persistence_roc_auc") is not None else
+                        {"name": "persistence (current window's attack rate)",
+                         "value": None, "state": "not measured",
+                         "why": ("re-run scripts/eval_netstate.py with the "
+                                 "CIC-IDS2017 parquet; the previous comparison "
+                                 "against random 0.5 was the wrong reference "
+                                 "class and has been withdrawn")}),
               report="reports/netstate.md",
               why=("Needs the CIC-IDS2017 parquet, which is not committed. Run "
                    "python -m scripts.eval_netstate after fetching it."),
