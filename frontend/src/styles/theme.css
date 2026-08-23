@@ -1,0 +1,255 @@
+/* nextATT&CKs — design tokens and Tailwind theme.
+   The single source of truth for colour, spacing, type and motion.
+   Components style THROUGH these tokens and never hardcode a value.
+   See frontend/DESIGN.md for the rules that govern this file. */
+
+@import "tailwindcss";
+
+/* ─── Palette ──────────────────────────────────────────────────────────────
+   Dark is the design target; light must stay legible but is secondary.
+   Carried forward from the previous theme.css deliberately: it is a
+   considered SOC palette and there was no reason to invent a new one. */
+:root {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --surface-3: #eef2f8;
+  --border: #dce2ec;
+  --border-strong: #c6d0e0;
+
+  --text: #16202e;
+  --text-dim: #5a6678;
+  --text-faint: #8894a6;
+
+  --accent: #2f6fed;
+  --accent-hover: #2560d8;
+  --accent-soft: #e7eefd;
+  --accent-fg: #ffffff;
+
+  --sev-critical: #d93b40;
+  --sev-high: #dd6a05;
+  --sev-medium: #b98900;
+  --sev-low: #2f6fed;
+  --sev-normal: #7b8798;
+  --ok: #0a7d3f;
+  --warn: #b98900;
+
+  --grid: #e4e9f1;
+  --ring: #2f6fed;
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  --bg: #0a0e16;
+  --surface: #111823;
+  --surface-2: #161e2b;
+  --surface-3: #1c2534;
+  --border: #222c3d;
+  --border-strong: #31405a;
+
+  --text: #e6ecf5;
+  --text-dim: #94a1b6;
+  --text-faint: #64748b;
+
+  --accent: #4c8dff;
+  --accent-hover: #6ba0ff;
+  --accent-soft: #14213a;
+  --accent-fg: #06101f;
+
+  --sev-critical: #ff5a5f;
+  --sev-high: #ff8a3d;
+  --sev-medium: #f5c144;
+  --sev-low: #4c8dff;
+  --sev-normal: #5b6678;
+  --ok: #34d399;
+  --warn: #f5c144;
+
+  --grid: #18202e;
+  --ring: #4c8dff;
+}
+
+/* Explicit light wins over the media query when the user has chosen it. */
+:root[data-theme="light"] {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --surface-3: #eef2f8;
+  --border: #dce2ec;
+  --border-strong: #c6d0e0;
+  --text: #16202e;
+  --text-dim: #5a6678;
+  --text-faint: #8894a6;
+  --accent: #2f6fed;
+  --accent-hover: #2560d8;
+  --accent-soft: #e7eefd;
+  --accent-fg: #ffffff;
+  --sev-critical: #d93b40;
+  --sev-high: #dd6a05;
+  --sev-medium: #b98900;
+  --sev-low: #2f6fed;
+  --sev-normal: #7b8798;
+  --ok: #0a7d3f;
+  --warn: #b98900;
+  --grid: #e4e9f1;
+  --ring: #2f6fed;
+}
+
+/* ─── Tailwind theme ───────────────────────────────────────────────────────
+   Every token above becomes a utility: bg-surface, text-dim, border-border,
+   text-sev-critical. There is no other way to reach a colour. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-dim: var(--text-dim);
+  --color-faint: var(--text-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-sev-critical: var(--sev-critical);
+  --color-sev-high: var(--sev-high);
+  --color-sev-medium: var(--sev-medium);
+  --color-sev-low: var(--sev-low);
+  --color-sev-normal: var(--sev-normal);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-grid: var(--grid);
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono",
+    Consolas, Menlo, monospace;
+
+  /* 11 / 13 / 15 / 18 / 24. Nothing bigger without a reason. */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-2xl: 1.5rem;
+
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --ease-house: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ─── Motion tokens ────────────────────────────────────────────────────────
+   Read by components via var(). Framer Motion values live in lib/motion.ts so
+   the two cannot drift. */
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────────*/
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] html,
+  html:has(:root[data-theme="light"]) {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Machine data is monospaced and tabular so columns align. This is doing a
+     lot of the work of making the product read as an instrument. */
+  .font-mono,
+  code,
+  kbd,
+  pre {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "ss01", "zero";
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  /* Scrollbars: part of the chrome, so they are quiet rather than default. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 6px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Anyone who asks for less motion gets it, everywhere, including from
+     libraries that do not check. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ─── Utilities ────────────────────────────────────────────────────────────*/
+@utility section-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* A hairline grid for empty canvases and the graph background. Data-bearing
+   surfaces do not get texture. */
+@utility grid-bg {
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
