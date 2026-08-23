@@ -72,6 +72,7 @@ def scoreboard() -> dict:
     ret = m.get("retrieval", {}).get("gold_set", {})
     lanl, cic, unsw = e1.get("lanl", {}), e1.get("cicids", {}), e1.get("unsw", {})
     pred = e2.get("predictor", {})
+    clean = e1.get("clean_log", {})
     am, sc = ps7.get("attack_mapping", {}), ps7.get("soar_coverage", {})
     lat, mttd, mttr = ps7.get("latency_ms", {}), ps7.get("mttd", {}), ps7.get("mttr", {})
     audit, rbac = ps7.get("audit", {}), ps7.get("rbac", {})
@@ -390,6 +391,27 @@ def scoreboard() -> dict:
               value=lat.get("p50"), unit=" ms", higher_is_better=False,
               baseline={"name": "p95", "value": lat.get("p95")},
               report="reports/ps7_eval.md"),
+        # The number this product is worst at, on the same board as the ones it is
+        # best at. A limitation a reader has to go looking for is one the product
+        # is hiding, and this is the first question any operator asks.
+        _card("clean_log_false_positive_rate", "Detection",
+              "Alert rate on a log with no attack in it",
+              definition=("False-positive rate on synthetic clean logs: Zipf destination "
+                          "tail, no attack events at all. The question an operator asks "
+                          "before any recall figure -- what does it do on a Tuesday."),
+              dataset="synthetic clean logs, seeded and reproducible",
+              sample=f"{clean.get('shapes_tested', 0)} log shapes, 0 attack events",
+              value=_pct(clean.get("worst_alert_rate")), unit="%",
+              higher_is_better=False,
+              baseline={"name": "best shape tested",
+                        "value": _pct(clean.get("best_alert_rate"))},
+              report="reports/clean_log.md",
+              note=("This is bad and it is not a threshold problem. The behavioural "
+                    "features are corpus-relative with no stored baseline, so they are "
+                    "computed over whatever log was uploaded, and the anchors were "
+                    "measured on LANL. A single log cannot separate 'this corpus differs "
+                    "from the training corpus' from 'this corpus is under attack'. The "
+                    "fix is a persistent per-entity profile, not a different number.")),
         _card("throughput", "Performance", "Largest measured single analysis",
               definition="End-to-end pipeline time at the documented 50,000-event cap.",
               dataset="scaling measurements", sample="best of 3 after warm-up",

@@ -135,6 +135,22 @@ def main() -> None:
         "",
     ]
     REPORT.write_text("\n".join(lines), encoding="utf-8")
+
+    # Onto the scoreboard, not just into a report. A limitation a reader has to
+    # go looking for is a limitation the product is hiding.
+    from src.shared.metrics_store import update
+    update("engine1", "clean_log", {
+        "worst_alert_rate": round(worst, 4),
+        "best_alert_rate": round(min(r["rate"] for r in rows), 4),
+        "shapes_tested": len(rows),
+        "attack_events": 0,
+        "seed": SEED,
+        "note": ("Synthetic clean logs, no attack events at all. The alert rate is "
+                 "the false-positive rate on a quiet estate, and it is high because "
+                 "features are corpus-relative with no stored baseline and the "
+                 "anchors were measured on LANL. Not a threshold problem: see "
+                 "reports/clean_log.md."),
+    })
     print(f"wrote {REPORT.relative_to(ROOT)}")
     for r in rows:
         print(f"  {r['shape']:28s} {r['alerts']:6,} alerts  {r['rate']:6.1%}  ood={r['ood']}")
