@@ -142,6 +142,11 @@
 @media (max-width:820px){.factors li{grid-template-columns:1fr}}
 
 /* ── Digital twin result ──────────────────────────────────────────────── */
+/* A grid track sizes to its content unless its child may shrink, so a row with
+ * overflow-x:auto inside it widened the whole column instead of scrolling, and
+ * pushed the advisor panel off the right of the viewport. */
+.grid2 > * { min-width: 0; }
+
 .twin-result{border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;
   background:var(--surface-2)}
 .twin-head{display:flex;align-items:center;gap:8px;font-size:13px}

@@ -17,6 +17,7 @@ import {
 import { getCapabilities, getGraph, twinCandidates, twinChat, twinSimulate } from '../api.js'
 import { Card, CardHeader, ErrorBox, Loading } from '../components/Card.jsx'
 import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
+import Markdown from '../lib/markdown.jsx'
 
 function DiffBadge({ label, before, after, betterWhenLower = true }) {
   const changed = before !== after
@@ -53,9 +54,11 @@ export default function DigitalTwin() {
     {
       role: 'assistant',
       content:
-        'I explain this incident in plain English, using only figures the analysis already computed.\n\nAsk what is at risk, what to isolate, which advisories apply, or what this analysis cannot tell you.\n\n_I restate and explain. I do not decide, and I do not approve actions._',
+        'I explain this incident in plain English, using only figures the analysis already computed.\n\nAsk what is at risk, what to isolate, which advisories apply, or what this analysis cannot tell you.\n\nI restate and explain. I do not decide, and I do not approve actions.',
       sources: [],
-      follow_ups: QUICK_PROMPTS.slice(0, 3),
+      // no follow_ups here: the persistent prompt row below the thread already
+      // offers these, and rendering both drew the same two chips twice
+      follow_ups: [],
     },
   ])
   const [input, setInput] = useState('')
@@ -153,7 +156,7 @@ export default function DigitalTwin() {
           DIGITAL TWIN &amp; PLAIN-LANGUAGE COPILOT
         </span>
         <h2>Digital Twin Simulation Lab &amp; AI Advisor</h2>
-        <p className="mono">
+        <p className="lede">
           Simulate zero-risk counterfactual containment on a cloned attack graph and ask the
           executive advisor for plain-English explanations.
         </p>
@@ -352,12 +355,16 @@ export default function DigitalTwin() {
                           fontSize: 13,
                           lineHeight: 1.55,
                           background: isUser ? 'var(--accent)' : 'var(--surface-sunken)',
-                          color: isUser ? '#fff' : 'var(--text)',
+                          color: isUser ? 'var(--on-accent)' : 'var(--text)',
                           border: isUser ? 'none' : '1px solid var(--border-soft)',
-                          whiteSpace: 'pre-wrap',
                         }}
                       >
-                        {m.content}
+                        {/* The advisor writes markdown whether or not it is asked
+                            to, and pre-wrap put literal ** on screen. A user's own
+                            message is never markdown, so it stays verbatim. */}
+                        {isUser
+                          ? <span style={{ whiteSpace: 'pre-wrap' }}>{m.content}</span>
+                          : <Markdown text={m.content} />}
                       </div>
 
                       {/* Where this reply came from. The API returns it; not
@@ -447,7 +454,7 @@ export default function DigitalTwin() {
               </div>
 
               {/* Quick Prompt Pills */}
-              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 4 }}>
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 4, minWidth: 0 }}>
                 {QUICK_PROMPTS.map((qp, pIdx) => (
                   <button
                     key={pIdx}
