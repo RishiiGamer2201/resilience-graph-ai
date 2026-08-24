@@ -30,6 +30,7 @@ from src.shared.soar import recommend
 from src.shared.timeutil import fmt_ist
 from src.shared import views
 from src.shared import detector
+from src.shared import telemetry
 
 ROOT = Path(__file__).resolve().parents[2]
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
@@ -181,11 +182,20 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
     for col, default in (("status", "success"), ("protocol", "")):
         if col not in df.columns:
             df[col] = default
-    if not (df["user"].astype(str).str.len() > 0).any():
+    # Userless rows are keyed on their source device or segment rather than
+    # refused. The features are per-ACTOR, not per-account: a flow from a host
+    # with no principal can still be profiled against that host's own history,
+    # and refusing it is why network, DNS and endpoint telemetry could not enter
+    # detection at all. Every row carries actor_kind, so a claim about a machine
+    # is never presented as a claim about a person.
+    df, actors = telemetry.attribute_actor(df)
+    df.attrs["actors"] = actors
+    if not telemetry.has_any_actor(df):
         raise ValueError(
-            "events need a 'user' column (behavioral features are per-user). "
-            "Accepted names: user, username, account, principal, src_user. "
-            "Also need source_host/destination_host (aliases: src/dst, source/destination).")
+            "no event carries an account, a source host or a source address, so "
+            "there is nothing to profile behaviour against. Accepted account "
+            "names: user, username, account, principal, src_user; hosts: "
+            "source_host/destination_host (aliases src/dst, source/destination).")
     return df
 
 
@@ -396,6 +406,10 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             # with any other run. Travels with every bundle so a screen can never
             # present a log-relative score as if it were the shipped scale.
             "calibration": calibration,
+            # How many rows named an account, how many were keyed on their
+            # device or segment instead, and how many could not be profiled at
+            # all. A device-keyed finding is a claim about a machine.
+            "actors": df.attrs.get("actors", {}),
             # Which feature mode produced these scores: file-local (the default,
             # and what every published metric was measured on) or history-backed.
             "baseline": base_st,

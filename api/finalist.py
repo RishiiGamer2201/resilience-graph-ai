@@ -902,4 +902,54 @@ def incident_audit(incident_id: str, p: dict = Depends(principal)):
             "verified": None}
 
 
+# --------------------------------------------------------------------------- #
+# continuous ingestion                                                         #
+# --------------------------------------------------------------------------- #
+class IngestRequest(BaseModel):
+    events: list[dict] = Field(default_factory=list)
+    feed: str = "default"
+    critical_assets: list[str] = Field(default_factory=list)
+    incident_id: str = "INC-FEED-001"
+
+
+@router.post("/ingest")
+def ingest_events(req: IngestRequest, p: dict = Depends(principal)):
+    """Feed events in as they arrive; only what is new is scored.
+
+    The existing entry points take a finite batch and compute the whole result
+    from it, so adding ten events meant re-sending the file they belong to --
+    and re-sending a file re-raised every alert already in it. Here an event
+    already ingested is dropped by content fingerprint before scoring, which is
+    what makes a collector's overlapping replay after a restart free rather than
+    a second wave of the same alerts.
+    """
+    _require(p, "analyze")
+    from src.shared import ingest as feed
+
+    if not req.events:
+        raise HTTPException(422, "no events provided")
+    out = feed.ingest(pd.DataFrame(req.events), feed=req.feed,
+                      critical_assets=set(req.critical_assets),
+                      incident_id=req.incident_id)
+    if out.get("state") == "off":
+        raise HTTPException(409, out["detail"])
+    return out
+
+
+@router.get("/ingest/status")
+def ingest_status(feed: str = "default", p: dict = Depends(principal)):
+    """Where a feed got to. On disk, so it survives a restart."""
+    _require(p, "read")
+    from src.shared import baseline
+    from src.shared import ingest as feed_mod
+
+    path = baseline.db_path()
+    if path is None:
+        return {"enabled": False, "state": "off",
+                "detail": (f"continuous ingestion keeps its checkpoint in the "
+                           f"baseline store; set {baseline.DB_ENV} to enable it")}
+    return {"enabled": True, "feed": feed,
+            "checkpoint": feed_mod.checkpoint(feed, path)}
+
+
 __all__ = ["router"]
