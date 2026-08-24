@@ -161,8 +161,14 @@ export async function readEventStream(
   url: string,
   onEvent: (event: string, data: string) => void,
   signal?: AbortSignal,
+  init?: { method?: string; body?: BodyInit },
 ): Promise<void> {
+  // `init` exists because one stream is a POST: an uploaded file cannot be a
+  // query string. Content-Type is deliberately not set for a FormData body --
+  // the browser has to add its own multipart boundary.
   const response = await fetch(url, {
+    method: init?.method ?? 'GET',
+    body: init?.body,
     headers: { Accept: 'text/event-stream', ...authHeaders() },
     signal,
   })
@@ -279,6 +285,28 @@ export const streamUrl = (scenario: string, criticalAssets: string[] = []) =>
 
 export const agentStreamUrl = (scenario: string, criticalAssets: string[] = []) =>
   `${BASE}/agents/stream${qs(scenario, criticalAssets)}`
+
+/** The agent lane over an uploaded CSV, streamed.
+ *
+ *  The backend has emitted per-agent frames for uploads all along; nothing
+ *  called it, so an upload went through the single-request `/analyze/upload`
+ *  instead and the screen could only report "complete". Same nine agents ran
+ *  either way -- the traces were in the response and never drawn -- but a lane
+ *  that shows its work for a shipped scenario and nothing for your own file
+ *  reads as broken, and that is a fair reading. */
+export const agentStreamUploadUrl = () => `${BASE}/agents/stream/upload`
+
+export function agentStreamUploadInit(
+  file: File,
+  criticalAssets: string[] = [],
+  incidentId = 'INC-UPLOAD-001',
+): { method: string; body: BodyInit } {
+  const fd = new FormData()
+  fd.append('file', file)
+  fd.append('critical_assets', criticalAssets.join(','))
+  fd.append('incident_id', incidentId)
+  return { method: 'POST', body: fd }
+}
 
 // ─── Live model endpoints ────────────────────────────────────────────────────
 /** Score one event with the trained detector.
