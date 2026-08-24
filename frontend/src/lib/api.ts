@@ -20,7 +20,6 @@
  */
 import type {
   AgentReasoning,
-  ActionProposal,
   AnalysisBundle,
   ApiError,
   ApprovalResult,
@@ -348,13 +347,9 @@ export const explainStep = (body: Record<string, unknown>) =>
  *  RBAC is enforced server-side: a role without the permission gets a 403 whose
  *  `detail` is the refusal to show the operator. Do not pre-empt it client-side. */
 export interface ApproveActionRequest {
-  incident_id: string
-  action: ActionProposal
+  proposal_id: string
   decision: 'approve' | 'reject'
   reason: string
-  technique_ids: string[]
-  evidence: unknown[]
-  affected_assets: string[]
 }
 export const approveAction = (body: ApproveActionRequest) =>
   post<ApprovalResult>('/actions/approve', body)

@@ -24,7 +24,6 @@ import type {
   ActionProposal,
   ApiError,
   ApprovalResult,
-  EvidenceHit,
   Rfi,
 } from '@/types/api'
 
@@ -38,17 +37,9 @@ interface Refused {
 
 function Proposal({
   proposal,
-  incidentId,
-  techniqueIds,
-  evidence,
-  affected,
   onDecided,
 }: {
   proposal: ActionProposal
-  incidentId: string
-  techniqueIds: string[]
-  evidence: EvidenceHit[]
-  affected: string[]
   onDecided?: () => void
 }) {
   const [reason, setReason] = React.useState('')
@@ -62,13 +53,9 @@ function Proposal({
     setRefused(null)
     try {
       const r = await approveAction({
-        incident_id: incidentId,
-        action: proposal,
+        proposal_id: proposal.proposal_id,
         decision,
         reason,
-        technique_ids: techniqueIds,
-        evidence,
-        affected_assets: affected,
       })
       setDecided({ result: r })
       onDecided?.()
@@ -87,7 +74,12 @@ function Proposal({
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-xs text-faint">{proposal.id}</span>
+        <span
+          className="font-mono text-xs text-faint"
+          title={`Server proposal ${proposal.proposal_id}; digest ${proposal.proposal_digest}`}
+        >
+          {proposal.id}
+        </span>
         <span className="text-sm font-medium text-text">{proposal.action}</span>
         <span className="flex-1" />
         <Badge variant={gated ? 'warn' : 'default'}>
@@ -126,11 +118,11 @@ function Proposal({
         </div>
       ) : (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <label className="sr-only" htmlFor={`reason-${proposal.id}`}>
+          <label className="sr-only" htmlFor={`reason-${proposal.proposal_id}`}>
             Reason for the decision
           </label>
           <input
-            id={`reason-${proposal.id}`}
+            id={`reason-${proposal.proposal_id}`}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder={gated ? 'Written reason (required to approve)' : 'Reason (optional)'}
@@ -194,17 +186,9 @@ function RfiBlock({ rfi }: { rfi: Rfi | null | undefined }) {
 
 export default function ActionPanel({
   action,
-  incidentId,
-  techniqueIds,
-  evidence,
-  affected,
   onDecided,
 }: {
   action: ActionOutput | null | undefined
-  incidentId: string
-  techniqueIds: string[]
-  evidence: EvidenceHit[]
-  affected: string[]
   onDecided?: () => void
 }) {
   if (!action) return null
@@ -240,12 +224,8 @@ export default function ActionPanel({
 
         {proposals.map((p) => (
           <Proposal
-            key={p.id}
+            key={p.proposal_id}
             proposal={p}
-            incidentId={incidentId}
-            techniqueIds={techniqueIds}
-            evidence={evidence}
-            affected={affected}
             onDecided={onDecided}
           />
         ))}

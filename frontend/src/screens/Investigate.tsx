@@ -654,10 +654,6 @@ export default function Investigate() {
             <div className="space-y-4">
               <ActionPanel
                 action={result.action}
-                incidentId={inc.incident_id}
-                techniqueIds={inc.technique_ids}
-                evidence={result.evidence.citations}
-                affected={graph.critical_assets_at_risk}
                 onDecided={() => setAuditKey((k) => k + 1)}
               />
               <AuditPanel refreshKey={auditKey} onReset={() => setAuditKey((k) => k + 1)} />

@@ -106,7 +106,7 @@ Step 'Backend tests (pytest)' {
 Step 'Module self-checks' {
     foreach ($m in @('src.shared.nethttp', 'src.shared.detector', 'src.shared.predictor',
                      'src.shared.evidence', 'src.shared.vuln', 'src.shared.twin',
-                     'src.shared.rbac', 'src.shared.audit', 'src.shared.scoreboard',
+                     'src.shared.rbac', 'src.shared.audit', 'src.shared.proposals', 'src.shared.scoreboard',
                      'src.shared.explain', 'src.shared.claims',
                      'src.shared.casefile', 'src.shared.crosscheck', 'src.shared.rollout', 'src.shared.enrich', 'src.shared.attribution',
     'src.engine3.netstate', 'src.engine3.packets', 'src.shared.chat_advisor', 'src.shared.llm',

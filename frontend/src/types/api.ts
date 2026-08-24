@@ -929,6 +929,14 @@ export interface ActionPolicy {
 
 export interface ActionProposal {
   id: string
+  /** Opaque identifier issued and consumed by the server. */
+  proposal_id: string
+  proposal_digest: string
+  input_digest: string
+  policy_version: string
+  issued_at: string
+  expires_at: string
+  status: 'pending' | 'approved' | 'rejected' | 'expired'
   kind: string
   tactic: string
   action: string
@@ -967,6 +975,8 @@ export interface ActionOutput {
 /** POST /api/actions/approve. A human decision, recorded, never executed. */
 export interface ApprovalResult {
   decision: string
+  proposal_id: string
+  proposal_digest: string
   record: AuditRecord & {
     seq: number
     hash: string

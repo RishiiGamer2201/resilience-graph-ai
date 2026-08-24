@@ -162,7 +162,9 @@ def test_action_proposals(result):
     a = result["action"]
     _has(a, "proposals", "mitre_mitigations", "gating_policy", "rfi", "executed", "note")
     for p in a["proposals"]:
-        _has(p, "id", "kind", "tactic", "action", "touches_crown_jewel",
+        _has(p, "id", "proposal_id", "proposal_digest", "input_digest",
+             "policy_version", "issued_at", "expires_at", "status",
+             "kind", "tactic", "action", "touches_crown_jewel",
              "blast_radius_affected", "hosts_taken_offline", "simulated", "policy")
         _has(p["policy"], "requires_approval", "gate", "required_permission",
              "reasons", "policy_version")
@@ -175,11 +177,12 @@ def test_approval_response_shape(result, client):
     p = result["action"]["proposals"][0]
     r = client.post("/api/actions/approve", headers={"X-Role": "responder",
                                                      "X-Actor": "contract@test"},
-                    json={"incident_id": "INC-LIVE-001", "action": p,
+                    json={"proposal_id": p["proposal_id"],
                           "decision": "approve", "reason": "contract test"})
     assert r.status_code == 200, r.text
     body = r.json()
-    _has(body, "recorded", "executed", "decision", "policy", "record", "chain", "note")
+    _has(body, "recorded", "executed", "decision", "proposal_id",
+         "proposal_digest", "policy", "record", "chain", "note")
     _has(body["record"], "seq", "hash", "at", "actor", "role")
     assert body["record"]["actor"] == "contract@test"
     assert body["record"]["role"] == "responder"

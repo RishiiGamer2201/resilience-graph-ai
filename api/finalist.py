@@ -17,10 +17,11 @@ from pathlib import Path
 
 import pandas as pd
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.shared import audit as audit_mod
 from src.shared import evidence as evidence_mod
+from src.shared import proposals as proposal_mod
 from src.shared import rbac
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -331,6 +332,49 @@ def investigate(req: InvestigateRequest, p: dict = Depends(principal)):
                  action={"kind": "counterfactual-isolation", **cf["candidate"]},
                  affected_assets=cf["delta"]["crown_jewels_protected"],
                  reason=cf["verdict"])
+
+    # Proposals become approvable only after the server binds their immutable
+    # action, policy and evidence context to an opaque id. The browser receives
+    # the id but never becomes the source of any decision input.
+    graph = result["signals"]["graph"]
+    evidence = result["evidence"].get("citations") or []
+    input_digest = proposal_mod.digest({
+        "incident": inc,
+        "graph": graph,
+        "evidence": evidence,
+        "scenario": req.scenario,
+        "events": result["understand"]["n_events"],
+    })
+    issued = []
+    try:
+        for action in result["action"].get("proposals") or []:
+            server_proposal = proposal_mod.store().issue(
+                incident_id=inc["incident_id"],
+                action=action,
+                input_digest=input_digest,
+                evidence=evidence,
+                technique_ids=inc["technique_ids"],
+                affected_assets=graph["critical_assets_at_risk"],
+            )
+            issued.append(server_proposal)
+            c.append(
+                "action.proposed", actor=p["actor"], role=p["role"],
+                incident_id=inc["incident_id"], action=server_proposal,
+                evidence=evidence, technique_ids=inc["technique_ids"],
+                affected_assets=graph["critical_assets_at_risk"],
+                reason="server-issued simulated response proposal",
+                details={
+                    "proposal_id": server_proposal["proposal_id"],
+                    "proposal_digest": server_proposal["proposal_digest"],
+                    "input_digest": input_digest,
+                    "policy_version": server_proposal["policy_version"],
+                    "expires_at": server_proposal["expires_at"],
+                    "store_durable": proposal_mod.store().durable,
+                },
+            )
+    except Exception as exc:
+        raise HTTPException(503, f"could not register response proposals: {exc}")
+    result["action"]["proposals"] = issued
     result["principal"] = p
     result["audit"] = {"records": len(c), "head": c.head()}
     return result
@@ -604,13 +648,11 @@ def explain(req: ExplainRequest, p: dict = Depends(principal)):
 # actions: propose is free, approving is not                                   #
 # --------------------------------------------------------------------------- #
 class ApprovalRequest(BaseModel):
-    incident_id: str
-    action: dict                       # the proposal, as returned by /investigate
+    model_config = ConfigDict(extra="forbid")
+
+    proposal_id: str = Field(min_length=10, max_length=128)
     decision: str                      # "approve" | "reject"
     reason: str = ""
-    affected_assets: list[str] = Field(default_factory=list)
-    evidence: list[dict] = Field(default_factory=list)
-    technique_ids: list[str] = Field(default_factory=list)
 
 
 @router.post("/actions/approve")
@@ -620,31 +662,65 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
     if decision not in ("approve", "reject"):
         raise HTTPException(422, "decision must be 'approve' or 'reject'")
 
-    policy = rbac.policy_for(req.action)
-    _require(p, policy["required_permission"], incident_id=req.incident_id)
+    try:
+        stored = proposal_mod.store().get(req.proposal_id)
+    except proposal_mod.ProposalNotFound as exc:
+        raise HTTPException(404, str(exc))
+    except proposal_mod.ProposalIntegrityError as exc:
+        raise HTTPException(409, str(exc))
+
+    action = stored["action"]
+    policy = action.get("policy")
+    if not isinstance(policy, dict) or not policy.get("required_permission"):
+        raise HTTPException(409, "stored proposal has no valid server policy")
+    incident_id = stored["incident_id"]
+    _require(p, policy["required_permission"], incident_id=incident_id)
 
     if decision == "approve" and policy["requires_approval"] and not req.reason.strip():
         audit_mod.chain().append(
             "action.denied", actor=p["actor"], role=p["role"],
-            incident_id=req.incident_id, decision="rejected-by-policy",
-            action=req.action, reason="approval attempted without a written reason",
-            details={"policy": policy})
+            incident_id=incident_id, decision="rejected-by-policy",
+            action=action, reason="approval attempted without a written reason",
+            details={"policy": policy, "proposal_id": req.proposal_id,
+                     "proposal_digest": stored["proposal_digest"]})
         raise HTTPException(422, "this action requires a written reason for approval")
+
+    try:
+        decided = proposal_mod.store().decide(
+            req.proposal_id,
+            decision=decision,
+            actor=p["actor"],
+            role=p["role"],
+            reason=req.reason.strip() or "(no reason given)",
+        )
+    except proposal_mod.ProposalExpired as exc:
+        raise HTTPException(410, str(exc))
+    except proposal_mod.ProposalAlreadyDecided as exc:
+        raise HTTPException(409, str(exc))
+    except proposal_mod.ProposalIntegrityError as exc:
+        raise HTTPException(409, str(exc))
 
     rec = audit_mod.chain().append(
         "action.approved" if decision == "approve" else "action.rejected",
-        actor=p["actor"], role=p["role"], incident_id=req.incident_id,
-        action={**req.action, "policy": policy, "executed": False},
+        actor=p["actor"], role=p["role"], incident_id=incident_id,
+        action={**action, "policy": policy, "executed": False},
         decision="approved" if decision == "approve" else "rejected",
         reason=req.reason.strip() or "(no reason given)",
-        evidence=req.evidence, technique_ids=req.technique_ids,
-        affected_assets=req.affected_assets,
+        evidence=decided["evidence"], technique_ids=decided["technique_ids"],
+        affected_assets=decided["affected_assets"],
         details={"simulated": True, "auth_mode": p["auth_mode"],
-                 "authenticated": p["authenticated"]})
+                 "authenticated": p["authenticated"],
+                 "proposal_id": req.proposal_id,
+                 "proposal_digest": decided["proposal_digest"],
+                 "input_digest": decided["input_digest"],
+                 "policy_version": decided["policy_version"],
+                 "store_durable": proposal_mod.store().durable})
     return {
         "recorded": True,
         "executed": False,
         "decision": rec["decision"],
+        "proposal_id": req.proposal_id,
+        "proposal_digest": decided["proposal_digest"],
         "policy": policy,
         "record": {
             "seq": rec["seq"],
