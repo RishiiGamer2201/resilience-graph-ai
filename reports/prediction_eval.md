@@ -11,6 +11,7 @@ Rank a held-out profile technique from a partial tactic-sorted profile. Test = 7
 | LSTM (embeddings) | 13.9% | 29.3% | 37.6% |
 
 ## Interpretation (data-driven)
+- **Interpolation mass is preserved:** for each prefix, stored lambdas are renormalized across the unigram, first-order and second-order components that have data. The complete candidate distribution therefore sums to 1. Its values are normalized model weights, not observed frequencies, calibrated confidence, or future probabilities.
 - **Shipped association ranker: Markov interpolated λ=(0.2, 0.3, 0.5) (SHIPPED)** — best profile-position top-3 (38.2%) on this data.
 - **Profile-position comparison:** shipped ranker top-3 (38.2%) is **5.4× the kill-chain-order baseline** (7.1%). The rows are ATT&CK group/campaign profiles sorted by a tactic heuristic, not observed timelines. Beating this baseline supports **association ranking only**; it does not establish real chronological transitions.
 - **Neural is not justified here (honest negative result):** the LSTM (29.3% top-3) is 0.80× Markov — it beats the naive baselines but not the transition model at this data scale. Kept as a documented comparison, not the deliverable.

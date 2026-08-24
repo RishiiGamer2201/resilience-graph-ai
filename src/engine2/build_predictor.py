@@ -317,6 +317,8 @@ def baseline_markov_interp(train, val, vocab):
                 t2[(s[i - 2], s[i - 1])][s[i]] += 1
 
     def make(l2, l1, l0):
+        from src.shared.predictor import renormalize_component_weights
+
         def predict(last, prefix):
             a = prefix[-2] if len(prefix) >= 2 else None
             b = prefix[-1] if prefix else last
@@ -324,13 +326,19 @@ def baseline_markov_interp(train, val, vocab):
             d1 = t1.get(b)
             n2 = sum(d2.values()) if d2 else 1
             n1 = sum(d1.values()) if d1 else 1
+            w2, w1, w0 = renormalize_component_weights(
+                (l2, l1, l0),
+                has_order2=bool(d2),
+                has_order1=bool(d1),
+                has_unigram=bool(uni),
+            )
             scored = []
             for c in vocab:
-                p = l0 * (uni.get(c, 0) / n_uni)
+                p = w0 * (uni.get(c, 0) / n_uni)
                 if d1:
-                    p += l1 * (d1.get(c, 0) / n1)
+                    p += w1 * (d1.get(c, 0) / n1)
                 if d2:
-                    p += l2 * (d2.get(c, 0) / n2)
+                    p += w2 * (d2.get(c, 0) / n2)
                 if p > 0:
                     scored.append((p, c))
             scored.sort(reverse=True)
@@ -367,12 +375,13 @@ def save_markov(train, path, lambdas=(0.2, 0.3, 0.5), tables=None,
     else:
         t2, t1, uni = tables
     payload = {
-        "version": 3,
+        "version": 4,
         "order2": {k: [[t, int(n)] for t, n in c.most_common()] for k, c in t2.items()},
         "order1": {k: [[t, int(n)] for t, n in c.most_common()] for k, c in t1.items()},
         "unigram": [[t, int(n)] for t, n in uni.most_common()],
         "lambdas": list(lambdas),
         "task": "attack-technique-association-ranking",
+        "component_weight_policy": "renormalize-across-available-components",
         "temporal_validation": temporal_validation or {
             "enabled": False,
             "mode": "association-only",
@@ -448,6 +457,7 @@ def main() -> None:
             "shipped": "markov_interp",
             "shipped_top3": round(results["markov_interp"][3], 3),
             "lambdas": list(interp_w),
+            "component_weight_policy": "renormalize-across-available-components",
             "task": "ATT&CK technique-association ranking",
             "temporal_validation": temporal_validation,
             "note": f"Interpolated Markov association ranker; {mk_vs_kc:.1f}x the "
@@ -480,6 +490,11 @@ def main() -> None:
     lines += [
         "",
         "## Interpretation (data-driven)",
+        "- **Interpolation mass is preserved:** for each prefix, stored lambdas are "
+        "renormalized across the unigram, first-order and second-order components "
+        "that have data. The complete candidate distribution therefore sums to 1. "
+        "Its values are normalized model weights, not observed frequencies, calibrated "
+        "confidence, or future probabilities.",
         f"- **Shipped association ranker: {label[best]}** — best profile-position top-3 ({results[best][3]*100:.1f}%) "
         + ("and the most explainable choice. On only "
            f"{len(train)} training sequences a first-order Markov transition model "

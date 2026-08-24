@@ -71334,7 +71334,7 @@
               "association_score": 0.0304
             }
           ],
-          "projection_narrative": "The most recent technique observed is Pass the Hash (T1550.002). Ranked by co-occurrence position in ATT&CK group and campaign profiles sorted with a tactic heuristic, techniques to investigate are: \u2022 1. Data from Local System (T1005) \u2014 association score 12%. Adversaries may search local system sources, such as file systems, configuration files, local databases, virtual machine files, or process memory, to find files of interest and sensitive data prior to Exfiltration.\n\nAdversaries may do this using a Command and Scripting Interpreter, such as cmd as well as a Network Device CLI, which have functionality to interact with the file system to gather information.(Citation: show_run_config_cmd_cisco) Adversaries may also use Automated Collection on the local system.. \u2022 2. Lateral Tool Transfer (T1570) \u2014 association score 12%. Adversaries may transfer tools or other files between systems in a compromised environment. \u2022 3. IDE Tunneling (T1219.001) \u2014 association score 3%. Adversaries may abuse Integrated Development Environment (IDE) software with remote development features to establish an interactive command and control channel on target systems within a network. These are profile associations, not detections or a chronological forecast: nothing here has been observed on this network. Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline. Treat the list only as investigation leads.",
+          "projection_narrative": "The most recent technique observed is Pass the Hash (T1550.002). Ranked by co-occurrence position in ATT&CK group and campaign profiles sorted with a tactic heuristic, techniques to investigate are: \u2022 1. Data from Local System (T1005) \u2014 normalized model weight 12%. Adversaries may search local system sources, such as file systems, configuration files, local databases, virtual machine files, or process memory, to find files of interest and sensitive data prior to Exfiltration.\n\nAdversaries may do this using a Command and Scripting Interpreter, such as cmd as well as a Network Device CLI, which have functionality to interact with the file system to gather information.(Citation: show_run_config_cmd_cisco) Adversaries may also use Automated Collection on the local system.. \u2022 2. Lateral Tool Transfer (T1570) \u2014 normalized model weight 12%. Adversaries may transfer tools or other files between systems in a compromised environment. \u2022 3. IDE Tunneling (T1219.001) \u2014 normalized model weight 3%. Adversaries may abuse Integrated Development Environment (IDE) software with remote development features to establish an interactive command and control channel on target systems within a network. Weights are normalized across every candidate the model can score; they are not observed frequencies, calibrated confidence, or future probabilities. These are profile associations, not detections or a chronological forecast: nothing here has been observed on this network. Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline. Treat the list only as investigation leads.",
           "n_predictions": 3,
           "mode": "association-only",
           "temporal_prediction": {
@@ -73383,21 +73383,24 @@
           "technique_id": "T1021.001",
           "name": "Remote Desktop Protocol",
           "stage": "lateral movement",
-          "score": 0.3041,
+          "score": 0.3802,
+          "score_kind": "normalized_model_weight",
           "source": "profile-association-order1"
         },
         {
           "technique_id": "T1105",
           "name": "Ingress Tool Transfer",
           "stage": "command and control",
-          "score": 0.0102,
+          "score": 0.0127,
+          "score_kind": "normalized_model_weight",
           "source": "profile-association-order1"
         },
         {
           "technique_id": "T1059.001",
           "name": "PowerShell",
           "stage": "execution",
-          "score": 0.0084,
+          "score": 0.0105,
+          "score_kind": "normalized_model_weight",
           "source": "profile-association-order1"
         }
       ]

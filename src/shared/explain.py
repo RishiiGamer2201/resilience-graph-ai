@@ -236,11 +236,13 @@ def explain_step(df: pd.DataFrame, bundle: dict, step_index: int = 0, *,
         "value": {"given": inc["technique_ids"],
                   "associations": [{"technique_id": t, "score": round(p, 3)}
                                   for t, p in nxt],
+                  "score_kind": "normalized_model_weight",
                   "model_source": source,
                   "temporal_prediction": predictor.temporal_prediction_status()},
-        "explanation": ("Association scores from tactic-sorted ATT&CK group/campaign "
-                        "profiles. They are investigation leads, not observed chronology "
-                        "or probabilities of what happens next."),
+        "explanation": ("Normalized model weights from tactic-sorted ATT&CK group/campaign "
+                        "profiles. They sum to one across the complete candidate set but are "
+                        "not observed frequencies, calibrated confidence, or probabilities "
+                        "of what happens next."),
     })
 
     g = bundle["graph"]

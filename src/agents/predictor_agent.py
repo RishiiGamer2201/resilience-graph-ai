@@ -10,7 +10,7 @@ This is a thin wrapper around src/shared/predictor.py. The only new logic is:
   - return results in AgentResult format for the Orchestrator to validate
 
 Input:  AgentResult from Reasoner (technique_chain field)
-Output: AgentResult with ranked investigation leads + association scores.
+Output: AgentResult with ranked investigation leads + normalized model weights.
 
 Usage:
     from src.agents.predictor_agent import run
@@ -83,6 +83,7 @@ def run(reasoner_result: AgentResult) -> AgentResult:
             "technique_id": str(tid),
             "name": names.get(str(tid), str(tid)),
             "association_score": round(float(prob), 4),
+            "association_score_kind": "normalized_model_weight",
             "source": source,
         })
 
@@ -90,7 +91,7 @@ def run(reasoner_result: AgentResult) -> AgentResult:
     return AgentResult(
         agent="prediction",
         status=AgentStatus.OK if predictions else AgentStatus.DEGRADED,
-        # Profile association strength is not calibrated confidence.
+        # A normalized profile-association weight is not calibrated confidence.
         confidence=0.0,
         output={
             "technique_chain_used": technique_chain,
@@ -103,8 +104,8 @@ def run(reasoner_result: AgentResult) -> AgentResult:
         evidence_refs=[p["technique_id"] for p in predictions],
         notes=[
             f"Ranked {len(predictions)} associated technique(s) from {len(technique_chain)} observations.",
-            f"Top association: {predictions[0]['technique_id']} @ score {predictions[0]['association_score']:.1%}" if predictions else "",
-            "Association strength is not a probability or calibrated confidence.",
+            f"Top association: {predictions[0]['technique_id']} @ normalized model weight {predictions[0]['association_score']:.1%}" if predictions else "",
+            "Model weight is not an observed frequency, future probability, or calibrated confidence.",
         ],
         ms=(time.perf_counter() - t0) * 1000,
     )

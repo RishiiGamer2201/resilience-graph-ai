@@ -95,6 +95,11 @@ neural models (LSTM 29.3%, and a bidirectional LSTM at 20.0% in
 `reports/model_experiments.md`) both lost at this data scale, so we ship the
 simpler winner.
 
+For every context, interpolation weights are renormalized across only the
+unigram, first-order and second-order components that contain data. The complete
+candidate distribution sums to one. These values are normalized model weights,
+not observed frequencies, calibrated confidence, or next-move probabilities.
+
 Independent chronological gate: on 4 source-provenanced CERT-In timelines,
 top-3 is
 11.1% versus 38.2%

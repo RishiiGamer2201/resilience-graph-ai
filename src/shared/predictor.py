@@ -10,12 +10,13 @@ sequences). A pure second-order model is sharper when it has seen the exact
 bigram and useless when it has not; interpolation keeps the higher-order signal
 without collapsing to zero on unseen context. Most training rows are ATT&CK
 group/campaign technique profiles sorted by a tactic heuristic, not observed
-timelines. The scores are therefore association scores, not next-move
+timelines. The values are therefore normalized association-model weights, not next-move
 probabilities. Measured on held-out profile positions it beats the previous first-order model, and a paired
 bootstrap keeps it ahead in 96% of resamples (`reports/model_experiments.md`).
 
 Artifact: `models/next_technique_markov.pkl`.
-  v3 (current) v2 fields plus data-basis and temporal-validation metadata.
+  v4 (current) v3 fields plus the available-component weight policy.
+  v3           v2 fields plus data-basis and temporal-validation metadata.
   v2           {"version": 2, "order2": {(a,b): [[t,n],..]}, "order1": {...},
                 "unigram": [[t,n],..], "lambdas": [l2, l1, l0]}
   v1 (legacy)  {last: [[t, n], ...]}  -- read as order1-only so an old artifact
@@ -53,7 +54,7 @@ def _load() -> dict:
     if "m" not in _state:
         with MARKOV_PATH.open("rb") as f:
             raw = pickle.load(f)
-        if isinstance(raw, dict) and raw.get("version") in {2, 3}:
+        if isinstance(raw, dict) and raw.get("version") in {2, 3, 4}:
             m = raw
         else:                                    # legacy first-order table
             from collections import Counter
@@ -91,12 +92,53 @@ def _dist(pairs) -> tuple[dict, int]:
     return d, (sum(d.values()) or 1)
 
 
-def rank_associations(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, float]], str]:
-    """Return profile-association scores and the source label.
+def renormalize_component_weights(
+    lambdas,
+    *,
+    has_order2: bool,
+    has_order1: bool,
+    has_unigram: bool,
+) -> tuple[float, float, float]:
+    """Redistribute interpolation weight across components that can answer.
 
-    The values are normalized frequencies learned from tactic-sorted profiles.
-    They are useful for ranking ATT&CK techniques to investigate, but they are
-    not probabilities that a technique will happen next.
+    The stored lambdas are ordered ``(order2, order1, unigram)``. A missing
+    context table must not make the candidate distribution lose mass: the
+    remaining component weights are divided by their active total. The final
+    fallback also keeps legacy artifacts useful when their unigram lambda was
+    stored as zero.
+    """
+    raw = tuple(max(0.0, float(value)) for value in lambdas)
+    if len(raw) != 3:
+        raise ValueError("predictor lambdas must contain order2, order1 and unigram weights")
+    available = (bool(has_order2), bool(has_order1), bool(has_unigram))
+    active = tuple(weight if present else 0.0
+                   for weight, present in zip(raw, available))
+    total = sum(active)
+    if total > 0:
+        return tuple(weight / total for weight in active)
+
+    # A legacy first-order artifact may carry (0, 1, 0). For an unknown
+    # context, use its derived unigram table rather than returning zero mass.
+    for index in (2, 1, 0):
+        if available[index]:
+            fallback = [0.0, 0.0, 0.0]
+            fallback[index] = 1.0
+            return tuple(fallback)
+    return 0.0, 0.0, 0.0
+
+
+def rank_associations(
+    technique_ids: list[str],
+    k: int | None = 5,
+) -> tuple[list[tuple[str, float]], str]:
+    """Return normalized profile-association model weights and the source label.
+
+    Across the complete candidate set, values sum to one after the stored
+    interpolation weights are renormalized over the components available for
+    this context. They are normalized model weights learned from tactic-sorted
+    profiles: not empirical frequencies, calibrated confidence, or probabilities
+    that a technique will happen next. Pass ``k=None`` to return the complete
+    distribution; ordinary callers receive only the top ``k`` entries.
     """
     m = _load()
     l2, l1, l0 = m["lambdas"]
@@ -106,6 +148,12 @@ def rank_associations(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[
     d2, n2 = _dist(m["order2"].get((prev, last))) if prev and last else ({}, 1)
     d1, n1 = _dist(m["order1"].get(last)) if last else ({}, 1)
     duni, nuni = _dist(m["unigram"])
+    l2, l1, l0 = renormalize_component_weights(
+        (l2, l1, l0),
+        has_order2=bool(d2),
+        has_order1=bool(d1),
+        has_unigram=bool(duni),
+    )
 
     cands = set(d2) | set(d1) | set(duni)
     scored = []
@@ -121,7 +169,8 @@ def rank_associations(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[
 
     source = ("profile-association-order2" if d2 else
               "profile-association-order1" if d1 else "profile-frequency-fallback")
-    return scored[: max(1, k)], source
+    limit = len(scored) if k is None else max(1, k)
+    return scored[:limit], source
 
 
 def rank_next(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, float]], str]:
@@ -177,13 +226,13 @@ def generate_prediction_narrative(
     for item in predictions[:3]:
         if isinstance(item, dict):
             tid = str(item.get("technique_id", ""))
-            prob = float(item.get("association_score",
-                                  item.get("score", item.get("probability", 0.0))) or 0.0)
+            weight = float(item.get("association_score",
+                                    item.get("score", item.get("probability", 0.0))) or 0.0)
             name = item.get("name") or names.get(tid, tid)
         else:
-            tid, prob = str(item[0]), float(item[1])
+            tid, weight = str(item[0]), float(item[1])
             name = names.get(tid, tid)
-        rows.append((tid, name, prob))
+        rows.append((tid, name, weight))
 
     if not rows:
         return "No associated technique could be ranked for this profile."
@@ -197,8 +246,8 @@ def generate_prediction_narrative(
     parts = [f"{lead}Ranked by co-occurrence position in ATT&CK group and campaign "
              f"profiles sorted with a tactic heuristic, techniques to investigate are:"]
 
-    for i, (tid, name, prob) in enumerate(rows, start=1):
-        pct = f" — association score {prob * 100:.0f}%" if prob > 0 else ""
+    for i, (tid, name, weight) in enumerate(rows, start=1):
+        pct = f" — normalized model weight {weight * 100:.0f}%" if weight > 0 else ""
         # ATT&CK descriptions are markdown and carry inline links; keep the
         # link text, drop the URL, so the sentence reads as prose everywhere.
         desc = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", explanation(tid))
@@ -206,19 +255,22 @@ def generate_prediction_narrative(
         parts.append(f"• {i}. {name} ({tid}){pct}.{desc}")
 
     status = temporal_prediction_status()
-    parts.append("These are profile associations, not detections or a chronological "
-                 "forecast: nothing here has been observed on this network. "
+    parts.append("Weights are normalized across every candidate the model can score; "
+                 "they are not observed frequencies, calibrated confidence, or future "
+                 "probabilities. These are profile associations, not detections or a "
+                 "chronological forecast: nothing here has been observed on this network. "
                  f"{status['reason']} Treat the list only as investigation leads.")
     return " ".join(parts)
 
 
 def demo() -> None:
-    """Self-check: predictions are ranked, probabilities are sane."""
+    """Self-check: the complete association distribution is normalized."""
     m = _load()
     any_last = next(iter(m["order1"]), None)
-    preds, src = rank_next([any_last] if any_last else [], 5)
+    preds, src = rank_associations([any_last] if any_last else [], None)
     assert preds, "expected at least one prediction"
-    assert all(0.0 <= p <= 1.0 for _, p in preds), f"probabilities out of range: {preds}"
+    assert all(0.0 <= p <= 1.0 for _, p in preds), f"weights out of range: {preds}"
+    assert abs(sum(p for _, p in preds) - 1.0) <= 1e-9, "distribution lost mass"
     assert preds == sorted(preds, key=lambda x: (-x[1], x[0])), "not ranked"
     print(f"predictor ok (v{m['version']}, lambdas={m['lambdas']}, src={src}): "
           f"{[(t, round(p, 3)) for t, p in preds[:3]]}")

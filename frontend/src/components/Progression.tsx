@@ -58,7 +58,7 @@ export default function Progression({
                 {associations.map((item) => (
                   <li key={item.technique_id} className="flex items-baseline justify-between gap-3">
                     <span>{techniqueName(item.technique_id, item.name)}</span>
-                    <span className="font-mono text-xs text-faint">association {Math.round(item.score * 100)}%</span>
+                    <span className="font-mono text-xs text-faint">model weight {Math.round(item.score * 100)}%</span>
                   </li>
                 ))}
               </ul>
@@ -67,7 +67,9 @@ export default function Progression({
           <FinePrint>
             Data basis: {forecast.data_basis?.kind ?? 'ATT&CK profiles'}; ordering:{' '}
             {forecast.data_basis?.ordering ?? 'heuristic tactic order'}. These rows are not
-            observed attack timelines.
+            observed attack timelines. Model weights are normalized over the full candidate
+            distribution; they are not observed frequencies, calibrated confidence, or future
+            probabilities.
           </FinePrint>
         </CardBody>
       </Card>

@@ -580,8 +580,8 @@ export interface Prediction {
   rank: number
   technique_id: string
   name: string
-  /** Association score from tactic-sorted ATT&CK profiles. It is not a
-   * chronological next-move probability. */
+  /** Normalized model weight from tactic-sorted ATT&CK profiles. It is not an
+   * observed frequency, calibrated confidence, or chronological probability. */
   score?: number
   probability?: number
   source?: string
@@ -845,6 +845,7 @@ export interface ForecastAssociation {
   name: string
   stage: string
   score: number
+  score_kind?: 'normalized_model_weight'
   source: string
 }
 

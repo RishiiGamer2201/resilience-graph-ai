@@ -57,7 +57,7 @@ MAX_HORIZON = 8
 #   step:  1      2      3      4      5      6      7      8
 #   top-3: 45.0%  30.0%  22.4%  14.3%  15.1%  11.8%   9.9%   9.7%
 #
-# Fitting acc(h)/acc(1) = d^(h-1) gives d = 0.7726, shipped rounded to 0.77.
+# Fitting acc(h)/acc(1) = d^(h-1) gives d = 0.7744, shipped rounded to 0.77.
 #
 # Three different n's, none of them interchangeable -- the report used to print
 # the middle one wherever a regression's n belongs, which overstated the fit 68x:
@@ -69,9 +69,9 @@ MAX_HORIZON = 8
 #   * 29  test sequences those 544 prefixes come from. Consecutive prefixes of one
 #     sequence share 7 of their 8 targets and the top 5 sequences supply 57% of
 #     the prefixes, so ~29 is far closer to the effective sample size than 544.
-#     Resampling SEQUENCES puts the 95% interval on d at [0.720, 0.804].
+#     Resampling SEQUENCES puts the 95% interval on d at [0.723, 0.805].
 #
-# R^2 = 0.739 on the 7 decaying points. (0.870 if the r(1)=1 anchor is counted,
+# R^2 = 0.719 on the 7 decaying points. (0.862 if the r(1)=1 anchor is counted,
 # which is what was reported before -- that point is (0, log(acc[0]/acc[0])) = 0
 # by construction, so it cannot move the slope but does inflate ss_tot. It stays
 # in the fit as a real constraint; it stays out of the quoted R^2.)
@@ -79,7 +79,7 @@ MAX_HORIZON = 8
 # Honest limits, in full in the report, and the last one is serious:
 #   * A single geometric constant cannot express the real shape -- steep from step
 #     1 to 2, then flattening -- so it under-states the early drop.
-#   * Log space is a CHOICE. A linear-space fit on the same ratios gives d = 0.7407
+#   * Log space is a CHOICE. A linear-space fit on the same ratios gives d = 0.7420
 #     and fits those ratios better (R^2 0.942 vs 0.914 on that scale). Log space is
 #     kept because the constant is used multiplicatively, so relative error is what
 #     matters -- but the fit space, not the data, is what decides the 2nd decimal.
@@ -112,7 +112,7 @@ STEP_DECAY = 0.77
 #
 # Any d in [0.765, 0.780] is within 5% of the fit's minimum SSE, and that band
 # straddles 0.769161. Of 2000 sequence-level bootstrap replicates, 52.5% give
-# step 5 and 46.2% give step 4 -- as does the linear-space fit (d = 0.7407), and
+# step 5 and 43.9% give step 4 -- as does the linear-space fit (d = 0.7420), and
 # as would rounding one 2dp tick down to 0.76. The fit cannot resolve the side.
 #
 # So: the horizon moved somewhere NORTH OF 3. "3 to 5" is the point estimate, not
@@ -220,6 +220,7 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
                 "name": _name_of(tid),
                 "stage": _stage_of(tid),
                 "score": round(score, 4),
+                "score_kind": "normalized_model_weight",
                 "source": source,
             } for tid, score in ranked],
         }
@@ -318,9 +319,9 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
                       f"accuracies were averaged over 544 held-out prefixes from 29 "
                       f"test sequences, which overlap heavily, so ~29 is nearer the "
                       f"effective sample size and a sequence-level bootstrap puts d in "
-                      f"[0.720, 0.804]. R^2 0.739 on the decaying points (0.870 if the "
+                      f"[0.723, 0.805]. R^2 0.719 on the decaying points (0.862 if the "
                       f"r(1)=1 anchor is counted, which explains nothing). A "
-                      f"linear-space fit of the same ratios gives 0.7407. "
+                      f"linear-space fit of the same ratios gives 0.7420. "
                       f"(reports/rollout_decay.md, reproduce with "
                       f"scripts/eval_rollout_decay.py)"),
             "deterministic": True,

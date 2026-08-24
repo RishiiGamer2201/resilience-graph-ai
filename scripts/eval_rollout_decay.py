@@ -75,7 +75,7 @@ BOOT_REPS = 2000   # sequence-level bootstrap replicates
 BOOT_SEED = 42     # fixed so the reported interval reproduces byte-identically
 
 # The published one-step figures we must land on before trusting the split.
-# top-3 is 38.2% in the report and 38.6% here: `rank_next` breaks probability
+# top-3 is 38.2% in the report and 38.6% here: runtime ranking breaks model-weight
 # ties by technique id, `build_predictor`'s ranker leaves ties in dict order.
 # Three prediction points out of 777 land differently. Noted, not papered over.
 PUBLISHED = {"n": 777, "oov": 45, "top1": 23.2, "top3": 38.2, "top5": 44.5}
@@ -103,7 +103,8 @@ def one_step(seqs, vocab) -> tuple[dict, int, int]:
             if s[i] not in vocab:
                 oov += 1
                 continue
-            ranked = [t for t, _ in predictor.rank_next(s[:i], 5)[0] if t in vocab]
+            ranked = [t for t, _ in predictor.rank_associations(s[:i], 5)[0]
+                      if t in vocab]
             for k in hits:
                 hits[k] += s[i] in ranked[:k]
     return {k: 100 * v / n for k, v in hits.items()}, n, oov
@@ -123,26 +124,39 @@ def horizon_accuracy(seqs, vocab, max_h=MAX_H):
     two consecutive prefixes of one sequence are scored against 7 of the same 8
     ground-truth targets, so any interval on d has to resample sequences.
     """
+    from src.shared import predictor
     from src.shared.rollout import simulate_progression
     oov = [0] * max_h
     rows = []
-    for s in seqs:
-        s_hits, s_n = [0] * max_h, 0
-        # only prefixes with a full max_h of real continuation to check against
-        for i in range(1, len(s) - max_h + 1):
-            sim = simulate_progression(s[:i], None, k_steps=max_h)
-            if not sim["available"] or len(sim["steps"]) < max_h:
-                continue                     # model produced no trajectory at all
-            s_n += 1
-            for h in range(1, max_h + 1):
-                truth = s[i + h - 1]
-                if truth not in vocab:
-                    oov[h - 1] += 1          # unpredictable; still in the denominator
-                    continue
-                top = [p["technique_id"] for p in sim["steps"][h - 1]["predictions"]]
-                s_hits[h - 1] += truth in top[:TOP_K]
-        if s_n:
-            rows.append([s_n, s_hits])
+    # Production correctly fails closed because the independent timeline gate
+    # is disabled. This historical diagnostic deliberately measures the dormant
+    # rollout arithmetic and says so in its report, so open the gate only inside
+    # this function and always restore the runtime policy afterwards.
+    runtime_gate = predictor.temporal_prediction_status
+    predictor.temporal_prediction_status = lambda: {
+        "enabled": True,
+        "mode": "evaluation-only-profile-rollout",
+    }
+    try:
+        for s in seqs:
+            s_hits, s_n = [0] * max_h, 0
+            # only prefixes with a full max_h of real continuation to check against
+            for i in range(1, len(s) - max_h + 1):
+                sim = simulate_progression(s[:i], None, k_steps=max_h)
+                if not sim["available"] or len(sim["steps"]) < max_h:
+                    continue                 # model produced no trajectory at all
+                s_n += 1
+                for h in range(1, max_h + 1):
+                    truth = s[i + h - 1]
+                    if truth not in vocab:
+                        oov[h - 1] += 1      # unpredictable; still in the denominator
+                        continue
+                    top = [p["technique_id"] for p in sim["steps"][h - 1]["predictions"]]
+                    s_hits[h - 1] += truth in top[:TOP_K]
+            if s_n:
+                rows.append([s_n, s_hits])
+    finally:
+        predictor.temporal_prediction_status = runtime_gate
     return accuracy_from(rows, max_h), sum(r[0] for r in rows), oov, rows
 
 
@@ -441,8 +455,8 @@ one-step evaluation and refuses to continue unless it lands on
 | top-3 | {PUBLISHED['top3']:.1f}% | {R['acc1'][3]:.1f}% |
 | top-5 | {PUBLISHED['top5']:.1f}% | {R['acc1'][5]:.1f}% |
 
-top-3 differs by 0.4pp -- three prediction points out of {R['n1']}. `predictor.rank_next`
-breaks probability ties by technique id; `build_predictor`'s ranker leaves tied
+top-3 differs by 0.4pp -- three prediction points out of {R['n1']}. Runtime association
+ranking breaks model-weight ties by technique id; `build_predictor`'s ranker leaves tied
 techniques in dict order. Same corpus, same model, different coin-flip on ties.
 
 This split verification is genuinely non-circular and it is the part of this

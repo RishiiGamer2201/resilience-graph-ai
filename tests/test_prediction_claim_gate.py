@@ -11,8 +11,9 @@ def test_artifact_records_profile_data_and_fails_closed():
     with predictor.MARKOV_PATH.open("rb") as handle:
         artifact = pickle.load(handle)
 
-    assert artifact["version"] == 3
+    assert artifact["version"] == 4
     assert artifact["task"] == "attack-technique-association-ranking"
+    assert artifact["component_weight_policy"] == "renormalize-across-available-components"
     gate = artifact["temporal_validation"]
     assert gate["enabled"] is False
     assert gate["data_basis"]["observed_timeline"] is False
@@ -31,6 +32,8 @@ def test_cached_ui_payload_contains_no_stale_chronological_claim():
     assert forecast["available"] is False
     assert forecast["mode"] == "association-only"
     assert forecast["associations"]
+    assert all(row["score_kind"] == "normalized_model_weight"
+               for row in forecast["associations"])
     assert "steps" not in forecast
 
 
