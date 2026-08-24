@@ -251,9 +251,17 @@ def test_an_empty_window_returns_zeros_not_a_crash():
     assert all(v == 0.0 for v in f.values())
 
 
-def test_packet_windows_feed_the_netstate_model(tmp_path):
-    """The claim requirements 1, 2, 3, 7 and 8 rest on together: packets and
-    flows are the same state space, and the model is not told which it got."""
+def test_packet_windows_feed_a_netstate_model_TRAINED_ON_PACKETS(tmp_path):
+    """Packet windows can train and drive a netstate model of their own.
+
+    Note what this does NOT show, and used to claim it did: it calls `fit()`
+    first, so the model here is a fresh 60-dimensional one built from these very
+    windows. It says nothing about `models/netstate_cicids.npz`, the artifact
+    the API loads, which encodes 48 dimensions and rejects these vectors --
+    see tests/test_packet_flow_contract.py. The old docstring said "packets and
+    flows are the same state space", which is how issue #41 survived a green
+    suite.
+    """
     from src.engine3.netstate import fit
     pkts = []
     for i in range(768):

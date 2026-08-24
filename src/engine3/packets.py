@@ -399,9 +399,19 @@ def packet_windows(packets: list[Packet], *, window: int = WINDOW
                    ) -> tuple[np.ndarray, list[dict]]:
     """Consecutive windows of packets -> (states, per-window feature dicts).
 
-    `states` has the same shape convention as src/engine3/netstate.py: the mean
-    and the standard deviation of each feature across the window, so a capture
-    can be handed to the same latent state-space model unchanged.
+    `states` follows the same shape CONVENTION as src/engine3/netstate.py -- the
+    mean and the standard deviation of each feature across the window -- but not
+    the same feature set, and the two are not interchangeable.
+
+    This used to say a capture "can be handed to the same latent state-space
+    model unchanged". It cannot. These are the 30 features of PACKET_FEATURES,
+    60 dimensions; the shipped artifact (models/netstate_cicids.npz) was trained
+    on the 24 CIC-IDS2017 flow features, 48 dimensions. Nothing converts one
+    into the other: TTL variance and retransmission rate are not recoverable
+    from flow records, and Init_Win_bytes_backward is not recoverable from a
+    packet window. Using these vectors means training an artifact on them --
+    which is what tests do, and why those tests never caught the claim.
+    NetStateModel.encode() now refuses the mismatch by name.
     """
     if len(packets) < window:
         return np.empty((0, STATE_DIM)), []
