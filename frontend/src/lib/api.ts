@@ -58,6 +58,22 @@ import { normalizeApiBase } from '@/lib/apiBase'
 // Vite proxy forwards /api to the local backend configured in vite.config.ts.
 const BASE = normalizeApiBase(import.meta.env.VITE_API_BASE as string | undefined)
 
+// API responses contain analyst-authored and source-derived prose. Normalize
+// punctuation at this single boundary so an old cache or a new endpoint cannot
+// reintroduce the UI punctuation rule that the static-source check enforces.
+const normalizeUiString = (value: string): string => value.replace(/\s*\u2014\s*/g, ' - ')
+
+function normalizeUiCopy<T>(value: T): T {
+  if (typeof value === 'string') return normalizeUiString(value) as T
+  if (Array.isArray(value)) return value.map(normalizeUiCopy) as T
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nested]) => [key, normalizeUiCopy(nested)]),
+    ) as T
+  }
+  return value
+}
+
 // ─── Session ─────────────────────────────────────────────────────────────────
 // The role travels as a header and is enforced SERVER-SIDE on every mutating
 // endpoint. Changing it here cannot grant permission; it only changes which
@@ -91,7 +107,7 @@ async function fail(path: string, r: Response): Promise<ApiError> {
   try {
     const body = (await r.json()) as { detail?: unknown }
     if (typeof body.detail === 'string') {
-      detail = body.detail
+      detail = normalizeUiString(body.detail)
     } else if (Array.isArray(body.detail)) {
       detail = body.detail
         .map((item) => {
@@ -120,7 +136,7 @@ async function fail(path: string, r: Response): Promise<ApiError> {
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`, { headers: authHeaders() })
   if (!r.ok) throw await fail(path, r)
-  return (await r.json()) as T
+  return normalizeUiCopy((await r.json()) as T)
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -130,7 +146,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   })
   if (!r.ok) throw await fail(path, r)
-  return (await r.json()) as T
+  return normalizeUiCopy((await r.json()) as T)
 }
 
 // ─── Cached endpoints ────────────────────────────────────────────────────────
@@ -184,7 +200,7 @@ export async function readEventStream(
         if (line.startsWith('event:')) event = line.slice(6).trim()
         if (line.startsWith('data:')) data.push(line.slice(5).trimStart())
       }
-      if (data.length) onEvent(event, data.join('\n'))
+      if (data.length) onEvent(event, normalizeUiString(data.join('\n')))
     }
     if (done) break
   }

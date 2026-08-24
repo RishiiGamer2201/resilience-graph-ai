@@ -1,5 +1,5 @@
 /**
- * Models & metrics — the evaluation numbers, exactly as reports/metrics.json
+ * Models & metrics - the evaluation numbers, exactly as reports/metrics.json
  * has them.
  *
  * Two rules govern this screen:
@@ -130,7 +130,7 @@ export default function Metrics() {
     <PageHeader
       eyebrow="Model checks"
       title="How well did the models perform?"
-      description="See the test results behind each model. Technical measurements are kept separate so a single score cannot hide weak areas."
+      description="Compare model results, baselines, and known limitations."
     />
   )
 

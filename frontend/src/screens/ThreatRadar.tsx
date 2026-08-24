@@ -1,5 +1,5 @@
 /**
- * Threat Radar — external CTI, cross-referenced against the open incident.
+ * Threat Radar - external CTI, cross-referenced against the open incident.
  *
  * POST /api/threat-radar. The backend fetches the free feeds live when asked
  * and falls back to the snapshot bundled at build time if nothing answers. It
@@ -7,8 +7,8 @@
  * for live: the badge reads from that field alone, and a refresh that produced
  * no live source says so in words.
  *
- * Sources the backend could not reach — usually an optional free API key that
- * is not set — are listed as skipped with the reason. Dropping them would make
+ * Sources the backend could not reach - usually an optional free API key that
+ * is not set - are listed as skipped with the reason. Dropping them would make
  * a two-feed radar look like a seven-feed one.
  *
  * Scoring is server-side (src/shared/osint.relevance) and reported as three
@@ -105,7 +105,7 @@ interface QueueEntry {
 }
 
 /** The advisory a SOC lead would review before anything left the building.
- *  Built from real fields only — no invented impact claim. */
+ *  Built from real fields only - no invented impact claim. */
 function draftAdvisory(entry: QueueEntry, incidentId: string | undefined): string {
   const r = entry.relevance
   const why = [
@@ -120,7 +120,7 @@ function draftAdvisory(entry: QueueEntry, incidentId: string | undefined): strin
     .filter(Boolean)
     .join('; ')
   return [
-    'SECTOR ADVISORY (DRAFT — NOT DISPATCHED)',
+    'SECTOR ADVISORY (DRAFT - NOT DISPATCHED)',
     `Source: ${entry.item.source} · ${entry.item.published}`,
     `Report: ${entry.item.title}`,
     `Link: ${entry.item.url}`,
@@ -216,13 +216,13 @@ function ExposureBlock({ item }: { item: RadarItem }) {
     <div className="mt-2 border-t border-border pt-2">
       <div className="flex items-center gap-1.5 text-xs font-medium text-text">
         <Crosshair className="size-3 text-sev-high" aria-hidden />
-        Where you are exposed — {exact ? 'same technique' : 'same tactic only'} in your
+        Where you are exposed - {exact ? 'same technique' : 'same tactic only'} in your
         own incident
       </div>
       {keys.map((key) => (
         <div key={key} className="mt-1">
           <span className="font-mono text-xs text-sev-high">{key}</span>
-          <span className="text-xs text-dim"> — {moves[key].length} of your movements</span>
+          <span className="text-xs text-dim"> - {moves[key].length} of your movements</span>
           <div className="mt-1 flex flex-wrap gap-1">
             {moves[key].slice(0, 8).map((m, i) => (
               <span
@@ -319,7 +319,7 @@ function RadarEntry({
           </span>
           <Button size="sm" variant="secondary" disabled={queued} onClick={() => onQueue(item)}>
             <Siren className="size-3" aria-hidden />
-            {queued ? 'queued — see the alert queue' : 'Queue sector alert (simulated)'}
+            {queued ? 'queued - see the alert queue' : 'Queue sector alert (simulated)'}
           </Button>
         </div>
       ) : null}
@@ -602,7 +602,7 @@ function Radar({
           </CardBody>
         )}
         <CardFooter>
-          Alerts are simulated and human-gated — the same policy as the SOAR actions.
+          Alerts are simulated and human-gated - the same policy as the SOAR actions.
           Nothing is dispatched to any real organisation.
         </CardFooter>
       </Card>
@@ -628,7 +628,7 @@ function Radar({
               ))}
             </CardBody>
             <CardFooter>
-              External intel has no attack path of its own — we hold no telemetry for
+              External intel has no attack path of its own - we hold no telemetry for
               someone else&apos;s breach, and inventing one would be fabrication. The
               path lives with your incident:{' '}
               <Link to="/graph" className="text-accent underline-offset-4 hover:underline">
@@ -679,7 +679,7 @@ export default function ThreatRadar() {
   // The incident being investigated drives the cross-reference: the live
   // analysis bundle if the operator ran one, otherwise the sample cache. Each
   // cached call may fail on its own; a failure narrows the cross-reference, it
-  // does not take the radar down — and the operator is told which is missing.
+  // does not take the radar down - and the operator is told which is missing.
   const { bundle, source } = useAnalysis()
   const incident = useScreenData<Incident>(bundle?.incident, getIncident, source)
   const intel = useScreenData<ThreatIntelView>(bundle?.threat_intel, getThreatIntel, source)
@@ -705,7 +705,7 @@ export default function ThreatRadar() {
     <PageHeader
       eyebrow="Public threat reports"
       title="What are others seeing?"
-      description="Compare this incident with recent public security reports and highlight reports that describe the same attacker behaviors."
+      description="Match this incident with recent public security reports."
       actions={
         <Badge variant={radarSource === 'live' ? 'accent' : 'outline'}>
           {radarSourceLabel}

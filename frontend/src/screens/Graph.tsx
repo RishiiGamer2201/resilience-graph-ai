@@ -1,5 +1,5 @@
 /**
- * Attack graph — a two-dimensional map of lateral movement.
+ * Attack graph - a two-dimensional map of lateral movement.
  *
  * Everything on this screen comes from `GET /api/graph`. The nodes are the
  * hosts the backend returned, the links are its aggregated authentication
@@ -343,7 +343,7 @@ export default function Graph() {
       <PageHeader
         eyebrow="Attack movement map"
         title="Where the attacker moved"
-        description="Each circle is a computer and each arrow is a movement between computers. Color shows the computer's role; a larger circle means more attacker activity touched it."
+        description="Trace attacker movement between computers and critical assets."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
@@ -558,7 +558,7 @@ export default function Graph() {
                 </Table>
                 {filtered.length > 300 ? (
                   <p className="px-4 py-2 text-xs text-faint">
-                    +{filtered.length - 300} more — narrow the search.
+                    +{filtered.length - 300} more - narrow the search.
                   </p>
                 ) : null}
               </div>
@@ -730,7 +730,7 @@ export default function Graph() {
                   ))}
                   {filtered.length > 200 ? (
                     <p className="px-4 py-2 text-xs text-faint">
-                      +{filtered.length - 200} more — narrow the search.
+                      +{filtered.length - 200} more - narrow the search.
                     </p>
                   ) : null}
                 </div>

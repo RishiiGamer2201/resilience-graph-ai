@@ -7,8 +7,8 @@
  * side by side rather than averaged away. Both lanes are always rendered;
  * neither is ever suppressed.
  *
- * Crucially the two are only PARTIALLY independent — same log, same rule table
- * — so what agreement is worth is capped, and the panel says so.
+ * Crucially the two are only PARTIALLY independent - same log, same rule table
+ * - so what agreement is worth is capped, and the panel says so.
  */
 import { CircleAlert, GitCompareArrows, ScrollText } from 'lucide-react'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
@@ -70,7 +70,7 @@ export default function CrossCheck({
           title="The second analysis lane did not produce a result"
           detail={`${
             crosscheck.reason ?? 'No reason was given.'
-          } The investigation above is unaffected — the workflow is authoritative and the cross-check is advisory.`}
+          } The investigation above is unaffected - the workflow is authoritative and the cross-check is advisory.`}
         />
       </Card>
     )
@@ -153,7 +153,7 @@ export default function CrossCheck({
         {crosscheck.agent_lane_degraded?.length ? (
           <Disclosed>
             <span className="font-medium text-text">Agent lane degraded:</span>{' '}
-            {crosscheck.agent_lane_degraded.join(', ')} — its agreement counts for less as a
+            {crosscheck.agent_lane_degraded.join(', ')} - its agreement counts for less as a
             result.
           </Disclosed>
         ) : null}

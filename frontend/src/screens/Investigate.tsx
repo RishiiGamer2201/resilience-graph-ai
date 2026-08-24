@@ -1,5 +1,5 @@
 /**
- * Investigate — weak signals to one verified attack story.
+ * Investigate - weak signals to one verified attack story.
  *
  * Seven bounded stages, run server-side by POST /api/investigate. Every number
  * on this screen is deterministic Python; every ATT&CK conclusion carries an
@@ -45,7 +45,7 @@ import {
   SeverityBadge,
   StatRow,
 } from '@/components/primitives'
-import { Disclosed, FinePrint } from '@/components/Disclosure'
+import { Disclosure, Disclosed, FinePrint } from '@/components/Disclosure'
 import { techniqueList, techniqueName } from '@/lib/techniques'
 
 import StageRail from '@/components/StageRail'
@@ -249,7 +249,7 @@ export default function Investigate() {
     <PageHeader
       eyebrow="Step-by-step investigation"
       title="Turn warning signs into a clear attack story"
-      description="Follow seven guided stages. Each finding shows its evidence, and every response action is only a safe simulation until a person approves it."
+      description="Follow the evidence from warning to human-approved response."
       actions={result ? <SeverityBadge severity={result.signals.incident.severity} /> : null}
     />
   )
@@ -291,7 +291,7 @@ export default function Investigate() {
           <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-warn" aria-hidden />
           <span>
             Running degraded: <span className="font-mono text-text">{degraded.join(', ')}</span>.
-            The investigation still completes — each stage reports what it could not do instead
+            The investigation still completes - each stage reports what it could not do instead
             of hiding it.
           </span>
         </div>
@@ -447,34 +447,42 @@ export default function Investigate() {
             <Card>
               <CardBody className="space-y-2">
                 {planSteps(result.trace.nodes).length ? (
-                  <ul className="space-y-1.5">
-                    {planSteps(result.trace.nodes).map((s) => (
-                      <li
-                        key={s.node}
-                        className={`rounded-md border px-3 py-2 ${
-                          s.selected
-                            ? 'border-border bg-surface-2'
-                            : 'border-dashed border-border opacity-60'
-                        }`}
-                      >
-                        <div className="flex flex-wrap items-baseline gap-2">
-                          <span className="text-sm font-medium text-text">{s.node}</span>
-                          <span className="font-mono text-xs text-faint">{s.tool}</span>
-                          <span className="flex-1" />
-                          <span className="text-xs text-faint">
-                            {s.selected ? 'selected' : 'not needed for this case'}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 text-xs text-dim">{s.why}</div>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <div className="text-sm text-dim">
+                      <span className="font-mono text-text">
+                        {planSteps(result.trace.nodes).filter((step) => step.selected).length}
+                      </span>{' '}
+                      tools selected for this case
+                    </div>
+                    <Disclosure label="Show tool plan" labelOpen="Hide tool plan">
+                      <ul className="space-y-1.5">
+                        {planSteps(result.trace.nodes).map((s) => (
+                          <li
+                            key={s.node}
+                            className={`rounded-md border px-3 py-2 ${
+                              s.selected
+                                ? 'border-border bg-surface-2'
+                                : 'border-dashed border-border opacity-60'
+                            }`}
+                          >
+                            <div className="flex flex-wrap items-baseline gap-2">
+                              <span className="text-sm font-medium text-text">{s.node}</span>
+                              <span className="font-mono text-xs text-faint">{s.tool}</span>
+                              <span className="flex-1" />
+                              <span className="text-xs text-faint">
+                                {s.selected ? 'selected' : 'not needed'}
+                              </span>
+                            </div>
+                            <div className="mt-0.5 text-xs text-dim">{s.why}</div>
+                          </li>
+                        ))}
+                      </ul>
+                      <FinePrint className="mt-2">{result.trace.bounded_by}</FinePrint>
+                    </Disclosure>
+                  </>
                 ) : (
                   <Disclosed>The plan node reported no step list for this run.</Disclosed>
                 )}
-                <FinePrint>
-                  {result.trace.bounded_by}. There is no free-running agent loop here.
-                </FinePrint>
               </CardBody>
             </Card>
           </Section>
@@ -562,9 +570,11 @@ export default function Investigate() {
                   <CardTitle>What we actually claim</CardTitle>
                   <CardMeta>observed · inferred · predicted</CardMeta>
                 </CardHeader>
-                <div className="pt-3">
-                  <ClaimsPanel claims={result.impact.claims} />
-                </div>
+                <CardBody>
+                  <Disclosure label="Review claim evidence" labelOpen="Hide claim evidence">
+                    <ClaimsPanel claims={result.impact.claims} />
+                  </Disclosure>
+                </CardBody>
               </Card>
 
               {/* A second, differently-built analysis of the same log. The
@@ -663,8 +673,7 @@ export default function Investigate() {
           {meta ? (
             <EmptyState
               icon={Search}
-              title={`Pick a scenario and press Run — currently ${meta.label}`}
-              detail={meta.description || 'The backend ships no description for this scenario.'}
+              title={`Ready to investigate ${meta.label}`}
               action={
                 <span className="font-mono text-xs text-faint">
                   {meta.n_events != null ? (

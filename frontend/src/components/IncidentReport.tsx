@@ -8,7 +8,7 @@
  *
  * Two honesty affordances survive the port. `predicted_next` carries the
  * `predicted` claim status, because a Markov ranking is not an observation. And
- * every response action keeps its `mode` — nothing here is executed by pressing
+ * every response action keeps its `mode` - nothing here is executed by pressing
  * anything on this screen.
  */
 import { Download, FileText, Printer } from 'lucide-react'
@@ -62,7 +62,7 @@ function toMarkdown(r: IncidentReportData): string {
     '',
     '## Evidence',
     `- Detector: ${r.evidence.detector}, ROC-AUC ${r.evidence.lanl_roc_auc ?? 'not measured'} (${r.evidence.basis}, ${r.evidence.source})`,
-    `- MTTD: ${r.mttd.value} — ${r.mttd.note}`,
+    `- MTTD: ${r.mttd.value} - ${r.mttd.note}`,
     `- Comparison: ${r.mttd.citation}`,
   ].join('\n')
 }
@@ -251,7 +251,7 @@ export default function IncidentReport() {
           </p>
           <p className="mt-1 text-xs text-faint">
             Mean time to detect: <span className="font-mono text-dim">{r.mttd.value}</span>{' '}
-            — {r.mttd.note} Comparison: {r.mttd.citation}.
+            - {r.mttd.note} Comparison: {r.mttd.citation}.
           </p>
         </div>
       </CardBody>

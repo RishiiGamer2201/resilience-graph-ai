@@ -1,13 +1,13 @@
 /**
- * Attackers — the "who" table for the campaign.
+ * Attackers - the "who" table for the campaign.
  *
  * GET /api/attackers is the roster: every account the red team used, each
  * scored from its own alerts out of the same log. Opening one runs the live
  * pipeline again scoped to that account (POST /api/analyze).
  *
  * The old screen published the result to the analysis store and navigated
- * straight to /incident. It still publishes — every other screen reads that
- * store — but the jump is now an explicit link, and the run is summarised here
+ * straight to /incident. It still publishes - every other screen reads that
+ * store - but the jump is now an explicit link, and the run is summarised here
  * next to the row that produced it. An automatic redirect meant that if the
  * destination fell back to the cached campaign you would be looking at a
  * different incident under this account's name, and never know.
@@ -118,7 +118,7 @@ function AnalysedAccount({ user, bundle, scenario }: { user: string; bundle: Ana
           This run is now the console&apos;s live bundle, so the other screens show it
           instead of the cached sample. Crown jewels are the backend&apos;s derived
           default for this scenario, and
-          behavioural features were computed against the whole log — so this
+          behavioural features were computed against the whole log - so this
           account&apos;s baseline reflects everything that happened, not just its
           own slice.
         </CardFooter>
@@ -222,7 +222,7 @@ export default function Attackers() {
       <PageHeader
         eyebrow="Accounts used in the attack"
         title="Compromised accounts"
-        description="See every account used in the attack, the computers it reached, and its highest warning score. Open an account to investigate it separately."
+        description="Review affected accounts, pivots, and warning scores."
         actions={
           <>
             <Badge variant="outline">campaign roster Â· sample cache</Badge>
@@ -377,7 +377,7 @@ export default function Attackers() {
 
           <CardFooter>
             Each account is analysed by the same live pipeline, scoped to its own
-            events — behavioural features are computed against the whole log first,
+            events - behavioural features are computed against the whole log first,
             so an account&apos;s baseline reflects everything that happened, not just
             its own slice.
           </CardFooter>

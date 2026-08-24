@@ -5,7 +5,7 @@
  * number of facts; almost everything else that circulates about a well-known
  * incident is not in the public record. A product that draws a complete kill
  * chain here is fabricating most of it, so this shows what is established, what
- * is a hypothesis, and what nobody has established at all — and lets a reviewer
+ * is a hypothesis, and what nobody has established at all - and lets a reviewer
  * read the primary quotes.
  *
  * It renders only when the backend returns a case file. A synthetic scenario
@@ -26,7 +26,7 @@ export default function CaseFile({ casefile }: { casefile: CaseFileData | null |
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Real incident on record — {casefile.title}</CardTitle>
+        <CardTitle>Real incident on record - {casefile.title}</CardTitle>
         <CardMeta>
           {casefile.provenance} · {casefile.sources_verified} primary sources
         </CardMeta>
@@ -40,69 +40,75 @@ export default function CaseFile({ casefile }: { casefile: CaseFileData | null |
           </span>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <CircleCheck className="size-3 text-ok" aria-hidden />
-              <SectionLabel>Established</SectionLabel>
+        <Disclosure label="Review established and unknown facts" labelOpen="Hide fact review">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <CircleCheck className="size-3 text-ok" aria-hidden />
+                <SectionLabel>Established</SectionLabel>
+              </div>
+              <ul className="mt-1.5 space-y-1.5 text-xs text-dim">
+                {confirmed.map((c) => (
+                  <li key={c.external_id}>
+                    <span className="font-mono text-text">{c.external_id}</span> {c.object}
+                    {c.tactic ? <span className="text-faint"> · {c.tactic}</span> : null}
+                  </li>
+                ))}
+                {casefile.control_weaknesses.map((w) => (
+                  <li key={w.weakness}>
+                    <span className="text-text">{w.weakness}</span>
+                    <div className="text-faint">{w.note}</div>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="mt-1.5 space-y-1.5 text-xs text-dim">
-              {confirmed.map((c) => (
-                <li key={c.external_id}>
-                  <span className="font-mono text-text">{c.external_id}</span> {c.object}
-                  {c.tactic ? <span className="text-faint"> · {c.tactic}</span> : null}
-                </li>
-              ))}
-              {casefile.control_weaknesses.map((w) => (
-                <li key={w.weakness}>
-                  <span className="text-text">{w.weakness}</span>
-                  <div className="text-faint">{w.note}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <TriangleAlert className="size-3 text-sev-high" aria-hidden />
-              <SectionLabel>Not publicly established</SectionLabel>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <TriangleAlert className="size-3 text-sev-high" aria-hidden />
+                <SectionLabel>Not publicly established</SectionLabel>
+              </div>
+              <ul className="mt-1.5 space-y-1 text-xs text-faint">
+                {casefile.not_established.map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="mt-1.5 space-y-1 text-xs text-faint">
-              {casefile.not_established.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
           </div>
-        </div>
+        </Disclosure>
       </CardBody>
 
-      <Table>
-        <THead>
-          <TR>
-            <TH>Technique</TH>
-            <TH>Status</TH>
-            <TH className="text-right">Confidence</TH>
-            <TH>Basis</TH>
-          </TR>
-        </THead>
-        <TBody>
-          {casefile.claims.map((c) => (
-            <TR key={c.external_id}>
-              <TDMono>
-                <span className="text-text">{c.external_id}</span>
-                <span className="ml-2 font-sans text-dim">{c.object}</span>
-              </TDMono>
-              <TD>
-                <ClaimStatus status={c.status} />
-              </TD>
-              <TDMono className="whitespace-nowrap text-right">
-                {c.confidence}
-                <span className="ml-1 text-faint">{c.confidence_band}</span>
-              </TDMono>
-              <TD className="max-w-md text-xs text-faint">{c.note}</TD>
-            </TR>
-          ))}
-        </TBody>
-      </Table>
+      <CardBody className="border-t border-border">
+        <Disclosure label="Review technique claims" labelOpen="Hide technique claims">
+          <Table>
+            <THead>
+              <TR>
+                <TH>Technique</TH>
+                <TH>Status</TH>
+                <TH className="text-right">Confidence</TH>
+                <TH>Basis</TH>
+              </TR>
+            </THead>
+            <TBody>
+              {casefile.claims.map((c) => (
+                <TR key={c.external_id}>
+                  <TDMono>
+                    <span className="text-text">{c.external_id}</span>
+                    <span className="ml-2 font-sans text-dim">{c.object}</span>
+                  </TDMono>
+                  <TD>
+                    <ClaimStatus status={c.status} />
+                  </TD>
+                  <TDMono className="whitespace-nowrap text-right">
+                    {c.confidence}
+                    <span className="ml-1 text-faint">{c.confidence_band}</span>
+                  </TDMono>
+                  <TD className="max-w-md text-xs text-faint">{c.note}</TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </Disclosure>
+      </CardBody>
 
       <CardBody className="space-y-3 border-t border-border">
         <Disclosure
@@ -140,17 +146,17 @@ export default function CaseFile({ casefile }: { casefile: CaseFileData | null |
             <ul className="space-y-0.5 text-xs text-faint">
               {casefile.sources.map((s) => (
                 <li key={s.id}>
-                  <span className="font-mono text-dim">{s.id}</span> —{' '}
+                  <span className="font-mono text-dim">{s.id}</span> -{' '}
                   {s.verified
                     ? 'verified: text extracted from the fetched PDF'
-                    : `NOT re-verified — ${s.note ?? 'no note given'}`}
+                    : `NOT re-verified - ${s.note ?? 'no note given'}`}
                 </li>
               ))}
             </ul>
+            <FinePrint>{casefile.why_this_matters}</FinePrint>
+            <FinePrint>{casefile.relationship_to_scenario.note}</FinePrint>
           </div>
         </Disclosure>
-        <FinePrint>{casefile.why_this_matters}</FinePrint>
-        <FinePrint>{casefile.relationship_to_scenario.note}</FinePrint>
       </CardBody>
     </Card>
   )

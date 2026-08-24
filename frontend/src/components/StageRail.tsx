@@ -91,7 +91,7 @@ export default function StageRail({
                 onClick={() => onJump?.(s.node)}
                 disabled={!r}
                 aria-current={isActive ? 'step' : undefined}
-                title={r ? `${r.status} · ${Math.round(r.ms)} ms — ${r.summary}` : s.hint}
+                title={r ? `${r.status} · ${Math.round(r.ms)} ms - ${r.summary}` : s.hint}
                 className={cn(
                   'relative flex w-full items-start gap-2 px-3 py-2.5 text-left lg:py-3',
                   'transition-colors duration-[120ms]',

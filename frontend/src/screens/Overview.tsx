@@ -1,5 +1,5 @@
 /**
- * Overview — the reference implementation.
+ * Overview - the reference implementation.
  *
  * THIS FILE IS THE EXEMPLAR every other screen follows. It shows the required
  * shape: real API through `@/lib/api`, `useFetch` for loading and error,
@@ -82,7 +82,7 @@ export default function Overview() {
       <PageHeader
         eyebrow="Quick summary"
         title="What is happening right now"
-        description="See how serious the incident is, which systems may be reachable, how strong the evidence is, and what the system can safely conclude."
+        description="See incident severity, exposure, evidence, and next actions."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>

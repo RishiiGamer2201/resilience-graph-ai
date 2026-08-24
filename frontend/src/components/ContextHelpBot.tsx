@@ -48,7 +48,7 @@ const HELP_SEEN_KEY = 'nextattacks-beginner-guide-seen'
 const WELCOME_MESSAGE: Message = {
   id: 1,
   from: 'bot',
-  text: 'Ask me a question, select words while this guide is open, or use the Explain bubble that appears when it is closed.',
+  text: 'Ask a question, or select page text and choose Explain.',
 }
 
 function selectedText(): { text: string; anchor: Element | null; nearby: string; rect: DOMRect | null } {

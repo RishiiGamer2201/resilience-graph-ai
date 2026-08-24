@@ -59,7 +59,7 @@ export default function AttackGraph2D({ nodes, links, selected, onSelect, showPa
       nodeRelSize={4}
       nodeVal={(node) => 1 + Math.sqrt(node.degree ?? 0)}
       nodeColor={(node) => node.id === selected ? cssVar('--text', '#e6ecf5') : cssVar(ROLE_TOKEN[node.role ?? 'reached'], '#5b6678')}
-      nodeLabel={(node) => `${node.id} — ${(node.roles ?? []).map((role) => ROLE_LABEL[role]).join(', ')} · ${node.degree ?? 0} movement${node.degree === 1 ? '' : 's'}${node.recommendedIsolation ? ' · recommended isolation' : ''}`}
+      nodeLabel={(node) => `${node.id} - ${(node.roles ?? []).map((role) => ROLE_LABEL[role]).join(', ')} · ${node.degree ?? 0} movement${node.degree === 1 ? '' : 's'}${node.recommendedIsolation ? ' · recommended isolation' : ''}`}
       nodeCanvasObjectMode={() => 'after'}
       nodeCanvasObject={(node, context, globalScale) => {
         if (!node.recommendedIsolation && node.id !== selected) return

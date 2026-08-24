@@ -52,7 +52,7 @@ function RoleSelect({ compact = false }: { compact?: boolean }) {
         title={`Enforced server-side. Currently: ${can}`}
       >
         {ROLES.map((item) => (
-          <option key={item.role} value={item.role}>{item.label} — {item.can}</option>
+          <option key={item.role} value={item.role}>{item.label} - {item.can}</option>
         ))}
       </select>
     </label>
@@ -244,8 +244,8 @@ export default function Layout() {
           </div>
         </header>
 
-        <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
-          <div>
+        <div ref={scroller} className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="min-w-0">
             <AnimatePresence mode="wait">
               <motion.main
                 ref={main}
@@ -256,7 +256,7 @@ export default function Layout() {
                 animate={reduced ? undefined : 'show'}
                 exit={reduced ? undefined : 'exit'}
                 variants={routeVariants}
-                className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+                className="mx-auto min-w-0 w-full max-w-[1500px] overflow-x-clip px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
               >
                 <Outlet />
               </motion.main>
@@ -281,7 +281,7 @@ export function PageHeader({ eyebrow, title, description, actions }: {
         <div className="min-w-0">
           {eyebrow ? <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-accent">{eyebrow}</div> : null}
           <h1 className="max-w-4xl text-[clamp(1.7rem,3vw,2.6rem)] font-semibold leading-[1.05] tracking-[-0.035em] text-text">{title}</h1>
-          {description ? <p className="mt-2 max-w-3xl text-sm leading-6 text-dim">{description}</p> : null}
+          {description ? <p className="mt-2 max-w-2xl text-sm leading-5 text-dim">{description}</p> : null}
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
       </div>

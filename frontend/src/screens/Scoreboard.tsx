@@ -1,5 +1,5 @@
 /**
- * PS7 scoreboard — the honesty showcase.
+ * PS7 scoreboard - the honesty showcase.
  *
  * Every value is read from reports/metrics.json through /api/scoreboard. The
  * rules this screen exists to enforce:
@@ -7,11 +7,12 @@
  *   1. A card we have not measured renders `Not measured` with the reason, in
  *      the grid, in its group, at the same size as everything else. Never a
  *      zero, never hidden, never dropped.
- *   2. Where a card has a baseline, the comparison is shown — INCLUDING the
+ *   2. Where a card has a baseline, the comparison is shown - INCLUDING the
  *      cards where our number is worse. Two of them are on this board on
  *      purpose. A losing card is styled exactly like a winning one and says
  *      "behind baseline" in words.
- *   3. `note` and `report` carry the qualifications, so both are on the card.
+ *   3. `note` and `report` carry the qualifications, so both remain available
+ *      from the card without crowding its primary result.
  *   4. The claims we refuse to make are a panel, not a footnote.
  */
 import { useState } from 'react'
@@ -102,16 +103,7 @@ function BoardCard({ card }: { card: ScoreCard }) {
           )}
         </div>
 
-        {/* An unmeasured card explains itself in full, not on hover alone. */}
-        {!measured && card.why ? (
-          <p className="mt-2 text-xs text-dim">{card.why}</p>
-        ) : null}
-
         {measured ? <Comparison card={card} /> : null}
-
-        {card.note ? (
-          <p className="mt-2 border-t border-border pt-2 text-xs text-dim">{card.note}</p>
-        ) : null}
 
         <div className="mt-auto pt-3">
           {card.report ? (
@@ -134,7 +126,7 @@ function BoardCard({ card }: { card: ScoreCard }) {
               className={`size-3 transition-transform duration-[120ms] ${open ? 'rotate-180' : ''}`}
               aria-hidden
             />
-            {open ? 'less' : 'definition, dataset, provenance'}
+            {open ? 'Hide details' : 'View details'}
           </button>
 
           {open ? (
@@ -146,8 +138,20 @@ function BoardCard({ card }: { card: ScoreCard }) {
               <p>
                 <span className="text-faint">Dataset. </span>
                 {card.dataset}
-                {card.sample ? ` — ${card.sample}` : ''}
+                {card.sample ? ` - ${card.sample}` : ''}
               </p>
+              {card.why ? (
+                <p>
+                  <span className="text-faint">Status. </span>
+                  {card.why}
+                </p>
+              ) : null}
+              {card.note ? (
+                <p>
+                  <span className="text-faint">Note. </span>
+                  {card.note}
+                </p>
+              ) : null}
               {card.provenance ? (
                 <p className="font-mono text-faint">provenance: {card.provenance}</p>
               ) : null}
@@ -166,7 +170,7 @@ export default function Scoreboard() {
     <PageHeader
       eyebrow="Evaluation results"
       title="What was tested and what passed"
-      description="Each result comes from the evaluation report. If something was not measured, the page says so and explains why instead of showing a made-up score."
+      description="Check measured results against their evaluation reports."
     />
   )
 
@@ -206,7 +210,7 @@ export default function Scoreboard() {
       <PageHeader
         eyebrow="Evaluation results"
         title="What was tested and what passed"
-        description="Each result comes from the evaluation report. If something was not measured, the page says so and explains why instead of showing a made-up score."
+        description="Check measured results against their evaluation reports."
         actions={
           <div className="text-right font-mono text-xs text-faint">
             <div>

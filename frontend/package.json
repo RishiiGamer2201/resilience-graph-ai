@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "oxlint",
+    "check:ui": "node scripts/check-ui-quality.mjs",
+    "lint": "npm run check:ui && oxlint",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },

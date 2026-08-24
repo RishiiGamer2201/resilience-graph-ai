@@ -596,7 +596,7 @@ export interface ApiError extends Error {
 // ─── The seven-node investigation, in detail ─────────────────────────────────
 // Everything below is read directly by Investigate.tsx / Analyze.tsx and the
 // panels they compose. Shapes come from src/shared/workflow.py, claims.py,
-// rollout.py, twin.py, vuln.py, casefile.py and api/finalist.py — not invented.
+// rollout.py, twin.py, vuln.py, casefile.py and api/finalist.py - not invented.
 
 /** One shipped demo event log, from GET /api/scenarios. */
 export interface Scenario {
@@ -1035,7 +1035,7 @@ export interface AgentProgress {
   summary: string
 }
 
-/** One `step` frame from GET /api/analyze/stream — a real per-event score. */
+/** One `step` frame from GET /api/analyze/stream - a real per-event score. */
 export interface AnalyzeStreamStep {
   i: number
   total: number
@@ -1160,7 +1160,7 @@ export interface ReportTechnique {
   name: string
 }
 
-/** A proposed response. `mode` carries the gate — nothing here executes. */
+/** A proposed response. `mode` carries the gate - nothing here executes. */
 export interface ReportAction {
   tactic?: string
   action: string

@@ -78,7 +78,7 @@ export default function Login() {
           </span>
           <span>
             <span className="block text-sm font-semibold text-text">nextATT&amp;CKs</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">guided cyber incident response</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">response intelligence</span>
           </span>
         </header>
 
@@ -88,12 +88,12 @@ export default function Login() {
           transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
           className="my-auto max-w-xl py-12"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Cyber incident response workspace</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Incident response workspace</div>
           <h1 className="mt-4 text-[clamp(2.7rem,7vw,5.7rem)] font-semibold leading-[0.9] tracking-[-0.065em] text-text">
-            Understand the attack.<br />Choose the response.
+            Understand the attack.<br />Respond safely.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-7 text-dim">
-            Follow suspicious activity from the first warning to recovery. See what happened, why it matters, and which response actions still need a person to approve them.
+            See what happened, what is at risk, and the next safe action.
           </p>
 
           <div className="mt-9 border-y border-border py-5">
@@ -106,7 +106,7 @@ export default function Login() {
                 className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-text"
               >
                 {roles.map((item) => (
-                  <option key={item.role} value={item.role}>{item.label} — {item.can}</option>
+                  <option key={item.role} value={item.role}>{item.label} - {item.can}</option>
                 ))}
               </select>
             </label>
@@ -118,7 +118,7 @@ export default function Login() {
                 value={token}
                 onChange={(event) => setToken(event.target.value)}
                 autoComplete="off"
-                placeholder="Optional — only if your administrator gave you one"
+                placeholder="Optional access token"
                 className="h-10 w-full rounded-md border border-border bg-surface px-3 font-mono text-sm text-text placeholder:text-faint"
               />
             </label>
@@ -130,12 +130,12 @@ export default function Login() {
 
           <p className="mt-5 flex max-w-lg gap-2 text-xs leading-5 text-faint">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
-            <span>Your role controls what you can view or approve. The server checks it for every action, so changing this menu cannot bypass security rules.</span>
+            <span>The server checks your permission for every action.</span>
           </p>
         </motion.div>
 
         <footer className="flex items-center justify-between border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
-          <span>Demo access — no sign-up needed</span><span>{can}</span>
+          <span>Demo access</span><span>{can}</span>
         </footer>
       </main>
 

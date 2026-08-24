@@ -108,10 +108,7 @@ export default function ReasoningAgents({
       <CardBody className="flex flex-col gap-4">
         {!run && !error && (
           <p className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-xs leading-relaxed text-dim">
-            An Investigator agent queries the attack graph through seven read-only tools and
-            writes a hypothesis. A Critic agent is then given the same tools and told to refute
-            it. Neither can score, rank or contain anything: the investigation above is
-            unchanged by whatever they conclude. Takes 15 to 40 seconds.
+            Optional second opinion from an investigator and critic. Read-only; 15 to 40 seconds.
           </p>
         )}
 

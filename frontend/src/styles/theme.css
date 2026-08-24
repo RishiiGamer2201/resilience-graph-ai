@@ -1,4 +1,4 @@
-/* nextATT&CKs — design tokens and Tailwind theme.
+/* nextATT&CKs - design tokens and Tailwind theme.
    The single source of truth for colour, spacing, type and motion.
    Components style THROUGH these tokens and never hardcode a value.
    See frontend/DESIGN.md for the rules that govern this file. */
@@ -162,6 +162,8 @@
   body,
   #root {
     height: 100%;
+    min-width: 0;
+    overflow: hidden;
   }
 
   html {

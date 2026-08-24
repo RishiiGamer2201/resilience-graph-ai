@@ -1,5 +1,5 @@
 /**
- * "Show the arithmetic" — the affordance that turns a number into a claim you
+ * "Show the arithmetic" - the affordance that turns a number into a claim you
  * can check.
  *
  * Seven panels need it (headline metrics, the four-axis assessment, claims,
