@@ -1,6 +1,7 @@
 import { getOverview } from '../api.js'
 import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import Answer, { Reveal } from '../components/Answer.jsx'
 import Sparkline from '../components/Sparkline.jsx'
 import MttdPanel from '../components/MttdPanel.jsx'
 import AgentPipeline from '../components/AgentPipeline.jsx'
@@ -8,7 +9,37 @@ import Assessment, { ClaimsPanel } from '../components/Assessment.jsx'
 import Progression from '../components/Progression.jsx'
 import CrossCheck from '../components/CrossCheck.jsx'
 import CalibrationBadge, { CalibrationNote } from '../components/CalibrationBadge.jsx'
-import { Card as SurfaceCard, CardHeader as SurfaceHeader } from '../components/Card.jsx'
+import { Term } from '../lib/glossary.jsx'
+
+/* This screen was 3,074 pixels of eight equally weighted cards, opening with
+ * four metric tiles. Somewhere inside it were the three things a reader came
+ * for -- what happened, how bad it is, what to do -- and no way to tell those
+ * apart from the detector's held-out ROC-AUC.
+ *
+ * It now answers first and argues second. One sentence, three numbers, one
+ * link onward. Everything else is behind a summary line that says what is
+ * inside, so opening a panel is a decision rather than a scroll.
+ */
+
+/** Plain-language lead, assembled from the analysis rather than written once. */
+function lead(active, blast, alerts, mttd) {
+  const sev = String(active?.severity || '').toLowerCase()
+  const what = sev === 'critical' || sev === 'high'
+    ? 'This log contains an attack that is still spreading.'
+    : 'This log contains suspicious activity worth a look.'
+  return {
+    headline: what,
+    tone: sev === 'critical' ? 'critical' : sev === 'high' ? 'high' : undefined,
+    facts: [
+      { k: 'computers now reachable', v: blast,
+        hint: 'if nobody intervenes' },
+      { k: 'suspicious sign-ins found', v: alerts,
+        hint: 'grouped into one story' },
+      { k: 'time to the first alert', v: mttd,
+        hint: 'measured on this log' },
+    ],
+  }
+}
 
 export default function Overview() {
   const { data, error, loading } = useScreenData('overview', getOverview)
@@ -30,106 +61,109 @@ export default function Overview() {
   // How the scores in the trend tile were calibrated. Absent on the cached
   // sample, which is why the tile falls back to its plain caption.
   const cal = bundle?.meta?.calibration
+  const l = lead(active_incident, blast_radius_contained, alerts_correlated.alerts, mttd.value)
 
   return (
     <>
-      <div className="tiles">
-        <div className="tile">
-          <div className="k">Time to first alert</div>
-          <div className="v">{mttd.value}</div>
-          <div className="sub">measured from this log · vs {mttd.was} typical dwell</div>
-        </div>
-
-        <div className="tile crit">
-          <div className="k">Active incident</div>
-          <div className="v">{active_incident.severity.toUpperCase()}</div>
-          <div className="sub">{active_incident.account} · {active_incident.summary}</div>
-        </div>
-
-        <div className="tile">
-          <div className="k">Blast radius contained</div>
-          <div className="v">{blast_radius_contained}</div>
-          <div className="sub">hosts cut by isolating 1 node</div>
-        </div>
-
-        <div className={`tile${cal?.out_of_distribution ? ' ood' : ''}`}>
-          <div className="k">Anomaly-score trend</div>
-          <div className="v">{alerts_correlated.alerts}</div>
-          <div className="sub">correlated alerts · {cal ? cal.basis : 'live scores'}</div>
-          {score_trend?.length > 1 && <Sparkline points={score_trend} />}
-        </div>
-      </div>
+      <Answer headline={l.headline} tone={l.tone} facts={l.facts}
+        next={{ to: '/incident', label: 'Read the story of the attack' }}>
+        {active_incident.summary}{' '}
+        The account involved is <b>{active_incident.account}</b>. Disconnecting one
+        computer would cut off <b>{blast_radius_contained}</b> of the machines the
+        attacker can currently reach -- which one, and what it would break, is on
+        the containment screen.
+      </Answer>
 
       {cal && (
-        <div className="calblock" style={{ marginTop: 16 }}>
+        <div className="calblock">
           <CalibrationBadge />
           <CalibrationNote />
         </div>
       )}
 
-      <MttdPanel mttd={mttd} />
-
-      <Card>
-        <CardHeader title="Detector benchmarks" meta="model performance — fixed" />
-        <div className="card-b pad">
-          <div className="metric-row">
-            {scorecard.map((s) => (
-              <div className="mcard" key={s.name}>
-                <div className="name">{s.name}</div>
-                <div className="val">{s.value}</div>
-                <div className="metricname">{s.metric}</div>
-                <span className="chip">{s.kind}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="note">
-          These are the <b>models' benchmark scores</b> (from held-out evaluation) — they
-          describe the detectors, so they're the same whatever log you analyze. The
-          per-incident numbers above ({alerts_correlated.alerts} alerts ← {alerts_correlated.events} events)
-          are what changes with the data.
-          {cal?.out_of_distribution && (
-            <> This log is out of distribution for that evaluation, so its per-event
-            scores are <span className="mono">{cal.basis}</span> and the benchmark&rsquo;s
-            operating point does not apply to them.</>
-          )}
-        </div>
-      </Card>
-
       {analysis && (
-        <>
+        <Reveal open title="How bad, and how sure"
+          summary="four separate judgements, and what is still missing">
           <Assessment assessment={analysis.assessment}
             likelihood={analysis.attack_progression_likelihood}
             confidence={analysis.evidence_confidence} />
-          <div style={{ marginTop: 20 }}>
-            <Progression forecast={analysis.progression_forecast} />
-          </div>
-          <div style={{ marginTop: 20 }}>
-            <SurfaceCard>
-              <SurfaceHeader title="What we actually claim"
-                meta="observed · inferred · predicted" />
-              <div className="card-b pad">
-                <ClaimsPanel claims={analysis.claims} />
-              </div>
-            </SurfaceCard>
-          </div>
-          {analysis.crosscheck && (
-            <div style={{ marginTop: 20 }}>
-              <CrossCheck crosscheck={analysis.crosscheck} />
+        </Reveal>
+      )}
+
+      {analysis && (
+        <Reveal title="What we are actually claiming"
+          summary="each ATT&CK technique, and whether it was seen or only inferred">
+          <ClaimsPanel claims={analysis.claims} />
+        </Reveal>
+      )}
+
+      {analysis?.progression_forecast && (
+        <Reveal title="Where this goes next"
+          summary="the forecast, and how far ahead it is still worth reading">
+          <Progression forecast={analysis.progression_forecast} />
+        </Reveal>
+      )}
+
+      <Reveal title="How quickly it was caught"
+        summary={`first alert ${mttd.value}, against a typical ${mttd.was} before anyone notices`}>
+        <MttdPanel mttd={mttd} />
+      </Reveal>
+
+      <Reveal title="How accurate the detector is"
+        summary="scores from held-out testing, including where a simpler method wins">
+        <Card>
+          <CardHeader title="Detector benchmarks" meta="fixed, not from this log" />
+          <div className="card-b pad">
+            <div className="metric-row">
+              {scorecard.map((s) => (
+                <div className="mcard" key={s.name}>
+                  <div className="name">{s.name}</div>
+                  <div className="val">{s.value}</div>
+                  <div className="metricname">{s.metric}</div>
+                  <span className="chip">{s.kind}</span>
+                </div>
+              ))}
             </div>
-          )}
-        </>
+          </div>
+          <div className="note">
+            These describe the <b>detector</b>, measured once on held-out data, so they
+            are the same whatever log you analyse. The numbers at the top of this
+            page ({alerts_correlated.alerts} alerts from {alerts_correlated.events} events)
+            are what changes with the data.
+            {cal?.out_of_distribution && (
+              <> This log is <Term k="out of distribution" as="out of distribution" /> for
+              that evaluation, so its per-event scores are
+              {' '}<span className="mono">{cal.basis}</span> and the benchmark&rsquo;s
+              operating point does not apply to them.</>
+            )}
+          </div>
+        </Card>
+      </Reveal>
+
+      {analysis?.crosscheck && (
+        <Reveal title="A second opinion"
+          summary="a differently-built analysis of the same log, and whether it agrees">
+          <CrossCheck crosscheck={analysis.crosscheck} />
+        </Reveal>
       )}
 
       {agentPipeline && (
-        <div style={{ marginTop: 20 }}>
+        <Reveal title="Every stage, timed"
+          summary="what each step of the pipeline concluded and how long it took">
           <AgentPipeline pipeline={agentPipeline} />
-        </div>
+        </Reveal>
+      )}
+
+      {score_trend?.length > 1 && (
+        <Reveal title="Score trend across the log"
+          summary={`${alerts_correlated.alerts} alerts, ${cal ? cal.basis : 'live scores'}`}>
+          <div className="card-b pad"><Sparkline points={score_trend} /></div>
+        </Reveal>
       )}
 
       <div className="foot">
-        Real data from <b>LANL red-team</b> + <b>MITRE ATT&amp;CK</b> ·
-        {' '}light default, dark toggle · <b>2 live moments:</b> event scoring &amp; next-technique prediction
+        Real data from <b>LANL red-team</b> + <b>MITRE ATT&amp;CK</b>.
+        Nothing here is executed: every proposed action needs a human to approve it.
       </div>
     </>
   )

@@ -5,6 +5,7 @@ import { getAttackers, getIncident, analyze } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { useScreenData, useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import Answer, { Reveal } from '../components/Answer.jsx'
 import CalibrationBadge from '../components/CalibrationBadge.jsx'
 import { fmtTime } from '../lib/format.js'
 
@@ -64,42 +65,36 @@ export default function Attackers() {
 
   return (
     <>
-      <div className="page-head">
-        <span className="tag-pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-          CAMPAIGN
-        </span>
-        <h2>{list.length} compromised accounts</h2>
-        <p>Every account the red team used, scored from the same log. Open one to analyze
-          it as its own incident.</p>
-      </div>
+      {/* The four tiles here were unbalanced by construction: one of them held a
+          17-item list of account ids and was six times the height of its
+          neighbours. The counts are facts on the lead; the list is a detail. */}
+      <Answer
+        headline={`${list.length} accounts were used in this attack, all from the same log.`}
+        tone={withCritical.length ? 'critical' : undefined}
+        facts={[
+          { k: 'accounts used', v: list.length, hint: 'each one a real login' },
+          { k: 'suspicious sign-ins', v: totals.alerts.toLocaleString(), hint: 'across all of them' },
+          { k: 'reached something critical', v: withCritical.length,
+            hint: withCritical.length ? 'named as a crown jewel' : 'none did' },
+        ]}>
+        The attacker worked from <b>{pivots.length}</b> computer{pivots.length === 1 ? '' : 's'}
+        {' '}(<span className="mono">{pivots.join(', ')}</span>). Pick any account below to
+        re-run the whole analysis on just that account&rsquo;s activity.
+      </Answer>
 
-      {err && <div className="errbox" style={{ marginBottom: 14 }}>{err}</div>}
+      {err && <div className="errbox">{err}</div>}
 
-      <div className="tiles">
-        <div className="tile">
-          <div className="k">Compromised accounts</div>
-          <div className="v">{list.length}</div>
-          <div className="sub">all in one campaign</div>
-        </div>
-        <div className="tile crit">
-          <div className="k">Attacker pivots</div>
-          <div className="v">{pivots.length}</div>
-          <div className="sub mono">{pivots.join(' · ')}</div>
-        </div>
-        <div className="tile">
-          <div className="k">Correlated alerts</div>
-          <div className="v">{totals.alerts.toLocaleString()}</div>
-          <div className="sub">across every account</div>
-        </div>
-        <div className="tile">
-          <div className="k">Reached crown jewel</div>
-          <div className="v">{withCritical.length}</div>
-          <div className="sub">{withCritical.map((a) => a.user).join(', ') || 'none'}</div>
-        </div>
-      </div>
+      {withCritical.length > 0 && (
+        <Reveal title="Which accounts reached something critical"
+          summary={`${withCritical.length} of ${list.length}, listed`}>
+          <p className="mono" style={{ fontSize: 12, lineHeight: 1.8, margin: 0 }}>
+            {withCritical.map((a) => a.user).join(' · ')}
+          </p>
+        </Reveal>
+      )}
 
       <Card>
-        <CardHeader title="Accounts used in this campaign"
+        <CardHeader title="Every account, ranked by how much it moved"
           meta={`${rows.length}/${list.length} shown`}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <Search size={13} aria-hidden="true" style={{ color: 'var(--text-faint)' }} />

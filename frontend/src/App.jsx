@@ -28,7 +28,7 @@ export default function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <SessionProvider>
-          <AnalysisProvider>
+            <AnalysisProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Login />} />
@@ -50,7 +50,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </BrowserRouter>
-          </AnalysisProvider>
+            </AnalysisProvider>
         </SessionProvider>
       </ThemeProvider>
     </ErrorBoundary>

@@ -103,17 +103,6 @@ export default function Investigate() {
 
   return (
     <>
-      <div className="page-head">
-        <span className="tag-pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-          GUIDED INVESTIGATION
-        </span>
-        <h2>Weak signals to one verified attack story</h2>
-        <p className="lede">
-          Seven bounded stages. Every number is deterministic Python; every ATT&amp;CK
-          conclusion carries an official citation; every action is simulated and gated.
-        </p>
-      </div>
-
       {degraded.length > 0 && (
         <div className="degraded-banner">
           <CircleAlert size={15} aria-hidden="true" />
@@ -335,19 +324,46 @@ export default function Investigate() {
         </>
       )}
 
+      {/* The first thing a new reader sees, and for a long time it was a
+          paragraph about the CISA KEV catalogue. Someone who has just opened
+          this does not need to know what a crown jewel is; they need to know
+          what the button does and what will happen after they press it. */}
       {!result && !running && (
-        <Card style={{ marginTop: 18 }}>
-          <div className="card-b pad empty-hero">
-            <h3>Pick a scenario and press Run.</h3>
-            <p>
-              The default is a synthetic AIIMS-style hospital ransomware campaign: a phished
-              ward PC pivots to the patient database and the domain controller. It has a
-              named crown jewel and a sample asset inventory, so vulnerability
-              prioritisation has real software to match against the CISA KEV catalogue.
+        <Card className="howto">
+          <div className="card-b pad">
+            <h3>What this does</h3>
+            <p className="howto-lede">
+              It reads a log of who signed in to which computer -- the kind every
+              organisation already keeps -- and finds the attacker who is using a
+              real employee&rsquo;s login rather than breaking in. That is the
+              attacker normal defences miss, because nothing they do is
+              technically forbidden.
             </p>
-            <p className="dim">
-              For real red-team ground truth, choose the LANL campaign -- 2,732 authentications
-              across 104 compromised accounts with 702 labelled red-team events.
+
+            <ol className="howto-steps">
+              <li>
+                <b>Press Run investigation.</b>
+                <span>Takes about ten seconds. Nothing is uploaded and nothing on
+                  your network is touched.</span>
+              </li>
+              <li>
+                <b>Read the summary.</b>
+                <span>One sentence on what happened, how many computers are at
+                  risk, and what to do about it.</span>
+              </li>
+              <li>
+                <b>Check the working.</b>
+                <span>Every number links back to the evidence behind it, and the
+                  ones we could not measure say so.</span>
+              </li>
+            </ol>
+
+            <p className="howto-foot">
+              The example is a hospital ransomware campaign: a phished ward PC
+              reaches the patient database and the domain controller. To see the
+              system judged against real red-team ground truth instead, pick the
+              LANL campaign above -- 2,732 real sign-ins, 104 accounts the red team
+              actually compromised.
             </p>
           </div>
         </Card>
