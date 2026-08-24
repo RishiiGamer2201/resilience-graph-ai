@@ -365,7 +365,8 @@ def test_baseline_counts_each_new_destination_once_per_user():
         })
 
     for d in range(8):
-        baseline.observe(history(d), path)
+        for _ in range(5):
+            baseline.observe(history(d), path)
     assert baseline.status(path)["state"] == "ready"
 
     repeated = pd.DataFrame({
@@ -392,13 +393,14 @@ def test_baseline_new_destination_fanout_is_scoped_to_interleaved_users():
     day = baseline.SECONDS_PER_DAY
 
     for d in range(8):
-        baseline.observe(pd.DataFrame({
-            "timestamp": [d * day, d * day + 1],
-            "user": ["asha@corp", "ben@corp"],
-            "source_host": ["LAPTOP-7", "LAPTOP-9"],
-            "destination_host": ["FILES", "MAIL"],
-            "is_fail": [0, 0],
-        }), path)
+        for offset in range(5):
+            baseline.observe(pd.DataFrame({
+                "timestamp": [d * day + 2 * offset, d * day + 2 * offset + 1],
+                "user": ["asha@corp", "ben@corp"],
+                "source_host": ["LAPTOP-7", "LAPTOP-9"],
+                "destination_host": ["FILES", "MAIL"],
+                "is_fail": [0, 0],
+            }), path)
     assert baseline.status(path)["state"] == "ready"
 
     current = pd.DataFrame({
