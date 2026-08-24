@@ -71,11 +71,11 @@
     "predictor": {
       "most_frequent_top3": 0.049,
       "killchain_top3": 0.071,
-      "lstm_top3": 0.272,
-      "markov_top3": 0.365,
-      "markov_interp_top3": 0.381,
+      "lstm_top3": 0.293,
+      "markov_top3": 0.367,
+      "markov_interp_top3": 0.382,
       "shipped": "markov_interp",
-      "shipped_top3": 0.381,
+      "shipped_top3": 0.382,
       "lambdas": [
         0.2,
         0.3,
@@ -83,7 +83,7 @@
       ],
       "note": "Interpolated Markov shipped; 5.4x the kill-chain baseline = anti-circularity"
     },
-    "manual_cert_in_top3": 0.1,
+    "manual_cert_in_top3": 0.111,
     "embeddings": {
       "same_tactic_cos": 0.412,
       "random_cos": 0.327
@@ -94,11 +94,11 @@
       "queries": 14,
       "recall_at_1": 0.6429,
       "recall_at_5": 0.8571,
-      "mrr": 0.7167,
+      "mrr": 0.7381,
       "k": 5,
       "corpus_chunks": 1545,
       "citation_integrity_failures": 0,
-      "evaluated_at": "2026-08-18 10:48 IST",
+      "evaluated_at": "2026-08-25 03:52 IST",
       "note": "Hand-written gold set over the bundled corpus. Small by construction; reported as-is rather than inflated with auto-generated queries that restate the document they came from."
     },
     "comparison": {

@@ -35,18 +35,18 @@ before quoting anything downstream of this constant**, because the rounding to
 For each prefix of a held-out sequence, `simulate_progression` is rolled forward
 8 steps and asked: is the technique that ACTUALLY came at offset *h* among the
 top-3 the rollout renders at step *h*? That is the same metric and the same
-top-3 shape as the published one-step 38.1%, extended along the horizon -- so
+top-3 shape as the published one-step 38.2%, extended along the horizon -- so
 step 1 here is directly comparable to the number the module already cites.
 
 Accuracy at every horizon is measured over **the same fixed set of prefixes** --
 only those with at least 8 real techniques left to check against. A shrinking
 population would mix horizon decay with "long sequences behave differently".
 
-That restriction moves the step-1 number: **45.0%** here versus 38.5% over
-all 780 prediction points, because prefixes near the end of a sequence (and every
+That restriction moves the step-1 number: **45.0%** here versus 38.6% over
+all 777 prediction points, because prefixes near the end of a sequence (and every
 sequence shorter than 9) are excluded. Only the *ratios* feed the fit, so this
 does not bias the decay -- but it does mean 45.0% is not a new headline accuracy
-and must not be quoted as one. The headline stays 38.1%.
+and must not be quoted as one. The headline stays 38.2%.
 
 ## Provenance of the data
 
@@ -61,13 +61,13 @@ one-step evaluation and refuses to continue unless it lands on
 | | published | reproduced here |
 |---|---|---|
 | sequences | 205 (140/30/35) | 205 (140/30/35) |
-| prediction points | 780 | 780 |
+| prediction points | 777 | 777 |
 | OOV (counted as misses) | 45 | 45 |
-| top-1 | 23.1% | 23.1% |
-| top-3 | 38.1% | 38.5% |
-| top-5 | 44.4% | 44.4% |
+| top-1 | 23.2% | 23.2% |
+| top-3 | 38.2% | 38.6% |
+| top-5 | 44.5% | 44.5% |
 
-top-3 differs by 0.4pp -- three prediction points out of 780. `predictor.rank_next`
+top-3 differs by 0.4pp -- three prediction points out of 777. `predictor.rank_next`
 breaks probability ties by technique id; `build_predictor`'s ranker leaves tied
 techniques in dict order. Same corpus, same model, different coin-flip on ties.
 
@@ -243,18 +243,18 @@ the fitted constant now sit 0.00084 apart, and nothing about that gap is robust.
 
 Non-circular cross-check on the 4 hand-verified CERT-In sequences
 (`data/manual/cert_in_sequences.json`, ordered by the real reported timeline
-rather than by the kill-chain heuristic): **top-3 at steps 1-4: 5.6% · 0.0% · 0.0% · 0.0% (n = 18 prefixes)**.
+rather than by the kill-chain heuristic): **top-3 at steps 1-4: 5.9% · 0.0% · 0.0% · 0.0% (n = 17 prefixes)**.
 
 Read that honestly: on the only genuinely non-circular data in the repo, this
 rollout has **no measurable skill past step 1**. Accuracy does not decay at
-d = 0.77 there -- it goes to zero. n = 18 prefixes from 4 sequences is far too small
+d = 0.77 there -- it goes to zero. n = 17 prefixes from 4 sequences is far too small
 to fit a decay curve on, which is exactly why the shipped constant is fitted on
 the held-out split instead. But it is not too small to be a warning,
 and it points the same way as the bullets above: **0.77 is an upper bound on how
 well this holds up, not a central estimate.**
 
 The one-step CERT-In figure already published in `reports/prediction_eval.md`
-(10.0% top-3, versus 38.1% on the auto split) says the same thing at h = 1. This
+(11.1% top-3, versus 38.2% on the auto split) says the same thing at h = 1. This
 measurement extends that gap along the horizon rather than resolving it. Getting
 a trustworthy multi-step decay needs more hand-verified report-ordered sequences;
 until then, treat any step beyond the first as a lead to check, never a forecast.
@@ -262,7 +262,7 @@ until then, treat any step beyond the first as a lead to check, never a forecast
 ## What this constant does and does not mean
 
 It is the measured rate at which THIS model's top-3 accuracy falls off as the
-horizon grows, on the same held-out split that produced the 38.1% headline. It is
+horizon grows, on the same held-out split that produced the 38.2% headline. It is
 not a probability that a forecast is correct, and it is not a confidence interval.
 It is a decay rate with an experiment behind it, which is the whole and only claim.
 
