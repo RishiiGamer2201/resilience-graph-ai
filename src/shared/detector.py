@@ -285,13 +285,29 @@ def relative_anchors(raw, percentile: float | None = None) -> dict:
     pct = TRIAGE_PERCENTILE if percentile is None else percentile
     cut = float(np.percentile(raw, pct))
     hi = float(raw.max())
-    if not (cut > p50):
+
+    # THE SCALE CAN COLLAPSE, and when it does it must say so rather than nudge
+    # itself back to plausible. If the median and the triage cut coincide there
+    # is no distribution left to rank against: every event lands on 0 or 100 and
+    # nothing between is reachable. That is what a perfectly uniform log does --
+    # a password spray at one target, a scripted beacon, an automated loop --
+    # and the old code padded p50 by 1e-9 and carried on, so 1,000 identical
+    # events produced one confident 100 and a critical incident.
+    #
+    # The padding stays, because a caller still needs numbers. The FLAG is the
+    # fix: it travels with the anchors, into the calibration block, and caps the
+    # severity a collapsed scale is allowed to assert.
+    collapsed = not (cut > p50)
+    if collapsed:
         cut = p50 + 1e-9
     if not (hi > cut):
         hi = cut * 4 + 1e-9
     # reuses the piecewise-log map: p50 -> 0, cut -> 50 (the display alert line), hi -> 100
     return {"p50": p50, "p99": cut, "hi": hi,
-            "basis": f"ranked-within-this-log (top {100 - pct:.0f}% surfaced)",
+            "basis": (f"ranked-within-this-log (top {100 - pct:.0f}% surfaced)"
+                      if not collapsed else
+                      "COLLAPSED: this log has no score distribution to rank within"),
+            "collapsed": collapsed,
             "triage_percentile": pct}
 
 

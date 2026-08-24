@@ -91,3 +91,6 @@ testsprite_tests\tmp\config.json
 # TestSprite generated logs/artifacts (noisy)
 testsprite_tests/tmp/
 reports/puppeteer.json
+
+# Runtime state: the persisted audit chain (NEXTATTACK_AUDIT_DB).
+data/audit/
