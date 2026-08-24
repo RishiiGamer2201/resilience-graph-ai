@@ -1240,12 +1240,43 @@ from fastapi.responses import FileResponse           # noqa: E402
 from fastapi.staticfiles import StaticFiles           # noqa: E402
 
 DIST = ROOT / "frontend" / "dist"
+
+# The two halves of a hashed-asset build cache in OPPOSITE directions, and
+# neither was being told to.
+#
+# Nothing set Cache-Control at all, so browsers fell back to heuristic caching:
+# with a Last-Modified and no directive they keep a response for roughly a tenth
+# of its age. For index.html that is the whole trap. Rebuild the frontend, and
+# every open tab still holds an index naming chunk hashes that no longer exist:
+# the next lazy route dies on "Failed to fetch dynamically imported module",
+# which names neither the cause nor the fix, and a plain refresh can serve the
+# same stale index right back.
+#
+# So: the index must be revalidated every time (ETag keeps that nearly free),
+# and the hashed assets can be kept forever, because a changed file gets a
+# changed name. That pairing makes the failure impossible rather than rare --
+# a fresh index can only ever name chunks that exist.
+ASSET_CACHE = "public, max-age=31536000, immutable"
+INDEX_CACHE = "no-cache"           # revalidate, not "do not store"
+
 if DIST.exists():
-    app.mount("/assets", StaticFiles(directory=str(DIST / "assets")), name="assets")
+    class _ImmutableAssets(StaticFiles):
+        """Hashed filenames, so the content behind a URL never changes."""
+
+        def file_response(self, *args, **kwargs):       # type: ignore[override]
+            resp = super().file_response(*args, **kwargs)
+            resp.headers["Cache-Control"] = ASSET_CACHE
+            return resp
+
+    app.mount("/assets", _ImmutableAssets(directory=str(DIST / "assets")),
+              name="assets")
 
     @app.get("/{full_path:path}")
     def spa(full_path: str):
         candidate = DIST / full_path
         if full_path and candidate.is_file():
             return FileResponse(str(candidate))
-        return FileResponse(str(DIST / "index.html"))   # SPA deep links
+        # SPA deep links. Always revalidated: this file is what names every
+        # other file, so a stale copy strands the whole app.
+        return FileResponse(str(DIST / "index.html"),
+                            headers={"Cache-Control": INDEX_CACHE})

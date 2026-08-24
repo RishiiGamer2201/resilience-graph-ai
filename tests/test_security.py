@@ -331,3 +331,42 @@ def test_the_whole_investigation_runs_with_no_network(monkeypatch, client):
     body = r.json()
     assert body["ok"] and body["evidence"]["citations"]
     assert body["headline"]["crown_jewel_exposure"]["value"] is not None
+
+
+def test_the_index_is_revalidated_and_hashed_assets_are_not(client):
+    """The two halves of a hashed build must cache in opposite directions.
+
+    Nothing set Cache-Control, so browsers applied heuristic caching and kept
+    index.html for roughly a tenth of its age. After a rebuild an open tab still
+    held an index naming chunk hashes that no longer existed, and the next lazy
+    route died on "Failed to fetch dynamically imported module" -- an error that
+    names neither the cause nor the fix.
+
+    Skipped when frontend/dist is absent, which is the case in a source
+    checkout that has not been built.
+    """
+    import pathlib
+
+    import pytest
+
+    dist = pathlib.Path(__file__).resolve().parents[1] / "frontend" / "dist"
+    if not dist.exists():
+        pytest.skip("frontend/dist not built")
+
+    r = client.get("/investigate")
+    assert r.status_code == 200
+    assert "no-cache" in r.headers.get("cache-control", ""), \
+        "a cached index strands every open tab on the next rebuild"
+
+    assets = sorted((dist / "assets").glob("*.js"))
+    assert assets, "a built dist must contain hashed assets"
+    a = client.get(f"/assets/{assets[0].name}")
+    assert a.status_code == 200
+    assert "immutable" in a.headers.get("cache-control", ""), \
+        "a hashed filename cannot change content, so it may be cached forever"
+
+    # A chunk that no longer exists must 404, not fall through to the SPA:
+    # HTML delivered where JavaScript is expected is the opaque version of
+    # this same failure.
+    missing = client.get("/assets/Investigate-DOESNOTEXIST.js")
+    assert missing.status_code == 404
