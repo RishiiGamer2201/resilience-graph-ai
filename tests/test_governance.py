@@ -186,7 +186,7 @@ def test_a_gated_action_refuses_an_analyst(client, investigation):
     gated = next(p for p in investigation["action"]["proposals"]
                  if p["policy"]["requires_approval"])
     r = client.post("/api/actions/approve", headers=ANALYST, json={
-        "incident_id": "INC-LIVE-001", "action": gated,
+        "proposal_id": gated["proposal_id"],
         "decision": "approve", "reason": "looks fine"})
     assert r.status_code == 403
 
@@ -195,7 +195,7 @@ def test_a_gated_action_refuses_approval_without_a_reason(client, investigation)
     gated = next(p for p in investigation["action"]["proposals"]
                  if p["policy"]["requires_approval"])
     r = client.post("/api/actions/approve", headers=RESPONDER, json={
-        "incident_id": "INC-LIVE-001", "action": gated,
+        "proposal_id": gated["proposal_id"],
         "decision": "approve", "reason": "   "})
     assert r.status_code == 422
     assert "reason" in r.json()["detail"]
@@ -205,9 +205,8 @@ def test_approval_is_recorded_and_nothing_is_executed(client, investigation):
     gated = next(p for p in investigation["action"]["proposals"]
                  if p["policy"]["requires_approval"])
     r = client.post("/api/actions/approve", headers=RESPONDER, json={
-        "incident_id": "INC-LIVE-001", "action": gated, "decision": "approve",
-        "reason": "ward PC, out of hours, owner contacted",
-        "affected_assets": ["WARD-PC-013"]})
+        "proposal_id": gated["proposal_id"], "decision": "approve",
+        "reason": "ward PC, out of hours, owner contacted"})
     assert r.status_code == 200
     body = r.json()
     assert body["executed"] is False
@@ -223,7 +222,7 @@ def test_a_denial_is_itself_audited(client, investigation):
     gated = next(p for p in investigation["action"]["proposals"]
                  if p["policy"]["requires_approval"])
     client.post("/api/actions/approve", headers=VIEWER, json={
-        "incident_id": "INC-LIVE-001", "action": gated,
+        "proposal_id": gated["proposal_id"],
         "decision": "approve", "reason": "x"})
     records = client.get("/api/audit", headers=ADMIN).json()
     assert records["count"] > before
