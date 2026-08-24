@@ -134,6 +134,24 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
                 bundle["meta"].setdefault("degraded", []).append(
                     f"agent graph mapping failed: {type(e).__name__}: {e}"[:200])
 
+    if (bundle.get("meta", {}).get("baseline", {}).get("allow_operational_alerts")
+            is False):
+        bundle["analysis"] = {
+            "claims": [],
+            "assessment": None,
+            "attack_progression_likelihood": None,
+            "evidence_confidence": None,
+            "crown_jewel_exposure": None,
+            "progression_forecast": None,
+            "crosscheck": None,
+            "operational": False,
+            "note": (
+                "Entity baseline learning: diagnostic scoring may run, but claims, "
+                "risk assessment, forecasting and agent cross-checks are suppressed."
+            ),
+        }
+        return bundle
+
     cc = None
     if agent_summary and agent_summary.get("status") != "failed":
         cc = compare({"signals": {"incident": inc}}, agent_summary)

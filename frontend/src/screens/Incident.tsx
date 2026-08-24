@@ -17,6 +17,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { useAnalysis, useScreenData } from '@/providers/analysis'
 import { fmtTime, severityFromStep } from '@/lib/format'
 import { PageHeader } from '@/components/Layout'
+import BaselineLearningBanner from '@/components/BaselineLearningBanner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
@@ -230,6 +231,8 @@ export default function Incident() {
           </>
         }
       />
+
+      <BaselineLearningBanner baseline={bundle?.meta?.baseline} />
 
       {/* Analysis completion is announced, not just drawn. */}
       <div aria-live="polite" className="sr-only">

@@ -123,6 +123,115 @@ CAMPAIGN = ROOT / "data" / "demo" / "scenarios" / "lanl_campaign_all.csv"
 AIIMS = ROOT / "data" / "demo" / "scenarios" / "aiims_ransomware.csv"
 
 
+def _learning_log(n=40):
+    return pd.DataFrame({
+        "timestamp": range(n),
+        "user": [f"user-{i % 4}@corp" for i in range(n)],
+        "source_host": [f"WS-{i % 6}" for i in range(n)],
+        "destination_host": [f"SRV-{i % 12}" for i in range(n)],
+        "status": ["success"] * n,
+        "protocol": ["Kerberos"] * n,
+    })
+
+
+def test_learning_baseline_suppresses_the_complete_operational_path(tmp_path, monkeypatch):
+    """Diagnostic scoring may run, but nothing can become an operational verdict."""
+    monkeypatch.setenv("NEXTATTACK_BASELINE_DB", str(tmp_path / "empty-baseline.db"))
+    bundle = analyze_events(
+        _learning_log(), critical_assets={"SRV-1"}, incident_id="INC-LEARNING",
+    )
+
+    base = bundle["meta"]["baseline"]
+    assert base["state"] == "learning"
+    assert base["allow_operational_alerts"] is False
+    assert base["progress_percent"] == 0.0
+    assert bundle["meta"]["operational"] is False
+    assert bundle["meta"]["diagnostic_scoring"]["operational"] is False
+    assert bundle["meta"]["diagnostic_scoring"]["count"] == 40
+
+    incident = bundle["incident"]
+    assert incident["alert_count"] == 0
+    assert incident["severity"] == "learning"
+    assert incident["max_anomaly_score"] == 0
+    assert incident["operational_status"] == "suppressed-baseline-learning"
+    assert incident["steps"] == []
+    assert bundle["graph"]["n_edges"] == 0
+    assert bundle["graph"]["critical_assets_at_risk"] == []
+    assert bundle["soar"]["actions"] == []
+    assert bundle["report"]["response_actions"] == []
+    assert "No operational alerts" in bundle["overview"]["active_incident"]["summary"]
+
+
+def test_learning_suppression_survives_api_enrichment(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from api.main import app
+    import api.main as api_main
+
+    monkeypatch.setenv("NEXTATTACK_BASELINE_DB", str(tmp_path / "api-baseline.db"))
+    monkeypatch.setattr(
+        api_main,
+        "_run_agents_for_standard_bundle",
+        lambda *args, **kwargs: {
+            "enabled": True, "status": "ok", "agent_traces": [], "notes": []
+        },
+    )
+    response = TestClient(app).post(
+        "/api/analyze",
+        headers={"X-Role": "analyst", "X-Actor": "learning-test"},
+        json={"events": _learning_log().to_dict(orient="records"),
+              "critical_assets": ["SRV-1"], "incident_id": "INC-LEARNING-API"},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["incident"]["alert_count"] == 0
+    assert body["incident"]["severity"] == "learning"
+    assert body["soar"]["actions"] == []
+    assert body["analysis"]["claims"] == []
+    assert body["analysis"]["assessment"] is None
+    assert body["analysis"]["operational"] is False
+    assert body["meta"]["agent_pipeline"]["operational"] is False
+
+
+def test_learning_suppression_reaches_investigation_actions(tmp_path, monkeypatch):
+    from src.shared import enrich
+    from src.shared.workflow import investigate
+
+    monkeypatch.setenv("NEXTATTACK_BASELINE_DB", str(tmp_path / "workflow-baseline.db"))
+    monkeypatch.setattr(enrich, "run_agent_lane", lambda *args, **kwargs: None)
+    result = investigate(
+        df=_learning_log(), critical_assets=["SRV-1"],
+        incident_id="INC-LEARNING-WORKFLOW", principal={"role": "analyst"},
+        run_crosscheck=False,
+    )
+    assert result["ok"] is True
+    assert result["signals"]["incident"]["alert_count"] == 0
+    assert result["headline"]["assessment"] is None
+    assert result["action"]["proposals"] == []
+    assert result["action"]["executed"] == 0
+    action_node = next(n for n in result["trace"]["nodes"] if n["node"] == "action")
+    assert action_node["status"] == "skipped"
+
+
+def test_ready_baseline_restores_operational_analysis(tmp_path, monkeypatch):
+    from src.shared import baseline
+
+    path = tmp_path / "ready-baseline.db"
+    monkeypatch.setenv("NEXTATTACK_BASELINE_DB", str(path))
+    for day in range(baseline.MIN_HISTORY_DAYS + 1):
+        history = _learning_log()
+        history["timestamp"] = history["timestamp"] + day * baseline.SECONDS_PER_DAY
+        baseline.observe(history, path)
+
+    current = _learning_log()
+    current["timestamp"] = current["timestamp"] + 9 * baseline.SECONDS_PER_DAY
+    bundle = analyze_events(current, incident_id="INC-READY")
+    assert bundle["meta"]["baseline"]["state"] == "ready"
+    assert bundle["meta"]["baseline"]["allow_operational_alerts"] is True
+    assert bundle["meta"]["operational"] is True
+    assert bundle["incident"]["severity"] != "learning"
+    assert bundle["soar"]["actions"], "ready baselines must restore the normal SOAR path"
+
+
 @pytest.fixture(scope="module")
 def campaign():
     if not CAMPAIGN.exists():

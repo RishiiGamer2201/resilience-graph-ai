@@ -262,22 +262,80 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     # astype(int) turned that into 0 with only a RuntimeWarning, so the event we
     # would most want to look at scored lowest possible. Treat it as unscored.
     scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
-    df["anomaly_score"] = scores.astype(int)
+    diagnostic_scores = scores.astype(int)
+    learning = base_st.get("allow_operational_alerts") is False
+    if learning:
+        # Keep the detector useful for engineering diagnostics, but do not let a
+        # thin baseline turn "everything is new" into an incident. Correlation,
+        # topology and response all consume anomaly_score, so this is the single
+        # fail-closed boundary for every downstream operational surface.
+        df["diagnostic_anomaly_score"] = diagnostic_scores
+        df["anomaly_score"] = 0
+        calibration = {
+            **calibration,
+            "operational": False,
+            "diagnostic_only": True,
+            "note": (
+                "NON-OPERATIONAL DIAGNOSTIC SCORES: the entity baseline is still "
+                f"learning ({base_st.get('days', 0)} of "
+                f"{base_st.get('min_history_days')} required days). Alerts, incident "
+                "severity and response proposals are suppressed. "
+                + calibration.get("note", "")
+            ).strip(),
+        }
+    else:
+        df["anomaly_score"] = diagnostic_scores
     if account:
         df = df[df["user"].astype(str) == account]
         if df.empty:
             raise ValueError(f"no events for account '{account}' in this log")
 
+    diagnostic_view = (df["diagnostic_anomaly_score"].to_numpy("int64")
+                       if learning else diagnostic_scores)
     incident = correlate(df, incident_id=incident_id)
-    _cap_severity(incident, calibration)
+    if learning:
+        incident.update({
+            "severity": "learning",
+            "max_anomaly_score": 0,
+            "operational_status": "suppressed-baseline-learning",
+            "severity_note": (
+                "No operational severity is assigned until the entity baseline "
+                "has enough history. Diagnostic detector output is non-operational."
+            ),
+            "diagnostic_scores": {
+                "label": "non-operational",
+                "count": int(len(diagnostic_view)),
+                "minimum": int(diagnostic_view.min()) if len(diagnostic_view) else None,
+                "maximum": int(diagnostic_view.max()) if len(diagnostic_view) else None,
+                "mean": (round(float(diagnostic_view.mean()), 2)
+                         if len(diagnostic_view) else None),
+            },
+        })
+    else:
+        _cap_severity(incident, calibration)
     g = build_graph(incident, critical_assets=critical_assets)
     ga = analyze(g, critical_assets=critical_assets)
-    soar = recommend(incident, ga)
+    if learning:
+        soar = {
+            "incident_id": incident_id,
+            "severity": "learning",
+            "gating_policy": "suppressed while entity baseline is learning",
+            "mitre_mitigations": [],
+            "actions": [],
+            "operational": False,
+            "note": "No response proposal is produced from a learning baseline.",
+        }
+    else:
+        soar = recommend(incident, ga)
 
     # victim = account with the most alerts (label-free); pivot = graph entry host
     alert_users = [s["user"] for s in incident["alerts"] if s["user"]]
-    victim = max(set(alert_users), key=alert_users.count) if alert_users else (
-        df["user"].dropna().iloc[0] if len(df) else "—")
+    if learning:
+        victim = "—"
+    elif alert_users:
+        victim = max(set(alert_users), key=alert_users.count)
+    else:
+        victim = df["user"].dropna().iloc[0] if len(df) else "—"
     pivot = ga.get("entry_host") or "—"
 
     full = {
@@ -297,7 +355,18 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             "calibration": calibration,
             # Which feature mode produced these scores: file-local (the default,
             # and what every published metric was measured on) or history-backed.
-            "baseline": base_st}
+            "baseline": base_st,
+            "operational": not learning,
+            "diagnostic_scoring": ({
+                "available": True,
+                "operational": False,
+                "label": "non-operational while baseline is learning",
+                **incident.get("diagnostic_scores", {}),
+            } if learning else {
+                "available": False,
+                "operational": True,
+                "label": "operational scoring",
+            })}
 
     return {
         "overview": views.overview(full, views.SCORECARD),

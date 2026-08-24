@@ -32,6 +32,7 @@ import { useAnalysis } from '@/providers/analysis'
 import { useSession } from '@/providers/session'
 
 import { PageHeader } from '@/components/Layout'
+import BaselineLearningBanner from '@/components/BaselineLearningBanner'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { SkeletonRows } from '@/components/ui/skeleton'
@@ -271,6 +272,8 @@ export default function Investigate() {
   return (
     <>
       {header}
+
+      <BaselineLearningBanner baseline={result?.signals.meta?.baseline} />
 
       {degraded.length ? (
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn/5 px-3 py-2 text-xs text-dim">

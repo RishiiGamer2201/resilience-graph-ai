@@ -86,6 +86,10 @@ Please include the endpoint or file, what you did, and what happened.
   Acceptable for a demo; a limiter at the edge is required for anything more.
 - **Single-tenant assumption.** Any caller with the `read` permission can see the
   in-memory audit chain for the lifetime of the process.
+- **Entity-baseline cold start fails closed.** When `NEXTATTACK_BASELINE_DB` is
+  configured but has fewer than seven days of history, scores are diagnostic only.
+  Operational alerts, severity, ATT&CK claims, attack paths, agent conclusions and
+  response proposals remain suppressed while the UI reports learning progress.
 
 ## Scope for a report
 

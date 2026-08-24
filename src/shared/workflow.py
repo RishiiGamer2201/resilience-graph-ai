@@ -398,16 +398,22 @@ def _n_signals(df: pd.DataFrame, critical: list[str], incident_id: str,
         bundle = attach_agent_lane(bundle, agent_summary)
 
     inc, g = bundle["incident"], bundle["graph"]
+    learning = (bundle.get("meta", {}).get("baseline", {})
+                .get("allow_operational_alerts") is False)
     return NodeResult(
         "signals", status="ok",
         # The count, not a hardcoded 1. correlate() used to return exactly one
         # incident for any input, so "into 1 incident" was true by construction;
         # it clusters now, and this string was the API still saying 1 while the
         # screen beside it rendered 51.
-        summary=(f"{inc['alert_count']} alerts from {inc['event_count']} events correlated "
-                 f"into {_n_incidents(inc)} · {len(inc['technique_ids'])} ATT&CK techniques · "
-                 f"severity {inc['severity']}"),
+        summary=((f"baseline learning · {inc['event_count']} events diagnostically scored · "
+                  "0 operational alerts · no severity assigned") if learning else
+                 (f"{inc['alert_count']} alerts from {inc['event_count']} events correlated "
+                  f"into {_n_incidents(inc)} · {len(inc['technique_ids'])} ATT&CK techniques · "
+                  f"severity {inc['severity']}")),
         output={"bundle": bundle},
+        notes=(["diagnostic scores are non-operational until baseline readiness"]
+               if learning else []),
     )
 
 
@@ -441,6 +447,14 @@ def _n_impact(bundle: dict, critical: list[str], scenario: str | None,
     from src.shared.enrich import build_claims
 
     graph_view, inc = bundle["graph"], bundle["incident"]
+    if (bundle.get("meta", {}).get("baseline", {})
+            .get("allow_operational_alerts") is False):
+        return NodeResult(
+            "impact", status="skipped",
+            summary="baseline learning — operational impact assessment suppressed",
+            output={"claims": [], "crosscheck": None},
+            notes=["no severity, attack forecast, blast-radius verdict or containment ranking"],
+        )
     exposure = crown_jewel_exposure(graph_view, critical)
     likelihood = progression_likelihood(inc, graph_view)
 
@@ -569,6 +583,19 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
     from src.shared.rbac import policy_for
 
     soar = bundle["soar"]
+    if (bundle.get("meta", {}).get("baseline", {})
+            .get("allow_operational_alerts") is False):
+        return NodeResult(
+            "action", status="skipped",
+            summary="baseline learning — 0 response proposals · 0 executed",
+            output={
+                "proposals": [], "mitre_mitigations": [],
+                "gating_policy": "suppressed while entity baseline is learning",
+                "rfi": None, "executed": 0,
+                "note": ("NON-OPERATIONAL LEARNING RESULT. No response proposal "
+                         "is produced until the baseline is ready."),
+            },
+        )
     cf = impact.output.get("counterfactual")
     exposure = impact.output.get("crown_jewel_exposure", {})
     jewels = set(exposure.get("designated") or [])

@@ -10,7 +10,7 @@
  * the checker exactly where the checker was the point.
  */
 
-export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'normal'
+export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'normal' | 'learning'
 
 /** Evidence-calibrated claim status. Never collapse these into a boolean. */
 export type ClaimStatusValue =
@@ -64,6 +64,15 @@ export interface Incident {
   is_campaign?: boolean
   account?: string | null
   pivot?: unknown
+  operational_status?: string
+  severity_note?: string
+  diagnostic_scores?: {
+    label: string
+    count: number
+    minimum: number | null
+    maximum: number | null
+    mean: number | null
+  }
 }
 
 // ─── Graph ───────────────────────────────────────────────────────────────────
@@ -235,7 +244,22 @@ export interface BundleMeta {
   scenario?: string
   pipeline?: string
   agent_pipeline?: AgentPipeline
+  baseline?: BaselineStatus
+  operational?: boolean
+  diagnostic_scoring?: Record<string, unknown>
   [k: string]: unknown
+}
+
+export interface BaselineStatus {
+  enabled: boolean
+  state: 'off' | 'learning' | 'ready' | string
+  days?: number
+  users?: number
+  events?: number
+  min_history_days?: number
+  progress_percent?: number | null
+  allow_operational_alerts?: boolean
+  detail?: string
 }
 
 export interface OverviewMttd {
@@ -322,6 +346,7 @@ export interface InvestigationResult {
     report: IncidentReportData
     attackers: AttackerRow[]
     soar: unknown
+    meta?: BundleMeta
     [k: string]: unknown
   }
   impact: ImpactOutput
