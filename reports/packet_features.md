@@ -55,12 +55,25 @@ exfiltration is the only one with retransmissions, fragmentation
 and TTL variance; ordinary traffic has none of those and the
 highest payload entropy.
 
-## One state space, two sources
+## One shape convention, two feature sets
 
-The window vector is the same shape `src/engine3/netstate.py`
-uses for CIC-IDS2017 flows, so a capture is handed to the same
-latent state-space model unchanged. The model is not told whether
-its input came from flows or from packets.
+The window vector follows the same shape CONVENTION
+`src/engine3/netstate.py` uses for CIC-IDS2017 flows -- mean and
+standard deviation of each feature across the window -- but it is
+a different feature set, and the two artifacts are not
+interchangeable.
+
+This section previously said a capture "is handed to the same
+latent state-space model unchanged". That was wrong, and it
+contradicted the line below it: the numbers here come from a model
+**fitted on 60-dimensional packet windows**, not from
+`models/netstate_cicids.npz`, which was trained on the 24 flow
+features and encodes 48 dimensions. Nothing converts between them
+-- TTL variance and retransmission rate are not present in flow
+records, and `Init_Win_bytes_backward` is not present in a packet
+window. `NetStateModel.encode()` now refuses the mismatch by name
+and `/api/netstate/analyze` returns 422 rather than a broadcast
+error.
 
 - Fitted **4 latent states** over **60-dimensional** packet windows
 - Transition matrix rows sum to 1: **True**

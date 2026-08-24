@@ -108,6 +108,29 @@ FLOW_FEATURES: list[str] = [
 STATE_DIM = len(FLOW_FEATURES) * 2
 
 
+class FeatureContractError(ValueError):
+    """A state vector was built from a different feature set than the model.
+
+    Its own type, because the API turns it into a 422 -- the caller sent input
+    this model cannot answer for, which is a request problem, not a server
+    fault, and not something a retry fixes.
+    """
+
+    def __init__(self, *, expected: int, got: int) -> None:
+        self.expected, self.got = expected, got
+        likely = ""
+        if got == 60 and expected == 48:
+            likely = (" This is the packet/flow mismatch: src/engine3/packets.py "
+                      "emits 30 packet features (60 dims) and the shipped "
+                      "artifact was trained on 24 CIC-IDS2017 flow features "
+                      "(48 dims). They share a shape convention, not a feature "
+                      "set, so there is no conversion -- a packet-trained "
+                      "artifact is required.")
+        super().__init__(
+            f"this model encodes {expected}-dimensional windows, got {got}."
+            f"{likely}")
+
+
 def state_names() -> list[str]:
     return ([f"{c} (mean)" for c in FLOW_FEATURES]
             + [f"{c} (std)" for c in FLOW_FEATURES])
@@ -177,8 +200,23 @@ class NetStateModel:
 
     def encode(self, states: np.ndarray) -> np.ndarray:
         """Raw state vectors -> latent state ids. Nearest centroid, no ties broken
-        randomly: argmin is stable for a fixed centroid order."""
-        z = (np.atleast_2d(states) - self.mean) / self.scale
+        randomly: argmin is stable for a fixed centroid order.
+
+        Checks the feature contract first. A model is a mean, a scale and a set
+        of centroids over ONE named feature list; handing it a vector of the
+        same shape convention but a different feature set is not a
+        dimensionality problem that numpy should report, it is a category error.
+        Without this, packet windows (30 features, 60 dims) met the shipped
+        flow-trained artifact (24 features, 48 dims) and raised
+        `operands could not be broadcast together with shapes (n,60) (48,)`,
+        which names neither the two feature sets nor the fact that no amount of
+        reshaping would make the answer meaningful.
+        """
+        states = np.atleast_2d(states)
+        if states.shape[-1] != self.mean.shape[-1]:
+            raise FeatureContractError(expected=int(self.mean.shape[-1]),
+                                       got=int(states.shape[-1]))
+        z = (states - self.mean) / self.scale
         d = ((z[:, None, :] - self.centroids[None, :, :]) ** 2).sum(axis=2)
         return d.argmin(axis=1)
 
