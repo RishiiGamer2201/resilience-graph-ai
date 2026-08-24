@@ -105,6 +105,7 @@ class AuditChain:
 
     # -- write ------------------------------------------------------------
     def append(self, kind: str, *, actor: str, role: str, reason: str = "",
+               subject: str | None = None, display_name: str | None = None,
                incident_id: str | None = None, inputs: dict | None = None,
                evidence: list[dict] | None = None,
                technique_ids: list[str] | None = None,
@@ -119,7 +120,8 @@ class AuditChain:
             prev = self._records[-1]["hash"] if self._records else self._previous_head
             payload = self._payload(
                 seq=len(self._records), prev_hash=prev, kind=kind, actor=actor,
-                role=role, reason=reason, incident_id=incident_id, inputs=inputs,
+                role=role, subject=subject, display_name=display_name,
+                reason=reason, incident_id=incident_id, inputs=inputs,
                 evidence=evidence, technique_ids=technique_ids,
                 affected_assets=affected_assets, action=action, decision=decision,
                 details=details,
@@ -130,7 +132,9 @@ class AuditChain:
             return rec
 
     def _payload(self, *, seq: int, prev_hash: str, kind: str, actor: str,
-                 role: str, reason: str = "", incident_id: str | None = None,
+                 role: str, subject: str | None = None,
+                 display_name: str | None = None, reason: str = "",
+                 incident_id: str | None = None,
                  inputs: dict | None = None, evidence: list[dict] | None = None,
                  technique_ids: list[str] | None = None,
                  affected_assets: list[str] | None = None,
@@ -139,7 +143,11 @@ class AuditChain:
         """Build the exact hashed payload for append and rotation genesis."""
         return {
             "seq": seq, "kind": kind, "at": fmt_ist(), "actor": actor,
-            "role": role, "reason": reason, "incident_id": incident_id,
+            "role": role,
+            # In authenticated modes subject comes from the credential binding,
+            # never X-Actor. Demo mode honestly records None.
+            "subject": subject, "display_name": display_name,
+            "reason": reason, "incident_id": incident_id,
             "inputs": inputs or {},
             # Evidence is referenced by hash + URL, never copied wholesale.
             "evidence": [{"chunk_id": e.get("chunk_id"), "url": e.get("url"),
@@ -216,7 +224,9 @@ class AuditChain:
     def retention_mode(self) -> str:
         return "durable-generational" if self.durable else "process-generational"
 
-    def rotate(self, *, actor: str, role: str, reason: str) -> dict:
+    def rotate(self, *, actor: str, role: str, reason: str,
+               subject: str | None = None,
+               display_name: str | None = None) -> dict:
         """Seal this generation and start a linked one without deleting history.
 
         The API also enforces RBAC, but this storage primitive refuses non-admin
@@ -228,7 +238,6 @@ class AuditChain:
             raise PermissionError("audit rotation requires the admin role")
         if len(reason) < 8:
             raise ValueError("rotation reason must contain at least 8 characters")
-
         with self._lock:
             ok, problem = self.verify_records(self._records, self._previous_head)
             if not ok:
@@ -241,7 +250,8 @@ class AuditChain:
             sealed_at = fmt_ist()
             genesis_payload = self._payload(
                 seq=0, prev_hash=old_head, kind="session.started", actor=actor,
-                role=role, reason=reason,
+                role=role, subject=subject, display_name=display_name,
+                reason=reason,
                 details={
                     "chain_version": CHAIN_VERSION,
                     "hash_algorithm": HASH_ALGORITHM,
@@ -435,8 +445,11 @@ class AuditChain:
         lines += ["| # | Time | Event | Actor (role) | Incident | Decision | Reason |",
                   "|---|---|---|---|---|---|---|"]
         for r in exp["records"]:
+            identity = f"{r['actor']} ({r['role']})"
+            if r.get("subject"):
+                identity += f" [{r['subject']}]"
             lines.append(
-                f"| {r['seq']} | {r['at']} | {r['kind']} | {r['actor']} ({r['role']}) | "
+                f"| {r['seq']} | {r['at']} | {r['kind']} | {identity} | "
                 f"{r['incident_id'] or '--'} | {r['decision'] or '--'} | "
                 f"{(r['reason'] or '--')[:90]} |")
         lines += ["", "## Records", ""]

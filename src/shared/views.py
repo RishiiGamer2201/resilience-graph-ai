@@ -289,6 +289,13 @@ def graph_view(full: dict) -> dict:
         "entry_host": g["entry_host"],
         "attacker_pivots": g.get("attacker_pivots", []),
         "n_pivots": g.get("n_pivots", 1),
+        # The set the caller asked us to protect, not just the ones reached.
+        # graph_view used to drop this, so a screen showing 0 reachable had no
+        # way to tell "0 of 5 designated assets are reachable" (a real finding)
+        # from "0 were designated" (nothing was checked at all) -- an uploaded
+        # log with an empty crown-jewels field rendered "no designated critical
+        # asset is reachable", which is a claim about a check that never ran.
+        "critical_assets_designated": sorted(crit),
         "critical_assets_at_risk": g["critical_assets_at_risk"],
         "paths_to_critical": g["paths_to_critical"],
         "choke_points": g["choke_points"],

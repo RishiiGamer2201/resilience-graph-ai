@@ -185,10 +185,17 @@ export default function Overview() {
               {graph?.isolation_cuts != null ? graph.isolation_cuts : <NotMeasured />}
             </StatRow>
             <StatRow label="Crown jewels reachable">
-              {graph?.critical_assets_at_risk?.length ? (
-                graph.critical_assets_at_risk.length
+              {!graph?.critical_assets_designated?.length ? (
+                <span className="text-faint">none designated for this analysis</span>
+              ) : graph.critical_assets_at_risk?.length ? (
+                <>
+                  {graph.critical_assets_at_risk.length} of{' '}
+                  {graph.critical_assets_designated.length}
+                </>
               ) : (
-                <span className="text-faint">none marked reachable</span>
+                <span className="text-faint">
+                  0 of {graph.critical_assets_designated.length} reachable
+                </span>
               )}
             </StatRow>
             <StatRow label="Graph">
