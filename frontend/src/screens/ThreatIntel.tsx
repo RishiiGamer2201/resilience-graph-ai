@@ -50,7 +50,7 @@ function NarrativeCard({ bundle }: { bundle: AnalysisBundle | null }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="size-3.5 text-accent" aria-hidden />
-          Attack assessment, in plain English
+          Attack summary
         </CardTitle>
         <CardMeta>agent lane · second opinion, not authoritative</CardMeta>
       </CardHeader>
@@ -134,9 +134,34 @@ function ActorRow({ match, rank }: { match: ActorMatch; rank: number }) {
         </div>
       )}
 
-      <p className="line-clamp-2 mt-1.5 text-xs text-faint" title={match.justification}>
-        {match.justification}
-      </p>
+      <div className="mt-2 rounded-md border border-border bg-surface-2 p-2.5">
+        <div className="text-xs font-medium text-text">Why this is rank #{rank}</div>
+        <p className="mt-1 text-xs leading-relaxed text-dim">
+          {match.rank_explanation ?? match.justification}
+        </p>
+      </div>
+
+      {match.past_activity ? (
+        <div className="mt-2">
+          <div className="text-xs font-medium text-text">ATT&amp;CK-documented past activity</div>
+          <p className="mt-1 text-xs leading-relaxed text-faint">
+            {match.past_activity.summary}
+          </p>
+          {match.past_activity.source_url ? (
+            <a className="mt-1 inline-block text-xs text-accent hover:underline"
+              href={match.past_activity.source_url} target="_blank" rel="noreferrer">
+              {match.past_activity.source}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
+      {match.known_techniques?.length ? (
+        <div className="mt-2 text-xs text-faint">
+          <span className="font-medium text-dim">Previously documented techniques: </span>
+          {match.known_techniques.map((item) => item.name).join(', ')}
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -314,10 +314,45 @@ def threat_intel_view(full: dict) -> dict:
     ranked = rank_actors(inc["technique_ids"], profiles, emb)[:5] if inc["technique_ids"] else []
     mapping = [{"technique_id": t, "name": names.get(t, t), "explanation": explanation(t)}
                for t in inc["technique_ids"]]
-    attribution = [{"actor": r["actor"], "score": round(r["score"], 3),
-                    "coverage": round(r["coverage"], 3),
-                    "matched": r["observed_matches"], "justification": r["justification"]}
-                   for r in ranked]
+    from src.shared.actor_history import history_for
+
+    attribution = []
+    for index, r in enumerate(ranked):
+        above = ranked[index - 1] if index else None
+        below = ranked[index + 1] if index + 1 < len(ranked) else None
+        if index == 0:
+            comparison = (
+                f"It leads #{index + 2} by {r['score'] - below['score']:.3f}."
+                if below else "It is the only ranked profile."
+            )
+        else:
+            comparison = f"It is {above['score'] - r['score']:.3f} below #{index}."
+            if below:
+                comparison += f" It leads #{index + 2} by {r['score'] - below['score']:.3f}."
+        rank_explanation = (
+            f"Ranked #{index + 1} because its weighted score is {r['score']:.3f}: "
+            f"{len(r['observed_matches'])}/{r['observed_count']} observed techniques match "
+            f"({r['coverage']:.0%} coverage), with {r['jaccard']:.0%} profile overlap "
+            f"and {r['semantic_similarity']:.2f} semantic similarity. {comparison}"
+        )
+        profile = profiles[r["actor"]]
+        past_ids = list(r["observed_matches"])
+        past_ids.extend(t for t in sorted(profile.techniques) if t not in past_ids)
+        attribution.append({
+            "actor": r["actor"], "score": round(r["score"], 3),
+            "coverage": round(r["coverage"], 3),
+            "matched": r["observed_matches"], "justification": r["justification"],
+            "rank_explanation": rank_explanation,
+            "score_factors": {
+                "coverage": round(r["coverage"], 3),
+                "jaccard": round(r["jaccard"], 3),
+                "semantic_similarity": round(r["semantic_similarity"], 3),
+            },
+            "past_activity": history_for(r["actor"]),
+            "known_techniques": [
+                {"technique_id": t, "name": names.get(t, t)} for t in past_ids[:6]
+            ],
+        })
     return {"mapping": mapping, "attribution": attribution,
             "note": "Attribution is transparent profile retrieval over public ATT&CK "
                     "group usage -- not a trained classifier."}

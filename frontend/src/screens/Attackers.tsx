@@ -15,9 +15,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Crosshair, Loader2, Search, Users } from 'lucide-react'
-import { analyze, getAttackers, getIncident } from '@/lib/api'
-import { useFetch } from '@/hooks/useFetch'
-import { useAnalysis } from '@/providers/analysis'
+import { analyze, getAttackers } from '@/lib/api'
+import { useAnalysis, useScreenData } from '@/providers/analysis'
 import { PageHeader } from '@/components/Layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,7 +35,7 @@ import {
 } from '@/components/primitives'
 import { fmtTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { AnalysisBundle, Incident } from '@/types/api'
+import type { AnalysisBundle, AttackerList } from '@/types/api'
 import { techniqueList, techniqueName } from '@/lib/techniques'
 
 /** What the pipeline returned for one account, just now. */
@@ -129,15 +128,17 @@ function AnalysedAccount({ user, bundle, scenario }: { user: string; bundle: Ana
 
 export default function Attackers() {
   const navigate = useNavigate()
-  // The roster is always the campaign's accounts, from the cached view.
-  const { data: roster, error, loading, reload } = useFetch(getAttackers)
-  // Only to mark which row the currently loaded incident belongs to. A failure
-  // here costs a highlight, not the screen.
-  const { data: incident } = useFetch<Incident>(getIncident)
-  // Publishing the run is what lets the rest of the console render it.
-  const { bundle: liveBundle, setBundle } = useAnalysis()
-  // This route is the fixed campaign roster. A live bundle from another
-  // scenario must not replace it while row actions still analyse LANL.
+  const { bundle: liveBundle, source: bundleSource, setBundle } = useAnalysis()
+  const liveScenario = liveBundle?.meta?.scenario
+    ?? (liveBundle?.meta?.agent_pipeline as { scenario?: string } | undefined)?.scenario
+  const liveRoster = useMemo<AttackerList | undefined>(
+    () => liveBundle?.attackers
+      ? { attackers: liveBundle.attackers, scenario: liveScenario ?? '' }
+      : undefined,
+    [liveBundle?.attackers, liveScenario],
+  )
+  const rosterState = useScreenData<AttackerList>(liveRoster, getAttackers, bundleSource)
+  const { data: roster, error, loading, reload, source } = rosterState
   const data = roster?.attackers ?? null
 
   const [q, setQ] = useState('')
@@ -165,7 +166,9 @@ export default function Attackers() {
     setRunError(null)
     try {
       // Crown jewels are left to the backend default, which derives them.
-      if (!roster?.scenario) throw new Error('The account list is missing its source scenario. Refresh the page and try again.')
+      if (!roster?.scenario || roster.scenario === 'events' || roster.scenario.startsWith('upload:')) {
+        throw new Error('This analysis came from uploaded or inline events and cannot be replayed without the original rows.')
+      }
       const bundle = await analyze({ scenario: roster.scenario, account: user })
       setBundle(bundle)
       setAnalysed({ user, bundle })
@@ -216,6 +219,9 @@ export default function Attackers() {
   )
   const pivots = [...new Set(list.flatMap((a) => a.pivots))]
   const withCritical = list.filter((a) => a.critical_reached.length > 0)
+  const replayableScenario = Boolean(
+    roster?.scenario && roster.scenario !== 'events' && !roster.scenario.startsWith('upload:'),
+  )
 
   return (
     <>
@@ -225,7 +231,9 @@ export default function Attackers() {
         description="Review affected accounts, pivots, and warning scores."
         actions={
           <>
-            <Badge variant="outline">campaign roster Â· sample cache</Badge>
+            <Badge variant={source === 'live' ? 'accent' : 'outline'}>
+              {source === 'live' ? 'current analysis' : source === 'restored' ? 'restored analysis' : 'sample cache'}
+            </Badge>
             <Badge variant="outline">
               <Users className="size-3" aria-hidden /> {list.length} accounts
             </Badge>
@@ -238,7 +246,7 @@ export default function Attackers() {
           <MetricCard
             label="Compromised accounts"
             value={list.length.toLocaleString()}
-            context="all carved from one campaign log"
+            context="observed in the currently displayed analysis"
           />
           <MetricCard
             label="Attacker pivots"
@@ -315,7 +323,7 @@ export default function Attackers() {
                     <TR
                       key={a.user}
                       className={cn(
-                        (liveBundle?.incident?.account ?? incident?.account) === a.user && 'bg-surface-2',
+                        liveBundle?.incident?.account === a.user && 'bg-surface-2',
                         analysed?.user === a.user && 'bg-accent-soft',
                       )}
                     >
@@ -345,7 +353,10 @@ export default function Attackers() {
                             size="sm"
                             variant="secondary"
                             type="button"
-                            disabled={busy !== null}
+                            disabled={busy !== null || !replayableScenario}
+                            title={replayableScenario
+                              ? `Analyze ${a.user} separately`
+                              : 'Re-analysis needs a replayable shipped scenario'}
                             onClick={() => void openAccount(a.user)}
                           >
                             {busy === a.user ? (

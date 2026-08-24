@@ -76,6 +76,10 @@ def test_signals_panel(result):
     _has(result["signals"]["report"], "predicted_next")
     for p in result["signals"]["report"]["predicted_next"]:
         _has(p, "technique_id", "name")
+    for actor in result["signals"]["threat_intel"]["attribution"]:
+        _has(actor, "actor", "score", "coverage", "matched", "justification",
+             "rank_explanation", "score_factors", "past_activity", "known_techniques")
+        _has(actor["past_activity"], "summary", "source", "source_url")
 
 
 # --- Headline.jsx ----------------------------------------------------------

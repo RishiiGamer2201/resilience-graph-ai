@@ -112,6 +112,8 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
     graph = bundle.get("graph", {})
     critical = list(critical or [])
     incident_id = inc.get("incident_id", "INC-LIVE-001")
+    if scenario:
+        bundle.setdefault("meta", {})["scenario"] = scenario
 
     if agent_summary is None and run_agents:
         agent_summary = run_agent_lane(df, scenario, incident_id)
