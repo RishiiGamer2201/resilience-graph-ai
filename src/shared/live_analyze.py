@@ -4,7 +4,7 @@ time. This is what makes the SOC Command Center actually work rather than replay
 one pre-baked incident: feed it events (a CSV/rows in the common schema) and it
 scores every event with the shipped autoencoder, correlates the alerts into
 incidents, builds the attack-path graph, gates SOAR, attributes an actor, and
-predicts the next technique — all computed live.
+ranks ATT&CK profile associations — all computed live.
 
     from src.shared.live_analyze import analyze_events
     bundle = analyze_events(df, critical_assets={"C2388"}, incident_id="INC-LIVE-001")

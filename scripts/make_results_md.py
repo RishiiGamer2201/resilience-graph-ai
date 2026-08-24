@@ -300,10 +300,11 @@ than the headline suggests, and that fixing it means adding signal -- Kerberos
 service-ticket behaviour, process and flow telemetry -- not re-describing the
 existing result.
 
-## 2. Prediction and attribution (Engine 2)
+## 2. ATT&CK association ranking and attribution (Engine 2)
 
-Predict the attacker's next ATT&CK technique from the sequence so far, learned
-from 205 real attack sequences.
+Rank techniques associated with the observed ATT&CK set. The model is trained
+on group/campaign profiles sorted by a tactic heuristic, not 205 observed attack
+timelines.
 
 | Method | Top-3 accuracy | Status |
 |---|---|---|
@@ -313,17 +314,19 @@ from 205 real attack sequences.
 | Markov, first order | {pct(P['markov_top3'])} | previous shipped |
 | **Interpolated Markov** | **{pct(P['markov_interp_top3'])}** | **shipped** |
 
-Anti-circularity: the sequences are tactic-ordered, so a model could cheat by
-re-learning that order. The shipped model beats the kill-chain baseline by
-**5.4x**, evidence it predicts real technique-to-technique transitions. The
+Profile-position comparison: the sequences are tactic-ordered, so a model can
+partly re-learn that order. The shipped model beats the kill-chain baseline by
+**5.4x** on this association task, but that does not establish chronological
+technique-to-technique transitions. The
 neural models (LSTM {pct(P['lstm_top3'])}, and a bidirectional LSTM at 20.0% in
 `reports/model_experiments.md`) both lost at this data scale, so we ship the
 simpler winner.
 
-Non-circular India test: on 4 analyst-verified CERT-In sequences ordered by the
-real reported timeline (not our heuristic), top-3 is
+Independent chronological gate: on 4 source-provenanced CERT-In timelines,
+top-3 is
 {pct(M['engine2']['manual_cert_in_top3'])} versus {pct(P['markov_interp_top3'])}
-on the auto-ordered set. Real orderings are harder; we publish both.
+on the tactic-sorted profile set. The sequence-bootstrap improvement over the
+strongest temporal baseline includes zero, so next-move forecasting is disabled.
 
 Attribution: transparent weighted retrieval over 172 MITRE group profiles
 (coverage 0.55, Jaccard 0.20, semantic similarity 0.25), with a printed

@@ -1,4 +1,4 @@
-/** On-demand, LLM-grounded next-technique forecast. */
+/** On-demand, LLM-explained ATT&CK profile associations. */
 import * as React from 'react'
 import { BrainCircuit, Loader2 } from 'lucide-react'
 import { predictNext } from '@/lib/api'
@@ -31,20 +31,20 @@ export default function PredictNextWidget({ given }: { given: string[] }) {
       ) : (
         <>
           <p className="text-sm leading-relaxed text-dim">
-            Ask the configured LLM to forecast the top three next techniques from this
-            incident&apos;s observed ATT&amp;CK chain. The model is restricted to bundled ATT&amp;CK
-            techniques and documented campaign examples.
+            Ask the configured LLM to explain three ATT&amp;CK techniques associated with this
+            incident&apos;s observations. Candidates come from tactic-sorted ATT&amp;CK profiles,
+            not chronological attack timelines, so this is not a next-move forecast.
           </p>
           <Button type="button" onClick={() => void runPrediction()} disabled={loading}>
-            {loading ? <><Loader2 className="size-3.5 animate-spin" /> Generating prediction…</>
-              : <><BrainCircuit className="size-3.5" /> Predict next attack</>}
+            {loading ? <><Loader2 className="size-3.5 animate-spin" /> Ranking associations…</>
+              : <><BrainCircuit className="size-3.5" /> Explain associated techniques</>}
           </Button>
           {error ? <ErrorState error={error} retry={() => void runPrediction()} /> : null}
           {data ? (
             <div className="space-y-3 pt-1">
               <div className="flex flex-wrap items-center gap-2">
-                <SectionLabel>Top 3 predicted techniques</SectionLabel>
-                <ClaimStatus status="predicted" />
+                <SectionLabel>Associated techniques to investigate</SectionLabel>
+                <ClaimStatus status="inferred" />
                 <span className="font-mono text-xs text-faint">{data.provider} · {data.model}</span>
               </div>
               {data.predictions.map((prediction) => (
@@ -57,7 +57,7 @@ export default function PredictNextWidget({ given }: { given: string[] }) {
                   <p className="mt-2 text-sm leading-relaxed text-dim">{prediction.reason}</p>
                   {prediction.previous_attacks?.length ? (
                     <div className="mt-3 space-y-2 border-t border-border pt-2">
-                      <div className="text-xs font-medium text-text">Previous documented attack examples</div>
+                      <div className="text-xs font-medium text-text">Documented ATT&amp;CK profiles</div>
                       {prediction.previous_attacks.map((attack) => (
                         <div key={attack.name}>
                           <div className="text-xs font-medium text-dim">{attack.name}</div>

@@ -1,1 +1,1 @@
-"""Engine 2 — ATT&CK next-technique prediction + attribution (Innovation)."""
+"""Engine 2 — ATT&CK technique-association ranking + attribution."""

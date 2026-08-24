@@ -528,13 +528,13 @@ export default function Investigate() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Predicted next moves</CardTitle>
-                    <CardMeta>interpolated Markov · predicted, not observed</CardMeta>
+                    <CardTitle>ATT&amp;CK technique associations</CardTitle>
+                    <CardMeta>tactic-sorted profiles · inferred, not chronological</CardMeta>
                   </CardHeader>
                   <CardBody className="space-y-2">
                     <PredictedNext report={result.signals.report} />
                     <FinePrint>
-                      Measured top-3 accuracy and the baseline it beats are on the{' '}
+                      Profile-position accuracy and the chronological validation gate are on the{' '}
                       <button
                         type="button"
                         className="text-accent underline-offset-4 hover:underline"
@@ -679,14 +679,14 @@ export default function Investigate() {
   )
 }
 
-/** The Markov lane's ranked next techniques. Predicted, never observed. */
+/** Techniques associated in tactic-sorted ATT&CK profiles; never a next-move claim. */
 function PredictedNext({ report }: { report: IncidentReportData }) {
   const preds = report.predicted_next ?? []
 
   if (!preds.length) {
     return (
       <p className="text-xs text-faint">
-        No prediction: no technique has been observed yet, so there is no chain to roll forward.
+        No association ranking: no ATT&amp;CK technique has been observed yet.
       </p>
     )
   }

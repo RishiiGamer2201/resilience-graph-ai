@@ -23,16 +23,16 @@
     {
       "name": "CERT-In advisories",
       "rows": "4/4 verified India sequences",
-      "feeds": "non-circular predictor test \u00b7 India scenarios"
+      "feeds": "independent chronological claim gate \u00b7 India scenarios"
     }
   ],
   "honesty_notes": [
     "Engine 1 trains benign-only (unsupervised) \u2014 we never report accuracy, only PR-AUC / TPR@FPR.",
     "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
     "LANL NTLM signal ablated: behavioral-only still ROC 0.906 \u2014 not a protocol crutch.",
-    "Next-technique: interpolated Markov beats the LSTM and biLSTM at this data scale, so we ship it (honest > fancy).",
-    "Anti-circularity: interpolated Markov beats the kill-chain-order baseline 5.4x \u2192 real transitions.",
-    "CERT-In manual sequences now analyst-verified (4/4); real report-ordered timelines score top-3 10% vs 37% on kill-chain-ordered auto sets \u2014 real orderings are harder.",
+    "Technique association: interpolated Markov beats the LSTM and biLSTM on held-out tactic-sorted profile positions.",
+    "Beating the kill-chain-order baseline supports profile association ranking, not real chronological transitions.",
+    "CERT-In manual sequences now analyst-verified (4/4); real report-ordered timelines score top-3 11.1% vs 38.2% on tactic-sorted profiles; uncertainty keeps next-move claims disabled.",
     "Mobile ATT&CK added so India's mobile-heavy threats (banking trojans) map to real technique IDs.",
     "LANL is authentication-only, so incidents honestly map to just pass-the-hash / brute-force / remote-services \u2014 we never invent techniques the data can't evidence.",
     "Crown jewels are a stated heuristic (hosts the most accounts depend on), not a dataset label; attribution is transparent profile retrieval, never headlined as a trained classifier.",

@@ -6,8 +6,8 @@
  * profile retrieval, the ROC-AUC is read out of `reports/metrics.json`. The
  * component adds no prose of its own.
  *
- * Two honesty affordances survive the port. `predicted_next` carries the
- * `predicted` claim status, because a Markov ranking is not an observation. And
+ * Two honesty affordances survive the port. The legacy `predicted_next` field is
+ * rendered as an inferred profile association, never as chronological evidence. And
  * every response action keeps its `mode` - nothing here is executed by pressing
  * anything on this screen.
  */
@@ -51,7 +51,7 @@ function toMarkdown(r: IncidentReportData): string {
     '## Attribution',
     `- ${r.attributed_actor.actor}: ${r.attributed_actor.justification}`,
     '',
-    '## Predicted next moves (predicted, not observed)',
+    '## ATT&CK technique associations (inferred from tactic-sorted profiles)',
     ...r.predicted_next.map((t) => `- ${techniqueName(t.technique_id, t.name)}`),
     '',
     '## Recommended response (simulated, human-gated)',
@@ -181,17 +181,17 @@ export default function IncidentReport() {
           </div>
 
           <div>
-            <SectionLabel>Predicted next moves</SectionLabel>
+            <SectionLabel>ATT&amp;CK technique associations</SectionLabel>
             <div className="mt-1 space-y-1">
               {r.predicted_next.length ? (
                 r.predicted_next.map((t) => (
                   <div key={t.technique_id} className="flex items-center gap-2">
                     <span className="text-xs text-sev-high">{techniqueName(t.technique_id, t.name)}</span>
-                    <ClaimStatus status="predicted" />
+                    <ClaimStatus status="inferred" />
                   </div>
                 ))
               ) : (
-                <NotMeasured why="The transition model had no observed chain to extend." />
+                <NotMeasured why="The profile-association model had no observed techniques to compare." />
               )}
             </div>
           </div>

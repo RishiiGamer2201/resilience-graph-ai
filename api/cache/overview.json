@@ -103,7 +103,7 @@
       "kind": "2nd benchmark"
     },
     {
-      "name": "Next-technique (interpolated Markov)",
+      "name": "Technique association (interpolated Markov)",
       "metric": "top-3",
       "value": 0.381,
       "kind": "honest"
@@ -70987,29 +70987,59 @@
               "rank": 1,
               "technique_id": "T1005",
               "name": "Data from Local System",
-              "probability": 0.1247,
-              "source": "markov-interpolated-order1",
-              "confidence_flag": "markov_inconsistent"
+              "source": "profile-association-order1",
+              "confidence_flag": "profile_association_inconsistent",
+              "association_score": 0.1247
             },
             {
               "rank": 2,
               "technique_id": "T1570",
               "name": "Lateral Tool Transfer",
-              "probability": 0.1225,
-              "source": "markov-interpolated-order1",
-              "confidence_flag": "markov_inconsistent"
+              "source": "profile-association-order1",
+              "confidence_flag": "profile_association_inconsistent",
+              "association_score": 0.1225
             },
             {
               "rank": 3,
               "technique_id": "T1219.001",
               "name": "IDE Tunneling",
-              "probability": 0.0304,
-              "source": "markov-interpolated-order1",
-              "confidence_flag": "markov_inconsistent"
+              "source": "profile-association-order1",
+              "confidence_flag": "profile_association_inconsistent",
+              "association_score": 0.0304
             }
           ],
-          "projection_narrative": "The most recent technique observed is Pass the Hash (T1550.002). Ranked by how often each technique followed this sequence in 205 real ATT&CK campaigns, the next moves are: \u2022 1. Data from Local System (T1005) \u2014 12% of the time in the training sequences. Adversaries may search local system sources, such as file systems, configuration files, local databases, virtual machine files, or process memory, to find files of interest and sensitive data prior to Exfiltration.\n\nAdversaries may do this using a Command and Scripting Interpreter, such as cmd as well as a Network Device CLI, which have functionality to interact with the file system to gather information.(Citation: show_run_config_cmd_cisco) Adversaries may also use Automated Collection on the local system.. \u2022 2. Lateral Tool Transfer (T1570) \u2014 12% of the time in the training sequences. Adversaries may transfer tools or other files between systems in a compromised environment. \u2022 3. IDE Tunneling (T1219.001) \u2014 3% of the time in the training sequences. Adversaries may abuse Integrated Development Environment (IDE) software with remote development features to establish an interactive command and control channel on target systems within a network. These are transition frequencies, not detections: nothing here has been observed on this network. The predictor gets the right technique in its top three 38.1% of the time, measured against 7.1% for a kill-chain-order baseline, so treat a single prediction as a lead to check rather than a forecast.",
-          "n_predictions": 3
+          "projection_narrative": "The most recent technique observed is Pass the Hash (T1550.002). Ranked by co-occurrence position in ATT&CK group and campaign profiles sorted with a tactic heuristic, techniques to investigate are: \u2022 1. Data from Local System (T1005) \u2014 association score 12%. Adversaries may search local system sources, such as file systems, configuration files, local databases, virtual machine files, or process memory, to find files of interest and sensitive data prior to Exfiltration.\n\nAdversaries may do this using a Command and Scripting Interpreter, such as cmd as well as a Network Device CLI, which have functionality to interact with the file system to gather information.(Citation: show_run_config_cmd_cisco) Adversaries may also use Automated Collection on the local system.. \u2022 2. Lateral Tool Transfer (T1570) \u2014 association score 12%. Adversaries may transfer tools or other files between systems in a compromised environment. \u2022 3. IDE Tunneling (T1219.001) \u2014 association score 3%. Adversaries may abuse Integrated Development Environment (IDE) software with remote development features to establish an interactive command and control channel on target systems within a network. These are profile associations, not detections or a chronological forecast: nothing here has been observed on this network. Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline. Treat the list only as investigation leads.",
+          "n_predictions": 3,
+          "mode": "association-only",
+          "temporal_prediction": {
+            "enabled": false,
+            "mode": "association-only",
+            "reason": "Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline.",
+            "data_basis": {
+              "kind": "ATT&CK group/campaign technique profiles",
+              "ordering": "heuristic MITRE ATT&CK tactic order",
+              "observed_timeline": false
+            },
+            "benchmark": {
+              "kind": "source-provenanced report-ordered CERT-In timelines",
+              "independent_of_training": true,
+              "sequences": 4,
+              "prediction_points": 27,
+              "oov": 6,
+              "model_top3": 0.1111,
+              "baselines_top3": {
+                "most_frequent": 0.0741,
+                "killchain_order": 0.0
+              },
+              "strongest_baseline": "most_frequent",
+              "gain_over_strongest": 0.037,
+              "gain_sequence_bootstrap_95": [
+                -0.2222,
+                0.25
+              ],
+              "bootstrap_repetitions": 2000
+            }
+          }
         },
         "evidence_refs": [
           "T1005",
@@ -71019,7 +71049,7 @@
         "ms": 3.8,
         "notes": [
           "Predicted next 3 move(s) from chain of 3 techniques.",
-          "Top prediction: T1005 @ 12.5%"
+          "Top association: T1005 @ 12.5%"
         ]
       }
     ],
@@ -72168,25 +72198,25 @@
         "rank": 1,
         "technique_id": "T1005",
         "name": "Data from Local System",
-        "probability": 0.1247,
-        "source": "markov-interpolated-order1",
-        "confidence_flag": "markov_inconsistent"
+        "source": "profile-association-order1",
+        "confidence_flag": "profile_association_inconsistent",
+        "association_score": 0.1247
       },
       {
         "rank": 2,
         "technique_id": "T1570",
         "name": "Lateral Tool Transfer",
-        "probability": 0.1225,
-        "source": "markov-interpolated-order1",
-        "confidence_flag": "markov_inconsistent"
+        "source": "profile-association-order1",
+        "confidence_flag": "profile_association_inconsistent",
+        "association_score": 0.1225
       },
       {
         "rank": 3,
         "technique_id": "T1219.001",
         "name": "IDE Tunneling",
-        "probability": 0.0304,
-        "source": "markov-interpolated-order1",
-        "confidence_flag": "markov_inconsistent"
+        "source": "profile-association-order1",
+        "confidence_flag": "profile_association_inconsistent",
+        "association_score": 0.0304
       }
     ],
     "evidence_refs": [
@@ -72197,9 +72227,9 @@
     "notes": [
       "Pre-stage: 442 chunks, 442 Point-A summaries.",
       "[orchestrator] prediction cites 3 technique(s) not confirmed by Validator: ['T1005', 'T1570', 'T1219.001']. Flagged non-authoritative.",
-      "[orchestrator] Prediction 'T1005' is not a plausible Markov transition from observed chain \u2014 flagged low-confidence.",
-      "[orchestrator] Prediction 'T1570' is not a plausible Markov transition from observed chain \u2014 flagged low-confidence.",
-      "[orchestrator] Prediction 'T1219.001' is not a plausible Markov transition from observed chain \u2014 flagged low-confidence."
+      "[orchestrator] Candidate 'T1005' is not a ranked ATT&CK profile association \u2014 flagged low-confidence.",
+      "[orchestrator] Candidate 'T1570' is not a ranked ATT&CK profile association \u2014 flagged low-confidence.",
+      "[orchestrator] Candidate 'T1219.001' is not a ranked ATT&CK profile association \u2014 flagged low-confidence."
     ]
   },
   "analysis": {
@@ -72600,591 +72630,63 @@
       ]
     },
     "progression_forecast": {
-      "available": true,
+      "available": false,
+      "mode": "association-only",
+      "reason": "Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline.",
+      "k_steps": 8,
       "observed_chain": [
         "T1550.002",
         "T1078",
         "T1110",
         "T1021"
       ],
-      "k_steps": 8,
-      "steps": [
-        {
-          "step": 1,
-          "horizon_confidence": 1.0,
-          "predictions": [
-            {
-              "technique_id": "T1021.001",
-              "name": "Remote Desktop Protocol",
-              "stage": "lateral movement",
-              "probability": 0.9424,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1105",
-              "name": "Ingress Tool Transfer",
-              "stage": "command and control",
-              "probability": 0.0316,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1059.001",
-              "name": "PowerShell",
-              "stage": "execution",
-              "probability": 0.026,
-              "is_impact": false
-            }
-          ],
-          "impact_mass": 0,
-          "model_source": "markov-interpolated-order1"
-        },
-        {
-          "step": 2,
-          "horizon_confidence": 0.77,
-          "predictions": [
-            {
-              "technique_id": "T1021.002",
-              "name": "SMB/Windows Admin Shares",
-              "stage": "lateral movement",
-              "probability": 0.7243,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1021.004",
-              "name": "SSH",
-              "stage": "lateral movement",
-              "probability": 0.1453,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1570",
-              "name": "Lateral Tool Transfer",
-              "stage": "lateral movement",
-              "probability": 0.1064,
-              "is_impact": false
-            }
-          ],
-          "impact_mass": 0.0023,
-          "model_source": "markov-interpolated-order1"
-        },
-        {
-          "step": 3,
-          "horizon_confidence": 0.5929,
-          "predictions": [
-            {
-              "technique_id": "T1021.004",
-              "name": "SSH",
-              "stage": "lateral movement",
-              "probability": 0.282,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1570",
-              "name": "Lateral Tool Transfer",
-              "stage": "lateral movement",
-              "probability": 0.2425,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1021.006",
-              "name": "Windows Remote Management",
-              "stage": "lateral movement",
-              "probability": 0.2169,
-              "is_impact": false
-            }
-          ],
-          "impact_mass": 0.1748,
-          "model_source": "markov-interpolated-order2"
-        },
-        {
-          "step": 4,
-          "horizon_confidence": 0.4565,
-          "predictions": [
-            {
-              "technique_id": "T1005",
-              "name": "Data from Local System",
-              "stage": "collection",
-              "probability": 0.3878,
-              "is_impact": true
-            },
-            {
-              "technique_id": "T1550.002",
-              "name": "Pass the Hash",
-              "stage": "lateral movement",
-              "probability": 0.1222,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1074.001",
-              "name": "Local Data Staging",
-              "stage": "collection",
-              "probability": 0.1203,
-              "is_impact": true
-            }
-          ],
-          "impact_mass": 0.6874,
-          "model_source": "markov-interpolated-order2"
-        },
-        {
-          "step": 5,
-          "horizon_confidence": 0.3515,
-          "predictions": [
-            {
-              "technique_id": "T1074.001",
-              "name": "Local Data Staging",
-              "stage": "collection",
-              "probability": 0.4368,
-              "is_impact": true
-            },
-            {
-              "technique_id": "T1005",
-              "name": "Data from Local System",
-              "stage": "collection",
-              "probability": 0.1744,
-              "is_impact": true
-            },
-            {
-              "technique_id": "T1570",
-              "name": "Lateral Tool Transfer",
-              "stage": "lateral movement",
-              "probability": 0.1308,
-              "is_impact": false
-            }
-          ],
-          "impact_mass": 0.8514,
-          "model_source": "markov-interpolated-order2"
-        },
-        {
-          "step": 6,
-          "horizon_confidence": 0.2707,
-          "predictions": [
-            {
-              "technique_id": "T1560.001",
-              "name": "Archive via Utility",
-              "stage": "collection",
-              "probability": 0.2505,
-              "is_impact": true
-            },
-            {
-              "technique_id": "T1119",
-              "name": "Automated Collection",
-              "stage": "collection",
-              "probability": 0.1777,
-              "is_impact": true
-            },
-            {
-              "technique_id": "T1113",
-              "name": "Screen Capture",
-              "stage": "collection",
-              "probability": 0.1415,
-              "is_impact": true
-            }
-          ],
-          "impact_mass": 1.0,
-          "model_source": "markov-interpolated-order2"
-        },
-        {
-          "step": 7,
-          "horizon_confidence": 0.2084,
-          "predictions": [
-            {
-              "technique_id": "T1071.001",
-              "name": "Web Protocols",
-              "stage": "command and control",
-              "probability": 0.2584,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1560.003",
-              "name": "Archive via Custom Method",
-              "stage": "collection",
-              "probability": 0.1447,
-              "is_impact": true
-            },
-            {
-              "technique_id": "T1074.001",
-              "name": "Local Data Staging",
-              "stage": "collection",
-              "probability": 0.1408,
-              "is_impact": true
-            }
-          ],
-          "impact_mass": 0.6226,
-          "model_source": "markov-interpolated-order2"
-        },
-        {
-          "step": 8,
-          "horizon_confidence": 0.1605,
-          "predictions": [
-            {
-              "technique_id": "T1105",
-              "name": "Ingress Tool Transfer",
-              "stage": "command and control",
-              "probability": 0.2018,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1071.004",
-              "name": "DNS",
-              "stage": "command and control",
-              "probability": 0.1406,
-              "is_impact": false
-            },
-            {
-              "technique_id": "T1102",
-              "name": "Web Service",
-              "stage": "command and control",
-              "probability": 0.1326,
-              "is_impact": false
-            }
-          ],
-          "impact_mass": 0.3581,
-          "model_source": "markov-interpolated-order2"
-        }
-      ],
-      "infiltration_probability": [
-        0.0,
-        0.2,
-        17.7,
-        74.3,
-        96.2,
-        100.0,
-        100.0,
-        100.0
-      ],
-      "horizon_confidence": [
-        1.0,
-        0.77,
-        0.5929,
-        0.4565,
-        0.3515,
-        0.2707,
-        0.2084,
-        0.1605
-      ],
-      "peak_infiltration_probability": 100.0,
-      "reliable_horizon": 5,
-      "headline_probability": 96.2,
-      "headline_confidence": 0.3515,
-      "headline_saturated": true,
-      "headline": "Reaching an impact stage within 5 step(s) is near-certain under this model (96.2%), at horizon confidence 0.3515. Treat the figure as saturated rather than precise: the cumulative curve is a noisy-OR over rollout branches and passes 95.0% by design once a few steps carry real probability. The informative parts here are the horizon and the stage, not the percentage. Most likely next stage: collection.",
-      "beyond_horizon_note": "Steps past 5 are shown but not quoted: horizon confidence falls below 0.35 and the cumulative curve rises toward 100% mainly because the model keeps rolling, not because the outcome becomes certain.",
-      "confidence_at_peak": 0.2707,
-      "most_likely_paths": [
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1560.001"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1560.001"
-          ],
-          "probability": 0.0,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "collection",
-            "collection",
-            "collection"
-          ],
-          "reaches_impact": true
-        },
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1005",
-            "T1074.001",
-            "T1560.001",
-            "T1071.001"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1005",
-            "T1074.001",
-            "T1560.001",
-            "T1071.001"
-          ],
-          "probability": 0.0,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "collection",
-            "collection",
-            "collection",
-            "command and control"
-          ],
-          "reaches_impact": true
-        },
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1119"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1119"
-          ],
-          "probability": 0.0,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "collection",
-            "collection",
-            "collection"
-          ],
-          "reaches_impact": true
-        },
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1113"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1550.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1113"
-          ],
-          "probability": 0.0,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "collection",
-            "collection",
-            "collection"
-          ],
-          "reaches_impact": true
-        },
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1560.001",
-            "T1071.001",
-            "T1105"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1570",
-            "T1005",
-            "T1074.001",
-            "T1560.001",
-            "T1071.001",
-            "T1105"
-          ],
-          "probability": 0.0,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
-            "collection",
-            "collection",
-            "collection",
-            "command and control",
-            "command and control"
-          ],
-          "reaches_impact": true
-        }
-      ],
-      "reachable_crown_jewels": {
-        "available": true,
-        "designated": [
-          "C1015",
-          "C1065",
-          "C1640",
-          "C2106",
-          "C2162",
-          "C231",
-          "C2327",
-          "C2553",
-          "C3173",
-          "C457",
-          "C467",
-          "C528",
-          "C529",
-          "C585",
-          "C586",
-          "C612",
-          "C625",
-          "C706",
-          "C743",
-          "C801"
-        ],
-        "already_reachable": [
-          "C1015",
-          "C1065",
-          "C2106",
-          "C231",
-          "C3173",
-          "C457",
-          "C467",
-          "C528",
-          "C529",
-          "C585",
-          "C586",
-          "C612",
-          "C625",
-          "C706",
-          "C743",
-          "C801"
-        ],
-        "not_yet_reachable": [
-          "C1640",
-          "C2162",
-          "C2327",
-          "C2553"
-        ],
-        "shortest_paths": {
-          "C231": [
-            "C17693",
-            "C231"
-          ],
-          "C457": [
-            "C17693",
-            "C457"
-          ],
-          "C467": [
-            "C17693",
-            "C467"
-          ],
-          "C585": [
-            "C17693",
-            "C585"
-          ],
-          "C1065": [
-            "C18025",
-            "C1065"
-          ],
-          "C1015": [
-            "C17693",
-            "C1015"
-          ],
-          "C625": [
-            "C17693",
-            "C625"
-          ],
-          "C706": [
-            "C17693",
-            "C706"
-          ],
-          "C743": [
-            "C18025",
-            "C743"
-          ],
-          "C586": [
-            "C17693",
-            "C586"
-          ],
-          "C528": [
-            "C17693",
-            "C528"
-          ],
-          "C2106": [
-            "C17693",
-            "C2106"
-          ],
-          "C801": [
-            "C17693",
-            "C801"
-          ],
-          "C529": [
-            "C17693",
-            "C529"
-          ],
-          "C612": [
-            "C19932",
-            "C612"
-          ],
-          "C3173": [
-            "C17693",
-            "C3173"
-          ]
-        },
-        "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here -- we do not invent hosts the attacker has not touched."
+      "data_basis": {
+        "kind": "ATT&CK group/campaign technique profiles",
+        "ordering": "heuristic MITRE ATT&CK tactic order",
+        "observed_timeline": false
       },
-      "method": {
-        "model": "interpolated Markov over 205 real ATT&CK sequences",
-        "search": "beam search, width 5, branch 3",
-        "decay": "horizon confidence 0.77^(step-1): a model measured at 38.1% top-3 for one step is not 38.1% accurate 8 steps out, and the timeline says so. 0.77 is fitted, not chosen -- top-3 accuracy of this rollout measured at each of 8 horizons and fitted with 1 free parameter, so 8 points in the regression; those 8 accuracies were averaged over 544 held-out prefixes from 29 test sequences, which overlap heavily, so ~29 is nearer the effective sample size and a sequence-level bootstrap puts d in [0.720, 0.804]. R^2 0.739 on the decaying points (0.870 if the r(1)=1 anchor is counted, which explains nothing). A linear-space fit of the same ratios gives 0.7407. (reports/rollout_decay.md, reproduce with scripts/eval_rollout_decay.py)",
-        "deterministic": true
+      "benchmark": {
+        "kind": "source-provenanced report-ordered CERT-In timelines",
+        "independent_of_training": true,
+        "sequences": 4,
+        "prediction_points": 27,
+        "oov": 6,
+        "model_top3": 0.1111,
+        "baselines_top3": {
+          "most_frequent": 0.0741,
+          "killchain_order": 0.0
+        },
+        "strongest_baseline": "most_frequent",
+        "gain_over_strongest": 0.037,
+        "gain_sequence_bootstrap_95": [
+          -0.2222,
+          0.25
+        ],
+        "bootstrap_repetitions": 2000
       },
-      "honesty": "These are the transition model's own probabilities rolled forward, not a simulation of an attacker's intent. Step 1 rests on a measured 38.1% top-3 accuracy; every step after that compounds the same uncertainty, which is why horizon confidence decays and the later steps are shown faded rather than quoted as forecasts."
+      "associations": [
+        {
+          "technique_id": "T1021.001",
+          "name": "Remote Desktop Protocol",
+          "stage": "lateral movement",
+          "score": 0.3041,
+          "source": "profile-association-order1"
+        },
+        {
+          "technique_id": "T1105",
+          "name": "Ingress Tool Transfer",
+          "stage": "command and control",
+          "score": 0.0102,
+          "source": "profile-association-order1"
+        },
+        {
+          "technique_id": "T1059.001",
+          "name": "PowerShell",
+          "stage": "execution",
+          "score": 0.0084,
+          "source": "profile-association-order1"
+        }
+      ]
     },
     "crosscheck": {
       "available": true,

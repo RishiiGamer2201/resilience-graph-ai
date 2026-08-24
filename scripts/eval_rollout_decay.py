@@ -365,10 +365,17 @@ def write_report(R) -> None:
     boot_dist = ("| reliable horizon | replicates | share |\n|---|---|---|\n"
                  + boot_dist)
 
-    REPORT.write_text(f"""# Rollout horizon decay -- measured, not assumed
+    REPORT.write_text(f"""# Profile-association rollout diagnostic -- not a chronological forecast
+
+> **Runtime status: disabled.** These measurements roll forward ATT&CK profiles
+> sorted by a tactic heuristic, not observed attacker timelines. They describe
+> how quickly that profile-position ranking degrades; they do not validate what
+> an attacker will do next. `src/shared/predictor.py` keeps chronological output
+> disabled until an independent timeline benchmark beats temporal baselines.
 
 `src/shared/rollout.py` renders a horizon confidence of `STEP_DECAY ** (step-1)`
-on every forecast. This is the measurement behind that constant.
+only after the temporal gate passes. This is the historical diagnostic behind
+that otherwise-dormant constant.
 
 **Result: fitted `{d:.4f}`, shipped as `STEP_DECAY = {shipped}`** (was `0.62`,
 which had no experiment behind it). The fit is a regression with **{R['n_points']} data points and

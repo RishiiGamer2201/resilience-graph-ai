@@ -5,7 +5,7 @@ not just at the level of a dashboard. This walks the whole chain for one event:
 
     raw event → normalised fields → the 7 behavioural features → reconstruction
     error → calibrated 0-100 score → alert threshold → correlation into the
-    incident → ATT&CK mapping → official citation → predicted next technique →
+    incident → ATT&CK mapping → official citation → profile associations →
     impact on crown jewels → the action that follows
 
 Every stage names the code that produced it and the value it produced, so an
@@ -227,19 +227,20 @@ def explain_step(df: pd.DataFrame, bundle: dict, step_index: int = 0, *,
     })
 
     try:
-        nxt, source = predictor.rank_next(inc["technique_ids"], 3)
+        nxt, source = predictor.rank_associations(inc["technique_ids"], 3)
     except Exception:
         nxt, source = [], "unavailable"
     stages.append({
-        "stage": "9 · predicted next",
-        "produced_by": "src/shared/predictor.py · interpolated Markov over 205 real sequences",
+        "stage": "9 · ATT&CK profile associations",
+        "produced_by": "src/shared/predictor.py · tactic-sorted profile association ranker",
         "value": {"given": inc["technique_ids"],
-                  "predictions": [{"technique_id": t, "probability": round(p, 3)}
+                  "associations": [{"technique_id": t, "score": round(p, 3)}
                                   for t, p in nxt],
-                  "model_source": source},
-        "explanation": ("Real interpolated transition probabilities, not a ranked guess. "
-                        "Measured top-3 accuracy and the baseline it beats are on the "
-                        "scoreboard."),
+                  "model_source": source,
+                  "temporal_prediction": predictor.temporal_prediction_status()},
+        "explanation": ("Association scores from tactic-sorted ATT&CK group/campaign "
+                        "profiles. They are investigation leads, not observed chronology "
+                        "or probabilities of what happens next."),
     })
 
     g = bundle["graph"]

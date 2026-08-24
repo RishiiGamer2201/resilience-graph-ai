@@ -135,8 +135,8 @@ def test_the_narrative_names_the_chain_rather_than_saying_unknown(pipeline):
         pipeline["incident_narrative"]
 
 
-def test_prediction_runs_once_there_is_a_chain(pipeline):
-    assert pipeline["predictions"], "no next-technique predictions were produced"
+def test_association_ranking_runs_once_there_is_a_chain(pipeline):
+    assert pipeline["predictions"], "no ATT&CK profile associations were produced"
 
 
 # --------------------------------------------------------------------------- #
