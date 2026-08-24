@@ -34,10 +34,11 @@ Please include the endpoint or file, what you did, and what happened.
 - **Uploaded data is never persisted.** Analysis is in memory and nothing is
   written to disk.
 - **Nothing leaves the host by default.** The exception is the optional
-  language-model layer (`src/shared/llm.py`), which supports **OpenAI** and
-  **Google Gemini** and **transmits incident-derived text to whichever you
-  enable**. Two things must both be true before a single byte goes out: the
-  provider's key must be present, and `NEXTATTACK_LLM_PROVIDER` must name it.
+  language-model layer (`src/shared/llm.py`), which supports **OpenAI**
+  (the default), **Groq** and **Google Gemini**, and **transmits
+  incident-derived text to whichever you enable**. Two things must both be true
+  before a single byte goes out: the provider's key must be present, and
+  `NEXTATTACK_LLM_PROVIDER` must name it.
 
   **A key on its own does nothing, and that default was chosen the hard way.**
   While this layer was being written, an `OPENAI_API_KEY` was found already
@@ -47,7 +48,7 @@ Please include the endpoint or file, what you did, and what happened.
   ambient credential is not consent, so enabling a provider is now an explicit
   act and `tests/test_llm.py` fails if that ever regresses.
 
-  Both providers go through the same allowlisted, SSRF-guarded fetcher as
+  Every provider goes through the same allowlisted, SSRF-guarded fetcher as
   everything else; keys travel in headers, never in a URL, so they stay out of
   logs and out of any redirect target; `/api/llm` and `/api/health` report which
   provider is active without ever returning a key; and the resulting text is

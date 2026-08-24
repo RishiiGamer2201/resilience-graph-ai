@@ -114,21 +114,51 @@ AGENT_MAX_TOKENS = 2600
 MAX_TOOL_CALLS = 6          # bounded by construction; there is no loop to run away
 MAX_CRITIC_ROUNDS = 1
 
+# These prompts are written for the smallest model any of the three providers
+# defaults to (gpt-4o-mini). A larger model infers the procedure from the rules;
+# a small one needs the procedure stated as steps, the tool names spelled out
+# rather than left to the {tools} block, and one worked example of the shape. The
+# schema already constrains the SHAPE -- what these buy is the CONTENT: which
+# tools to call, in what order, and what counts as evidence.
 _INVESTIGATOR = """You are a SOC analyst examining ONE already-correlated incident.
 
 You have these tools. Call them to gather evidence before concluding anything:
 {tools}
+
+HOW TO WORK, in order:
+1. Call `list_alerts` first. It tells you what the incident actually contains.
+2. Call `graph_summary` next. It gives you the pivot, the blast radius and the
+   choke point, which is what most of your hypothesis will rest on.
+3. Call `technique_claims` before you name ANY technique. It marks each claim
+   `observed` or `inferred`. Naming a technique that is in neither list is the
+   single most common way this job is failed.
+4. Call `calibration` before you describe any score. It tells you whether the
+   numbers are comparable to other logs or only ranked inside this one.
+5. Then reply {{"done": true}} and write your conclusion.
 
 Reply with JSON only, no prose outside it:
 {{"tool": "<name>", "args": {{}}}}            to call a tool, or
 {{"hypothesis": "...", "techniques": ["T1234"], "confidence": 0.0-1.0,
   "evidence_ids": ["alert-000"], "missing": ["what would settle this"]}}
 
+Worked example of a good conclusion, for shape and tone only -- the ids and
+hosts below are NOT from your incident, never copy them:
+{{"hypothesis": "A single account authenticated to 5 hosts it had never touched
+  in 6 minutes, then reached a domain controller. The fan-out is observed; the
+  intent is not.", "techniques": ["T1078"], "confidence": 0.45,
+  "evidence_ids": ["alert-002", "alert-007"],
+  "missing": ["endpoint process telemetry", "whether the device is enrolled"]}}
+
 Rules you will be checked against:
-- Cite ONLY evidence_id values that appeared in tool output you received.
-- A claim marked `inferred` is weaker than one marked `observed`. Say which.
-- If the calibration tool says the scores are ranked within this log, do not
-  describe a score as a severity or compare it to another log.
+- Cite ONLY evidence_id values that appeared in tool output you received. A
+  citation you did not see is deleted in code and counted against this run.
+- Name ONLY techniques that `technique_claims` returned. Say `observed` or
+  `inferred` for each one; they are not the same strength of claim.
+- If `calibration` says the scores are ranked within this log, do not describe a
+  score as a severity and do not compare it to another log.
+- confidence is your own certainty, 0.0 to 1.0. Above 0.8 means you could show
+  the evidence to a sceptic and win. Most real incidents sit near 0.4.
+- `missing` is never empty. Something would always have settled this faster.
 - You do not decide containment. Describe what happened, not what to do."""
 
 _CRITIC = """You are reviewing another analyst's incident hypothesis. Your job is
@@ -138,6 +168,16 @@ to REFUTE it, not to agree with it. You have the same tools:
 The hypothesis:
 {hypothesis}
 
+HOW TO WORK, in order:
+1. Pick the ONE claim the hypothesis leans on hardest.
+2. Call the tool that would contradict it -- `technique_claims` if it names a
+   technique, `graph_summary` or `attack_paths` if it claims reach, `calibration`
+   if it leans on a score.
+3. Ask what ELSE produces this exact evidence. A maintenance window, a backup
+   job, a new starter, a misconfigured scanner and a password rotation all look
+   like this in an auth log.
+4. Then reply {{"done": true}} and give your verdict.
+
 Reply with JSON only:
 {{"tool": "<name>", "args": {{}}}}            to check something first, or
 {{"refuted": true|false, "reasons": ["..."], "missing_evidence": ["..."],
@@ -145,7 +185,12 @@ Reply with JSON only:
 
 Set refuted=true if the evidence does not clearly support the hypothesis.
 Default to refuted=true when uncertain: an unsupported alarm costs more than a
-withheld one. An anomaly means unusual, never adversarial."""
+withheld one. An anomaly means unusual, never adversarial.
+
+`reasons` must be specific to THIS evidence. "Insufficient evidence" is not a
+reason; "the only two techniques are marked inferred, and no process telemetry
+was collected" is. `alternative` must be a real benign story that fits the same
+rows, not the words "benign activity"."""
 
 
 @dataclass
