@@ -200,9 +200,17 @@ def apply(df: pd.DataFrame, path: Path | None = None) -> tuple[pd.DataFrame, dic
     df["new_src_for_user"] = df["new_src_for_user"].astype("int8")
 
     # Fan-out and fail rate start from history and accumulate within the log.
+    first_new_dst_in_batch = []
+    batch_seen_dst = set()
+    for u, d in zip(users, dsts):
+        pair = (u, d)
+        first_new_dst_in_batch.append(
+            1 if pair not in seen_dst and pair not in batch_seen_dst else 0)
+        batch_seen_dst.add(pair)
+    new_distinct_dst = pd.Series(first_new_dst_in_batch, index=df.index, dtype="int32")
     base_fan = users.map(lambda u: fan.get(u, 0)).astype("int32")
     df["user_distinct_dst_sofar"] = (
-        base_fan + df.groupby(users, sort=False)["new_dst_for_user"].cumsum()
+        base_fan + new_distinct_dst.groupby(users, sort=False).cumsum()
     ).astype("int32")
 
     prior_n = users.map(lambda u: ustat.get(u, (0, 0))[0]).astype("float64")
