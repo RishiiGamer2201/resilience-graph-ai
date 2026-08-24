@@ -49,13 +49,31 @@ FPR_TARGETS = [0.0001, 0.001, 0.005, 0.01, 0.05]
 FIT_SAMPLE = 800_000      # benign rows to fit IsolationForest on
 RANDOM_STATE = 42
 
+# What a failed authentication is called, across the log formats we accept.
+# LANL says "Fail"; synthetic scenarios say "fail"; Windows exports and most
+# SIEM CSVs say one of the rest. A vocabulary this small is not worth a
+# dependency, and getting it wrong costs the whole feature silently.
+FAIL_WORDS = frozenset({"fail", "failure", "failed", "denied", "deny",
+                        "false", "0", "no", "error", "rejected"})
+
 
 def engineer(df: pd.DataFrame) -> pd.DataFrame:
     """Add behavioral features. Assumes rows sortable by timestamp."""
     df = df.sort_values("timestamp", kind="stable").reset_index(drop=True)
 
-    df["is_fail"] = (df["status"].astype(str).str.lower() == "fail").astype("int8")
-    df["is_ntlm"] = (df["protocol"].astype(str).str.upper() == "NTLM").astype("int8")
+    # Both of these were `== "fail"` and `== "NTLM"` exactly. Every shipped
+    # scenario spells them that way, so the demo was fine and the bug was
+    # invisible -- but uploading your own log is a feature, and a CSV that says
+    # "failure" silently lost is_fail for every row. Measured: the same 60-event
+    # brute force alerts once when the status reads "fail" and not at all when it
+    # reads "failure".
+    #
+    # NTLMv2 is the worse half. Windows logs the negotiated package, so real
+    # data says NTLMv2 far more often than NTLM, and our own ablation puts this
+    # feature at 74% of TPR@1%FPR (87.7% -> 22.8%). Exact matching quietly
+    # removed the most load-bearing feature in the detector.
+    df["is_fail"] = df["status"].astype(str).str.lower().isin(FAIL_WORDS).astype("int8")
+    df["is_ntlm"] = df["protocol"].astype(str).str.upper().str.startswith("NTLM").astype("int8")
 
     # first (user,dst) and (user,src) occurrences = new-host access (chronological)
     df["new_dst_for_user"] = (~df.duplicated(["user", "destination_host"])).astype("int8")

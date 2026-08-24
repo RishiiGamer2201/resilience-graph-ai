@@ -169,6 +169,47 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+# Only `insufficient` caps, and the reason is the detector's own definition of
+# the two words: below MIN_SAMPLE=30 "no corpus statistic means anything", while
+# below RELIABLE_SAMPLE=300 the statistic is "noisy, not absent". A noisy
+# statistic still carries signal and should not have its verdict overridden; an
+# absent one should.
+#
+# Capping `low` as well was tried and reverted. It is the stricter reading, but
+# it downgraded both shipped 125-event scenarios from critical to high on a
+# sample the code itself says is usable -- trading a real finding for a caveat
+# that was already printed beside it.
+_SEV_CAP = {"insufficient": "medium"}
+
+
+def _cap_severity(incident: dict, cal: dict) -> None:
+    """Do not report a severity the sample cannot support.
+
+    `correlate._severity` is `max(anomaly_score)` and nothing else. Under
+    `relative_anchors` the top of ANY distribution is 100, so a twelve-row log
+    of self-authentications came back `critical` -- while the calibration block
+    sitting beside it already said `sample_confidence: insufficient`.
+
+    The caveat was computed and published and then nothing consumed it. This
+    consumes it. The cap is stated in the incident so the reduction is visible
+    rather than silent, and the original is kept so nothing is lost.
+    """
+    conf = cal.get("sample_confidence")
+    cap = _SEV_CAP.get(conf)
+    if not cap:
+        return
+    order = ["low", "medium", "high", "critical"]
+    was = incident.get("severity")
+    if was not in order or order.index(was) <= order.index(cap):
+        return
+    incident["severity"] = cap
+    incident["severity_uncapped"] = was
+    incident["severity_note"] = (
+        f"reported as {cap}, not {was}: the sample is {conf} "
+        f"({cal.get('note') and 'see the calibration note' or 'too small'}), "
+        f"and a severity is only as good as the distribution behind it")
+
+
 def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
                    incident_id: str = "INC-LIVE-001", account: str | None = None) -> dict:
     """Run score → correlate → graph → SOAR → attribute → report on `df` live.
@@ -193,6 +234,7 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             raise ValueError(f"no events for account '{account}' in this log")
 
     incident = correlate(df, incident_id=incident_id)
+    _cap_severity(incident, calibration)
     g = build_graph(incident, critical_assets=critical_assets)
     ga = analyze(g, critical_assets=critical_assets)
     soar = recommend(incident, ga)

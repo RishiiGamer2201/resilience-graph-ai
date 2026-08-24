@@ -240,13 +240,20 @@ class RadarRequest(BaseModel):
 
 
 @app.post("/api/threat-radar")
-def threat_radar_scored(req: RadarRequest):
+def threat_radar_scored(req: RadarRequest,
+                        # The stricter principal, not analyze_principal: this
+                        # route can trigger outbound fetches to third-party CTI
+                        # feeds, and it was reachable with no header at all.
+                        # An egress trigger should not inherit the demo-headers
+                        # concession that exists for EventSource.
+                        p: dict = Depends(_finalist_principal)):
     """Radar cross-referenced against the incident you're investigating.
 
     Scoring runs here (one implementation, `src.shared.osint.relevance`) rather
     than in the frontend. `refresh` re-fetches the free feeds live; if no source
     responds we serve the cache — never an empty radar labelled live.
     """
+    _require(p, "analyze")
     from src.shared.osint import collect as collect_osint, relevance   # noqa: PLC0415
 
     data = None
@@ -892,8 +899,8 @@ def _check_rag() -> bool:
 
 
 class RetrieveRequest(BaseModel):
-    query: str
-    top_k: int = 10
+    query: str = Field(max_length=4096)
+    top_k: int = Field(default=10, ge=1, le=100)
     source_filter: str | None = None
     domain_filter: str | None = None
     severity_filter: str | None = None
@@ -902,9 +909,9 @@ class RetrieveRequest(BaseModel):
 
 
 class IncidentRetrieveRequest(BaseModel):
-    technique_ids: list[str] = []
-    incident_text: str = ""
-    top_k: int = 15
+    technique_ids: list[str] = Field(default_factory=list, max_length=64)
+    incident_text: str = Field(default="", max_length=8192)
+    top_k: int = Field(default=15, ge=1, le=100)
 
 
 @app.get("/api/rag/status")
@@ -918,11 +925,13 @@ def rag_status():
 
 
 @app.post("/api/retrieve")
-def retrieve_endpoint(req: RetrieveRequest):
+def retrieve_endpoint(req: RetrieveRequest,
+                      p: dict = Depends(analyze_principal)):
     """
     Semantic search over the cybersecurity knowledge corpus.
     Returns ranked chunks from ATT&CK, CISA KEV, CVEs, malware KB, etc.
     """
+    _require(p, "read")
     if not _check_rag():
         raise HTTPException(status_code=503, detail={
             "error": "RAG vector store not built.",
@@ -955,11 +964,13 @@ def technique_context(technique_id: str):
 
 
 @app.post("/api/retrieve/incident")
-def retrieve_for_incident(req: IncidentRetrieveRequest):
+def retrieve_for_incident(req: IncidentRetrieveRequest,
+                          p: dict = Depends(analyze_principal)):
     """
     Retrieve RAG context most relevant to a running incident.
     Combines technique-specific lookups with free-text semantic search.
     """
+    _require(p, "read")
     if not _check_rag():
         raise HTTPException(status_code=503, detail="RAG vector store not built.")
     from src.retrieval.query import retrieve_for_incident
