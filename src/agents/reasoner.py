@@ -111,7 +111,7 @@ def run(
         output["chain_explanations"]: per-chain plain-language text
         output["incident_id"]: incident identifier
         output["severity"]: critical | high | medium | low
-        output["point_b_method"]: "llm" | "template"
+        output["point_b_method"]: provider name ("openai") | "template"
     """
     t0 = time.perf_counter()
 
