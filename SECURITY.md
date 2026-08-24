@@ -76,8 +76,10 @@ Please include the endpoint or file, what you did, and what happened.
   words. Setting `NEXTATTACK_ROLE_TOKENS` switches to bearer tokens compared in
   constant time. Neither is an identity provider.
 - **The audit chain is tamper-evident, not tamper-proof**, and it is not a blockchain.
-  Its own export says so. It is session-scoped and held in memory, because the free
-  host has an ephemeral filesystem and we will not imply durability we do not have.
+  No API deletes its history. Admin-only rotation seals and archives the previous
+  generation, then links the new genesis to the sealed head. With
+  `NEXTATTACK_AUDIT_DB` the generations survive restarts; without it, capabilities
+  explicitly report process-only retention.
 - **There is no rate limiting.** A public deployment could be exhausted by a flood.
   Acceptable for a demo; a limiter at the edge is required for anything more.
 - **Single-tenant assumption.** Any caller with the `read` permission can see the

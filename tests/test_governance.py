@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
+from src.shared import audit as audit_mod
 from src.shared import rbac
 from src.shared.audit import AuditChain, canonical, record_hash
 
@@ -47,7 +48,8 @@ def test_permission_matrix_is_least_privilege():
     ("analyst", "analyze", True),
     ("analyst", "approve_critical", False),
     ("responder", "approve_critical", True),
-    ("admin", "reset_session", True),
+    ("analyst", "rotate_audit", False),
+    ("admin", "rotate_audit", True),
 ])
 def test_require_enforces_the_matrix(role, permission, allowed):
     p = rbac.resolve_principal(role, None, None)
@@ -153,6 +155,85 @@ def test_markdown_export_lists_every_record():
     md = _chain().markdown()
     assert "action.approved" in md and "VERIFIED" in md
     assert md.count("### ") == 4
+
+
+def test_rotation_archives_and_links_generations_across_restart(tmp_path):
+    path = tmp_path / "audit.db"
+    c = AuditChain({"detector": "abc"}, path=path)
+    c.append("analysis.completed", actor="asha", role="analyst", reason="triage")
+    old_id = c.generation_id
+    old_records = c.records()
+    old_head = c.head()
+
+    with pytest.raises(PermissionError):
+        c.rotate(actor="asha", role="analyst", reason="end of incident shift")
+
+    result = c.rotate(actor="root", role="admin", reason="end of incident shift")
+    assert result["sealed_generation_id"] == old_id
+    assert result["sealed_head"] == old_head
+    assert c.generation_id != old_id
+    assert c.records()[0]["prev_hash"] == old_head
+    assert c.records()[0]["details"]["previous_generation_id"] == old_id
+    assert c.verify() == (True, None)
+
+    archived = c.generation_export(old_id)
+    assert archived is not None
+    assert archived["records"] == old_records
+    assert archived["verified"] is True
+    assert archived["head_hash"] == old_head
+    assert archived["genesis_prev_hash"] == "0" * 64
+
+    resumed = AuditChain({"detector": "abc"}, path=path)
+    assert resumed.generation_id == c.generation_id
+    assert resumed.records()[0]["prev_hash"] == old_head
+    assert resumed.verify() == (True, None)
+    assert resumed.generation_export(old_id)["records"] == old_records
+    generations = resumed.generations()
+    assert generations[0]["active"] is True
+    assert generations[1]["generation_id"] == old_id
+    assert generations[1]["active"] is False
+
+
+def test_rotation_never_exposes_the_old_deleting_route(client):
+    paths = client.app.openapi()["paths"]
+    assert "/api/audit/reset" not in paths
+    assert "/api/audit/rotate" in paths
+
+
+def test_rotation_api_is_admin_only_and_requires_a_reason(client):
+    denied = client.post("/api/audit/rotate", headers=ANALYST,
+                         json={"reason": "incident closed"})
+    assert denied.status_code == 403
+    too_short = client.post("/api/audit/rotate", headers=ADMIN, json={"reason": "short"})
+    assert too_short.status_code == 422
+
+
+def test_rotation_api_keeps_old_generation_queryable(client, tmp_path, monkeypatch):
+    isolated = AuditChain({"detector": "abc"}, path=tmp_path / "api-audit.db")
+    isolated.append("analysis.completed", actor="asha", role="analyst", reason="triage")
+    old_id, old_head = isolated.generation_id, isolated.head()
+    monkeypatch.setattr(audit_mod, "_chain", isolated)
+
+    rotated = client.post(
+        "/api/audit/rotate", headers=ADMIN,
+        json={"reason": "incident review completed"},
+    )
+    assert rotated.status_code == 200, rotated.text
+    assert rotated.json()["history_deleted"] is False
+    assert rotated.json()["sealed_generation_id"] == old_id
+
+    listed = client.get("/api/audit/generations", headers=VIEWER)
+    assert listed.status_code == 200
+    assert listed.json()["history_deletion_available"] is False
+    assert any(g["generation_id"] == old_id and not g["active"]
+               for g in listed.json()["generations"])
+
+    exported = client.get(
+        f"/api/audit/generations/{old_id}/export", headers=ADMIN,
+    )
+    assert exported.status_code == 200
+    assert exported.json()["head_hash"] == old_head
+    assert exported.json()["verified"] is True
 
 
 # --------------------------------------------------------------------------- #

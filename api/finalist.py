@@ -204,12 +204,21 @@ def _capabilities() -> dict:
                        "require bearer tokens."),
         },
         "audit": {
-            "state": "session-scoped",
-            "detail": ("Hash-linked append-only chain held in memory and exportable. "
-                       "Tamper-evident, not tamper-proof; not persisted across restarts "
-                       "because free hosts have an ephemeral filesystem."),
+            "state": audit_mod.chain().retention_mode,
+            "detail": (
+                "Hash-linked generations; rotation archives the complete previous "
+                "generation and links the new genesis to its sealed head. "
+                + ("SQLite retention survives restarts."
+                   if audit_mod.chain().durable else
+                   "Archives last for this process only; configure "
+                   "NEXTATTACK_AUDIT_DB for restart-safe retention.")
+            ),
             "records": len(audit_mod.chain()),
             "head": audit_mod.chain().head(),
+            "generation_id": audit_mod.chain().generation_id,
+            "durable": audit_mod.chain().durable,
+            "retention_mode": audit_mod.chain().retention_mode,
+            "history_deletion_available": False,
         },
         "metrics": {
             "state": "bundled" if metrics.exists() else "unavailable",
@@ -738,6 +747,12 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
 # --------------------------------------------------------------------------- #
 # audit                                                                        #
 # --------------------------------------------------------------------------- #
+class AuditRotateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(min_length=8, max_length=500)
+
+
 @router.get("/audit")
 def audit_records(limit: int = 100, p: dict = Depends(principal)):
     _require(p, "read")
@@ -745,6 +760,8 @@ def audit_records(limit: int = 100, p: dict = Depends(principal)):
     ok, problem = c.verify()
     return {"records": c.records(limit=max(1, min(limit, 500))),
             "count": len(c), "head": c.head(),
+            "generation_id": c.generation_id,
+            "retention_mode": c.retention_mode,
             "verified": ok, "problem": problem}
 
 
@@ -755,6 +772,8 @@ def audit_verify(p: dict = Depends(principal)):
     ok, problem = c.verify()
     return {"verified": ok, "problem": problem, "records": len(c),
             "hash_algorithm": audit_mod.HASH_ALGORITHM,
+            "generation_id": c.generation_id,
+            "retention_mode": c.retention_mode,
             # Whether this log survives a restart. Reported rather than assumed:
             # tamper DETECTION always worked, but the chain used to live only in
             # process memory, so the retention half of the claim was not true and
@@ -778,8 +797,28 @@ def audit_verify_export(export: dict, p: dict = Depends(principal)):
         raise HTTPException(422, "export must contain a 'records' list")
     if len(recs) > audit_mod.MAX_RECORDS:
         raise HTTPException(422, f"too many records (max {audit_mod.MAX_RECORDS})")
-    ok, problem = audit_mod.AuditChain.verify_records(recs)
+    genesis = export.get("genesis_prev_hash", audit_mod.GENESIS_PREV)
+    if not isinstance(genesis, str) or len(genesis) != 64:
+        raise HTTPException(422, "genesis_prev_hash must be a 64-character hash")
+    ok, problem = audit_mod.AuditChain.verify_records(recs, genesis)
     return {"verified": ok, "problem": problem, "records": len(recs)}
+
+
+@router.get("/audit/generations")
+def audit_generations(p: dict = Depends(principal)):
+    _require(p, "verify_audit")
+    c = audit_mod.chain()
+    return {"generations": c.generations(), "active_generation_id": c.generation_id,
+            "retention_mode": c.retention_mode, "history_deletion_available": False}
+
+
+@router.get("/audit/generations/{generation_id}/export")
+def audit_generation_export(generation_id: str, p: dict = Depends(principal)):
+    _require(p, "export_audit")
+    exp = audit_mod.chain().generation_export(generation_id)
+    if exp is None:
+        raise HTTPException(404, "audit generation not found")
+    return exp
 
 
 @router.get("/audit/export")
@@ -803,12 +842,21 @@ def audit_export_md(p: dict = Depends(principal)):
                              'attachment; filename="incident-audit.md"'})
 
 
-@router.post("/audit/reset")
-def audit_reset(p: dict = Depends(principal)):
-    """One-click demo reset. Export first if you want to keep the chain."""
-    _require(p, "reset_session")
-    rec = audit_mod.chain().reset(actor=p["actor"], role=p["role"])
-    return {"reset": True, "records": len(audit_mod.chain()), "head": rec["hash"]}
+@router.post("/audit/rotate")
+def audit_rotate(req: AuditRotateRequest, p: dict = Depends(principal)):
+    """Admin-only retention boundary; previous records remain exportable."""
+    _require(p, "rotate_audit")
+    try:
+        rotated = audit_mod.chain().rotate(
+            actor=p["actor"], role=p["role"], reason=req.reason,
+        )
+    except (PermissionError, ValueError) as e:
+        raise HTTPException(422, str(e))
+    except RuntimeError as e:
+        raise HTTPException(409, str(e))
+    return {"rotated": True, **rotated,
+            "retention_mode": audit_mod.chain().retention_mode,
+            "history_deleted": False}
 
 
 # --------------------------------------------------------------------------- #

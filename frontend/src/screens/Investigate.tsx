@@ -25,7 +25,6 @@ import {
   getCapabilities,
   getScenarios,
   investigate,
-  resetAudit,
   twinCandidates,
 } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
@@ -133,8 +132,6 @@ export default function Investigate() {
   const [candidates, setCandidates] = React.useState<ContainmentCandidate[]>([])
   const [running, setRunning] = React.useState(false)
   const [runError, setRunError] = React.useState<unknown>(null)
-  const [resetError, setResetError] = React.useState<unknown>(null)
-  const [resetting, setResetting] = React.useState(false)
   const [auditKey, setAuditKey] = React.useState(0)
   const [active, setActive] = React.useState<string | null>(null)
   const refs = React.useRef<Record<string, HTMLElement | null>>({})
@@ -185,7 +182,6 @@ export default function Investigate() {
     if (!scenario) return
     setRunning(true)
     setRunError(null)
-    setResetError(null)
     setResult(null)
     setCandidates([])
     try {
@@ -219,22 +215,12 @@ export default function Investigate() {
     }
   }, [scenario, crit, setBundle])
 
-  async function resetDemo() {
-    setResetting(true)
-    setResetError(null)
-    try {
-      await resetAudit()
-      setResult(null)
-      setCandidates([])
-      setRunError(null)
-      setActive(null)
-      setBundle(null)
-    } catch (error: unknown) {
-      setResetError(error)
-    } finally {
-      setResetting(false)
-      setAuditKey((k) => k + 1)
-    }
+  function clearView() {
+    setResult(null)
+    setCandidates([])
+    setRunError(null)
+    setActive(null)
+    setBundle(null)
   }
 
   function jump(node: string) {
@@ -338,11 +324,11 @@ export default function Investigate() {
           </Button>
           <Button
             variant="outline"
-            disabled={running || resetting}
-            onClick={() => void resetDemo()}
+            disabled={running}
+            onClick={clearView}
           >
             <RotateCcw className="size-3" aria-hidden />
-            {resetting ? 'Resetting…' : 'Reset demo'}
+            Clear view
           </Button>
         </CardBody>
       </Card>
@@ -372,12 +358,6 @@ export default function Investigate() {
               in the top bar to see a different answer from the API.
             </FinePrint>
           </CardBody>
-        </Card>
-      ) : null}
-
-      {resetError ? (
-        <Card className="mt-4">
-          <ErrorState error={resetError} retry={() => void resetDemo()} />
         </Card>
       ) : null}
 
@@ -656,7 +636,7 @@ export default function Investigate() {
                 action={result.action}
                 onDecided={() => setAuditKey((k) => k + 1)}
               />
-              <AuditPanel refreshKey={auditKey} onReset={() => setAuditKey((k) => k + 1)} />
+              <AuditPanel refreshKey={auditKey} />
             </div>
           </Section>
 
