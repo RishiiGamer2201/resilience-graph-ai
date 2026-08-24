@@ -56,7 +56,7 @@ def run_agent_lane(df: pd.DataFrame | None, scenario: str | None,
     if df is None:
         return None
     try:
-        from api.main import _agent_pipeline_summary
+        from src.shared.agent_view import _agent_pipeline_summary
         from src.agents.orchestrator import run_pipeline
         result = run_pipeline(df, scenario=scenario or "events",
                               incident_id=incident_id, use_llm=False)
@@ -79,7 +79,7 @@ def attach_agent_lane(bundle: dict, agent_summary: dict) -> dict:
     bundle["meta"]["pipeline"] = "standard+10-agent"
     if agent_summary.get("status") != "failed":
         try:
-            from api.main import _map_agent_bundle
+            from src.shared.agent_view import _map_agent_bundle
             bundle = _map_agent_bundle(bundle, agent_summary)
         except Exception:
             # The mapping is presentation only. A bundle without it is complete;
@@ -119,11 +119,18 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
         bundle.setdefault("meta", {})["agent_pipeline"] = agent_summary
         bundle["meta"]["pipeline"] = "standard+10-agent"
         if agent_summary.get("status") != "failed":
+            # No try/except. This used to import from api.main, which made the
+            # import circular-adjacent and therefore un-failable, so it was
+            # swallowed -- and a raised mapping left the UNMAPPED graph on a
+            # bundle still claiming "standard+10-agent". A failure here is now
+            # recorded and the claim is withdrawn with it.
+            from src.shared.agent_view import _map_agent_bundle
             try:
-                from api.main import _map_agent_bundle
                 bundle = _map_agent_bundle(bundle, agent_summary)
-            except Exception:
-                pass
+            except Exception as e:
+                bundle["meta"]["pipeline"] = "standard (agent mapping failed)"
+                bundle["meta"].setdefault("degraded", []).append(
+                    f"agent graph mapping failed: {type(e).__name__}: {e}"[:200])
 
     cc = None
     if agent_summary and agent_summary.get("status") != "failed":

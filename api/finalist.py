@@ -111,6 +111,33 @@ def _llm_capability() -> dict:
     }
 
 
+def _baseline_capability() -> dict:
+    """Whether features come from per-entity history or from the uploaded file.
+
+    This is the single biggest thing a reader should know about a score, so it
+    is reported rather than inferred. Off is the default and the honest one
+    today: every published metric was measured on file-local features, and
+    switching modes silently would make `reports/` describe a product that is
+    no longer running.
+    """
+    from src.shared import baseline
+
+    st = baseline.status()
+    return {
+        "state": st.get("state", "off"),
+        "detail": st.get("detail", ""),
+        "days_of_history": st.get("days"),
+        "accounts": st.get("users"),
+        "network_required": False,
+        "note": ("With no baseline, `new host for this account` means first in "
+                 "THIS file, so a clean log still alerts on up to 48.2% of "
+                 "events -- measured, in reports/clean_log.md. A store makes it "
+                 "mean first ever. Published metrics were measured in the "
+                 "file-local mode, so it stays the default until they are "
+                 "re-run."),
+    }
+
+
 def _capabilities() -> dict:
     from src.shared import detector
 
@@ -163,6 +190,7 @@ def _capabilities() -> dict:
                        "host-allowlisted fetcher. Falls back to the bundled snapshot."),
             "network_required": True, "optional": True,
         },
+        "entity_baseline": _baseline_capability(),
         "llm": _llm_capability(),
         "authorisation": {
             "state": rbac.auth_mode(),
@@ -462,6 +490,11 @@ def agents_reason(req: AgentInvestigateRequest, p: dict = Depends(principal)):
     reason the filter is code rather than a line in the prompt.
     """
     _require(p, "read")
+    # The costliest route in the service: up to fourteen provider calls, on a
+    # shared per-minute quota, with retries. One caller must not be able to
+    # spend everyone else's budget.
+    from api.main import _limit
+    _limit(p, "agents")
     from src.shared.agent_loop import investigate_with_agents
     from src.shared.workflow import investigate as run
 
@@ -635,10 +668,19 @@ def audit_records(limit: int = 100, p: dict = Depends(principal)):
 @router.get("/audit/verify")
 def audit_verify(p: dict = Depends(principal)):
     _require(p, "verify_audit")
-    ok, problem = audit_mod.chain().verify()
-    return {"verified": ok, "problem": problem, "records": len(audit_mod.chain()),
+    c = audit_mod.chain()
+    ok, problem = c.verify()
+    return {"verified": ok, "problem": problem, "records": len(c),
             "hash_algorithm": audit_mod.HASH_ALGORITHM,
-            "claim": "tamper-evident, not tamper-proof"}
+            # Whether this log survives a restart. Reported rather than assumed:
+            # tamper DETECTION always worked, but the chain used to live only in
+            # process memory, so the retention half of the claim was not true and
+            # nothing said so.
+            "durable": c.durable,
+            "claim": ("tamper-evident, not tamper-proof; retained across restarts"
+                      if c.durable else
+                      "tamper-evident within this process only -- NOT retained "
+                      "across a restart (set NEXTATTACK_AUDIT_DB to persist)")}
 
 
 @router.post("/audit/verify-export")

@@ -234,12 +234,25 @@ def _run_agent(system: str, opening: str, bundle: dict, run: AgentRun,
         transcript += (f"\n\nYou called {name}({args}). Result:\n"
                        f"{json.dumps(result)[:1800]}")
 
-    # phase 2: conclude, with the tool option removed from the schema
-    final, provider = _ask(system + "\n\n" + conclude_hint,
-                           transcript + "\n\nNow give ONLY the final JSON object.",
-                           final_schema)
-    if provider:
-        run.provider = provider
+    # phase 2: conclude, with the tool option removed from the schema.
+    #
+    # Retried once, unlike the gather calls. A failed gather is survivable -- the
+    # agent simply stops collecting and concludes on what it has -- but a failed
+    # conclude throws away the whole run and every tool call in it, and the free
+    # tier returns an intermittent 400 often enough to matter. `llm.complete`
+    # already retries rate limits; this covers the rest at the one call site
+    # where the cost of losing it is everything.
+    for attempt in range(2):
+        final, provider = _ask(system + "\n\n" + conclude_hint,
+                               transcript + "\n\nNow give ONLY the final JSON object.",
+                               final_schema)
+        if provider:
+            run.provider = provider
+        if final:
+            if attempt:
+                run.notes.append(f"the {who}'s first attempt to conclude failed "
+                                 f"and was retried once")
+            return final, seen
     return final, seen
 
 

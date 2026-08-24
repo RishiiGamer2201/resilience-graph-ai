@@ -129,6 +129,23 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     else:
         note = ""
 
+    # A collapsed scale LEADS the note, because it is not a question of how much
+    # to trust the ordering -- there is no ordering. It does not replace what is
+    # already there: a log can be both uniform and short of destinations, and
+    # overwriting one caveat with the other loses a fact the reader needs.
+    if ref.get("collapsed"):
+        collapse = (f"Every event in this log produces the same anomaly score, so "
+                    f"there is no distribution to rank within: the median and the "
+                    f"triage cut coincide. That happens when the log is perfectly "
+                    f"uniform -- one account, one source, one destination, repeated "
+                    f"-- which is what a password spray, a scripted beacon or an "
+                    f"automated loop looks like, and equally what {len(df)} ordinary "
+                    f"repeated logons look like. The detector CANNOT TELL THOSE APART "
+                    f"from this log alone. Treat the "
+                    f"score as a placeholder, not a severity, and note that the count "
+                    f"of alerts here reflects the feature space rather than the traffic.")
+        note = f"{collapse} {note}".strip() if note else collapse
+
     if n_unscored:
         quality = (f"{n_unscored} of {len(df)} events could not be scored: a blank or "
                    f"unparseable field leaves the behavioural features undefined for "
@@ -139,6 +156,9 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     return scores, {
         "basis": ref.get("basis", "fixed-anchors-lanl"),
         "out_of_distribution": ood,
+        # No distribution to rank within: see relative_anchors. Travels with the
+        # bundle so a screen cannot present a collapsed scale as a severity.
+        "scale_collapsed": bool(ref.get("collapsed")),
         "insufficient_sample": confidence == "insufficient",
         "sample_confidence": confidence,
         "unscored_events": n_unscored,
@@ -196,6 +216,13 @@ def _cap_severity(incident: dict, cal: dict) -> None:
     """
     conf = cal.get("sample_confidence")
     cap = _SEV_CAP.get(conf)
+    if cal.get("scale_collapsed"):
+        # Independent of sample size: a thousand identical events have an "ok"
+        # sample and still no distribution to rank within, so the 100 that comes
+        # out of a collapsed scale is not a severity. This is the case
+        # sample_confidence alone could never catch.
+        cap = "medium"
+        conf = "a collapsed score scale"
     if not cap:
         return
     order = ["low", "medium", "high", "critical"]
@@ -222,6 +249,14 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     critical_assets = set(critical_assets or set())
     df = _prepare(df)
     df = engineer(df)                       # 7 behavioral features, per-user chronological
+
+    # Per-entity history, when a store is configured and has enough in it.
+    # Off by default on purpose: recomputing these features invalidates every
+    # number in reports/, which was measured on file-local ones. See
+    # src/shared/baseline.py. `baseline_state` travels with the bundle so a
+    # screen can say which mode produced the scores.
+    from src.shared import baseline
+    df, base_st = baseline.apply(df)
     scores, calibration = _score(df)
     # A row with a missing host yields a NaN feature and therefore a NaN score.
     # astype(int) turned that into 0 with only a RuntimeWarning, so the event we
@@ -259,7 +294,10 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             # How these scores were calibrated, and whether they are comparable
             # with any other run. Travels with every bundle so a screen can never
             # present a log-relative score as if it were the shipped scale.
-            "calibration": calibration}
+            "calibration": calibration,
+            # Which feature mode produced these scores: file-local (the default,
+            # and what every published metric was measured on) or history-backed.
+            "baseline": base_st}
 
     return {
         "overview": views.overview(full, views.SCORECARD),

@@ -25,6 +25,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import pathlib
+import sqlite3
 import threading
 from pathlib import Path
 
@@ -60,12 +62,36 @@ def record_hash(prev_hash: str, payload: dict) -> str:
 
 
 class AuditChain:
-    """Append-only, hash-linked, thread-safe, session-scoped."""
+    """Append-only, hash-linked, thread-safe, and durable when given a path.
 
-    def __init__(self, artifact_versions: dict | None = None):
+    Durability is what makes the claim on the scoreboard true. Tamper DETECTION
+    always worked -- the hash chain is real and the tamper test passes -- but the
+    chain lived only in process memory, so a restart erased it:
+
+        records before restart: 8
+        records after restart:  1
+
+    An audit log a restart erases cannot evidence anything after the restart,
+    and "Audit tampering detected" read as one claim with retention when it was
+    not. Now it is one claim.
+
+    Storage is stdlib sqlite3: no new dependency, one file, so ADR 0001's
+    single-container promise holds. `path=None` keeps the old in-memory
+    behaviour, which is what every unit test and every demo() wants.
+    """
+
+    def __init__(self, artifact_versions: dict | None = None,
+                 path: "str | pathlib.Path | None" = None):
         self._lock = threading.Lock()
         self._records: list[dict] = []
         self._versions = artifact_versions or {}
+        self._db = pathlib.Path(path) if path else None
+        if self._db is not None:
+            self._open()
+            if self._records:
+                # Resumed, not started. Recording a fresh session.started here
+                # would be a lie about a chain that already exists.
+                return
         self.append("session.started", actor="system", role="system",
                     reason="audit chain initialised",
                     details={"chain_version": CHAIN_VERSION,
@@ -110,12 +136,45 @@ class AuditChain:
             }
             rec = {**payload, "hash": record_hash(prev, payload)}
             self._records.append(rec)
+            self._persist(rec)
             return rec
+
+    # -- durability -------------------------------------------------------
+    def _open(self) -> None:
+        """Create the table if needed and load whatever is already there."""
+        self._db.parent.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(self._db) as c:
+            c.execute("CREATE TABLE IF NOT EXISTS audit ("
+                      "seq INTEGER PRIMARY KEY, hash TEXT NOT NULL, "
+                      "record TEXT NOT NULL)")
+            rows = c.execute("SELECT record FROM audit ORDER BY seq").fetchall()
+        try:
+            self._records = [json.loads(r[0]) for r in rows]
+        except Exception:
+            # A corrupt store must not take the service down, and must not be
+            # silently treated as an empty one either.
+            self._records = []
+            self._corrupt = True
+
+    def _persist(self, rec: dict) -> None:
+        if self._db is None:
+            return
+        with sqlite3.connect(self._db) as c:
+            c.execute("INSERT OR REPLACE INTO audit (seq, hash, record) VALUES (?,?,?)",
+                      (rec["seq"], rec["hash"], json.dumps(rec, sort_keys=True)))
+
+    @property
+    def durable(self) -> bool:
+        """Whether this chain survives a restart. Reported, never assumed."""
+        return self._db is not None
 
     def reset(self, actor: str = "system", role: str = "system") -> dict:
         """Start a fresh chain (the old one is gone unless it was exported)."""
         with self._lock:
             self._records = []
+            if self._db is not None:
+                with sqlite3.connect(self._db) as c:
+                    c.execute("DELETE FROM audit")
         return self.append("session.started", actor=actor, role=role,
                            reason="session reset",
                            details={"chain_version": CHAIN_VERSION,
@@ -235,12 +294,39 @@ def artifact_versions() -> dict:
     }
 
 
+# Where the chain lives. Unset means in-memory, which is the right default for
+# a read-only or ephemeral filesystem -- and `/api/audit/verify` reports which
+# it is, so nobody has to guess whether the log they are looking at survives.
+AUDIT_DB_ENV = "NEXTATTACK_AUDIT_DB"
+DEFAULT_AUDIT_DB = Path(__file__).resolve().parents[2] / "data" / "audit" / "chain.db"
+
+
+def _audit_path() -> Path | None:
+    raw = os.environ.get(AUDIT_DB_ENV, "").strip()
+    if raw.lower() in ("off", "none", "memory", ":memory:"):
+        return None
+    return Path(raw) if raw else DEFAULT_AUDIT_DB
+
+
 def chain() -> AuditChain:
-    """Process-wide session chain. Ephemeral by design (free hosts have no disk)."""
+    """Process-wide chain, durable unless NEXTATTACK_AUDIT_DB says otherwise.
+
+    Was ephemeral by design, on the argument that free hosts have no disk. The
+    argument was sound and the consequence was not: a restart erased the log the
+    scoreboard cites as tamper-evident. Durability is now the default and
+    opting out is explicit, because the failure mode of the old default was a
+    claim that stopped being true without saying so.
+    """
     global _chain
     with _chain_lock:
         if _chain is None:
-            _chain = AuditChain(artifact_versions())
+            try:
+                _chain = AuditChain(artifact_versions(), path=_audit_path())
+            except Exception:
+                # A read-only or full filesystem must degrade to in-memory
+                # rather than take the service down. `durable` then reports
+                # False, which is the honest answer.
+                _chain = AuditChain(artifact_versions(), path=None)
         return _chain
 
 

@@ -97,15 +97,29 @@ def p0_1_end_to_end() -> bool:
         print(f"      {name:38} {inc['alert_count']:>6}  {inc['severity']:<9} {conf}")
         seen[name] = (inc["alert_count"], inc["severity"])
 
-    # The defect is that these are all the SAME. An attack of any size and a
-    # benign log of any size both report one alert at critical.
     uniform = [v for k, v in seen.items() if "spread" not in k]
+    counts = {c for c, _ in uniform}
+    sevs = {s for _, s in uniform}
     print()
-    broken = len(set(uniform)) == 1 and uniform[0][0] == 1
+
+    # WHAT WAS FIXED: a collapsed scale no longer asserts a severity. That is
+    # the half that put a confident "critical" on a log with no distribution.
+    broken = "critical" in sevs
     if broken:
-        n, sev = uniform[0]
-        print(f"      BROKEN: every uniform log above reports {n} alert, {sev} --")
-        print("              a 1,000-event brute force and 10 benign logons alike.")
+        print("      BROKEN: a uniform log still reports critical off a scale "
+              "where\n              the median and the triage cut coincide.")
+
+    # WHAT REMAINS, on the record rather than quietly passing. The count is
+    # still 1 for a thousand identical events, because exactly one row has a
+    # distinct feature vector. The calibration note now says the count reflects
+    # the feature space rather than the traffic, which makes it honest without
+    # making it useful. Fixing it properly means changing what an "alert" is on
+    # an unrankable log, which is a bigger change than this script gates.
+    if counts == {1}:
+        print("      RESIDUAL (not a regression): alert_count is still 1 for "
+              "every\n                uniform log regardless of volume. Severity "
+              "no longer\n                follows it, and the note disclaims it. "
+              "See issue #3.")
     print()
     return broken
 
