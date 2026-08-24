@@ -431,3 +431,36 @@ def test_a_clean_upload_reports_no_unscored_events():
         "destination_host": [f"H{i % 30}" for i in range(120)],
     })
     assert analyze_events(df)["meta"]["calibration"]["unscored_events"] == 0
+
+
+def test_graph_view_distinguishes_no_crown_jewels_from_none_reachable():
+    """The graph screen used to drop the designated list entirely, so it had
+    no way to tell "nothing was named as critical" from "we checked five
+    assets and none is reachable". An uploaded log with an empty crown-jewels
+    field rendered "no designated critical asset is reachable from an
+    attacker pivot" -- a claim about a check that never ran.
+    """
+    df = pd.read_csv(Path(__file__).resolve().parents[1]
+                     / "data" / "demo" / "scenarios" / "aiims_ransomware.csv")
+
+    # No crown jewels named at all, as an "analyse my own log" upload with an
+    # empty field would send.
+    gv = analyze_events(df, critical_assets=set(), incident_id="X")["graph"]
+    assert gv["critical_assets_designated"] == []
+    assert gv["critical_assets_at_risk"] == []
+    # blast radius is unaffected by whether anything was designated
+    assert gv["blast_radius_size"] > 0
+
+    # A crown jewel named and reachable -- what the shipped scenario measures.
+    gv2 = analyze_events(df, critical_assets={"DC-AIIMS-01"}, incident_id="X")["graph"]
+    assert gv2["critical_assets_designated"] == ["DC-AIIMS-01"]
+    assert gv2["critical_assets_at_risk"] == ["DC-AIIMS-01"]
+    # the same blast radius either way: designation does not change reachability
+    assert gv2["blast_radius_size"] == gv["blast_radius_size"]
+
+    # A crown jewel named that the attacker cannot reach: genuinely good news,
+    # and distinguishable from "nothing was named" by a nonempty designated list.
+    gv3 = analyze_events(df, critical_assets={"NOT-IN-THIS-LOG"},
+                         incident_id="X")["graph"]
+    assert gv3["critical_assets_designated"] == ["NOT-IN-THIS-LOG"]
+    assert gv3["critical_assets_at_risk"] == []

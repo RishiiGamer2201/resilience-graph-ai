@@ -326,6 +326,9 @@ export default function Graph() {
 
   const useCanvas = mode === 'map' && canvasAvailable
   const rolesPresent = ROLE_ORDER.filter((r) => rows.some((n) => n.roles.includes(r)))
+  const designated = Array.isArray(data.critical_assets_designated)
+    ? data.critical_assets_designated
+    : null
   const criticalAssets = Array.isArray(data.critical_assets_at_risk)
     ? data.critical_assets_at_risk
     : null
@@ -450,14 +453,20 @@ export default function Graph() {
         <MetricCard
           label="Crown jewels reachable"
           value={
-            criticalAssets ? (
+            !designated?.length ? (
+              '--'
+            ) : criticalAssets ? (
               criticalAssets.length
             ) : (
               <NotMeasured why="The graph response did not include critical-asset reachability." />
             )
           }
           severity={criticalAssets?.length ? 'critical' : undefined}
-          context="Designated critical assets on a path from a pivot."
+          context={
+            !designated?.length
+              ? 'No crown jewels were designated for this analysis, so none was checked.'
+              : 'Designated critical assets on a path from a pivot.'
+          }
         />
       </div>
 
@@ -762,12 +771,14 @@ export default function Graph() {
                 )}
               </StatRow>
               <StatRow label="Crown jewels at risk">
-                {criticalAssets?.length ? (
+                {!designated?.length ? (
+                  <span className="text-faint">none designated for this analysis</span>
+                ) : criticalAssets?.length ? (
                   <span className="text-sev-critical">
-                    {criticalAssets.length}
+                    {criticalAssets.length} of {designated.length}
                   </span>
                 ) : criticalAssets ? (
-                  <span className="text-faint">none marked reachable</span>
+                  <span className="text-faint">0 of {designated.length} reachable</span>
                 ) : (
                   <NotMeasured why="The graph response did not include critical-asset reachability." />
                 )}
@@ -827,8 +838,12 @@ export default function Graph() {
               </Table>
             ) : (
               <EmptyState
-                title="No path to a crown jewel"
-                detail="No designated critical asset is reachable from an attacker pivot on this graph."
+                title={!designated?.length ? 'No crown jewels designated' : 'No path to a crown jewel'}
+                detail={
+                  !designated?.length
+                    ? 'This analysis did not name anything as critical, so reachability to a crown jewel was never checked. Add crown jewels to get a real answer.'
+                    : 'No designated critical asset is reachable from an attacker pivot on this graph.'
+                }
               />
             )}
           </Card>
