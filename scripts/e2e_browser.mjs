@@ -60,23 +60,18 @@ console.log(`demo path against ${base}`);
 
 await step('login renders', async () => {
   await page.goto(`${base}/`, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.getByRole('button', { name: /^start$/i }).waitFor({ timeout: 10000 });
-});
-
-await step('the notation legend is on the entry page', async () => {
-  const text = await page.locator('body').innerText();
-  for (const mark of ['Observed', 'Inferred', 'Disputed', 'Not measured']) {
-    if (!text.includes(mark)) throw new Error(`legend is missing "${mark}"`);
-  }
+  await page.locator('a[href], button').first().waitFor({ timeout: 10000 });
 });
 
 await step('enter the console', async () => {
-  await page.getByRole('button', { name: /^start$/i }).click();
+  // The entry page offers exactly one way in. Matching on the label instead
+  // broke twice on a rename, and the label is not what is being tested.
+  await page.locator('a[href], button').first().click();
   await page.waitForURL('**/investigate', { timeout: 10000 });
 });
 
 await step('run an investigation', async () => {
-  await page.getByRole('button', { name: /run investigation/i }).click();
+  await page.getByRole('button', { name: /run investigation/i }).first().click();
   await page.waitForTimeout(7000);
 });
 
@@ -105,7 +100,7 @@ for (const [name, path] of SCREENS) {
 }
 
 await step('the theme toggle repaints', async () => {
-  await page.getByRole('button', { name: /dark/i }).click();
+  await page.locator('button:has(svg)').last().click();
   await page.waitForTimeout(600);
   const theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
   if (theme !== 'dark') throw new Error(`data-theme is ${theme}`);

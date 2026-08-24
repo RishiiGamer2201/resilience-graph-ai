@@ -59,7 +59,7 @@ flowchart TB
 flowchart LR
   U["Analyst / judge"] --> SPA
   subgraph dev["Local dev"]
-    SPA["Vite :5173"] -->|"/api proxy"| UV["uvicorn :8000"]
+    SPA["Vite :5173"] -->|"/api proxy"| UV["uvicorn :8001"]
   end
   subgraph prod["Production (1 container)"]
     C["FastAPI serves /api AND the built SPA<br/>same origin, no CORS · Render free tier"]
@@ -67,7 +67,7 @@ flowchart LR
   UV -. "npm run build → frontend/dist" .-> C
 ```
 
-- **Local dev:** two processes — uvicorn on :8000, Vite on :5173 (proxies `/api` → :8000).
+- **Local dev:** two processes — uvicorn on :8001, Vite on :5173 (proxies `/api` → :8001).
 - **Production:** one Docker container — FastAPI serves both `/api` and the built SPA. Deployed via `render.yaml`. Slim deps only (`requirements-deploy.txt`: fastapi, uvicorn, scikit-learn 1.7.2, numpy, joblib, pandas, networkx, python-multipart — **no torch**; embeddings ship as a precomputed pkl).
 - **Runtime artifacts force-added to git** (past `.gitignore`) so the app runs from a fresh clone with no data download: `models/iforest_lanl.joblib`, `models/next_technique_markov.pkl`, `data/processed/mitre_attack/attack_lookups.pkl`, `data/processed/engine2/technique_embeddings.pkl`, `data/demo/scenarios/*.csv`, `api/cache/*.json`.
 

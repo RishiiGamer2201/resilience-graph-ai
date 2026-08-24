@@ -3,6 +3,7 @@
 # pipeline needs pandas (CSV + frames) and networkx (attack-path graph).
 fastapi>=0.110
 uvicorn>=0.29
+python-dotenv>=1.0     # load local backend secrets from the ignored root .env
 python-multipart>=0.0.9   # multipart CSV upload (/api/analyze/upload)
 scikit-learn==1.7.2   # must match the version that pickled models/iforest_lanl.joblib
 numpy>=1.26

@@ -35,11 +35,22 @@ USE = re.compile(r"var\(\s*--([a-zA-Z0-9-]+)\s*(,|\))")
 USE_BARE = re.compile(r"var\(\s*--([a-zA-Z0-9-]+)\s*\)")
 
 
+# This script used to also assert that the two dark palettes agreed, because
+# theme.css defined the same eighteen colours three times and a contrast fix
+# applied to two of the three silently did nothing. The TypeScript theme
+# combines both dark selectors into ONE rule --
+# `:root[data-theme="dark"], :root:not([data-theme="light"])` -- so the palette
+# exists once per mode and cannot drift. The check was deleted rather than kept
+# passing vacuously.
 def _files() -> list[Path]:
+    """Every file that can define or use a custom property.
+
+    .tsx and .ts since the TypeScript redesign; .jsx and .js are kept because
+    this script should not start passing merely because it stopped looking.
+    """
     return sorted(
-        [p for p in SRC.rglob("*.css")]
-        + [p for p in SRC.rglob("*.jsx")]
-        + [p for p in SRC.rglob("*.js")]
+        p for ext in ("*.css", "*.tsx", "*.ts", "*.jsx", "*.js")
+        for p in SRC.rglob(ext)
     )
 
 
@@ -68,61 +79,9 @@ def main() -> int:
         print("Define it in frontend/src/theme.css, or give the use a fallback.")
         return 1
 
-    drift = _dark_blocks_agree()
-    if drift:
-        print(f"{len(drift)} token(s) differ between the two dark palettes:\n")
-        for d in drift:
-            print(f"  {d}")
-        print("\nPlain CSS cannot share one block between a media query and an\n"
-              "attribute selector, so the dark palette is written twice. A token\n"
-              "changed in one and not the other means the theme toggle and the OS\n"
-              "setting disagree -- which is how a contrast fix landed in the media\n"
-              "query, missed the attribute block, and appeared to do nothing.")
-        return 1
-
-    print(f"css tokens ok: {len(defined)} defined, every bare var() resolves, "
-          "both dark palettes agree")
+    print(f"css tokens ok: {len(defined)} defined, every bare var() resolves")
     return 0
 
-
-def _dark_blocks_agree() -> list[str]:
-    """The two dark palettes must define the same tokens with the same values.
-
-    There is no light equivalent to check: the light palette exists once, on
-    :root, because the dark media rule is scoped `:not([data-theme="light"])`
-    and an explicit light choice falls through to it.
-    """
-    theme = (ROOT / "frontend/src/theme.css").read_text(encoding="utf-8")
-
-    def block(start: str) -> dict[str, str]:
-        i = theme.find(start)
-        if i < 0:
-            return {}
-        body = theme[i + len(start):theme.index("}", i + len(start))]
-        # Comments first, then split. A comment can contain a semicolon --
-        # "3.62:1; now 5.38" did -- and splitting first tears it in half, which
-        # made this check report the NEXT token as missing.
-        body = re.sub(r"/\*.*?\*/", "", body, flags=re.S)
-        out = {}
-        for decl in body.split(";"):
-            decl = decl.strip()
-            if decl.startswith("--") and ":" in decl:
-                k, v = decl.split(":", 1)
-                out[k.strip()] = v.strip()
-        return out
-
-    media = block('@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){')
-    attr = block(':root[data-theme="dark"]{')
-    if not media or not attr:
-        return ["could not find both dark blocks in theme.css"]
-
-    out = []
-    for k in sorted(set(media) | set(attr)):
-        a, b = media.get(k), attr.get(k)
-        if a != b:
-            out.append(f"{k}: media says {a or '(missing)'}, "
-                       f"[data-theme=dark] says {b or '(missing)'}")
-    return out
 
 
 if __name__ == "__main__":

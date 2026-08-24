@@ -1,7 +1,17 @@
 # ADR 0004 — Keep JSX and CSS tokens; no TypeScript migration, no Tailwind, no map
 
-- **Status:** accepted
+- **Status:** SUPERSEDED by [ADR 0008](0008-typescript-tailwind-redesign.md), 2026-08-23
 - **Date:** 2026-08-18
+
+> **Superseded, and the reasoning below was not wrong.** The argument here was
+> that TypeScript, Tailwind and shadcn were cost without benefit for a working
+> hackathon frontend whose one type-sensitive boundary was already policed by
+> `tests/test_ui_contract.py`. What changed is not that argument: the project
+> owner asked for the stack directly, alongside a redesign of all fourteen
+> screens. A rewrite of that size is the moment to migrate or never, and the
+> honesty affordances added since (claim status, "Not measured", the LLM
+> provenance line, the two-lane crosscheck) were better expressed as enforced
+> primitives than as per-screen convention. See ADR 0008.
 
 ## Context
 

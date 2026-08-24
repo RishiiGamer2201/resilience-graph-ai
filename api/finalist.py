@@ -58,30 +58,56 @@ def _require(p: dict, permission: str, *, incident_id: str | None = None) -> Non
 # capability + readiness                                                       #
 # --------------------------------------------------------------------------- #
 def _llm_capability() -> dict:
-    """No LLM touches a decision. One optional path rewords a narrative.
+    """What the language-model layer is actually doing, right now.
 
-    If it is switched on it sends incident summaries to Google, so this reports
-    the egress explicitly rather than describing the product as offline while a
-    key is quietly set.
+    Derived from `src.shared.llm.status()` rather than from key presence.
+    Those are different questions and this endpoint used to conflate them: it
+    read GEMINI_API_KEY and reported egress whenever a key existed, so a
+    developer .env carrying keys with the provider switched OFF was described as
+    transmitting incident summaries off the host, and a host configured for
+    OpenAI was reported as Google. The endpoint whose job is telling a reviewer
+    the truth about the system was wrong in both directions.
+
+    A key alone enables nothing. NEXTATTACK_LLM_PROVIDER has to select one too.
     """
-    import os
+    from src.shared import llm
 
-    key_set = bool(os.environ.get("GEMINI_API_KEY", "").strip())
+    st = llm.status()
+    active = st["active_provider"]
+    if not active:
+        keys = [name for name, p in st["providers"].items() if p["key_present"]]
+        held = (f" Keys are present for {', '.join(keys)} but "
+                f"NEXTATTACK_LLM_PROVIDER is '{st['requested']}', so no provider "
+                f"is enabled and nothing is sent." if keys else "")
+        return {
+            "state": "none",
+            "provider": "none",
+            "keys_required": [],
+            "in_decision_path": False,
+            "data_leaves_host": False,
+            "detail": (
+                "No language model is enabled. Every score, ranking, gate and "
+                "hash is deterministic Python, narratives come from templates, "
+                "and no incident-derived content leaves this host." + held
+            ),
+        }
+
+    model = st["providers"][active]["model"]
+    vendor = {"openai": "OpenAI", "gemini": "Google"}.get(active, active)
     return {
-        "state": "byok-narrative" if key_set else "none",
-        "provider": "gemini-1.5-flash" if key_set else "none",
+        "state": "byok-narrative",
+        "provider": f"{active}:{model}",
         "keys_required": [],
         "in_decision_path": False,
-        "data_leaves_host": key_set,
+        "data_leaves_host": True,
         "detail": (
-            "GEMINI_API_KEY is set: the 10-agent pipeline may call Google to reword "
-            "the incident narrative, which TRANSMITS INCIDENT SUMMARIES OFF THIS "
-            "HOST. The text is labelled non-authoritative and no score, ranking, "
-            "gate or hash depends on it. Unset the variable to disable."
-            if key_set else
-            "No LLM is configured. Every score, ranking, gate and hash is "
-            "deterministic Python, narratives come from templates, and no "
-            "incident-derived content leaves this host."),
+            f"NEXTATTACK_LLM_PROVIDER is '{st['requested']}' and {active} is "
+            f"active ({model}): the advisor and the incident narrative may call "
+            f"{vendor} to reword them, which TRANSMITS INCIDENT-DERIVED TEXT OFF "
+            f"THIS HOST. The wording is labelled non-authoritative and no score, "
+            f"ranking, gate or hash depends on it. Set NEXTATTACK_LLM_PROVIDER=off "
+            f"to disable."
+        ),
     }
 
 
@@ -580,7 +606,13 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
         "executed": False,
         "decision": rec["decision"],
         "policy": policy,
-        "record": {"seq": rec["seq"], "hash": rec["hash"], "at": rec["at"]},
+        "record": {
+            "seq": rec["seq"],
+            "hash": rec["hash"],
+            "at": rec["at"],
+            "actor": rec["actor"],
+            "role": rec["role"],
+        },
         "chain": {"records": len(audit_mod.chain()), "head": audit_mod.chain().head()},
         "note": ("SIMULATION ONLY. The decision is recorded in the tamper-evident audit "
                  "chain; no external system was contacted."),

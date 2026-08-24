@@ -29,7 +29,8 @@ def client():
 @pytest.fixture(scope="module")
 def bundle(client):
     r = client.post("/api/analyze",
-                    json={"scenario": "aiims_ransomware", "critical_assets": CRIT})
+                    json={"scenario": "aiims_ransomware", "critical_assets": CRIT},
+                    headers=ANALYST)
     assert r.status_code == 200, r.text
     return r.json()
 
@@ -133,12 +134,29 @@ def test_the_streaming_path_returns_the_same_contract(client):
     same screen behaved differently depending on which button was pressed."""
     done = None
     with client.stream("GET",
-                       "/api/analyze/stream?scenario=aiims_ransomware&delay=0") as r:
+                       "/api/analyze/stream?scenario=aiims_ransomware&delay=0",
+                       headers=ANALYST) as r:
         for line in r.iter_lines():
             if line.startswith("data: ") and '"meta"' in line:
                 done = json.loads(line[6:])
     assert done is not None, "stream produced no done event"
     assert "agent_pipeline" in done["meta"]
+    assert done["meta"]["pipeline"] == "standard+10-agent"
+    assert "analysis" in done
+
+
+def test_the_agent_stream_returns_the_enriched_contract(client):
+    """The animated agent lane must publish the same analysis layer as POST."""
+    done = None
+    with client.stream(
+        "GET", "/api/agents/stream?scenario=aiims_ransomware", headers=ANALYST
+    ) as response:
+        for line in response.iter_lines():
+            if line.startswith("data: ") and '"meta"' in line:
+                done = json.loads(line[6:])
+    assert done is not None, "agent stream produced no done event"
+    assert "analysis" in done
+    assert done["analysis"]["claims"]
     assert done["meta"]["pipeline"] == "standard+10-agent"
 
 
@@ -147,7 +165,7 @@ def test_an_agent_failure_still_returns_a_usable_bundle(monkeypatch, client):
     monkeypatch.setattr(main, "_run_agents_for_standard_bundle",
                         lambda *a, **k: {"enabled": True, "status": "failed",
                                          "error": "lane down", "agent_traces": []})
-    r = client.post("/api/analyze", json={"scenario": "aiims_ransomware"})
+    r = client.post("/api/analyze", json={"scenario": "aiims_ransomware"}, headers=ANALYST)
     assert r.status_code == 200
     b = r.json()
     assert b["incident"]["alert_count"] > 0
@@ -158,6 +176,8 @@ def test_an_agent_failure_still_returns_a_usable_bundle(monkeypatch, client):
 def test_the_upload_path_carries_auth_headers():
     """analyze and analyzeUpload were calling fetch without the role header, so
     the backend saw an anonymous caller."""
-    js = (__import__("pathlib").Path("frontend/src/api.js")).read_text(encoding="utf-8")
-    upload = js[js.index("export async function analyzeUpload"):]
+    client = (__import__("pathlib").Path("frontend/src/lib/api.ts")).read_text(
+        encoding="utf-8"
+    )
+    upload = client[client.index("export async function analyzeUpload"):]
     assert "authHeaders()" in upload[:600], "upload still omits the role header"

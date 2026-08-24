@@ -36,7 +36,8 @@ def client():
 @pytest.fixture(scope="module")
 def via_analyze(client):
     r = client.post("/api/analyze",
-                    json={"scenario": SCENARIO, "critical_assets": CRIT})
+                    json={"scenario": SCENARIO, "critical_assets": CRIT},
+                    headers=ANALYST)
     assert r.status_code == 200, r.text
     return r.json()
 
@@ -65,7 +66,8 @@ def via_upload(client):
 def via_stream(client):
     done = None
     with client.stream("GET", f"/api/analyze/stream?scenario={SCENARIO}"
-                              f"&critical_assets={','.join(CRIT)}&delay=0") as r:
+                              f"&critical_assets={','.join(CRIT)}&delay=0",
+                       headers=ANALYST) as r:
         for line in r.iter_lines():
             if line.startswith("data: ") and '"meta"' in line:
                 done = json.loads(line[6:])
@@ -166,7 +168,7 @@ def test_enrichment_does_not_overwrite_the_authoritative_bundle(via_analyze):
 def test_enrichment_survives_a_failing_agent_lane(monkeypatch, client):
     import src.shared.enrich as enrich
     monkeypatch.setattr(enrich, "run_agent_lane", lambda *a, **k: None)
-    r = client.post("/api/analyze", json={"scenario": SCENARIO})
+    r = client.post("/api/analyze", json={"scenario": SCENARIO}, headers=ANALYST)
     assert r.status_code == 200
     a = r.json()["analysis"]
     # deterministic half still lands; only the cross-check goes away

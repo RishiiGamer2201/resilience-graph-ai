@@ -24,7 +24,7 @@ import pandas as pd
 from fastapi import Depends, FastAPI, Header, HTTPException, UploadFile, File, Form
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # One RBAC implementation for the whole service. `api/finalist.py` already owns
 # the principal resolution and the deny-and-audit helper; importing them here
@@ -300,19 +300,61 @@ def threat_radar_scored(req: RadarRequest):
     return data
 
 
+def analyze_principal(
+        x_role: str | None = Header(default=None, alias="X-Role"),
+        x_actor: str | None = Header(default=None, alias="X-Actor"),
+        authorization: str | None = Header(default=None)) -> dict:
+    """The principal for the live-analysis and agent endpoints.
+
+    These endpoints had NO authorisation at all: `/api/analyze`, the two upload
+    routes and the SSE streams were open while eighteen endpoints on the finalist
+    router were gated. They now go through the same `principal` / `_require`
+    pair, so `analyze` is enforced in one place for the whole service.
+
+    One documented concession, and it is worth being blunt about it. When
+    `NEXTATTACK_ROLE_TOKENS` is unset the service runs in demo-headers mode,
+    where the role is self-declared and there is no authentication whatsoever --
+    a caller who does not like being a viewer just sends `X-Role: admin`. In
+    that mode a caller who declares NOTHING is treated as the demo operator
+    ("analyst") rather than as a viewer. That is not laziness: both SSE screens
+    (the incident replay and the agent stream) are driven by `EventSource`, which
+    has no API for setting a request header, so gating them on one would break
+    the zero-config demo without denying a single real attacker -- the header is
+    free to forge in this mode anyway.
+
+    A DECLARED role is always enforced, so `X-Role: viewer` is refused here. And
+    the moment `NEXTATTACK_ROLE_TOKENS` is configured this concession disappears
+    entirely: `resolve_principal` raises before any defaulting happens, so an
+    anonymous caller gets 401 and these endpoints are genuinely closed -- which
+    was not previously possible at any setting.
+    """
+    p = _finalist_principal(x_role, x_actor, authorization)
+    if p["auth_mode"] == "demo-headers" and not (x_role or "").strip():
+        p = {**p, "role": "analyst", "actor": (x_actor or "demo-analyst")}
+    return p
+
+
 # --- LIVE endpoint 1: score an event ---
 class EventFeatures(BaseModel):
-    is_fail: int = 0
-    new_dst_for_user: int = 0
-    new_src_for_user: int = 0
-    user_distinct_dst_sofar: float = 40
-    user_fail_rate_sofar: float = 0.001
-    dst_rarity: float = 4.0
-    is_ntlm: int = 0
+    """The exact seven inputs the client emits, all required, all bounded.
+
+    These used to default -- is_fail=0, dst_rarity=4.0 and so on -- so
+    `POST /api/score-event {}` returned 200 with a score for an event nobody
+    described. A detector result for a fabricated all-default event is worse
+    than an error, because it looks like a measurement.
+    """
+    is_fail: int = Field(ge=0, le=1)
+    new_dst_for_user: int = Field(ge=0, le=1)
+    new_src_for_user: int = Field(ge=0, le=1)
+    user_distinct_dst_sofar: float = Field(ge=0)
+    user_fail_rate_sofar: float = Field(ge=0, le=1)
+    dst_rarity: float = Field(ge=0)
+    is_ntlm: int = Field(ge=0, le=1)
 
 
 @app.post("/api/score-event")
-def score_event(f: EventFeatures):
+def score_event(f: EventFeatures, p: dict = Depends(analyze_principal)):
+    _require(p, "analyze")
     from src.shared import detector
     x = [[getattr(f, k) for k in FEATURES]]
     raw = float(detector.raw_scores(x)[0])
@@ -327,17 +369,18 @@ def score_event(f: EventFeatures):
 
 # --- LIVE endpoint 2: predict next technique ---
 class Chain(BaseModel):
-    technique_ids: list[str]
-    k: int = 5
+    technique_ids: list[str] = Field(min_length=1)
+    k: int = Field(default=5, ge=1, le=50)
 
 
 @app.post("/api/predict-next")
-def predict_next(c: Chain):
+def predict_next(c: Chain, p: dict = Depends(analyze_principal)):
     """Next-technique ranking from the shipped interpolated Markov model.
 
     Scores are real interpolated transition probabilities
     (l2*order2 + l1*order1 + l0*unigram), not a bare ranked list.
     """
+    _require(p, "analyze")
     from src.shared import predictor
     _, names, _ = _markov()                    # technique_id -> display name
     top, source = predictor.rank_next(list(c.technique_ids), max(1, c.k))
@@ -394,40 +437,6 @@ async def _astep(iterator):
     StopIteration cannot cross a threadpool boundary, hence the sentinel.
     """
     return await run_in_threadpool(next, iterator, _GEN_DONE)
-
-
-def analyze_principal(
-        x_role: str | None = Header(default=None, alias="X-Role"),
-        x_actor: str | None = Header(default=None, alias="X-Actor"),
-        authorization: str | None = Header(default=None)) -> dict:
-    """The principal for the live-analysis and agent endpoints.
-
-    These endpoints had NO authorisation at all: `/api/analyze`, the two upload
-    routes and the SSE streams were open while eighteen endpoints on the finalist
-    router were gated. They now go through the same `principal` / `_require`
-    pair, so `analyze` is enforced in one place for the whole service.
-
-    One documented concession, and it is worth being blunt about it. When
-    `NEXTATTACK_ROLE_TOKENS` is unset the service runs in demo-headers mode,
-    where the role is self-declared and there is no authentication whatsoever --
-    a caller who does not like being a viewer just sends `X-Role: admin`. In
-    that mode a caller who declares NOTHING is treated as the demo operator
-    ("analyst") rather than as a viewer. That is not laziness: both SSE screens
-    (the incident replay and the agent stream) are driven by `EventSource`, which
-    has no API for setting a request header, so gating them on one would break
-    the zero-config demo without denying a single real attacker -- the header is
-    free to forge in this mode anyway.
-
-    A DECLARED role is always enforced, so `X-Role: viewer` is refused here. And
-    the moment `NEXTATTACK_ROLE_TOKENS` is configured this concession disappears
-    entirely: `resolve_principal` raises before any defaulting happens, so an
-    anonymous caller gets 401 and these endpoints are genuinely closed -- which
-    was not previously possible at any setting.
-    """
-    p = _finalist_principal(x_role, x_actor, authorization)
-    if p["auth_mode"] == "demo-headers" and not (x_role or "").strip():
-        p = {**p, "role": "analyst", "actor": (x_actor or "demo-analyst")}
-    return p
 
 
 @app.get("/api/scenarios")
@@ -1088,6 +1097,7 @@ async def agents_stream(
     import asyncio
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline
+    from src.shared.enrich import enrich_bundle
 
     _require(p, "analyze")
     path = SCENARIOS / f"{scenario}.csv"
@@ -1125,11 +1135,17 @@ async def agents_stream(
                 pipeline_res = payload["result"]
                 final_summary = _agent_pipeline_summary(pipeline_res)
 
-        if final_summary:
-            final_bundle = _attach_agent_pipeline(bundle, final_summary)
-            yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
-        else:
-            yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+        # The `done` frame has to carry the SAME contract as the non-streaming
+        # POST, or a screen behaves differently depending on which button was
+        # pressed. Without enrich_bundle it was missing `analysis` entirely.
+        # run_agents=False because this IS the agent run: re-entering the
+        # pipeline here would double it.
+        final_bundle = (_attach_agent_pipeline(bundle, final_summary)
+                        if final_summary else bundle)
+        final_bundle = await run_in_threadpool(
+            enrich_bundle, final_bundle, df=df, scenario=scenario,
+            critical=crit, agent_summary=final_summary, run_agents=False)
+        yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
 
     return StreamingResponse(
         gen(),
@@ -1151,6 +1167,7 @@ async def agents_upload_stream(
     import asyncio
     from fastapi.responses import StreamingResponse
     from src.agents.orchestrator import iter_pipeline
+    from src.shared.enrich import enrich_bundle
     from src.shared.normalize import normalize
 
     _require(p, "analyze")
@@ -1195,11 +1212,17 @@ async def agents_upload_stream(
                 pipeline_res = payload["result"]
                 final_summary = _agent_pipeline_summary(pipeline_res)
 
-        if final_summary:
-            final_bundle = _attach_agent_pipeline(bundle, final_summary)
-            yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
-        else:
-            yield f"event: done\ndata: {json.dumps(bundle)}\n\n"
+        # The `done` frame has to carry the SAME contract as the non-streaming
+        # POST, or a screen behaves differently depending on which button was
+        # pressed. Without enrich_bundle it was missing `analysis` entirely.
+        # run_agents=False because this IS the agent run: re-entering the
+        # pipeline here would double it.
+        final_bundle = (_attach_agent_pipeline(bundle, final_summary)
+                        if final_summary else bundle)
+        final_bundle = await run_in_threadpool(
+            enrich_bundle, final_bundle, df=df, scenario=f"upload:{file.filename}",
+            critical=crit, agent_summary=final_summary, run_agents=False)
+        yield f"event: done\ndata: {json.dumps(final_bundle)}\n\n"
 
     return StreamingResponse(
         gen(),

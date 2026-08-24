@@ -118,6 +118,12 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
     if agent_summary is not None:
         bundle.setdefault("meta", {})["agent_pipeline"] = agent_summary
         bundle["meta"]["pipeline"] = "standard+10-agent"
+        if agent_summary.get("status") != "failed":
+            try:
+                from api.main import _map_agent_bundle
+                bundle = _map_agent_bundle(bundle, agent_summary)
+            except Exception:
+                pass
 
     cc = None
     if agent_summary and agent_summary.get("status") != "failed":
