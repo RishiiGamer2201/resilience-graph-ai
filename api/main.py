@@ -221,7 +221,9 @@ def report():
 @app.get("/api/attackers")
 def attackers():
     """Per-account breakdown of the campaign — the 'who' table."""
-    return {"attackers": _cached("attackers")}
+    meta = _cached("attackers_meta")
+    return {"attackers": _cached("attackers"),
+            "scenario": meta.get("scenario")}
 
 
 @app.get("/api/threat-radar")

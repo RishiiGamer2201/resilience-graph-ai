@@ -1,5 +1,5 @@
 /**
- * Attack graph — the lateral-movement topology in three dimensions.
+ * Attack graph — a two-dimensional map of lateral movement.
  *
  * Everything on this screen comes from `GET /api/graph`. The nodes are the
  * hosts the backend returned, the links are its aggregated authentication
@@ -17,7 +17,6 @@ import {
   Suspense,
   lazy,
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -27,10 +26,8 @@ import {
 import { useSearchParams } from 'react-router-dom'
 import { useReducedMotion } from 'motion/react'
 import {
-  Box,
   Crosshair,
   List,
-  RotateCw,
   Route,
   Search,
   ShieldAlert,
@@ -45,8 +42,8 @@ import {
   ROLE_ORDER,
   ROLE_SOURCE,
   ROLE_SWATCH,
-  type Graph3DLink,
-  type Graph3DNode,
+  type GraphLink,
+  type GraphNode,
   type NodeRole,
 } from '@/lib/graphRoles'
 import { PageHeader } from '@/components/Layout'
@@ -65,13 +62,13 @@ import {
   StatRow,
 } from '@/components/primitives'
 import type { AttackGraph, GraphEdge } from '@/types/api'
+import { techniqueList, techniqueName } from '@/lib/techniques'
 
-// three.js and the WebGL renderer live behind this boundary and nowhere else.
-const AttackGraph3D = lazy(() => import('@/components/AttackGraph3D'))
+const AttackGraph2D = lazy(() => import('@/components/AttackGraph2D'))
 
 const CANVAS_HEIGHT = 620
 
-/** Contains lazy-module, WebGL-context and renderer failures. The parent moves
+/** Contains lazy-module and canvas renderer failures. The parent moves
  *  to the complete host list, so a failed canvas never leaves a blank panel. */
 class GraphCanvasBoundary extends Component<
   { children: ReactNode; onFailure: () => void },
@@ -92,26 +89,14 @@ class GraphCanvasBoundary extends Component<
   }
 }
 
-/** A browser without WebGL gets the list, not a blank rectangle. */
-function webglAvailable(): boolean {
-  try {
-    const c = document.createElement('canvas')
-    const context = c.getContext('webgl2') ?? c.getContext('webgl')
-    context?.getExtension('WEBGL_lose_context')?.loseContext()
-    return Boolean(context)
-  } catch {
-    return false
-  }
-}
-
 /**
  * The surface is absent while route data loads, so a one-shot object-ref
  * effect never sees it on client-side navigation. A callback ref makes the
- * observer follow the actual DOM lifetime and delays WebGL until the real
+ * observer follow the actual DOM lifetime and delays the canvas until the real
  * responsive width is known.
  *
  * The wheel listener intentionally runs in the wrapper's bubble phase. The
- * canvas receives the event first (OrbitControls zooms), then propagation is
+ * canvas receives the event first (the map zooms), then propagation is
  * stopped before the page/Lenis scroller can consume the same gesture.
  */
 function useGraphSurface() {
@@ -152,7 +137,7 @@ function useGraphSurface() {
   return [ref, width] as const
 }
 
-interface HostRow extends Graph3DNode {
+interface HostRow extends GraphNode {
   inbound: GraphEdge[]
   outbound: GraphEdge[]
 }
@@ -170,9 +155,7 @@ export default function Graph() {
   const [selected, setSelected] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [showPaths, setShowPaths] = useState(false)
-  const [orbit, setOrbit] = useState(false)
-  const [mode, setMode] = useState<'3d' | 'list'>('3d')
-  const [webgl] = useState(webglAvailable)
+  const [mode, setMode] = useState<'map' | 'list'>('map')
   const [canvasFailed, setCanvasFailed] = useState(false)
   const [account, setAccount] = useState('')
   const [scopeBusy, setScopeBusy] = useState(false)
@@ -275,7 +258,7 @@ export default function Graph() {
   const { links, canvasMetricsComplete } = useMemo(() => {
     const connected = edges.filter((e) => e.from && e.to)
     return {
-      links: connected.map<Graph3DLink>((e) => ({
+      links: connected.map<GraphLink>((e) => ({
         source: e.from,
         target: e.to,
         technique: e.technique ?? '',
@@ -287,16 +270,9 @@ export default function Graph() {
     }
   }, [edges, pathEdges])
 
-  const canvasAvailable = webgl && !canvasFailed && canvasMetricsComplete
+  const canvasAvailable = !canvasFailed && canvasMetricsComplete
 
-  // The 3D renderer requires numeric score/count encodings. If the backend did
-  // not measure either one, keep every edge in the honest list representation
-  // instead of inventing a zero or one for the canvas.
-  useEffect(() => {
-    if (!canvasAvailable && mode === '3d') setMode('list')
-  }, [canvasAvailable, mode])
-
-  const nodes = useMemo<Graph3DNode[]>(
+  const nodes = useMemo<GraphNode[]>(
     () =>
       rows.map(({ id, role, roles, degree, recommendedIsolation }) => ({
         id,
@@ -348,16 +324,14 @@ export default function Graph() {
     )
   }
 
-  const useCanvas = mode === '3d' && canvasAvailable
+  const useCanvas = mode === 'map' && canvasAvailable
   const rolesPresent = ROLE_ORDER.filter((r) => rows.some((n) => n.roles.includes(r)))
   const criticalAssets = Array.isArray(data.critical_assets_at_risk)
     ? data.critical_assets_at_risk
     : null
   const listFallbackReason = canvasFailed
-    ? 'The 3D renderer failed, so the complete graph is shown as a list.'
-    : !webgl
-      ? 'WebGL is unavailable in this browser, so the graph is listed rather than rendered.'
-      : !canvasMetricsComplete
+    ? 'The 2D map could not be drawn, so the complete graph is shown as a list.'
+    : !canvasMetricsComplete
         ? 'At least one movement has no measured anomaly score or event count, so the complete graph is listed rather than assigning invented canvas values.'
         : null
   const canScopeAccounts = Boolean(
@@ -367,9 +341,9 @@ export default function Graph() {
   return (
     <>
       <PageHeader
-        eyebrow="Topology"
-        title="Attack graph"
-        description="Hosts the attacker authenticated to, as the deterministic graph algorithms see them. Colour is role, size is degree."
+        eyebrow="Attack movement map"
+        title="Where the attacker moved"
+        description="Each circle is a computer and each arrow is a movement between computers. Color shows the computer's role; a larger circle means more attacker activity touched it."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
@@ -382,10 +356,10 @@ export default function Graph() {
               aria-pressed={useCanvas}
               disabled={!canvasAvailable}
               title={listFallbackReason ?? undefined}
-              onClick={() => setMode(mode === '3d' ? 'list' : '3d')}
+              onClick={() => setMode(mode === 'map' ? 'list' : 'map')}
             >
-              {mode === '3d' ? <List className="size-3.5" /> : <Box className="size-3.5" />}
-              {mode === '3d' ? 'Host list' : '3D view'}
+              <List className="size-3.5" />
+              {mode === 'map' ? 'Show computer list' : 'Show 2D map'}
             </Button>
             <Button
               variant={showPaths ? 'default' : 'secondary'}
@@ -395,21 +369,6 @@ export default function Graph() {
             >
               <Route className="size-3.5" />
               Paths to crown jewels
-            </Button>
-            <Button
-              variant={orbit ? 'default' : 'secondary'}
-              size="sm"
-              aria-pressed={orbit}
-              disabled={reduced || !useCanvas}
-              title={
-                reduced
-                  ? 'Disabled: this browser is set to reduce motion.'
-                  : 'Rotate the camera slowly. Off by default.'
-              }
-              onClick={() => setOrbit((v) => !v)}
-            >
-              <RotateCw className="size-3.5" />
-              Orbit
             </Button>
           </>
         }
@@ -421,7 +380,7 @@ export default function Graph() {
           <span>
             Focused subgraph: <span className="font-mono text-text">{edges.length}</span>{' '}
             movement{edges.length === 1 ? '' : 's'} using{' '}
-            <span className="font-mono text-text">{[...techFocus].join(', ')}</span> across{' '}
+            <span className="text-text">{techniqueList([...techFocus], ', ')}</span> across{' '}
             <span className="font-mono text-text">{rows.length}</span> hosts.
           </span>
           <Button
@@ -505,7 +464,7 @@ export default function Graph() {
       <div className="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <Card>
           <CardHeader>
-            <CardTitle>{useCanvas ? 'Topology · 3D' : 'Topology · list'}</CardTitle>
+            <CardTitle>{useCanvas ? 'Attack movement · 2D map' : 'Attack movement · computer list'}</CardTitle>
             <CardMeta>
               {rows.length} hosts · {links.length} movements
             </CardMeta>
@@ -528,7 +487,7 @@ export default function Graph() {
               onKeyDown={onKeyDown}
               role="group"
               tabIndex={0}
-              aria-label="Attack graph, three-dimensional. Press Escape to leave the view. The host list beside it is the keyboard equivalent."
+              aria-label="Two-dimensional attack map. Press Escape to leave the view. The computer list beside it is the keyboard equivalent."
               className="relative touch-none overscroll-contain border-b border-border outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               style={{ height: CANVAS_HEIGHT }}
             >
@@ -545,13 +504,12 @@ export default function Graph() {
                       </div>
                     }
                   >
-                    <AttackGraph3D
+                    <AttackGraph2D
                       nodes={nodes}
                       links={links}
                       selected={selected}
                       onSelect={setSelected}
                       showPaths={showPaths}
-                      orbit={orbit && !reduced}
                       reducedMotion={reduced}
                       height={CANVAS_HEIGHT}
                       width={width}
@@ -630,13 +588,11 @@ export default function Graph() {
               </span>
             </div>
             <p className="text-xs text-faint">
-              A host can hold more than one role; it is coloured by the first in the
-              order above and the panel beside it lists all of them. Sphere volume is
-              degree — the number of movements that touched the host. Link colour is the
-              pair&apos;s highest anomaly score on the backend&apos;s severity bands;
-              link thickness is how many authentications collapsed into it. With
-              &ldquo;Paths to crown jewels&rdquo; on, edges on `paths_to_critical` turn
-              accent.
+              A computer can have more than one role. Its color uses the first matching
+              role above, while the detail panel lists every role. Circle size shows how
+              many movements touched that computer. Arrow color shows the highest anomaly
+              score and arrow thickness shows repeated sign-ins. Turn on “Paths to crown
+              jewels” to highlight routes to critical systems.
             </p>
           </CardBody>
         </Card>
@@ -697,7 +653,7 @@ export default function Graph() {
                           .filter((x): x is string => Boolean(x) && x !== '-'),
                       ),
                     ]
-                    return t.length ? t.join(' ') : <NotMeasured />
+                    return t.length ? techniqueList(t, ', ') : <NotMeasured />
                   })()}
                 </StatRow>
                 <StatRow label="Highest anomaly score">
@@ -905,7 +861,7 @@ function MovementList({
           >
             <span className="font-mono text-xs text-faint">{dir === 'in' ? '←' : '→'}</span>
             <span className="font-mono text-xs text-text">{other}</span>
-            <span className="font-mono text-xs text-dim">{e.technique ?? '—'}</span>
+            <span className="text-xs text-dim">{e.technique ? techniqueName(e.technique) : 'Technique not identified'}</span>
             <span className="ml-auto font-mono text-xs tabular-nums text-dim">
               {score != null ? score : <NotMeasured />}
             </span>

@@ -37,6 +37,7 @@ import {
 import { fmtTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { AnalysisBundle, Incident } from '@/types/api'
+import { techniqueList, techniqueName } from '@/lib/techniques'
 
 /** What the pipeline returned for one account, just now. */
 function AnalysedAccount({ user, bundle, scenario }: { user: string; bundle: AnalysisBundle; scenario: string }) {
@@ -100,9 +101,9 @@ function AnalysedAccount({ user, bundle, scenario }: { user: string; bundle: Ana
                 {inc.technique_ids.map((t) => (
                   <span
                     key={t}
-                    className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-text"
+                    className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-xs text-text"
                   >
-                    {t}
+                    {techniqueName(t)}
                   </span>
                 ))}
               </div>
@@ -159,11 +160,12 @@ export default function Attackers() {
   }, [list, q])
 
   async function openAccount(user: string) {
+    if (busy) return
     setBusy(user)
     setRunError(null)
     try {
       // Crown jewels are left to the backend default, which derives them.
-      if (!roster?.scenario) throw new Error('The attacker roster did not identify its source scenario.')
+      if (!roster?.scenario) throw new Error('The account list is missing its source scenario. Refresh the page and try again.')
       const bundle = await analyze({ scenario: roster.scenario, account: user })
       setBundle(bundle)
       setAnalysed({ user, bundle })
@@ -218,9 +220,9 @@ export default function Attackers() {
   return (
     <>
       <PageHeader
-        eyebrow="Campaign"
+        eyebrow="Accounts used in the attack"
         title="Compromised accounts"
-        description="Every account the red team used, scored from the same log. Open one to analyse it as its own incident."
+        description="See every account used in the attack, the computers it reached, and its highest warning score. Open an account to investigate it separately."
         actions={
           <>
             <Badge variant="outline">campaign roster Â· sample cache</Badge>
@@ -305,7 +307,7 @@ export default function Attackers() {
                     <TH>Pivot</TH>
                     <TH>Techniques</TH>
                     <TH>First seen</TH>
-                    <TH className="text-right">Analyse</TH>
+                    <TH className="text-right">Analyze</TH>
                   </TR>
                 </THead>
                 <TBody>
@@ -327,7 +329,7 @@ export default function Attackers() {
                       </TDMono>
                       <TDMono className="text-right">{a.max_score}</TDMono>
                       <TDMono className="text-dim">{a.pivots.join(' · ')}</TDMono>
-                      <TDMono className="text-dim">{a.techniques.join(' ')}</TDMono>
+                      <TD className="text-dim">{techniqueList(a.techniques, ', ')}</TD>
                       <TDMono className="text-dim">{fmtTime(a.first_seen)}</TDMono>
                       <TD className="text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -342,18 +344,19 @@ export default function Attackers() {
                           <Button
                             size="sm"
                             variant="secondary"
-                            disabled={busy === a.user}
-                            onClick={() => openAccount(a.user)}
+                            type="button"
+                            disabled={busy !== null}
+                            onClick={() => void openAccount(a.user)}
                           >
                             {busy === a.user ? (
                               <>
                                 <Loader2 className="size-3 animate-spin" aria-hidden />
-                                Analysing
+                                Analyzing
                               </>
                             ) : (
                               <>
                                 <Crosshair className="size-3" aria-hidden />
-                                Analyse
+                                Analyze
                               </>
                             )}
                           </Button>

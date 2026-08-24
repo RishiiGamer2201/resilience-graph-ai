@@ -31,6 +31,7 @@ import {
   SectionLabel,
 } from '@/components/primitives'
 import type { PredictNextResult } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 /** What the model call actually produced. Mounted only with a non-empty chain,
  *  so the endpoint is never asked to guess from nothing. */
@@ -65,8 +66,7 @@ function Ranking({ chain }: { chain: string[] }) {
         {data.predictions.map((p) => (
           <div key={p.technique_id} className="flex items-baseline gap-3 px-3 py-1.5">
             <span className="w-4 shrink-0 font-mono text-xs text-faint">{p.rank}</span>
-            <span className="w-24 shrink-0 font-mono text-xs text-text">{p.technique_id}</span>
-            <span className="min-w-0 flex-1 truncate text-sm text-dim">{p.name}</span>
+            <span className="min-w-0 flex-1 truncate text-sm text-text">{techniqueName(p.technique_id, p.name)}</span>
             <span className="shrink-0 font-mono text-xs tabular-nums text-text">
               {typeof p.score === 'number' ? (
                 `${(p.score * 100).toFixed(1)}%`

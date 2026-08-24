@@ -19,7 +19,7 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useReducedMotion } from 'motion/react'
-import { CircleAlert, Crosshair, Play, RotateCcw, Search, Target } from 'lucide-react'
+import { CircleAlert, Play, RotateCcw, Search, Target } from 'lucide-react'
 
 import {
   getCapabilities,
@@ -46,6 +46,7 @@ import {
   StatRow,
 } from '@/components/primitives'
 import { Disclosed, FinePrint } from '@/components/Disclosure'
+import { techniqueList, techniqueName } from '@/lib/techniques'
 
 import StageRail from '@/components/StageRail'
 import Headline from '@/components/Headline'
@@ -58,7 +59,6 @@ import Progression from '@/components/Progression'
 import { TwinPanel, VulnPanel } from '@/components/ImpactPanel'
 import ActionPanel from '@/components/ActionPanel'
 import AuditPanel from '@/components/AuditPanel'
-import ExplainTrace from '@/components/ExplainTrace'
 
 import type {
   Capabilities,
@@ -247,9 +247,9 @@ export default function Investigate() {
 
   const header = (
     <PageHeader
-      eyebrow="Guided investigation"
-      title="Weak signals to one verified attack story"
-      description="Seven bounded stages. Every number is deterministic Python; every ATT&CK conclusion carries an official citation or reports that it has none; every action is simulated and gated."
+      eyebrow="Step-by-step investigation"
+      title="Turn warning signs into a clear attack story"
+      description="Follow seven guided stages. Each finding shows its evidence, and every response action is only a safe simulation until a person approves it."
       actions={result ? <SeverityBadge severity={result.signals.incident.severity} /> : null}
     />
   )
@@ -520,7 +520,7 @@ export default function Investigate() {
                     </StatRow>
                     <StatRow label="Accounts">{inc.accounts_involved?.length ?? 0}</StatRow>
                     <StatRow label="ATT&CK chain">
-                      {inc.technique_ids.join(' → ') || <NotMeasured />}
+                      {inc.technique_ids.length ? techniqueList(inc.technique_ids) : <NotMeasured />}
                     </StatRow>
                     <StatRow label="Attacker pivot">
                       {graph.entry_host ?? (
@@ -654,19 +654,6 @@ export default function Investigate() {
             </div>
           </Section>
 
-          <Section
-            id="explain"
-            title="Why did you flag this?"
-            subtitle="one raw log line, all the way to the action"
-            registerRef={registerRef}
-          >
-            {scenario ? <ExplainTrace scenario={scenario} criticalAssets={crit} /> : null}
-          </Section>
-
-          <p className="mt-6 flex items-center gap-1.5 text-xs text-faint">
-            <Crosshair className="size-3" aria-hidden />
-            LLM: {result.llm.provider}. {result.llm.note}
-          </p>
           </div>
         </div>
       ) : null}
@@ -721,8 +708,7 @@ function PredictedNext({ report }: { report: IncidentReportData }) {
       {preds.map((p, i) => (
         <li key={p.technique_id} className="flex items-baseline gap-2 text-sm">
           <span className="w-4 shrink-0 font-mono text-xs tabular-nums text-faint">{i + 1}</span>
-          <span className="font-mono text-text">{p.technique_id}</span>
-          <span className="text-dim">{p.name}</span>
+          <span className="text-text">{techniqueName(p.technique_id, p.name)}</span>
         </li>
       ))}
     </ol>

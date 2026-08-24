@@ -26,6 +26,7 @@ import {
   SectionLabel,
 } from '@/components/primitives'
 import type { IncidentReportData } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 function toMarkdown(r: IncidentReportData): string {
   return [
@@ -42,7 +43,7 @@ function toMarkdown(r: IncidentReportData): string {
     ...r.attack_chain.map((t) => `- ${t.tactic} (x${t.count})`),
     '',
     '## Techniques',
-    ...r.techniques.map((t) => `- ${t.technique_id}: ${t.name}`),
+    ...r.techniques.map((t) => `- ${techniqueName(t.technique_id, t.name)}`),
     '',
     '## Attack path',
     r.attack_path.join(' -> '),
@@ -51,7 +52,7 @@ function toMarkdown(r: IncidentReportData): string {
     `- ${r.attributed_actor.actor}: ${r.attributed_actor.justification}`,
     '',
     '## Predicted next moves (predicted, not observed)',
-    ...r.predicted_next.map((t) => `- ${t.technique_id}: ${t.name}`),
+    ...r.predicted_next.map((t) => `- ${techniqueName(t.technique_id, t.name)}`),
     '',
     '## Recommended response (simulated, human-gated)',
     ...r.response_actions.map((a) => `- [${a.mode}] ${a.action}`),
@@ -185,10 +186,7 @@ export default function IncidentReport() {
               {r.predicted_next.length ? (
                 r.predicted_next.map((t) => (
                   <div key={t.technique_id} className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-sev-high">
-                      {t.technique_id}
-                    </span>
-                    <span className="text-xs text-dim">{t.name}</span>
+                    <span className="text-xs text-sev-high">{techniqueName(t.technique_id, t.name)}</span>
                     <ClaimStatus status="predicted" />
                   </div>
                 ))
