@@ -72,6 +72,9 @@ jobs:
             python -m "$m"
           done
 
+      - name: CERT-In verified-source provenance is internally consistent
+        run: python -m scripts.validate_cert_in_sequences
+
       - name: Tests
         run: python -m pytest tests/ -q
 

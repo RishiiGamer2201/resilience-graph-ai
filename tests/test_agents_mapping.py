@@ -140,6 +140,58 @@ def test_prediction_runs_once_there_is_a_chain(pipeline):
 
 
 # --------------------------------------------------------------------------- #
+# the advisory lane may not overwrite the authoritative one                     #
+# --------------------------------------------------------------------------- #
+def test_an_empty_agent_graph_does_not_erase_the_host_topology():
+    """The agent view is additive. It was not.
+
+    _map_agent_graph returns None when the agent lane emitted no entity nodes,
+    and the call site assigned that straight onto bundle["graph"]. Every shipped
+    scenario has agent nodes, so this only ever fired on a log someone brought
+    themselves: a real 60-host graph became null, the map fell back to the
+    bundled sample and showed 473 hosts belonging to a different estate, and the
+    blast radius reported "not measured" for a graph that had been computed
+    correctly two steps earlier.
+    """
+    from src.shared.agent_view import _map_agent_bundle
+
+    host_graph = {"n_nodes": 60, "n_edges": 98, "blast_radius_size": 6,
+                  "entry_host": "WKSTN-002", "nodes": [{"id": "WKSTN-002"}],
+                  "edges": []}
+    bundle = {"graph": dict(host_graph)}
+    # a lane that ran fine but produced no entity graph of its own
+    out = _map_agent_bundle(bundle, {"status": "ok", "agent_traces": []})
+
+    assert out["graph"]["n_nodes"] == 60, "the host topology was replaced"
+    assert out["graph"]["blast_radius_size"] == 6
+    assert out["graph"]["entry_host"] == "WKSTN-002"
+
+
+def test_a_missing_graph_degrades_instead_of_raising():
+    """Designating a crown jewel on a bundle with no graph returned HTTP 500.
+
+    Everything downstream calls graph.get(), so a null graph raised
+    AttributeError inside a request that had already done all of its real work.
+    """
+    from src.shared.workflow import crown_jewel_exposure
+
+    for empty in (None, {}):
+        out = crown_jewel_exposure(empty, ["SUBSCRIBER-DB-01"])
+        assert out["value"] == 0.0, out
+        assert out["terms"][0]["why"] == "no path from any attacker pivot"
+
+
+def test_enrich_survives_a_null_graph():
+    from src.shared.enrich import enrich_bundle
+
+    out = enrich_bundle({"incident": {"incident_id": "INC-1", "technique_ids": []},
+                         "graph": None},
+                        df=None, scenario="t", critical=["DC-1"],
+                        agent_summary=None, run_agents=False)
+    assert out["analysis"]["crown_jewel_exposure"]["value"] == 0.0
+
+
+# --------------------------------------------------------------------------- #
 # the LLM stays fenced                                                         #
 # --------------------------------------------------------------------------- #
 def test_narrative_is_template_generated_without_a_key(pipeline):

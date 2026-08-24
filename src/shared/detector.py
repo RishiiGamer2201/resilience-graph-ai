@@ -297,7 +297,9 @@ def relative_anchors(raw, percentile: float | None = None) -> dict:
     # The padding stays, because a caller still needs numbers. The FLAG is the
     # fix: it travels with the anchors, into the calibration block, and caps the
     # severity a collapsed scale is allowed to assert.
-    collapsed = (not (cut > p50)) or np.isclose(cut, p50, rtol=1e-9, atol=1e-12)
+    collapsed = bool(
+        (not (cut > p50)) or np.isclose(cut, p50, rtol=1e-9, atol=1e-12)
+    )
     if collapsed:
         cut = p50 + 1e-9
     if not (hi > cut):

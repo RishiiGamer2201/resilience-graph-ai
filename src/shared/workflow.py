@@ -129,7 +129,7 @@ def crown_jewel_exposure(graph: dict, designated: list[str]) -> dict:
         return {"value": None, "unit": "0-100", "state": "not measured",
                 "reason": "no crown-jewel assets were designated for this analysis",
                 "terms": [], "formula": "mean over designated crown jewels"}
-    paths = graph.get("paths_to_critical") or {}
+    paths = (graph or {}).get("paths_to_critical") or {}
     terms = []
     total = 0.0
     for jewel in designated:

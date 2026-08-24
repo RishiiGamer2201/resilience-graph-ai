@@ -263,7 +263,36 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     # would most want to look at scored lowest possible. Treat it as unscored.
     scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
     diagnostic_scores = scores.astype(int)
-    learning = base_st.get("allow_operational_alerts") is False
+    if account:
+        account_mask = (df["user"].astype(str) == account).to_numpy()
+        df = df[account_mask]
+        diagnostic_scores = diagnostic_scores[account_mask]
+        if df.empty:
+            raise ValueError(f"no events for account '{account}' in this log")
+    if "_baseline_entity_ready" in df.columns:
+        operational_mask = df.pop("_baseline_entity_ready").astype(bool).to_numpy()
+    else:
+        # Baselines are explicitly off: preserve the measured file-local path.
+        operational_mask = np.ones(len(df), dtype=bool)
+    operational_events = int(operational_mask.sum())
+    learning = operational_events == 0
+    partial = 0 < operational_events < len(df)
+    analysis_coverage = {
+        "events": int(len(df)),
+        "operational_events": operational_events,
+        "learning_events": int(len(df) - operational_events),
+        "coverage_percent": round(
+            100.0 * operational_events / len(df), 1) if len(df) else 0.0,
+    }
+    if base_st.get("enabled"):
+        base_st = {
+            **base_st,
+            "state": "learning" if learning else ("partial" if partial else "ready"),
+            "allow_operational_alerts": not learning,
+            "analysis_coverage": analysis_coverage,
+        }
+    else:
+        base_st = {**base_st, "analysis_coverage": analysis_coverage}
     collapsed = bool(calibration.get("scale_collapsed"))
     if learning:
         # Keep the detector useful for engineering diagnostics, but do not let a
@@ -278,8 +307,11 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             "diagnostic_only": True,
             "note": (
                 "NON-OPERATIONAL DIAGNOSTIC SCORES: the entity baseline is still "
-                f"learning ({base_st.get('days', 0)} of "
-                f"{base_st.get('min_history_days')} required days). Alerts, incident "
+                f"learning ({base_st.get('active_days', 0)} active days and "
+                f"{base_st.get('events', 0)} events; requires "
+                f"{base_st.get('minimum_active_days')} days and "
+                f"{base_st.get('minimum_events_per_entity')} events per entity). "
+                "Alerts, incident "
                 "severity and response proposals are suppressed. "
                 + calibration.get("note", "")
             ).strip(),
@@ -295,12 +327,23 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             "operational": False,
             "diagnostic_only": True,
         }
+    elif partial:
+        df["diagnostic_anomaly_score"] = diagnostic_scores
+        df["anomaly_score"] = np.where(operational_mask, diagnostic_scores, 0)
+        calibration = {
+            **calibration,
+            "operational": True,
+            "partially_operational": True,
+            "diagnostic_only_events": int((~operational_mask).sum()),
+            "note": (
+                f"PARTIAL BASELINE COVERAGE: {int((~operational_mask).sum())} of "
+                f"{len(df)} events belong to learning entities and cannot create "
+                "alerts or response proposals. Mature-entity events remain operational. "
+                + calibration.get("note", "")
+            ).strip(),
+        }
     else:
         df["anomaly_score"] = diagnostic_scores
-    if account:
-        df = df[df["user"].astype(str) == account]
-        if df.empty:
-            raise ValueError(f"no events for account '{account}' in this log")
 
     diagnostic_view = (df["diagnostic_anomaly_score"].to_numpy("int64")
                        if learning else diagnostic_scores)
@@ -407,11 +450,17 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
                 "operational": False,
                 "label": "non-operational because score scale collapsed",
                 **incident.get("diagnostic_scores", {}),
-            } if collapsed else {
+            } if collapsed else ({
+                "available": True,
+                "operational": False,
+                "label": "diagnostic-only for learning entities",
+                "count": int((~operational_mask).sum()),
+                "operational_event_count": operational_events,
+            } if partial else {
                 "available": False,
                 "operational": True,
                 "label": "operational scoring",
-            })}
+            }))}
 
     return {
         "overview": views.overview(full, views.SCORECARD),

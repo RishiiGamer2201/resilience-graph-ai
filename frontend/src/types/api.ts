@@ -252,11 +252,25 @@ export interface BundleMeta {
 
 export interface BaselineStatus {
   enabled: boolean
-  state: 'off' | 'learning' | 'ready' | string
+  state: 'off' | 'learning' | 'partial' | 'ready' | string
   days?: number
+  active_days?: number
+  history_span_days?: number
   users?: number
   events?: number
   min_history_days?: number
+  minimum_active_days?: number
+  minimum_events_per_entity?: number
+  mature_entities?: number
+  learning_entities?: number
+  entity_coverage_percent?: number
+  coverage?: Record<string, Record<string, number>>
+  analysis_coverage?: {
+    events: number
+    operational_events: number
+    learning_events: number
+    coverage_percent: number
+  }
   progress_percent?: number | null
   allow_operational_alerts?: boolean
   detail?: string
