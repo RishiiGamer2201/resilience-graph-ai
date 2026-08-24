@@ -60,7 +60,7 @@ console.log(`demo path against ${base}`);
 
 await step('login renders', async () => {
   await page.goto(`${base}/`, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.getByRole('button', { name: /open the console/i }).waitFor({ timeout: 10000 });
+  await page.getByRole('button', { name: /^start$/i }).waitFor({ timeout: 10000 });
 });
 
 await step('the notation legend is on the entry page', async () => {
@@ -71,7 +71,7 @@ await step('the notation legend is on the entry page', async () => {
 });
 
 await step('enter the console', async () => {
-  await page.getByRole('button', { name: /open the console/i }).click();
+  await page.getByRole('button', { name: /^start$/i }).click();
   await page.waitForURL('**/investigate', { timeout: 10000 });
 });
 

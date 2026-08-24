@@ -26,18 +26,19 @@ export default function Login() {
           <div className="mark" aria-hidden="true">&amp;</div>
           <div>
             <h1>nextATT&amp;CKs</h1>
-            <p className="tagline">Authentication-log forensics</p>
+            <p className="tagline">Finds attackers using real logins</p>
           </div>
         </header>
 
         <p className="login-thesis">
-          Finds the attacker who already has valid credentials, in the logs you
-          already keep.
+          Some attackers do not break in. They sign in.
         </p>
         <p className="desc">
-          Every number it shows you carries where it came from. Some are measured
-          against real red-team labels, some are inferred from a rule, and some it
-          did not measure at all -- and it says which.
+          This reads the sign-in log every organisation already keeps and finds the
+          person using a real employee&rsquo;s credentials -- the one normal defences
+          miss, because nothing they do is technically forbidden. Every number it
+          shows you says where it came from, and the ones it could not measure say
+          so instead of guessing.
         </p>
 
         <ul className="marklegend">
@@ -59,17 +60,16 @@ export default function Login() {
           </select>
         </label>
         <p className="login-note">
-          The role travels with every request and the API enforces it, not this
-          screen. Pick Analyst and try to approve a crown-jewel action: the server
-          refuses, and the refusal is written to the audit chain. Authorisation
-          without authentication, on purpose, so the demo needs no signup.
+          There is no password: this is a demo, and the role only changes what the
+          server will let you do. Pick <b>Analyst</b> and try to approve a
+          containment later -- the server refuses, and writes the refusal down.
         </p>
 
         <button className="btn primary" onClick={() => navigate('/investigate')}>
-          Open the console <ArrowRight size={16} aria-hidden="true" />
+          Start <ArrowRight size={16} aria-hidden="true" />
         </button>
         <div className="login-meta">
-          No credentials, no API key, no network.
+          Runs entirely on this machine. No account, no API key, no internet.
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { RefreshCw, ExternalLink, ShieldAlert, Siren, Check, X, Waypoints, Cross
 import { getThreatRadar, getIncident, getThreatIntel, getGraph } from '../api.js'
 import { useAnalysis, useScreenData } from '../lib/analysis.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import Answer, { Reveal } from '../components/Answer.jsx'
 import LiveBadge from '../components/LiveBadge.jsx'
 import { nowIST, scaleSuffix } from '../lib/format.js'
 
@@ -198,39 +199,58 @@ export default function ThreatRadar() {
 
   const names = radar.technique_names || {}
   const relevant = radar.items.filter((i) => i.relevance?.score > 0)
+    .sort((a, b) => (b.relevance?.score || 0) - (a.relevance?.score || 0))
+  // "Relevant" was anything scoring above zero, which on a typical fetch is
+  // most of the feed and rendered as a 4,104px card. Ranked, the top few are
+  // the ones worth a reader's attention; the tail is still one click away.
+  const TOP = 5
+  const topHits = relevant.slice(0, TOP)
+  const moreHits = relevant.slice(TOP)
   const rest = radar.items.filter((i) => !(i.relevance?.score > 0))
   const live = radar.meta?.source === 'live'
 
   return (
     <>
-      <div className="page-head">
-        <span className="tag-pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-          EXTERNAL INTEL
-        </span>
-        <h2>Threat Radar</h2>
-        <p>Free, purpose-built CTI feeds mapped to MITRE ATT&amp;CK and cross-referenced
-          with the incident you're investigating.</p>
-      </div>
+      {/* This screen was 5,252 pixels, and all but the first card of it was a
+          reverse-chronological dump of every advisory the feeds carry. The
+          question a reader has is "does any of this apply to me", so that is
+          what the page answers first. */}
+      <Answer
+        headline={relevant.length
+          ? `${relevant.length} public advisor${relevant.length === 1 ? 'y' : 'ies'} describe${relevant.length === 1 ? 's' : ''} what is happening in your log.`
+          : 'No current public advisory matches this incident.'}
+        facts={[
+          { k: 'matching your incident', v: relevant.length, hint: 'cross-referenced by technique' },
+          { k: 'advisories watched', v: rest.length + relevant.length, hint: 'from official feeds' },
+          { k: 'awaiting approval', v: queue.filter((e) => e.status === 'pending').length,
+            hint: 'nothing is ever sent automatically' },
+        ]}>
+        {relevant.length === 0
+          ? <>That is a real result rather than a gap. Your incident is about sign-ins
+            ({techniques.join(', ') || 'no techniques mapped yet'}), and today&rsquo;s public
+            feeds are mostly about software flaws and malware. We say so rather than
+            manufacture a match.</>
+          : <>These come from official sources -- CISA, CERT-In, MITRE -- and are matched
+            to your incident by ATT&amp;CK technique, not by keyword.</>}
+      </Answer>
 
-      <Card>
-        <CardHeader title="Feed status" meta={`fetched ${radar.fetched_at}`}>
-          <LiveBadge live={live} />
-          <button className="btn" onClick={() => load(true)} disabled={busy}
-            style={{ display: 'inline-flex', gap: 6, alignItems: 'center', marginLeft: 8 }}>
-            <RefreshCw size={13} aria-hidden="true" /> {busy ? 'Fetching…' : 'Refresh (live)'}
-          </button>
-        </CardHeader>
+      <Reveal title="Where these feeds come from"
+        summary={`fetched ${radar.fetched_at}`}>
         <div className="card-b pad">
+          <div style={{ marginBottom: 10 }}>
+            <LiveBadge live={live} />
+            <button className="btn" onClick={() => load(true)} disabled={busy}
+              style={{ display: 'inline-flex', gap: 6, alignItems: 'center', marginLeft: 8 }}>
+              <RefreshCw size={13} aria-hidden="true" /> {busy ? 'Fetching…' : 'Refresh (live)'}
+            </button>
+          </div>
           <SourceStatus sources={radar.sources || []} />
           <div className="note" style={{ marginTop: 10 }}>{radar.note}</div>
         </div>
-      </Card>
+      </Reveal>
 
-      <div className="section-label">
-        Relevant to your incident{incident?.incident_id ? ` · ${incident.incident_id}` : ''}
-      </div>
       <Card>
-        <CardHeader title="Cross-referenced hits"
+        <CardHeader title="Advisories that match this incident"
           meta={techniques.length ? `matching ${techniques.join(', ')}${actors.length ? ` · ${actors[0]}` : ''}` : 'no incident loaded'} />
         <div className="card-b pad" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {relevant.length === 0 ? (
@@ -242,16 +262,29 @@ export default function ThreatRadar() {
               manufacture a match — a hit here would mean the outside world is talking
               about the same techniques you are seeing.
             </div>
-          ) : relevant.map((i) => (
+          ) : topHits.map((i) => (
             <RadarItem key={i.url} item={i} names={names}
               alerted={queue.some((e) => e.item.url === i.url)} onAlert={enqueue} />
           ))}
         </div>
         <div className="note">
-          Alerts are <b>simulated and human-gated</b> — the same policy as our SOAR actions.
-          Nothing is dispatched to any real organisation.
+          Nothing here is sent anywhere. Raising an alert queues it for a person
+          to approve, which is the same rule every proposed action follows.
         </div>
       </Card>
+
+      {moreHits.length > 0 && (
+        <Reveal title="Weaker matches"
+          summary={`${moreHits.length} more advisories that touch this incident less directly`}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14,
+                        maxHeight: 620, overflowY: 'auto' }}>
+            {moreHits.map((i) => (
+              <RadarItem key={i.url} item={i} names={names}
+                alerted={queue.some((e) => e.item.url === i.url)} onAlert={enqueue} />
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       {queue.length > 0 && (
         <>
@@ -342,17 +375,18 @@ export default function ThreatRadar() {
         </>
       )}
 
-      <div className="section-label">Everything the radar is watching · {rest.length}</div>
-      <Card>
-        <CardHeader title="Live threat feed" meta="newest first" />
-        <div className="card-b pad" style={{ display: 'flex', flexDirection: 'column', gap: 14,
-                                             maxHeight: 620, overflowY: 'auto' }}>
+      {/* Closed by default. It is a reference list, not a finding, and open it
+          was four fifths of the page height. */}
+      <Reveal title="Everything else the radar is watching"
+        summary={`${rest.length} advisories that do not match this incident`}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14,
+                      maxHeight: 620, overflowY: 'auto' }}>
           {rest.map((i) => (
             <RadarItem key={i.url} item={i} names={names}
               alerted={queue.some((e) => e.item.url === i.url)} onAlert={enqueue} />
           ))}
         </div>
-      </Card>
+      </Reveal>
     </>
   )
 }

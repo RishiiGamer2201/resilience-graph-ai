@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, Upload, X, FlaskConical, Bot, CheckCircle2, ShieldAlert, Cpu, ArrowRight } from 'lucide-react'
+import { Play, Upload, X, FlaskConical, CheckCircle2, Cpu, ArrowRight } from 'lucide-react'
 import { getScenarios, agentStreamUrl, analyzeUpload } from '../api.js'
 import { useAnalysis } from '../lib/analysis.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
+import Answer from '../components/Answer.jsx'
 import CalibrationBadge, { CalibrationNote } from '../components/CalibrationBadge.jsx'
 
 export default function Analyze() {
@@ -108,18 +109,16 @@ export default function Analyze() {
 
   return (
     <>
-      <div className="page-head">
-        <span className="tag-pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)', fontWeight: 600 }}>
-          LIVE 10-AGENT MULTI-AGENT PIPELINE
-        </span>
-        <h2>Analyze with 10-Agent Collaborative Pipeline</h2>
-        <p className="mono">
-          Run our 10 specialized AI security agents directly on your event log. Every agent
-          (Ingestion, Autoencoder Anomaly Detection, Graph Blast-Radius, ATT&amp;CK Intelligence,
-          KB Connector, Evidence Validator, Attack Prioritization, Incident Reasoner, Markov Predictor,
-          and Orchestrator) executes its dedicated analysis with schema and evidence gates.
-        </p>
-      </div>
+      {/* This said "LIVE 10-AGENT MULTI-AGENT PIPELINE" in title case and then
+          listed all ten by name. None of that tells a reader what to do, and
+          nine of the ten never touch a model. */}
+      <Answer headline="Run the same analysis on a log of your own.">
+        Give it a CSV of sign-in events -- who signed in, to which computer, from
+        where, and whether it worked. It scores every event, groups the suspicious
+        ones into incidents, maps them to known attacker behaviour and works out
+        what is reachable from there. Nothing leaves this machine, and the file is
+        not stored.
+      </Answer>
 
       {/* LIVE AGENT EXECUTION MONITOR */}
       {(busy || agentLogs.length > 0 || completedBundle) && (

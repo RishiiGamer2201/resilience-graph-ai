@@ -2,6 +2,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { getMethodology } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
+import Answer from '../components/Answer.jsx'
 
 export default function Methodology() {
   const { data, error, loading } = useFetch(getMethodology)
@@ -12,6 +13,14 @@ export default function Methodology() {
 
   return (
     <>
+      <Answer headline="Where the numbers came from.">
+        Every accuracy figure in this product was measured on one of the logs below,
+        not on the log you are looking at. Two of them are real: the LANL
+        authentication set carries labelled red-team activity, which is what makes
+        it possible to say how much the detector actually caught rather than how
+        much it flagged.
+      </Answer>
+
       <div className="section-label">Datasets</div>
       <div className="ds-grid">
         {datasets.map((d) => (

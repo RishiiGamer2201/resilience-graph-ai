@@ -67,11 +67,12 @@ export default function Overview() {
     <>
       <Answer headline={l.headline} tone={l.tone} facts={l.facts}
         next={{ to: '/incident', label: 'Read the story of the attack' }}>
-        {active_incident.summary}{' '}
-        The account involved is <b>{active_incident.account}</b>. Disconnecting one
+        {/* `account` is one id on a small scenario and a count like "104
+            accounts" on a campaign, so the sentence has to read either way. */}
+        Accounts involved: <b>{active_incident.account}</b>. Disconnecting a single
         computer would cut off <b>{blast_radius_contained}</b> of the machines the
-        attacker can currently reach -- which one, and what it would break, is on
-        the containment screen.
+        attacker can currently reach -- which computer, and what that would break,
+        is on the containment screen.
       </Answer>
 
       {cal && (

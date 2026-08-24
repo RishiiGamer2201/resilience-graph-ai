@@ -2,6 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Cartes
 import { getMetrics } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 import { useAnalysis } from '../lib/analysis.jsx'
+import Answer from '../components/Answer.jsx'
 import { Card, CardHeader, Loading, ErrorBox } from '../components/Card.jsx'
 import { CalibrationNote } from '../components/CalibrationBadge.jsx'
 
@@ -52,6 +53,13 @@ export default function Metrics() {
 
   return (
     <>
+      <Answer headline="How well the detector does, measured on held-out data.">
+        These numbers describe the <b>detector</b>, not the log currently loaded.
+        They were measured once against data the model never saw, and they include
+        the places where a simpler method beats us -- because a score with nothing
+        to compare it against is not evidence of anything.
+      </Answer>
+
       <div className="section-label">Engine 1 · Anomaly detection</div>
       <div className="grid2" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
         <Card>

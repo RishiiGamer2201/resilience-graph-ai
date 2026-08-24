@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CircleSlash, FileText, TrendingDown, TrendingUp } from 'lucide-react'
 import { Card, CardHeader, ErrorBox, Loading } from '../components/Card.jsx'
+import Answer, { Reveal } from '../components/Answer.jsx'
 import { getScoreboard } from '../api.js'
 import { useFetch } from '../lib/useFetch.js'
 
@@ -66,33 +67,41 @@ export default function Scoreboard() {
 
   return (
     <>
-      <div className="page-head">
-        <span className="tag-pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-          PS7 EVALUATION
-        </span>
-        <h2>What we measured, against what baseline</h2>
-        <p className="mono">
-          {data.summary.measured} measured · {data.summary.not_measured} declared not measured ·
-          generated {data.generated_at}
-        </p>
-      </div>
+      <Answer
+        headline="Every number this product shows, and what it was compared against."
+        facts={[
+          { k: 'measured', v: data.summary.measured, hint: 'each against a baseline' },
+          { k: 'not measured', v: data.summary.not_measured, hint: 'and we say so' },
+          { k: 'claims refused', v: Object.keys(data.refused_claims).length,
+            hint: 'things we will not assert' },
+        ]}>
+        A number with nothing to beat is not evidence, so every measured figure here
+        carries the simpler method it was tested against -- including the cases where
+        that simpler method won. Anything we did not measure says
+        {' '}<b>Not measured</b> and gives the reason, rather than showing a zero.
+        Read from <span className="mono">reports/metrics.json</span>, regenerated
+        {' '}{data.generated_at}.
+      </Answer>
 
       {data.summary.missing_reports.length > 0 && (
-        <div className="errbox" style={{ marginBottom: 16 }}>
+        <div className="errbox">
           Evidence files missing for: {data.summary.missing_reports.join(', ')}
         </div>
       )}
 
-      {data.groups.map((g) => (
-        <section key={g.name} className="inv-section">
-          <div className="section-label">{g.name}</div>
+      {/* The first group open, the rest closed. Thirty-two metric cards
+          expanded at once is a spreadsheet, and a reader looking for one
+          number cannot see it. */}
+      {data.groups.map((g, i) => (
+        <Reveal key={g.name} title={g.name} open={i === 0}
+          summary={`${g.cards.filter((c) => c.state === 'measured').length} of ${g.cards.length} measured`}>
           <div className="sb-grid">
             {g.cards.map((c) => <MetricCard key={c.id} card={c} />)}
           </div>
-        </section>
+        </Reveal>
       ))}
 
-      <Card style={{ marginTop: 18 }}>
+      <Card>
         <CardHeader title="Claims we refuse to make" meta="and why" />
         <div className="card-b pad">
           <ul className="refused">
