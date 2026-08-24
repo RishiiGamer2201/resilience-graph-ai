@@ -31,6 +31,7 @@ import {
   StatRow,
 } from '@/components/primitives'
 import type { AnalysisBundle, InvestigationClaim } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 export default function Overview() {
   const { bundle, source: bundleSource } = useAnalysis()
@@ -79,9 +80,9 @@ export default function Overview() {
   return (
     <>
       <PageHeader
-        eyebrow="Operations"
-        title="Incident brief"
-        description="One operational picture: observed scope, evidence strength and the decisions the pipeline can justify."
+        eyebrow="Quick summary"
+        title="What is happening right now"
+        description="See how serious the incident is, which systems may be reachable, how strong the evidence is, and what the system can safely conclude."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
@@ -220,12 +221,7 @@ export default function Overview() {
             <TBody>
               {analysis.claims.map((c: InvestigationClaim) => (
                 <TR key={c.external_id}>
-                  <TDMono>
-                    <span className="text-text">{c.external_id}</span>
-                    {c.object ? (
-                      <span className="ml-2 font-sans text-dim">{c.object}</span>
-                    ) : null}
-                  </TDMono>
+                  <TD className="text-text">{c.object ?? techniqueName(c.external_id)}</TD>
                   <TD>
                     <ClaimStatus status={c.status} />
                   </TD>
@@ -315,9 +311,9 @@ export default function Overview() {
               {incident.technique_ids.map((t) => (
                 <span
                   key={t}
-                  className="rounded-md border border-border bg-surface-2 px-2 py-1 font-mono text-xs text-text"
+                  className="rounded-md border border-border bg-surface-2 px-2 py-1 text-xs text-text"
                 >
-                  {t}
+                  {techniqueName(t)}
                 </span>
               ))}
             </RevealList>

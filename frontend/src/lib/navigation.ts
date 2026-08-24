@@ -30,30 +30,30 @@ export interface NavigationGroup {
 
 export const navigationGroups: NavigationGroup[] = [
   {
-    label: 'Respond',
+    label: 'Start here',
     items: [
-      { to: '/investigate', label: 'Investigation', shortLabel: 'Investigate', description: 'Run the bounded response workflow', icon: Crosshair },
-      { to: '/analyze', label: 'Analyze log', shortLabel: 'Analyze', description: 'Submit a log for deterministic analysis', icon: ScanSearch },
-      { to: '/incident', label: 'Live incident', shortLabel: 'Incident', description: 'Follow the active incident stream', icon: Radar },
+      { to: '/investigate', label: 'Guided investigation', shortLabel: 'Investigate', description: 'Follow the attack story step by step', icon: Crosshair },
+      { to: '/analyze', label: 'Check a security log', shortLabel: 'Analyze', description: 'Upload a log or use a sample', icon: ScanSearch },
+      { to: '/incident', label: 'Incident timeline', shortLabel: 'Incident', description: 'See suspicious events in time order', icon: Radar },
     ],
   },
   {
-    label: 'Understand',
+    label: 'Understand the attack',
     items: [
-      { to: '/overview', label: 'Incident brief', shortLabel: 'Brief', description: 'Read the current operational picture', icon: LayoutDashboard },
-      { to: '/graph', label: 'Attack graph', shortLabel: 'Graph', description: 'Inspect lateral movement and reachability', icon: Waypoints },
-      { to: '/digital-twin', label: 'Digital twin', shortLabel: 'Twin', description: 'Test containment counterfactuals', icon: Cpu },
-      { to: '/attackers', label: 'Attackers', shortLabel: 'Actors', description: 'Review attributed threat actors', icon: Users },
-      { to: '/threat-intel', label: 'Threat intelligence', shortLabel: 'Intel', description: 'Trace evidence and attribution', icon: Shield },
-      { to: '/threat-radar', label: 'Threat radar', shortLabel: 'Radar', description: 'Compare threats across dimensions', icon: Satellite },
+      { to: '/overview', label: 'Incident summary', shortLabel: 'Summary', description: 'Get the important facts at a glance', icon: LayoutDashboard },
+      { to: '/graph', label: '2D attack map', shortLabel: 'Map', description: 'See how the attacker moved between computers', icon: Waypoints },
+      { to: '/digital-twin', label: 'Safe response test', shortLabel: 'Test', description: 'Test isolation without touching real systems', icon: Cpu },
+      { to: '/attackers', label: 'Compromised accounts', shortLabel: 'Accounts', description: 'See which accounts were used in the attack', icon: Users },
+      { to: '/threat-intel', label: 'Known threat comparison', shortLabel: 'Threats', description: 'Compare this incident with known attacker behavior', icon: Shield },
+      { to: '/threat-radar', label: 'External threat reports', shortLabel: 'Reports', description: 'Find public reports related to this incident', icon: Satellite },
     ],
   },
   {
-    label: 'Validate',
+    label: 'Check the system',
     items: [
-      { to: '/scoreboard', label: 'PS7 scoreboard', shortLabel: 'Scoreboard', description: 'Verify challenge coverage and claims', icon: ClipboardCheck },
-      { to: '/metrics', label: 'Models and metrics', shortLabel: 'Metrics', description: 'Inspect measured model performance', icon: ChartNoAxesCombined },
-      { to: '/methodology', label: 'Data and methodology', shortLabel: 'Method', description: 'Review provenance and limitations', icon: Database },
+      { to: '/scoreboard', label: 'Evaluation results', shortLabel: 'Results', description: 'See which requirements were tested', icon: ClipboardCheck },
+      { to: '/metrics', label: 'Model performance', shortLabel: 'Performance', description: 'See how accurate and reliable the models were', icon: ChartNoAxesCombined },
+      { to: '/methodology', label: 'Data and limitations', shortLabel: 'Method', description: 'See where results came from and what they cannot prove', icon: Database },
     ],
   },
 ]

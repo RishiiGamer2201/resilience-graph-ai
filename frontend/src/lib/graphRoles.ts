@@ -1,9 +1,8 @@
 /**
  * How a host's place in the incident maps to the palette.
  *
- * Lives apart from `components/AttackGraph3D.tsx` on purpose: the legend, the
- * host list and the detail panel all need this, and importing it from the 3D
- * module would drag three.js into the entry chunk.
+ * Lives apart from the 2D canvas component on purpose: the legend, host list,
+ * and detail panel all need the same role definitions.
  *
  * Five roles, five tokens, no invented colours. `recommended_isolation` is a
  * sixth distinction and deliberately is NOT a colour — the palette holds five
@@ -54,17 +53,17 @@ export const ROLE_SOURCE: Record<NodeRole, string> = {
   reached: 'nodes',
 }
 
-export interface Graph3DNode {
+export interface GraphNode {
   id: string
   role: NodeRole
-  /** Movements touching this host. Drives sphere volume. */
+  /** Movements touching this host. Drives circle size. */
   degree: number
   recommendedIsolation: boolean
   /** Every role the backend gives this host. */
   roles: NodeRole[]
 }
 
-export interface Graph3DLink {
+export interface GraphLink {
   source: string
   target: string
   technique: string

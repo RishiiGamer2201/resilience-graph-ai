@@ -27,7 +27,6 @@ import {
   MetricCard,
   NotMeasured,
   RevealList,
-  SectionLabel,
   SeverityBadge,
   StatRow,
 } from '@/components/primitives'
@@ -39,6 +38,7 @@ import type {
   IncidentStep,
   ScenarioList,
 } from '@/types/api'
+import { techniqueName as mitreTechniqueName } from '@/lib/techniques'
 
 const REPLAY_MS = 180
 
@@ -217,9 +217,9 @@ export default function Incident() {
   return (
     <>
       <PageHeader
-        eyebrow="Operations"
-        title="Live incident"
-        description="Raw sign-in events correlated into one chain, in the order they occurred."
+        eyebrow="Event timeline"
+        title="How the incident developed"
+        description="Related sign-in events are placed in time order so you can follow the attack from one computer to the next."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
@@ -384,13 +384,8 @@ export default function Incident() {
                 <div className="space-y-1.5">
                   {data.technique_ids.map((t) => (
                     <div key={t} className="flex items-baseline gap-2">
-                      <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-xs text-text">
-                        {t}
-                      </span>
-                      <span className="text-xs text-dim">
-                        {techniqueName(t) ?? (
-                          <NotMeasured why="No technique name accompanied this identifier." />
-                        )}
+                      <span className="rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-text">
+                        {mitreTechniqueName(t, techniqueName(t))}
                       </span>
                     </div>
                   ))}
@@ -401,16 +396,6 @@ export default function Incident() {
                   detail="No alerting event in this incident matched a mapping rule."
                 />
               )}
-              {Array.isArray(data.attack_chain) && data.attack_chain.length ? (
-                <div className="mt-3 border-t border-border pt-3">
-                  <SectionLabel>Tactics, per step, in order</SectionLabel>
-                  <p className="mt-1 font-mono text-xs leading-relaxed text-faint">
-                    {data.attack_chain
-                      .filter((t): t is string => typeof t === 'string')
-                      .join(' → ')}
-                  </p>
-                </div>
-              ) : null}
             </CardBody>
           </Card>
 
@@ -494,8 +479,7 @@ function StepRow({ step }: { step: IncidentStep }) {
         </div>
         <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-xs">
           <span className="text-dim">{step.tactic ?? 'unmapped'}</span>
-          {tid ? <span className="font-mono text-dim">{tid}</span> : null}
-          {step.technique ? <span className="text-faint">{step.technique}</span> : null}
+          {tid ? <span className="text-faint">{mitreTechniqueName(tid, step.technique)}</span> : null}
         </div>
         {typeof step.explanation === 'string' && step.explanation ? (
           <p className="mt-0.5 line-clamp-2 text-xs text-faint">{step.explanation}</p>

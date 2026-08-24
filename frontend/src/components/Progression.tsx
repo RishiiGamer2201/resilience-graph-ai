@@ -17,6 +17,7 @@ import { EmptyState, NotMeasured, SectionLabel } from '@/components/primitives'
 import { Disclosure, FinePrint } from '@/components/Disclosure'
 import { DURATION, EASE, STAGGER, STAGGER_MAX } from '@/lib/motion'
 import type { ProgressionForecast } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 const STAGE_CLASS: Record<string, string> = {
   'lateral movement': 'text-sev-medium',
@@ -126,7 +127,7 @@ export default function Progression({
             <span className="font-medium text-text">Most likely continuation:</span>
             {forecast.most_likely_paths[0].predicted.map((t, i, arr) => (
               <span key={`${t}-${i}`} className="inline-flex items-center gap-1">
-                <span className="font-mono text-text">{t}</span>
+                <span className="text-text">{techniqueName(t)}</span>
                 {i < arr.length - 1 ? (
                   <ArrowRight className="size-3 text-faint" aria-hidden />
                 ) : null}
@@ -151,7 +152,7 @@ export default function Progression({
                 <ul className="mt-1 space-y-0.5 text-xs text-dim">
                   {s.predictions.map((pr) => (
                     <li key={pr.technique_id}>
-                      <span className="font-mono text-text">{pr.technique_id}</span> {pr.name}
+                      <span className="text-text">{techniqueName(pr.technique_id, pr.name)}</span>
                       <span className="text-faint">
                         {' '}
                         · {pr.stage} · p={pr.probability}

@@ -31,6 +31,7 @@ import {
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { techniqueList } from '@/lib/techniques'
 
 import { agentStreamUrl, analyzeUpload, getScenarios, readEventStream, streamUrl } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
@@ -248,9 +249,9 @@ export default function Analyze() {
 
   const header = (
     <PageHeader
-      eyebrow="Live analysis"
-      title="Analyze a log"
-      description="Run the deterministic pipeline and the 10-agent lane over a shipped scenario or your own CSV. Both stream their real stages; neither fabricates one."
+      eyebrow="Check security activity"
+      title="Analyze a security log"
+      description="Choose a sample or upload a CSV file. The app checks each event, groups related warnings, and explains the attacker behaviors it finds."
       actions={done?.incident ? <SeverityBadge severity={done.incident.severity} /> : null}
     />
   )
@@ -362,7 +363,7 @@ export default function Analyze() {
                     {done.incident?.alert_count != null ? done.incident.alert_count : <NotMeasured />} alerts
                   </span>
                   <span>
-                    techniques {done.incident?.technique_ids?.join(' → ') || 'none mapped'}
+                    attacker behaviors: {techniqueList(done.incident?.technique_ids)}
                   </span>
                   <span>
                     blast radius{' '}

@@ -33,6 +33,7 @@ import {
   SectionLabel,
 } from '@/components/primitives'
 import type { ActorMatch, AnalysisBundle, OverviewView, ThreatIntelView } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 /** The synthesized incident narrative and, always, where it came from. */
 function NarrativeCard({ bundle }: { bundle: AnalysisBundle | null }) {
@@ -118,9 +119,9 @@ function ActorRow({ match, rank }: { match: ActorMatch; rank: number }) {
           {match.matched.map((t) => (
             <span
               key={t}
-              className="rounded-md border border-accent/30 bg-accent-soft px-1.5 py-0.5 font-mono text-xs text-accent"
+              className="rounded-md border border-accent/30 bg-accent-soft px-1.5 py-0.5 text-xs text-accent"
             >
-              {t}
+              {techniqueName(t)}
             </span>
           ))}
         </div>
@@ -183,9 +184,9 @@ export default function ThreatIntel() {
   return (
     <>
       <PageHeader
-        eyebrow="Intelligence"
-        title="Threat Intel & Attribution"
-        description="Observed techniques with their own ATT&CK descriptions, and the public group profiles that overlap them."
+        eyebrow="Known threat comparison"
+        title="Does this look like a known attacker?"
+        description="Compare the behaviors seen here with public profiles of known groups. A similarity is a useful clue, but it is not proof of who is responsible."
         actions={
           <Badge variant={source === 'live' ? 'accent' : 'outline'}>
             {source === 'live'
@@ -212,10 +213,7 @@ export default function ThreatIntel() {
               <CardBody className="space-y-3">
                 {mapping.map((m) => (
                   <div key={m.technique_id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-mono text-xs text-accent">{m.technique_id}</span>
-                      <span className="text-sm font-medium text-text">{m.name}</span>
-                    </div>
+                    <div className="text-sm font-medium text-text">{techniqueName(m.technique_id, m.name)}</div>
                     <p className="mt-1 text-xs leading-relaxed text-dim">{m.explanation}</p>
                   </div>
                 ))}

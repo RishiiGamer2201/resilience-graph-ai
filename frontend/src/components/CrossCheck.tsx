@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { EmptyState, SectionLabel, SeverityBadge } from '@/components/primitives'
 import { Disclosure, Disclosed, FinePrint } from '@/components/Disclosure'
 import type { CrossCheck as CrossCheckData } from '@/types/api'
+import { techniqueList } from '@/lib/techniques'
 
 const VERDICT_CLASS: Record<string, string> = {
   corroborates: 'text-ok',
@@ -43,8 +44,8 @@ function Lane({
         <SeverityBadge severity={severity} />
       </div>
       <p className="mt-1.5 text-xs text-faint">{basis}</p>
-      <p className="mt-1.5 font-mono text-xs text-dim">
-        {techniques.length ? techniques.join(' · ') : 'no techniques'}
+      <p className="mt-1.5 text-xs text-dim">
+        {techniques.length ? techniqueList(techniques, ' · ') : 'No attacker behavior identified'}
       </p>
     </div>
   )
@@ -135,15 +136,15 @@ export default function CrossCheck({
         {tech && (tech.workflow_only.length > 0 || tech.agent_lane_only.length > 0) ? (
           <div className="font-mono text-xs">
             {tech.shared.length ? (
-              <span className="text-ok">both: {tech.shared.join(', ')}</span>
+              <span className="text-ok">both: {techniqueList(tech.shared, ', ')}</span>
             ) : null}
             {tech.workflow_only.length ? (
-              <span className="text-dim"> · workflow only: {tech.workflow_only.join(', ')}</span>
+              <span className="text-dim"> · workflow only: {techniqueList(tech.workflow_only, ', ')}</span>
             ) : null}
             {tech.agent_lane_only.length ? (
               <span className="text-dim">
                 {' '}
-                · agent lane only: {tech.agent_lane_only.join(', ')}
+                · agent lane only: {techniqueList(tech.agent_lane_only, ', ')}
               </span>
             ) : null}
           </div>

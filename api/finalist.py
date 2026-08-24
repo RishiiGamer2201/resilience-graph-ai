@@ -438,6 +438,8 @@ class TwinChatRequest(BaseModel):
     scenario: str | None = None
     incident_id: str = "INC-LIVE-001"
     graph: dict | None = None
+    require_llm: bool = False
+    assistant_mode: str = "incident"
 
 
 class AgentInvestigateRequest(BaseModel):
@@ -506,13 +508,18 @@ def twin_chat(req: TwinChatRequest, p: dict = Depends(principal)):
     """Digital Twin AI Advisor: plain-language RAG chatbot for non-technical stakeholders."""
     _require(p, "read")
     from src.shared.chat_advisor import ask_advisor
-    return ask_advisor(
+    reply = ask_advisor(
         req.message,
         history=req.history,
         graph=req.graph,
         scenario=req.scenario,
         incident_id=req.incident_id,
+        assistant_mode=("general" if req.assistant_mode == "general" else "incident"),
     )
+    if req.require_llm and reply.get("method") == "deterministic":
+        detail = reply.get("llm_error") or (reply.get("llm") or {}).get("note")
+        raise HTTPException(503, detail or "The configured language model is unavailable.")
+    return reply
 
 
 # --------------------------------------------------------------------------- #

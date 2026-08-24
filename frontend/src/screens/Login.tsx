@@ -1,4 +1,3 @@
-import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Database, Radio, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -8,8 +7,7 @@ import { useSession } from '@/providers/session'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Capabilities, Role, ScenarioList } from '@/types/api'
-
-const AccessScene = lazy(() => import('@/components/AccessScene'))
+import AttackSimulation from '@/components/AttackSimulation'
 
 function Readiness() {
   const capabilities = useFetch<Capabilities>(getCapabilities)
@@ -80,7 +78,7 @@ export default function Login() {
           </span>
           <span>
             <span className="block text-sm font-semibold text-text">nextATT&amp;CKs</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">response intelligence</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">guided cyber incident response</span>
           </span>
         </header>
 
@@ -90,17 +88,17 @@ export default function Login() {
           transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
           className="my-auto max-w-xl py-12"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">SOC command center / PS7</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Cyber incident response workspace</div>
           <h1 className="mt-4 text-[clamp(2.7rem,7vw,5.7rem)] font-semibold leading-[0.9] tracking-[-0.065em] text-text">
-            See the attack.<br />Prove the response.
+            Understand the attack.<br />Choose the response.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-7 text-dim">
-            Turn weak log signals into a bounded, cited investigation with attack-path reasoning and human-gated containment.
+            Follow suspicious activity from the first warning to recovery. See what happened, why it matters, and which response actions still need a person to approve them.
           </p>
 
           <div className="mt-9 border-y border-border py-5">
             <label htmlFor="access-role" className="grid gap-2 sm:grid-cols-[8rem_1fr] sm:items-center">
-              <span className="section-label">Enter as</span>
+              <span className="section-label">Choose your role</span>
               <select
                 id="access-role"
                 value={role}
@@ -113,42 +111,38 @@ export default function Login() {
               </select>
             </label>
             <label htmlFor="access-token" className="mt-4 grid gap-2 sm:grid-cols-[8rem_1fr] sm:items-center">
-              <span className="section-label">Bearer token</span>
+              <span className="section-label">Access token</span>
               <input
                 id="access-token"
                 type="password"
                 value={token}
                 onChange={(event) => setToken(event.target.value)}
                 autoComplete="off"
-                placeholder="optional · only for configured token mode"
+                placeholder="Optional — only if your administrator gave you one"
                 className="h-10 w-full rounded-md border border-border bg-surface px-3 font-mono text-sm text-text placeholder:text-faint"
               />
             </label>
           </div>
 
           <Button asChild size="lg" className="mt-6 w-full justify-between sm:w-auto sm:min-w-64">
-            <Link to="/investigate">Open investigation <ArrowRight className="size-4" /></Link>
+            <Link to="/investigate">Start guided investigation <ArrowRight className="size-4" /></Link>
           </Button>
 
           <p className="mt-5 flex max-w-lg gap-2 text-xs leading-5 text-faint">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
-            <span>Your selected role is sent with every request and enforced by the API. This demo intentionally uses authorization without signup; changing the selector does not bypass server policy.</span>
+            <span>Your role controls what you can view or approve. The server checks it for every action, so changing this menu cannot bypass security rules.</span>
           </p>
         </motion.div>
 
         <footer className="flex items-center justify-between border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
-          <span>No credentials required</span><span>{can}</span>
+          <span>Demo access — no sign-up needed</span><span>{can}</span>
         </footer>
       </main>
 
-      <aside className="relative hidden min-h-full overflow-hidden bg-surface lg:flex lg:flex-col" aria-label="System readiness">
+      <aside className="relative hidden min-h-full overflow-hidden bg-surface lg:flex lg:flex-col" aria-label="Example attack simulation and system readiness">
         <div className="grid-bg absolute inset-0 opacity-60" aria-hidden />
         <div className="absolute inset-0 bg-bg/25" aria-hidden />
-        <Suspense fallback={null}><AccessScene /></Suspense>
-        <div className="relative z-10 flex items-center justify-between p-6 font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
-          <span>Local visual layer</span>
-          <span>decorative · non-evidentiary</span>
-        </div>
+        <AttackSimulation />
         <Readiness />
       </aside>
     </div>

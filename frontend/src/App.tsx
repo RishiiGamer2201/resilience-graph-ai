@@ -6,6 +6,7 @@ import { AnalysisProvider } from '@/providers/analysis'
 import Layout from '@/components/Layout'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { SkeletonRows } from '@/components/ui/skeleton'
+import ContextHelpBot from '@/components/ContextHelpBot'
 
 // Heavy routes are lazy so three.js and recharts stay out of the entry chunk.
 const Login = lazy(() => import('@/screens/Login'))
@@ -59,6 +60,7 @@ export default function App() {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <ContextHelpBot />
           </BrowserRouter>
         </AnalysisProvider>
       </SessionProvider>

@@ -164,9 +164,9 @@ export default function Scoreboard() {
 
   const header = (
     <PageHeader
-      eyebrow="PS7 evaluation"
-      title="What we measured, against what baseline"
-      description="Every figure is read from reports/metrics.json, written by the evaluation scripts. A metric we have not measured says so and explains why."
+      eyebrow="Evaluation results"
+      title="What was tested and what passed"
+      description="Each result comes from the evaluation report. If something was not measured, the page says so and explains why instead of showing a made-up score."
     />
   )
 
@@ -204,9 +204,9 @@ export default function Scoreboard() {
   return (
     <>
       <PageHeader
-        eyebrow="PS7 evaluation"
-        title="What we measured, against what baseline"
-        description="Every figure is read from reports/metrics.json, written by the evaluation scripts. A metric we have not measured says so and explains why."
+        eyebrow="Evaluation results"
+        title="What was tested and what passed"
+        description="Each result comes from the evaluation report. If something was not measured, the page says so and explains why instead of showing a made-up score."
         actions={
           <div className="text-right font-mono text-xs text-faint">
             <div>
