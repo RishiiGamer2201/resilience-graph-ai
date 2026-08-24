@@ -1,7 +1,37 @@
-import { BookOpenCheck } from 'lucide-react'
+import { BookOpenCheck, TriangleAlert } from 'lucide-react'
 import type { BaselineStatus } from '@/types/api'
 
 export default function BaselineLearningBanner({ baseline }: { baseline?: BaselineStatus }) {
+  // A failed enrolment is reported before anything else. Without this a
+  // half-enrolled store reads as `learning` indefinitely: the counts look young
+  // and nothing on screen says a batch stopped part-way, so the operator waits
+  // for a baseline that is never going to finish maturing.
+  if (baseline?.state === 'error') {
+    const last = baseline.enrollment?.last
+    return (
+      <section className="mb-4 rounded-lg border border-bad/40 bg-bad/5 p-3" aria-live="polite">
+        <div className="flex items-start gap-2.5">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-bad" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium text-text">
+              Baseline enrolment failed — history is incomplete
+            </div>
+            <div className="mt-0.5 font-mono text-xs text-dim">
+              {last?.rows_done?.toLocaleString() ?? '?'} of{' '}
+              {last?.rows?.toLocaleString() ?? '?'} rows folded in
+              {last?.error ? ` · ${last.error}` : ''}
+            </div>
+            <div className="mt-1.5 text-xs text-dim">
+              The rows that did land are counted once and kept. Re-run the same
+              enrolment to resume from where it stopped; it will not double-count
+              what is already in the store.
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   if (baseline?.state !== 'learning' && baseline?.state !== 'partial') return null
 
   const partial = baseline.state === 'partial'

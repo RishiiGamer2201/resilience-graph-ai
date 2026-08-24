@@ -12,11 +12,14 @@ Two rules hold across every route in this file:
 """
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import (APIRouter, Depends, File, Form, Header, HTTPException,
+                     Response, UploadFile)
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.shared import audit as audit_mod
@@ -900,6 +903,86 @@ def incident_audit(incident_id: str, p: dict = Depends(principal)):
             "note": ("Filtered view. Verify the FULL export — a subset cannot be "
                      "chain-verified on its own, by design."),
             "verified": None}
+
+
+# --------------------------------------------------------------------------- #
+# baseline enrollment                                                          #
+# --------------------------------------------------------------------------- #
+@router.get("/baseline/status")
+def baseline_status(p: dict = Depends(principal)):
+    """off | learning | partial | ready | error, with coverage and the ledger.
+
+    Readable by anyone who can read an analysis, because it is the answer to
+    "why did this log alert on everything" -- a store still learning says so
+    here rather than in the shape of the results.
+    """
+    _require(p, "read")
+    from src.shared import baseline
+
+    st = baseline.status()
+    return {**st, "recent_batches": baseline.enrollments(limit=10)}
+
+
+@router.post("/baseline/enroll")
+async def baseline_enroll(
+    file: UploadFile = File(...),
+    source: str = Form(""),
+    p: dict = Depends(principal),
+):
+    """Fold a known-good historical log into the entity baselines.
+
+    The gap this closes: `baseline.observe()` existed and nothing in the product
+    called it, so the store could only be built by code outside the application
+    and the UEBA baseline was, in practice, unreachable.
+
+    Admin only. Enrolling history rewrites what "normal" means for every later
+    analysis, and a wrong enrolment is not a wrong answer to one question -- it
+    is a wrong baseline under all of them, invisible in the answers.
+
+    Idempotent by content hash, resumable across restarts, and recorded in the
+    audit chain. Uploading the same export twice is a no-op that says so.
+    """
+    _require(p, "enroll_baseline")
+    from src.shared import baseline
+
+    if not baseline.enabled():
+        raise HTTPException(
+            409, f"baseline storage is off; set {baseline.DB_ENV} to a writable "
+                 f"path and restart before enrolling history")
+
+    from api.main import _read_upload
+    raw = await _read_upload(file)
+
+    def work():
+        try:
+            df = pd.read_csv(io.BytesIO(raw))
+        except Exception as e:
+            raise HTTPException(422, f"could not parse CSV: {e}")
+        try:
+            from src.shared.normalize import normalize
+            df = normalize(df, source="lanl")
+        except Exception:
+            pass                              # already in the common schema
+        try:
+            return baseline.enroll(df, source=source or (file.filename or "upload"))
+        except ValueError as e:
+            raise HTTPException(422, str(e))
+
+    result = await run_in_threadpool(work)
+
+    audit_mod.chain().append(
+        "baseline.enrolled", actor=p["actor"], role=p["role"],
+        incident_id=None,
+        inputs={"source": result.get("source", source), "rows": result.get("rows"),
+                "batch_id": result.get("batch_id")},
+        reason=("known-good history folded into the entity baselines"
+                if result.get("state") != "already_enrolled"
+                else "re-upload of already-enrolled content; counted once"),
+        details={"state": result.get("state"),
+                 "rows_done": result.get("rows_done"),
+                 "resumed_from": result.get("resumed_from"),
+                 "baseline_state": (result.get("status") or {}).get("state")})
+    return result
 
 
 __all__ = ["router"]

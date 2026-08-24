@@ -72,6 +72,22 @@ CREATE TABLE IF NOT EXISTS entity_activity (
     entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
     active_day INTEGER NOT NULL, events INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (entity_type, entity_id, active_day));
+-- One row per enrolment batch. This table is what makes enrolment idempotent
+-- and resumable: `observe()` folds counts in with n=n+1 and has no memory, so
+-- running the same file twice doubled every count in the store and moved every
+-- entity closer to "mature" on evidence that did not exist. `rows_done` is
+-- committed in the SAME transaction as the counts for that chunk, so a crash
+-- leaves the ledger and the counts agreeing with each other and the next run
+-- continues from the boundary rather than from the start.
+CREATE TABLE IF NOT EXISTS enrollment (
+    batch_id TEXT PRIMARY KEY,
+    source TEXT NOT NULL DEFAULT '',
+    rows INTEGER NOT NULL DEFAULT 0,
+    rows_done INTEGER NOT NULL DEFAULT 0,
+    state TEXT NOT NULL DEFAULT 'running',
+    started REAL NOT NULL DEFAULT 0,
+    finished REAL NOT NULL DEFAULT 0,
+    error TEXT NOT NULL DEFAULT '');
 """
 
 
@@ -203,39 +219,192 @@ def observe(df: pd.DataFrame, path: Path | None = None) -> dict:
     if not need.issubset(df.columns):
         raise ValueError(f"baseline needs {sorted(need)}")
 
+    with _lock, _connect(path) as c:
+        _fold(c, df)
+    return status(path)
+
+
+def _fold(c: sqlite3.Connection, df: pd.DataFrame) -> None:
+    """Fold one frame into an open connection. The shared body of observe() and
+    enroll(); enroll() calls it per chunk so the counts and its resume watermark
+    commit in the same transaction."""
     fail = (df["is_fail"] if "is_fail" in df.columns
             else pd.Series(0, index=df.index)).astype(int)
+    c.executemany("INSERT INTO user_dst(user,dst,n) VALUES(?,?,1) "
+                  "ON CONFLICT(user,dst) DO UPDATE SET n=n+1",
+                  list(zip(df["user"].astype(str), df["destination_host"].astype(str))))
+    c.executemany("INSERT INTO user_src(user,src,n) VALUES(?,?,1) "
+                  "ON CONFLICT(user,src) DO UPDATE SET n=n+1",
+                  list(zip(df["user"].astype(str), df["source_host"].astype(str))))
+    c.executemany("INSERT INTO host_stats(dst,n) VALUES(?,1) "
+                  "ON CONFLICT(dst) DO UPDATE SET n=n+1",
+                  [(h,) for h in df["destination_host"].astype(str)])
+    per_user = df.assign(_f=fail).groupby(df["user"].astype(str)).agg(
+        events=("_f", "size"), fails=("_f", "sum"))
+    c.executemany("INSERT INTO user_stats(user,events,fails) VALUES(?,?,?) "
+                  "ON CONFLICT(user) DO UPDATE SET events=events+excluded.events, "
+                  "fails=fails+excluded.fails",
+                  [(u, int(r.events), int(r.fails)) for u, r in per_user.iterrows()])
+    c.executemany(
+        "INSERT INTO entity_activity(entity_type,entity_id,active_day,events) "
+        "VALUES(?,?,?,?) ON CONFLICT(entity_type,entity_id,active_day) "
+        "DO UPDATE SET events=events+excluded.events",
+        _activity_rows(df),
+    )
+    if "timestamp" in df.columns:
+        ts = pd.to_numeric(df["timestamp"], errors="coerce").dropna()
+        if len(ts):
+            for k, v, agg in (("first", float(ts.min()), min),
+                              ("last", float(ts.max()), max)):
+                row = c.execute("SELECT v FROM span WHERE k=?", (k,)).fetchone()
+                c.execute("INSERT OR REPLACE INTO span(k,v) VALUES(?,?)",
+                          (k, v if row is None else agg(row[0], v)))
+
+
+ENROLL_CHUNK = 5_000       # rows per committed transaction
+
+
+def batch_fingerprint(df: pd.DataFrame) -> str:
+    """A content hash, so the same file is the same batch whatever it is named.
+
+    Keyed on the columns enrolment actually folds in. Re-uploading the same
+    export under a new filename is the common way an operator double-counts a
+    baseline, and a name-based key would not catch it.
+    """
+    import hashlib
+
+    cols = [c for c in ("timestamp", "user", "source_host", "destination_host",
+                        "is_fail") if c in df.columns]
+    frame = df[cols].astype(str)
+    h = hashlib.sha256()
+    h.update(",".join(cols).encode())
+    for row in frame.itertuples(index=False, name=None):
+        h.update("\x1f".join(row).encode())
+        h.update(b"\x1e")
+    return h.hexdigest()[:32]
+
+
+def enrollment(batch_id: str, path: Path | None = None) -> dict | None:
+    """One ledger row, or None. Its own function because the API reports it."""
+    path = path or db_path()
+    if path is None or not path.exists():
+        return None
     with _lock, _connect(path) as c:
-        c.executemany("INSERT INTO user_dst(user,dst,n) VALUES(?,?,1) "
-                      "ON CONFLICT(user,dst) DO UPDATE SET n=n+1",
-                      list(zip(df["user"].astype(str), df["destination_host"].astype(str))))
-        c.executemany("INSERT INTO user_src(user,src,n) VALUES(?,?,1) "
-                      "ON CONFLICT(user,src) DO UPDATE SET n=n+1",
-                      list(zip(df["user"].astype(str), df["source_host"].astype(str))))
-        c.executemany("INSERT INTO host_stats(dst,n) VALUES(?,1) "
-                      "ON CONFLICT(dst) DO UPDATE SET n=n+1",
-                      [(h,) for h in df["destination_host"].astype(str)])
-        per_user = df.assign(_f=fail).groupby(df["user"].astype(str)).agg(
-            events=("_f", "size"), fails=("_f", "sum"))
-        c.executemany("INSERT INTO user_stats(user,events,fails) VALUES(?,?,?) "
-                      "ON CONFLICT(user) DO UPDATE SET events=events+excluded.events, "
-                      "fails=fails+excluded.fails",
-                      [(u, int(r.events), int(r.fails)) for u, r in per_user.iterrows()])
-        c.executemany(
-            "INSERT INTO entity_activity(entity_type,entity_id,active_day,events) "
-            "VALUES(?,?,?,?) ON CONFLICT(entity_type,entity_id,active_day) "
-            "DO UPDATE SET events=events+excluded.events",
-            _activity_rows(df),
-        )
-        if "timestamp" in df.columns:
-            ts = pd.to_numeric(df["timestamp"], errors="coerce").dropna()
-            if len(ts):
-                for k, v, agg in (("first", float(ts.min()), min),
-                                  ("last", float(ts.max()), max)):
-                    row = c.execute("SELECT v FROM span WHERE k=?", (k,)).fetchone()
-                    c.execute("INSERT OR REPLACE INTO span(k,v) VALUES(?,?)",
-                              (k, v if row is None else agg(row[0], v)))
-    return status(path)
+        row = c.execute(
+            "SELECT batch_id,source,rows,rows_done,state,started,finished,error "
+            "FROM enrollment WHERE batch_id=?", (batch_id,)).fetchone()
+    if row is None:
+        return None
+    keys = ("batch_id", "source", "rows", "rows_done", "state", "started",
+            "finished", "error")
+    return dict(zip(keys, row))
+
+
+def enrollments(path: Path | None = None, limit: int = 20) -> list[dict]:
+    """Recent batches, newest first. The audit surface for what built a store."""
+    path = path or db_path()
+    if path is None or not path.exists():
+        return []
+    keys = ("batch_id", "source", "rows", "rows_done", "state", "started",
+            "finished", "error")
+    with _lock, _connect(path) as c:
+        rows = c.execute(
+            "SELECT batch_id,source,rows,rows_done,state,started,finished,error "
+            "FROM enrollment ORDER BY started DESC LIMIT ?", (limit,)).fetchall()
+    return [dict(zip(keys, r)) for r in rows]
+
+
+def enroll(df: pd.DataFrame, *, source: str = "", batch_id: str | None = None,
+           path: Path | None = None, chunk: int = ENROLL_CHUNK) -> dict:
+    """Fold known-good history into the profiles, once and only once.
+
+    `observe()` remains the primitive: it folds a frame in with no memory of
+    having done so. This is the operator-facing workflow around it, and the
+    three properties it adds are the ones that make enrolment safe to expose:
+
+      * IDEMPOTENT. The batch is keyed by a hash of its contents. Enrolling the
+        same export twice is a no-op that says so, rather than doubling every
+        count and moving entities toward `mature` on evidence that never
+        existed. This is the failure mode that makes a bad baseline worse than
+        no baseline: everything still looks new, but now it looks new
+        authoritatively.
+      * RESUMABLE, ACROSS RESTARTS. Rows are folded in chunks, and `rows_done`
+        is written in the same transaction as that chunk's counts. A process
+        killed mid-enrolment leaves a ledger row that agrees with the store, and
+        the next call continues from the boundary instead of the beginning.
+      * FAILING VISIBLY. An exception marks the batch `error` with the reason
+        and leaves the completed chunks in place, so `status()` can report the
+        `error` state rather than a store that quietly stopped growing.
+
+    Returns the ledger row plus the resulting `status`.
+    """
+    path = path or db_path()
+    if path is None:
+        return {"enabled": False, "state": "off",
+                "detail": f"set {DB_ENV} before enrolling history"}
+
+    need = {"user", "source_host", "destination_host"}
+    if not need.issubset(df.columns):
+        raise ValueError(f"baseline needs {sorted(need)}")
+
+    batch_id = batch_id or batch_fingerprint(df)
+    total = int(len(df))
+    now = _now()
+
+    with _lock, _connect(path) as c:
+        row = c.execute("SELECT rows_done,state FROM enrollment WHERE batch_id=?",
+                        (batch_id,)).fetchone()
+    # status() takes the same non-reentrant lock, so it is called outside the
+    # block rather than inside it. Holding the lock across it deadlocked, and a
+    # deadlock in enrolment looks exactly like a very large enrolment.
+    if row and row[1] == "done":
+        return {"batch_id": batch_id, "state": "already_enrolled",
+                "rows": total, "rows_done": row[0], "source": source,
+                "detail": ("this exact content was already enrolled; counted "
+                           "once, not twice"),
+                "status": status(path)}
+    start_at = int(row[0]) if row else 0
+
+    with _lock, _connect(path) as c:
+        c.execute(
+            "INSERT INTO enrollment(batch_id,source,rows,rows_done,state,started) "
+            "VALUES(?,?,?,?,'running',?) ON CONFLICT(batch_id) DO UPDATE SET "
+            "state='running', rows=excluded.rows, source=excluded.source, error=''",
+            (batch_id, source, total, start_at, now))
+
+    try:
+        position = start_at
+        while position < total:
+            part = df.iloc[position:position + chunk]
+            # One transaction per chunk: the counts and the new watermark commit
+            # together or not at all.
+            with _lock, _connect(path) as c:
+                _fold(c, part)
+                position = min(position + chunk, total)
+                c.execute("UPDATE enrollment SET rows_done=? WHERE batch_id=?",
+                          (position, batch_id))
+    except Exception as e:                      # noqa: BLE001 - recorded, re-raised
+        with _lock, _connect(path) as c:
+            c.execute("UPDATE enrollment SET state='error', error=?, finished=? "
+                      "WHERE batch_id=?",
+                      (f"{type(e).__name__}: {e}"[:300], _now(), batch_id))
+        raise
+
+    with _lock, _connect(path) as c:
+        c.execute("UPDATE enrollment SET state='done', finished=? WHERE batch_id=?",
+                  (_now(), batch_id))
+
+    out = enrollment(batch_id, path) or {}
+    resumed = start_at > 0
+    return {**out, "resumed_from": start_at if resumed else None,
+            "detail": (f"resumed at row {start_at} and completed" if resumed
+                       else f"enrolled {total} rows"),
+            "status": status(path)}
+
+
+def _now() -> float:
+    import time
+    return time.time()
 
 
 def status(path: Path | None = None) -> dict:
@@ -264,6 +433,13 @@ def status(path: Path | None = None) -> dict:
         events = c.execute("SELECT COALESCE(SUM(events),0) FROM user_stats").fetchone()[0]
         span = dict(c.execute("SELECT k,v FROM span").fetchall())
         coverage, readiness = _coverage(c, configured_policy)
+        # The enrolment ledger, so a store that stopped growing because a batch
+        # failed says so instead of looking like one that is merely young.
+        enroll_row = c.execute(
+            "SELECT batch_id,state,error,rows,rows_done FROM enrollment "
+            "ORDER BY started DESC LIMIT 1").fetchone()
+        enroll_counts = dict(c.execute(
+            "SELECT state, COUNT(*) FROM enrollment GROUP BY state").fetchall())
 
     organisation = coverage["organisation"]
     entity_kinds = ("account", "source_device", "segment")
@@ -272,7 +448,17 @@ def status(path: Path | None = None) -> dict:
     entity_coverage = (round(100.0 * mature_entities / total_entities, 1)
                        if total_entities else 0.0)
     organisation_ready = readiness.get(("organisation", "organisation"), False)
-    if not organisation_ready or mature_entities == 0:
+    last_enrollment = None
+    if enroll_row:
+        last_enrollment = {"batch_id": enroll_row[0], "state": enroll_row[1],
+                           "error": enroll_row[2], "rows": enroll_row[3],
+                           "rows_done": enroll_row[4]}
+    failed = enroll_row is not None and enroll_row[1] == "error"
+    if failed:
+        # Reported ahead of maturity on purpose: a half-enrolled store can look
+        # `learning` forever, and the reason is in the ledger, not the counts.
+        state = "error"
+    elif not organisation_ready or mature_entities == 0:
         state = "learning"
     elif mature_entities == total_entities:
         state = "ready"
@@ -304,8 +490,10 @@ def status(path: Path | None = None) -> dict:
         "learning_entities": total_entities - mature_entities,
         "entity_coverage_percent": entity_coverage,
         "coverage": coverage,
-        "allow_operational_alerts": allow_operational,
+        "allow_operational_alerts": allow_operational and not failed,
         "progress_percent": progress,
+        "enrollment": {"last": last_enrollment,
+                       "batches": {k: int(v) for k, v in enroll_counts.items()}},
         "detail": (
             f"{active_days} distinct active days and {events} events; "
             f"{mature_entities} of {total_entities} acting entities meet the "

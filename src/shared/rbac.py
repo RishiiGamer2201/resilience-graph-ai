@@ -44,6 +44,11 @@ PERMISSIONS: dict[str, tuple[str, ...]] = {
     "export_audit":      ("analyst", "responder", "admin"),
     "verify_audit":      ("viewer", "analyst", "responder", "admin"),
     "rotate_audit":      ("admin",),
+    # Enrolling history REWRITES what "normal" means for every later analysis,
+    # so it sits with rotate_audit rather than with analyze. A wrong enrolment
+    # is not a wrong answer to one question; it is a wrong baseline under all
+    # of them, and it is not visible in the answer.
+    "enroll_baseline":   ("admin",),
 }
 
 DEFAULT_ROLE = "viewer"
