@@ -348,6 +348,74 @@ def test_a_mature_baseline_makes_routine_traffic_boring():
     assert novel["dst_rarity"].iloc[0] > routine["dst_rarity"].iloc[0]
 
 
+def test_baseline_counts_each_new_destination_once_per_user():
+    """#38: row-level novelty must not inflate distinct-destination fan-out."""
+    from src.shared import baseline
+
+    path = pathlib.Path(tempfile.mkdtemp()) / "profiles.db"
+    day = baseline.SECONDS_PER_DAY
+
+    def history(day_n, user="asha@corp", dst="FILES"):
+        return pd.DataFrame({
+            "timestamp": [day_n * day],
+            "user": [user],
+            "source_host": ["LAPTOP-7"],
+            "destination_host": [dst],
+            "is_fail": [0],
+        })
+
+    for d in range(8):
+        for _ in range(5):
+            baseline.observe(history(d), path)
+    assert baseline.status(path)["state"] == "ready"
+
+    repeated = pd.DataFrame({
+        "timestamp": [9 * day + i for i in range(5)],
+        "user": ["asha@corp"] * 5,
+        "source_host": ["LAPTOP-7"] * 5,
+        "destination_host": ["NEWDB"] * 5,
+        "is_fail": [0] * 5,
+    })
+    out, _ = baseline.apply(repeated, path)
+    assert out["new_dst_for_user"].tolist() == [1, 1, 1, 1, 1]
+    assert out["user_distinct_dst_sofar"].tolist() == [2, 2, 2, 2, 2]
+
+    second_host = repeated.copy()
+    second_host["destination_host"] = ["NEWDB", "NEWDB", "HRDB", "NEWDB", "HRDB"]
+    out, _ = baseline.apply(second_host, path)
+    assert out["user_distinct_dst_sofar"].tolist() == [2, 2, 3, 3, 3]
+
+
+def test_baseline_new_destination_fanout_is_scoped_to_interleaved_users():
+    from src.shared import baseline
+
+    path = pathlib.Path(tempfile.mkdtemp()) / "profiles.db"
+    day = baseline.SECONDS_PER_DAY
+
+    for d in range(8):
+        for offset in range(5):
+            baseline.observe(pd.DataFrame({
+                "timestamp": [d * day + 2 * offset, d * day + 2 * offset + 1],
+                "user": ["asha@corp", "ben@corp"],
+                "source_host": ["LAPTOP-7", "LAPTOP-9"],
+                "destination_host": ["FILES", "MAIL"],
+                "is_fail": [0, 0],
+            }), path)
+    assert baseline.status(path)["state"] == "ready"
+
+    current = pd.DataFrame({
+        "timestamp": [9 * day + i for i in range(6)],
+        "user": ["asha@corp", "ben@corp", "asha@corp",
+                 "ben@corp", "asha@corp", "ben@corp"],
+        "source_host": ["LAPTOP-7", "LAPTOP-9"] * 3,
+        "destination_host": ["NEWDB", "NEWDB", "NEWDB", "NEWDB", "HRDB", "HRDB"],
+        "is_fail": [0] * 6,
+    })
+
+    out, _ = baseline.apply(current, path)
+    assert out["user_distinct_dst_sofar"].tolist() == [2, 2, 2, 2, 3, 3]
+
+
 def test_the_baseline_is_off_by_default_and_says_so():
     """Off is the honest default: every published metric was measured on
     file-local features."""
