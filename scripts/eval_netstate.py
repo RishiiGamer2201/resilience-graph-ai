@@ -165,14 +165,25 @@ def forecast_calibration(model: NetStateModel, obs, *, horizon: int = HORIZON) -
     """Brier score of the k-step-ahead attack-rate forecast.
 
     Truth is the actual attack rate of the window k ahead, so this scores the
-    forecast as a probability, not as a classification. Compared against the
-    training prevalence, which is what you predict when you have no model.
+    forecast as a probability, not as a classification.
+
+    TWO baselines, because one of them is easy and one is not:
+
+      prevalence    always predict the training attack rate. Beating this is the
+                    minimum bar for the forecast to mean anything at all.
+      persistence   predict the CURRENT window's attack rate for the window k
+                    ahead. Traffic is autocorrelated, so this is the hard one --
+                    the same reason `next_state_accuracy` scores against
+                    persistence rather than against a uniform guess. Reporting
+                    only the prevalence baseline here while holding next-state
+                    to persistence would be grading two parts of one model on
+                    two different curves.
     """
     prior = float(model.state_attack_rate @ (model.state_support / model.state_support.sum()))
 
     per_step: list[dict] = []
     for k in range(1, horizon + 1):
-        errs, base_errs, n = 0.0, 0.0, 0
+        errs, base_errs, persist_errs, n = 0.0, 0.0, 0.0, 0
         for _, states, rates in obs:
             if len(states) <= k:
                 continue
@@ -182,12 +193,14 @@ def forecast_calibration(model: NetStateModel, obs, *, horizon: int = HORIZON) -
             truth = rates[k:]
             errs += float(((pred - truth) ** 2).sum())
             base_errs += float(((prior - truth) ** 2).sum())
+            persist_errs += float(((rates[:-k] - truth) ** 2).sum())
             n += len(truth)
         if n:
             per_step.append({
                 "step": k,
                 "brier_model": round(errs / n, 5),
                 "brier_prevalence_baseline": round(base_errs / n, 5),
+                "brier_persistence_baseline": round(persist_errs / n, 5),
                 "n": n,
             })
     return {"prior": round(prior, 5), "per_step": per_step}
@@ -198,26 +211,53 @@ def compromise_detection(model: NetStateModel, obs, *, threshold: float = 0.5) -
 
     A window counts as compromised when more than `threshold` of its flows carry
     an attack label. Reported as ROC-AUC so no operating point is smuggled in.
+
+    Scored against PERSISTENCE, not against random. This function used to report
+    ROC-AUC 0.9872 with 0.5 as the implied comparison, which is the wrong
+    reference class and flattered the model by roughly the whole distance that
+    matters. Traffic is autocorrelated and attacks arrive in bursts, so 'the
+    current window is compromised' already predicts 'the next window is
+    compromised' very well, and any forecaster has to beat that, not a coin.
+    The same argument is why `next_state_accuracy` scores against persistence;
+    it simply was never applied here.
+
+    Two persistence variants, because they answer different questions:
+
+      persistence_binary   score = 1 if the CURRENT window is compromised. This
+                           is literally 'assume no change'.
+      persistence_rate     score = the current window's attack rate, continuous.
+                           A strictly stronger ranker than the binary form, and
+                           therefore the harder baseline of the two.
     """
-    preds, truths = [], []
+    preds, truths, cur_rates = [], [], []
     for _, states, rates in obs:
         if len(states) < 2:
             continue
         lat = model.encode(states)
         preds.extend(model.transition_matrix()[lat[:-1]] @ model.state_attack_rate)
         truths.extend((rates[1:] > threshold).astype(int))
-    y, p = np.array(truths), np.array(preds)
+        cur_rates.extend(rates[:-1])
+    y, p, cur = np.array(truths), np.array(preds), np.array(cur_rates)
     if len(set(y.tolist())) < 2:
         return {"state": "not measured",
                 "why": "the test windows contain only one class at this threshold"}
     from sklearn.metrics import average_precision_score, roc_auc_score
-    return {
+
+    persist_bin = (cur > threshold).astype(float)
+    out = {
         "n_windows": int(len(y)),
         "compromised_windows": int(y.sum()),
         "roc_auc": round(float(roc_auc_score(y, p)), 4),
         "pr_auc": round(float(average_precision_score(y, p)), 4),
+        "persistence_rate_roc_auc": round(float(roc_auc_score(y, cur)), 4),
+        "persistence_rate_pr_auc": round(float(average_precision_score(y, cur)), 4),
+        "persistence_binary_roc_auc": round(float(roc_auc_score(y, persist_bin)), 4),
         "threshold": threshold,
     }
+    out["beats_persistence"] = out["roc_auc"] > out["persistence_rate_roc_auc"]
+    out["roc_auc_lift_over_persistence"] = round(
+        out["roc_auc"] - out["persistence_rate_roc_auc"], 4)
+    return out
 
 
 def sweep_state_count(train_obs, test_obs, counts=(8, 16, 24, 32, 48)) -> list[dict]:
@@ -318,19 +358,38 @@ def write_report(m: dict) -> None:
         f"training days; a version read off the test days scored 0.4243, and the "
         f"smaller honest number is the one reported."
     )
+    persist_beats = step1["brier_model"] < step1["brier_persistence_baseline"]
     verdict.append(
         f"**Infiltration forecast: the model {'beats' if cal_beats else 'LOSES to'} "
-        f"the prevalence baseline at one step.** Brier {step1['brier_model']} "
-        f"against {step1['brier_prevalence_baseline']} for always predicting the "
-        f"training attack rate of {cal['prior']:.4f}."
+        f"the prevalence baseline at one step, and {'beats' if persist_beats else 'LOSES to'} "
+        f"persistence.** Brier {step1['brier_model']} against "
+        f"{step1['brier_prevalence_baseline']} for always predicting the training "
+        f"attack rate of {cal['prior']:.4f}, and against "
+        f"{step1['brier_persistence_baseline']} for predicting the current window's "
+        f"attack rate unchanged. Persistence is the baseline that matters here: "
+        f"traffic is autocorrelated, so carrying the last observation forward is "
+        f"already a real forecaster."
     )
     if det.get("roc_auc") is not None:
+        pr_roc = det["persistence_rate_roc_auc"]
         verdict.append(
-            f"**One-step-ahead compromise warning:** ROC-AUC {det['roc_auc']}, "
-            f"PR-AUC {det['pr_auc']} over {det['n_windows']:,} test windows of "
-            f"which {det['compromised_windows']:,} were compromised. This is the "
-            f"model warning about the NEXT window from the current one, not "
-            f"classifying the window in front of it."
+            f"**One-step-ahead compromise warning: ROC-AUC {det['roc_auc']}, "
+            f"against a persistence baseline of {pr_roc}.** "
+            f"PR-AUC {det['pr_auc']} against {det['persistence_rate_pr_auc']}, over "
+            f"{det['n_windows']:,} test windows of which "
+            f"{det['compromised_windows']:,} were compromised. The model "
+            f"{'beats' if det['beats_persistence'] else 'LOSES to'} persistence by "
+            f"{det['roc_auc_lift_over_persistence']:+.4f} ROC-AUC. "
+            f"This is the model warning about the NEXT window from the current one, "
+            f"not classifying the window in front of it."
+        )
+        verdict.append(
+            "**On the reference class.** An earlier version of this report compared "
+            "the compromise warning against random, 0.5, which is the wrong baseline "
+            "and made the result look far stronger than it is. Attacks arrive in "
+            "bursts, so 'the current window is compromised' already predicts the next "
+            "one well. Persistence is the honest comparison, and it is the same "
+            "baseline next-state prediction is held to a few rows above."
         )
 
     lines = [
@@ -365,17 +424,27 @@ def write_report(m: dict) -> None:
         f"| Next-state top-1, ORACLE (cheats) | {m['online']['oracle_top1']} | "
         f"{acc['persistence_top1']} | ceiling for any order-1 model |",
         f"| Attack-rate Brier @ 1 step | {step1['brier_model']} | "
+        f"{step1['brier_persistence_baseline']} | persistence (carry rate forward) |",
+        f"| Attack-rate Brier @ 1 step | {step1['brier_model']} | "
         f"{step1['brier_prevalence_baseline']} | always predict prevalence |",
     ]
     if det.get("roc_auc") is not None:
-        lines.append(f"| Next-window compromise ROC-AUC | {det['roc_auc']} | 0.5 | random |")
+        lines += [
+            f"| **Next-window compromise ROC-AUC** | **{det['roc_auc']}** | "
+            f"{det['persistence_rate_roc_auc']} | persistence (current attack rate) |",
+            f"| Next-window compromise ROC-AUC | {det['roc_auc']} | "
+            f"{det['persistence_binary_roc_auc']} | persistence (assume no change) |",
+            f"| Next-window compromise PR-AUC | {det['pr_auc']} | "
+            f"{det['persistence_rate_pr_auc']} | persistence (current attack rate) |",
+        ]
     lines += ["", "## Verdict", ""] + [f"- {v}" for v in verdict] + [""]
 
     lines += ["## Forecast calibration by horizon", "",
-              "| Steps ahead | Brier, model | Brier, prevalence baseline | Windows |",
-              "|---|---|---|---|"]
+              "| Steps ahead | Brier, model | Brier, persistence | Brier, prevalence | Windows |",
+              "|---|---|---|---|---|"]
     for s in cal["per_step"]:
         lines.append(f"| {s['step']} | {s['brier_model']} | "
+                     f"{s['brier_persistence_baseline']} | "
                      f"{s['brier_prevalence_baseline']} | {s['n']:,} |")
 
     best = min(m["state_sweep"], key=lambda r: r["brier_1step"])
@@ -485,8 +554,13 @@ def main() -> None:
         "marginal_top1": acc["marginal_top1"],
         "brier_1step": cal["per_step"][0]["brier_model"],
         "brier_1step_baseline": cal["per_step"][0]["brier_prevalence_baseline"],
+        "brier_1step_persistence": cal["per_step"][0]["brier_persistence_baseline"],
         "compromise_roc_auc": det.get("roc_auc"),
         "compromise_pr_auc": det.get("pr_auc"),
+        "compromise_persistence_roc_auc": det.get("persistence_rate_roc_auc"),
+        "compromise_persistence_pr_auc": det.get("persistence_rate_pr_auc"),
+        "compromise_beats_persistence": det.get("beats_persistence"),
+        "compromise_lift_over_persistence": det.get("roc_auc_lift_over_persistence"),
         "n_states": N_STATES, "window": WINDOW, "state_dim": STATE_DIM,
         "n_windows_test": n_te,
     })

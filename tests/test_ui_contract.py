@@ -11,6 +11,8 @@ When you change a payload, change this file in the same commit.
 from __future__ import annotations
 
 import pytest
+
+AIIMS_CSV = "data/demo/scenarios/aiims_ransomware.csv"
 from fastapi.testclient import TestClient
 
 from api.main import app
@@ -237,3 +239,69 @@ def test_capabilities_shape(client):
     for name, cap in caps["capabilities"].items():
         _has(cap, "state", "detail")
         assert isinstance(cap["state"], str), name
+
+
+def test_meta_carries_the_calibration_basis(result):
+    """The UI renders a score's scale from this block, so it is load-bearing.
+
+    A 78 produced against the shipped LANL anchors and a 78 produced by ranking
+    within an out-of-distribution log are not the same claim, and the screens now
+    say which one they are showing. If this block stops arriving the badge
+    silently disappears and every score goes back to looking calibrated, which is
+    the bug the OOD work exists to prevent -- so the contract asserts it here
+    rather than leaving the frontend to discover it.
+    """
+    cal = result["meta"].get("calibration")
+    assert cal is not None, "meta.calibration is missing; the UI cannot label the scale"
+    assert isinstance(cal.get("basis"), str) and cal["basis"], "basis must be a non-empty string"
+    assert isinstance(cal.get("out_of_distribution"), bool)
+    assert isinstance(cal.get("rarity_shift_sigma"), (int, float))
+    # the note is the user-facing explanation: required when OOD, empty otherwise
+    if cal["out_of_distribution"]:
+        assert cal.get("note"), "an OOD run must explain itself"
+    else:
+        assert cal.get("note") == "", "a normally-calibrated run must not carry a warning"
+
+
+def test_explain_reports_the_anchors_that_produced_the_score():
+    """Stage 4 must not print the fixed anchors for a score the relative ones made.
+
+    On an out-of-distribution log the score comes from anchors derived from that
+    log's own distribution. explain.py called detector.anchors() unconditionally,
+    which returns the fixed LANL pair, so the provenance endpoint displayed a set
+    of numbers that did not generate the value printed directly above them: they
+    disagreed on 124 of 125 rows of the AIIMS demo. Stage 5 additionally asserted
+    that 50 was "the calibrated 1% false-positive point, not a round number
+    someone liked", when on that log it is the 80th percentile of its own errors.
+
+    This is the endpoint the whole "every number traces to a measurement" claim
+    rests on, so it is the last place allowed to be approximately true.
+    """
+    import pandas as pd
+    from src.engine1.lanl_detect import engineer
+    from src.schema import coerce
+    from src.shared.explain import explain_step
+    from src.shared.live_analyze import _score, analyze_events
+
+    raw = pd.read_csv(AIIMS_CSV)
+    bundle = analyze_events(raw.copy())
+    assert bundle["meta"]["calibration"]["out_of_distribution"], "fixture must be OOD"
+
+    df = coerce(raw.copy())
+    for col, default in (("status", "success"), ("protocol", "")):
+        if col not in df.columns:
+            df[col] = default
+    df = engineer(df)
+    df["anomaly_score"] = _score(df)[0].astype(int)
+
+    stages = {s["stage"][0]: s for s in explain_step(df, bundle, 0)["stages"]}
+    four, five = stages["4"], stages["5"]
+
+    anchors = four["value"]["anchors"]
+    assert anchors["basis"].startswith("ranked-within-this-log"), anchors
+    assert four["calibration"]["out_of_distribution"] is True
+    assert "OUT OF DISTRIBUTION" in four["explanation"]
+    assert "1% false-positive line" not in four["explanation"], \
+        "stage 4 still claims a false-positive calibration this log does not have"
+    assert "80th percentile" in five["explanation"]
+    assert "not a round number someone liked" not in five["explanation"]

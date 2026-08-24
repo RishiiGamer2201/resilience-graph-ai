@@ -19,6 +19,7 @@
  * it does not show a confident answer nobody computed.
  */
 import type {
+  AgentReasoning,
   ActionProposal,
   AnalysisBundle,
   ApiError,
@@ -188,6 +189,15 @@ export async function readEventStream(
     if (done) break
   }
 }
+// The reasoning lane: an Investigator agent picks which of seven graph tools
+// to call, then a Critic gets the same tools and is told to refute it. Several
+// model round trips, so it is asked for rather than run on page load.
+export const reasonWithAgents = (body: {
+  scenario?: string
+  critical_assets?: string[]
+  incident_id?: string
+}) => post<AgentReasoning>('/agents/reason', body)
+
 export const getThreatIntel = () => get<ThreatIntelView>('/threat-intel')
 export const getMetrics = () => get<MetricsPayload>('/metrics')
 export const getMethodology = () => get<MethodologyPayload>('/methodology')

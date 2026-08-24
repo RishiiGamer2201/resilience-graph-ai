@@ -115,7 +115,7 @@
     "incident_id": "INC-PS7-LANL-CAMPAIGN",
     "scenario": "lanl_campaign_all",
     "severity": "high",
-    "total_ms": 1326.8,
+    "total_ms": 1516.9,
     "point_b_method": "template",
     "incident_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
     "agent_traces": [
@@ -8978,8 +8978,8 @@
                   "auth": 14
                 },
                 "protocol_top": {
-                  "Kerberos": 7,
-                  "?": 7
+                  "?": 7,
+                  "Kerberos": 7
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -9053,8 +9053,8 @@
                   "auth": 2
                 },
                 "protocol_top": {
-                  "Kerberos": 1,
-                  "?": 1
+                  "?": 1,
+                  "Kerberos": 1
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -16213,7 +16213,7 @@
           "entities_seen": 69
         },
         "evidence_refs": [],
-        "ms": 27.2,
+        "ms": 31.9,
         "notes": [
           "Triaged 442 chunks; 358 escalated to Detection."
         ]
@@ -25076,8 +25076,8 @@
                   "auth": 14
                 },
                 "protocol_top": {
-                  "Kerberos": 7,
-                  "?": 7
+                  "?": 7,
+                  "Kerberos": 7
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -25151,8 +25151,8 @@
                   "auth": 2
                 },
                 "protocol_top": {
-                  "Kerberos": 1,
-                  "?": 1
+                  "?": 1,
+                  "Kerberos": 1
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -32310,7 +32310,7 @@
           "max_score": 79
         },
         "evidence_refs": [],
-        "ms": 2.0,
+        "ms": 1.8,
         "notes": [
           "Scored 442 chunks; 287 above threshold.",
           "Max anomaly score: 79/100."
@@ -39817,8 +39817,8 @@
                   "auth": 14
                 },
                 "protocol_top": {
-                  "Kerberos": 7,
-                  "?": 7
+                  "?": 7,
+                  "Kerberos": 7
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -47338,7 +47338,7 @@
           "T1078",
           "T1078"
         ],
-        "ms": 1.2,
+        "ms": 2.5,
         "notes": [
           "Mapped 269/287 flagged chunks to ATT&CK techniques.",
           "18 chunks could not be mapped (flagged low-confidence by Orchestrator)."
@@ -48599,16 +48599,16 @@
               "meta": {}
             },
             {
-              "id": "C2553",
+              "id": "C1877",
               "type": "host",
-              "label": "C2553",
+              "label": "C1877",
               "critical": false,
               "meta": {}
             },
             {
-              "id": "C1877",
+              "id": "C2553",
               "type": "host",
-              "label": "C1877",
+              "label": "C2553",
               "critical": false,
               "meta": {}
             },
@@ -54341,6 +54341,34 @@
             },
             {
               "source": "C22409",
+              "target": "C1877",
+              "from": "C22409",
+              "to": "C1877",
+              "event_count": 22,
+              "score": 68,
+              "technique": "T1021",
+              "tactic": "Lateral Movement",
+              "users": [
+                "U3486@DOM1"
+              ],
+              "kind": "movement"
+            },
+            {
+              "source": "U3486@DOM1",
+              "target": "C1877",
+              "from": "U3486@DOM1",
+              "to": "C1877",
+              "event_count": 22,
+              "score": 68,
+              "technique": "T1021",
+              "tactic": "Lateral Movement",
+              "users": [
+                "U3486@DOM1"
+              ],
+              "kind": "authenticated_to"
+            },
+            {
+              "source": "C22409",
               "target": "C2553",
               "from": "C22409",
               "to": "C2553",
@@ -54387,34 +54415,6 @@
               "from": "U3486@DOM1",
               "to": "C743",
               "event_count": 40,
-              "score": 68,
-              "technique": "T1021",
-              "tactic": "Lateral Movement",
-              "users": [
-                "U3486@DOM1"
-              ],
-              "kind": "authenticated_to"
-            },
-            {
-              "source": "C22409",
-              "target": "C1877",
-              "from": "C22409",
-              "to": "C1877",
-              "event_count": 22,
-              "score": 68,
-              "technique": "T1021",
-              "tactic": "Lateral Movement",
-              "users": [
-                "U3486@DOM1"
-              ],
-              "kind": "movement"
-            },
-            {
-              "source": "U3486@DOM1",
-              "target": "C1877",
-              "from": "U3486@DOM1",
-              "to": "C1877",
-              "event_count": 22,
               "score": 68,
               "technique": "T1021",
               "tactic": "Lateral Movement",
@@ -58857,7 +58857,7 @@
           "edge_count": 663
         },
         "evidence_refs": [],
-        "ms": 139.7,
+        "ms": 123.7,
         "notes": [
           "Built entity graph: 307 nodes {'user': 39, 'host': 265, 'technique': 3}, 663 edges."
         ]
@@ -60118,16 +60118,16 @@
                 "meta": {}
               },
               {
-                "id": "C2553",
+                "id": "C1877",
                 "type": "host",
-                "label": "C2553",
+                "label": "C1877",
                 "critical": false,
                 "meta": {}
               },
               {
-                "id": "C1877",
+                "id": "C2553",
                 "type": "host",
-                "label": "C1877",
+                "label": "C2553",
                 "critical": false,
                 "meta": {}
               },
@@ -67794,6 +67794,18 @@
               },
               {
                 "from": "U3486@DOM1",
+                "to": "C1877",
+                "relation": "authenticated_to",
+                "technique": "T1021",
+                "tactic": "Lateral Movement",
+                "score": 68,
+                "users": [
+                  "U3486@DOM1"
+                ],
+                "event_count": 22
+              },
+              {
+                "from": "U3486@DOM1",
                 "to": "C2553",
                 "relation": "authenticated_to",
                 "technique": "T1021",
@@ -67815,18 +67827,6 @@
                   "U3486@DOM1"
                 ],
                 "event_count": 40
-              },
-              {
-                "from": "U3486@DOM1",
-                "to": "C1877",
-                "relation": "authenticated_to",
-                "technique": "T1021",
-                "tactic": "Lateral Movement",
-                "score": 68,
-                "users": [
-                  "U3486@DOM1"
-                ],
-                "event_count": 22
               },
               {
                 "from": "U3486@DOM1",
@@ -68010,6 +68010,18 @@
               },
               {
                 "from": "C22409",
+                "to": "C1877",
+                "relation": "movement",
+                "technique": "T1021",
+                "tactic": "Lateral Movement",
+                "score": 68,
+                "users": [
+                  "U3486@DOM1"
+                ],
+                "event_count": 22
+              },
+              {
+                "from": "C22409",
                 "to": "C2553",
                 "relation": "movement",
                 "technique": "T1021",
@@ -68031,18 +68043,6 @@
                   "U3486@DOM1"
                 ],
                 "event_count": 40
-              },
-              {
-                "from": "C22409",
-                "to": "C1877",
-                "relation": "movement",
-                "technique": "T1021",
-                "tactic": "Lateral Movement",
-                "score": 68,
-                "users": [
-                  "U3486@DOM1"
-                ],
-                "event_count": 22
               },
               {
                 "from": "C22409",
@@ -68980,10 +68980,10 @@
         },
         "evidence_refs": [
           "T1021",
-          "T1550.002",
-          "T1078"
+          "T1078",
+          "T1550.002"
         ],
-        "ms": 45.2,
+        "ms": 75.8,
         "notes": [
           "Connected graph: 307 nodes, 663 edges."
         ]
@@ -69709,10 +69709,10 @@
         },
         "evidence_refs": [
           "T1021",
-          "T1550.002",
-          "T1078"
+          "T1078",
+          "T1550.002"
         ],
-        "ms": 127.4,
+        "ms": 180.1,
         "notes": [
           "Validated 39 entity chains: 22 confirmed, 12 partial, 5 unconfirmed.",
           "Unconfirmed chains retained \u2014 not discarded."
@@ -70905,7 +70905,7 @@
           "T1550.002",
           "T1550.002"
         ],
-        "ms": 0.7,
+        "ms": 1.0,
         "notes": [
           "Ranked 39 chains. Top entity: U66@DOM1 risk=0.750 (high).",
           "Actor match fired on 34 of 39 chains. It records that a documented group uses the technique, not that this group is responsible."
@@ -70966,7 +70966,7 @@
           "T1078",
           "T1550.002"
         ],
-        "ms": 9.0,
+        "ms": 17.5,
         "notes": [
           "Narrative generated via template.",
           "LLM output (if used) is non-authoritative and labelled accordingly."
@@ -71016,7 +71016,7 @@
           "T1570",
           "T1219.001"
         ],
-        "ms": 2.2,
+        "ms": 3.8,
         "notes": [
           "Predicted next 3 move(s) from chain of 3 techniques.",
           "Top prediction: T1005 @ 12.5%"
@@ -72403,7 +72403,7 @@
         }
       ],
       "formula": "0.4\u00d7tactic_coverage + 0.35\u00d7detector_confidence + 0.25\u00d7path_depth",
-      "note": "How far along an intrusion looks, measured from this log. NOT a probability that an attack occurred, and NOT a statement about evidence quality \u2014 see evidence confidence, reported beside it."
+      "note": "How far along an intrusion looks, measured from this log. NOT a probability that an attack occurred, and NOT a statement about evidence quality -- see evidence confidence, reported beside it."
     },
     "evidence_confidence": {
       "value": 78.1,
@@ -72429,7 +72429,7 @@
           "detail": "Severity agreement is adjacent (workflow critical, agent lane high) with 3 shared technique(s). Partial support."
         }
       ],
-      "formula": "noisy-OR across independence groups: 1 \u2212 \u03a0(1 \u2212 strength) \u2014 duplicate signals inside a group add nothing",
+      "formula": "noisy-OR across independence groups: 1 \u2212 \u03a0(1 \u2212 strength) -- duplicate signals inside a group add nothing",
       "actionable_claims": 1,
       "total_claims": 4,
       "crosscheck": {
@@ -72607,7 +72607,7 @@
         "T1110",
         "T1021"
       ],
-      "k_steps": 5,
+      "k_steps": 8,
       "steps": [
         {
           "step": 1,
@@ -72640,7 +72640,7 @@
         },
         {
           "step": 2,
-          "horizon_confidence": 0.62,
+          "horizon_confidence": 0.77,
           "predictions": [
             {
               "technique_id": "T1021.002",
@@ -72669,7 +72669,7 @@
         },
         {
           "step": 3,
-          "horizon_confidence": 0.3844,
+          "horizon_confidence": 0.5929,
           "predictions": [
             {
               "technique_id": "T1021.004",
@@ -72698,7 +72698,7 @@
         },
         {
           "step": 4,
-          "horizon_confidence": 0.2383,
+          "horizon_confidence": 0.4565,
           "predictions": [
             {
               "technique_id": "T1005",
@@ -72727,7 +72727,7 @@
         },
         {
           "step": 5,
-          "horizon_confidence": 0.1478,
+          "horizon_confidence": 0.3515,
           "predictions": [
             {
               "technique_id": "T1074.001",
@@ -72753,6 +72753,93 @@
           ],
           "impact_mass": 0.8514,
           "model_source": "markov-interpolated-order2"
+        },
+        {
+          "step": 6,
+          "horizon_confidence": 0.2707,
+          "predictions": [
+            {
+              "technique_id": "T1560.001",
+              "name": "Archive via Utility",
+              "stage": "collection",
+              "probability": 0.2505,
+              "is_impact": true
+            },
+            {
+              "technique_id": "T1119",
+              "name": "Automated Collection",
+              "stage": "collection",
+              "probability": 0.1777,
+              "is_impact": true
+            },
+            {
+              "technique_id": "T1113",
+              "name": "Screen Capture",
+              "stage": "collection",
+              "probability": 0.1415,
+              "is_impact": true
+            }
+          ],
+          "impact_mass": 1.0,
+          "model_source": "markov-interpolated-order2"
+        },
+        {
+          "step": 7,
+          "horizon_confidence": 0.2084,
+          "predictions": [
+            {
+              "technique_id": "T1071.001",
+              "name": "Web Protocols",
+              "stage": "command and control",
+              "probability": 0.2584,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1560.003",
+              "name": "Archive via Custom Method",
+              "stage": "collection",
+              "probability": 0.1447,
+              "is_impact": true
+            },
+            {
+              "technique_id": "T1074.001",
+              "name": "Local Data Staging",
+              "stage": "collection",
+              "probability": 0.1408,
+              "is_impact": true
+            }
+          ],
+          "impact_mass": 0.6226,
+          "model_source": "markov-interpolated-order2"
+        },
+        {
+          "step": 8,
+          "horizon_confidence": 0.1605,
+          "predictions": [
+            {
+              "technique_id": "T1105",
+              "name": "Ingress Tool Transfer",
+              "stage": "command and control",
+              "probability": 0.2018,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1071.004",
+              "name": "DNS",
+              "stage": "command and control",
+              "probability": 0.1406,
+              "is_impact": false
+            },
+            {
+              "technique_id": "T1102",
+              "name": "Web Service",
+              "stage": "command and control",
+              "probability": 0.1326,
+              "is_impact": false
+            }
+          ],
+          "impact_mass": 0.3581,
+          "model_source": "markov-interpolated-order2"
         }
       ],
       "infiltration_probability": [
@@ -72760,22 +72847,29 @@
         0.2,
         17.7,
         74.3,
-        96.2
+        96.2,
+        100.0,
+        100.0,
+        100.0
       ],
       "horizon_confidence": [
         1.0,
-        0.62,
-        0.3844,
-        0.2383,
-        0.1478
+        0.77,
+        0.5929,
+        0.4565,
+        0.3515,
+        0.2707,
+        0.2084,
+        0.1605
       ],
-      "peak_infiltration_probability": 96.2,
-      "reliable_horizon": 3,
-      "headline_probability": 17.7,
-      "headline_confidence": 0.3844,
-      "headline": "17.7% chance of reaching an impact stage within 3 step(s), at horizon confidence 0.3844. Most likely next stage: lateral movement.",
-      "beyond_horizon_note": "Steps past 3 are shown but not quoted: horizon confidence falls below 0.35 and the cumulative curve rises toward 100% mainly because the model keeps rolling, not because the outcome becomes certain.",
-      "confidence_at_peak": 0.1478,
+      "peak_infiltration_probability": 100.0,
+      "reliable_horizon": 5,
+      "headline_probability": 96.2,
+      "headline_confidence": 0.3515,
+      "headline_saturated": true,
+      "headline": "Reaching an impact stage within 5 step(s) is near-certain under this model (96.2%), at horizon confidence 0.3515. Treat the figure as saturated rather than precise: the cumulative curve is a noisy-OR over rollout branches and passes 95.0% by design once a few steps carry real probability. The informative parts here are the horizon and the stage, not the percentage. Most likely next stage: collection.",
+      "beyond_horizon_note": "Steps past 5 are shown but not quoted: horizon confidence falls below 0.35 and the cumulative curve rises toward 100% mainly because the model keeps rolling, not because the outcome becomes certain.",
+      "confidence_at_peak": 0.2707,
       "most_likely_paths": [
         {
           "path": [
@@ -72787,21 +72881,30 @@
             "T1021.002",
             "T1021.006",
             "T1550.002",
-            "T1005"
+            "T1570",
+            "T1005",
+            "T1074.001",
+            "T1560.001"
           ],
           "predicted": [
             "T1021.001",
             "T1021.002",
             "T1021.006",
             "T1550.002",
-            "T1005"
+            "T1570",
+            "T1005",
+            "T1074.001",
+            "T1560.001"
           ],
-          "probability": 0.00032,
+          "probability": 0.0,
           "stages": [
             "lateral movement",
             "lateral movement",
             "lateral movement",
             "lateral movement",
+            "lateral movement",
+            "collection",
+            "collection",
             "collection"
           ],
           "reaches_impact": true
@@ -72816,24 +72919,109 @@
             "T1021.002",
             "T1021.006",
             "T1550.002",
-            "T1570"
+            "T1005",
+            "T1074.001",
+            "T1560.001",
+            "T1071.001"
           ],
           "predicted": [
             "T1021.001",
             "T1021.002",
             "T1021.006",
             "T1550.002",
-            "T1570"
+            "T1005",
+            "T1074.001",
+            "T1560.001",
+            "T1071.001"
           ],
-          "probability": 0.00031,
+          "probability": 0.0,
           "stages": [
             "lateral movement",
             "lateral movement",
             "lateral movement",
             "lateral movement",
-            "lateral movement"
+            "collection",
+            "collection",
+            "collection",
+            "command and control"
           ],
-          "reaches_impact": false
+          "reaches_impact": true
+        },
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1570",
+            "T1005",
+            "T1074.001",
+            "T1119"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1570",
+            "T1005",
+            "T1074.001",
+            "T1119"
+          ],
+          "probability": 0.0,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "collection",
+            "collection",
+            "collection"
+          ],
+          "reaches_impact": true
+        },
+        {
+          "path": [
+            "T1550.002",
+            "T1078",
+            "T1110",
+            "T1021",
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1570",
+            "T1005",
+            "T1074.001",
+            "T1113"
+          ],
+          "predicted": [
+            "T1021.001",
+            "T1021.002",
+            "T1021.006",
+            "T1550.002",
+            "T1570",
+            "T1005",
+            "T1074.001",
+            "T1113"
+          ],
+          "probability": 0.0,
+          "stages": [
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "lateral movement",
+            "collection",
+            "collection",
+            "collection"
+          ],
+          "reaches_impact": true
         },
         {
           "path": [
@@ -72845,80 +73033,31 @@
             "T1021.002",
             "T1570",
             "T1005",
-            "T1074.001"
+            "T1074.001",
+            "T1560.001",
+            "T1071.001",
+            "T1105"
           ],
           "predicted": [
             "T1021.001",
             "T1021.002",
             "T1570",
             "T1005",
-            "T1074.001"
+            "T1074.001",
+            "T1560.001",
+            "T1071.001",
+            "T1105"
           ],
-          "probability": 0.0003,
+          "probability": 0.0,
           "stages": [
             "lateral movement",
             "lateral movement",
             "lateral movement",
             "collection",
-            "collection"
-          ],
-          "reaches_impact": true
-        },
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1005",
-            "T1074.001"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1021.006",
-            "T1005",
-            "T1074.001"
-          ],
-          "probability": 0.00027,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
             "collection",
-            "collection"
-          ],
-          "reaches_impact": true
-        },
-        {
-          "path": [
-            "T1550.002",
-            "T1078",
-            "T1110",
-            "T1021",
-            "T1021.001",
-            "T1021.002",
-            "T1021.004",
-            "T1005",
-            "T1074.001"
-          ],
-          "predicted": [
-            "T1021.001",
-            "T1021.002",
-            "T1021.004",
-            "T1005",
-            "T1074.001"
-          ],
-          "probability": 0.00025,
-          "stages": [
-            "lateral movement",
-            "lateral movement",
-            "lateral movement",
             "collection",
-            "collection"
+            "command and control",
+            "command and control"
           ],
           "reaches_impact": true
         }
@@ -72972,77 +73111,77 @@
           "C2553"
         ],
         "shortest_paths": {
-          "C625": [
+          "C231": [
             "C17693",
-            "C625"
+            "C231"
           ],
           "C457": [
             "C17693",
             "C457"
           ],
-          "C706": [
-            "C17693",
-            "C706"
-          ],
-          "C231": [
-            "C17693",
-            "C231"
-          ],
           "C467": [
             "C17693",
             "C467"
-          ],
-          "C2106": [
-            "C17693",
-            "C2106"
-          ],
-          "C3173": [
-            "C17693",
-            "C3173"
-          ],
-          "C1065": [
-            "C18025",
-            "C1065"
-          ],
-          "C528": [
-            "C17693",
-            "C528"
-          ],
-          "C1015": [
-            "C17693",
-            "C1015"
-          ],
-          "C529": [
-            "C17693",
-            "C529"
           ],
           "C585": [
             "C17693",
             "C585"
           ],
+          "C1065": [
+            "C18025",
+            "C1065"
+          ],
+          "C1015": [
+            "C17693",
+            "C1015"
+          ],
+          "C625": [
+            "C17693",
+            "C625"
+          ],
+          "C706": [
+            "C17693",
+            "C706"
+          ],
           "C743": [
             "C18025",
             "C743"
+          ],
+          "C586": [
+            "C17693",
+            "C586"
+          ],
+          "C528": [
+            "C17693",
+            "C528"
+          ],
+          "C2106": [
+            "C17693",
+            "C2106"
           ],
           "C801": [
             "C17693",
             "C801"
           ],
+          "C529": [
+            "C17693",
+            "C529"
+          ],
           "C612": [
             "C19932",
             "C612"
           ],
-          "C586": [
+          "C3173": [
             "C17693",
-            "C586"
+            "C3173"
           ]
         },
-        "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here \u2014 we do not invent hosts the attacker has not touched."
+        "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here -- we do not invent hosts the attacker has not touched."
       },
       "method": {
         "model": "interpolated Markov over 205 real ATT&CK sequences",
         "search": "beam search, width 5, branch 3",
-        "decay": "horizon confidence 0.62^(step-1): a model measured at 38.1% top-3 for one step is not 38.1% accurate 5 steps out, and the timeline says so",
+        "decay": "horizon confidence 0.77^(step-1): a model measured at 38.1% top-3 for one step is not 38.1% accurate 8 steps out, and the timeline says so. 0.77 is fitted, not chosen -- top-3 accuracy of this rollout measured at each of 8 horizons and fitted with 1 free parameter, so 8 points in the regression; those 8 accuracies were averaged over 544 held-out prefixes from 29 test sequences, which overlap heavily, so ~29 is nearer the effective sample size and a sequence-level bootstrap puts d in [0.720, 0.804]. R^2 0.739 on the decaying points (0.870 if the r(1)=1 anchor is counted, which explains nothing). A linear-space fit of the same ratios gives 0.7407. (reports/rollout_decay.md, reproduce with scripts/eval_rollout_decay.py)",
         "deterministic": true
       },
       "honesty": "These are the transition model's own probabilities rolled forward, not a simulation of an attacker's intent. Step 1 rests on a measured 38.1% top-3 accuracy; every step after that compounds the same uncertainty, which is why horizon confidence decays and the later steps are shown faded rather than quoted as forecasts."

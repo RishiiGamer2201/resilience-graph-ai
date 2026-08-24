@@ -16,11 +16,22 @@ actually staff. The IsolationForest we replaced caught 361 at the same point.
 *Scoreboard → Detection. `reports/lanl_redteam_detection.md`.*
 
 **"Isn't this just detecting NTLM?"**
-Fair challenge — 100% of the red-team logins used NTLM versus about 6% of benign,
-which is a powerful but evadable signal. So we ablated it: remove NTLM entirely and
-score on behaviour alone, ROC-AUC **0.906**. Detection is driven by generalisable
-behaviour, not one brittle artifact. We publish the ablation because it is the
-first thing a good reviewer would ask.
+Substantially, yes, and that is the honest answer. 100% of the red-team logins
+used NTLM against about 6% of benign, so it is a powerful signal and a trivially
+evadable one: the attacker switches to Kerberos. We ablated it. ROC-AUC barely
+moves, **0.992 to 0.906**, and for a while we quoted only that and said NTLM was
+"not a crutch". That was the wrong metric to quote. At the 1% false-positive
+operating point an analyst actually runs at, recall goes **87.7% to 22.8%**, a
+74% relative collapse. ROC-AUC integrates over every threshold including ones
+nobody would use, which is exactly why it hid this.
+
+So: the behavioural features alone are a much weaker detector than our headline
+suggests, and the fix is more signal rather than better framing. Kerberos
+service-ticket behaviour, process telemetry and flow records are the next
+features, and the LANL corpus ships all three, we simply have not used them yet.
+Both numbers are now in `RESULTS.md`; `src/engine1/lanl_detect.py` emits the
+ablated operating point alongside the ROC so the pair cannot be separated again.
+*`reports/lanl_redteam_detection.md`.*
 
 **"Did you train on the attack labels?"**
 No. Engine 1 is trained on benign traffic only; labels are used for evaluation and
@@ -158,7 +169,9 @@ fails the build if any document cites an out-of-date number.
 
 **"Will this scale?"**
 Measured at nine input sizes: 2,732 events in 0.131 s, 50,000 in 2.19 s, on a laptop
-CPU with no GPU. The full seven-node investigation is 51 ms p50, 224 ms p95.
+CPU with no GPU. The full seven-node investigation is 242 ms p50, 1928 ms p95
+across all shipped scenarios (`reports/ps7_eval.md`); the p95 is the 2,732-event
+LANL campaign, the largest log we ship.
 In-memory graph analytics are comfortable to about 50,000 events per analysis — that
 is the documented cap, enforced at the trust boundary — and beyond it we shard or move
 to a graph database behind the existing repository boundary.

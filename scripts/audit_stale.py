@@ -9,6 +9,10 @@ Some hits are LEGITIMATE: the old numbers still appear where we deliberately
 publish the previous model as a comparison. This script only locates them; a
 human decides. Run it after any model change.
 
+An allow-token is only honoured when it appears OUTSIDE the stale phrase it
+would excuse. Matching both against the whole line let an allow-token that is a
+substring of a stale token silently kill its own rule.
+
     ./.venv/Scripts/python.exe -m scripts.audit_stale
 """
 from __future__ import annotations
@@ -47,11 +51,21 @@ STALE = {
     "Markov (shipped)": "first-order Markov described as shipped",
 }
 
-# lines containing any of these are expected comparisons, not stale claims
+# lines containing any of these are expected comparisons, not stale claims.
+#
+# Matched against the line with the stale phrase CUT OUT (see `main`). Without
+# that excision an allow-token that is a substring of a stale token disables its
+# own rule: "the real IsolationForest" contains "isolationforest", so that rule
+# could never fire and four live surfaces sat un-flagged behind it.
+#
+# "was ", "old " and "against" were also removed: they appear in ordinary prose,
+# so they suppressed almost anything and made a CLEAN verdict nearly
+# unfalsifiable. Nothing legitimate relied on them -- every comparison line they
+# covered is still covered by "previous", "replaced" or "first-order".
 ALLOW = (
     "previous", "iforest", "isolation forest", "isolationforest",
     "1st-order", "1st order", "first order", "first-order",
-    "comparison", "replaced", "was ", "old ", "instead of", "against",
+    "comparison", "replaced", "instead of",
     "markov_top3", "lost", "bake-off", "experiment", "interpolated",
 )
 
@@ -78,13 +92,28 @@ def main() -> None:
         except Exception:
             continue
         for i, line in enumerate(txt.split("\n"), 1):
-            low = line.lower()
             for tok, why in STALE.items():
-                if tok in line:
-                    if any(a in low for a in ALLOW):
-                        allowed += 1
-                        continue
-                    findings.append((rel, i, tok, why, line.strip()[:100]))
+                j = line.find(tok)
+                if j < 0:
+                    continue
+                # the allow phrase must live SOMEWHERE ELSE on the line, not
+                # inside the stale phrase itself -- otherwise a rule whose token
+                # contains an allow-token can never fire.
+                rest = (line[:j] + line[j + len(tok):]).lower()
+                if any(a in rest for a in ALLOW):
+                    allowed += 1
+                    continue
+                # A generated sweep table is a column of percentages, and a
+                # percentage is free to coincide with a retired figure: 51.4 is
+                # both the IsolationForest's old TPR and, in reports/triage_cut.md,
+                # a recall at one cut. Scoped to markdown table rows where the
+                # number is immediately followed by a percent sign, so it cannot
+                # become the kind of blanket allow that made this tool useless.
+                after = line[j + len(tok):]
+                if line.lstrip().startswith("|") and after.startswith("%"):
+                    allowed += 1
+                    continue
+                findings.append((rel, i, tok, why, line.strip()[:100]))
 
     if not findings:
         print(f"CLEAN - no stale claims found ({allowed} legitimate comparison lines skipped)")

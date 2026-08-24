@@ -1,0 +1,196 @@
+"""What this detector does to a log with no attack in it at all.
+
+Every other evaluation here scores the detector on a log that contains an
+intrusion, and reports how much of it was caught. That answers "does it find the
+attack". It does not answer the question an operator asks first, which is "what
+does it do on a Tuesday".
+
+This script answers that, and the answer is bad. It is published for the same
+reason the LSTM negative result and the logistic-regression loss are published:
+the number exists whether or not we look at it, and a reader who finds it before
+we do is entitled to assume we did not look.
+
+WHY IT IS BAD, precisely. The behavioural features are corpus-relative --
+`dst_rarity` is -log(count / corpus size), fan-out and fail-rate are "so far for
+this user" -- and they are computed over WHATEVER LOG WAS UPLOADED, because there
+is no store of what normal looks like for this estate. The autoencoder's
+calibration anchors then come from LANL's benign distribution. So a clean log
+from any organisation that is not LANL reconstructs badly, uniformly, and lands
+above an alert line that was measured somewhere else.
+
+The out-of-distribution probe does not save this. It tests the shape of the host
+population, which catches a synthetic log built on 28 hosts, and correctly passes
+a long-tailed corpus that looks structurally like a real estate. A real estate
+that is simply not LANL still gets scored against LANL's anchors.
+
+WHY IT IS NOT FIXED HERE. A single log cannot distinguish "this corpus differs
+from the training corpus" from "this corpus is under attack": both raise
+reconstruction error, and no statistic over one file separates them. That is not
+a tuning problem, it is unidentifiable without a baseline period for the estate
+in question. The fix is a persistent per-entity profile built from the customer's
+own history, so features are computed against months of that estate rather than
+against the 125 rows someone happened to paste. That is real work and it is not a
+threshold.
+
+Run:
+    python -m scripts.eval_clean_log
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from src.shared.live_analyze import analyze_events
+
+ROOT = Path(__file__).resolve().parents[1]
+REPORT = ROOT / "reports" / "clean_log.md"
+SEED = 20260824
+
+# Shapes chosen to look like plausible enterprise authentication: a Zipf-ish
+# destination tail, users touching a handful of hosts, no attack anywhere.
+# Shape, and how ordinary the traffic in it is. The last three are the point:
+# an estate with no failed logins and no NTLM at all does not exist.
+SHAPES = [
+    ("5,000 events / 1,500 hosts, no failures, no NTLM", 5000, 1500, 0.0, 0.0, 0.0),
+    ("5,000 events /   600 hosts, no failures, no NTLM", 5000, 600, 0.0, 0.0, 0.0),
+    ("2,000 events /   800 hosts, no failures, no NTLM", 2000, 800, 0.0, 0.0, 0.0),
+    ("5,000 events / 1,500 hosts, 3% failed logins", 5000, 1500, 0.03, 0.0, 0.0),
+    ("5,000 events / 1,500 hosts, 15% NTLM (legacy apps)", 5000, 1500, 0.0, 0.15, 0.0),
+    ("5,000 events / 1,500 hosts, 3% failures AND 15% NTLM", 5000, 1500, 0.03, 0.15, 0.0),
+]
+
+
+def clean_log(n_rows: int, n_hosts: int, rng, *,
+              fail_rate: float = 0.0, ntlm_rate: float = 0.0,
+              dc_share: float = 0.0) -> pd.DataFrame:
+    """A benign log. The knobs matter more than the size.
+
+    The first version of this script pinned `status` to success and `protocol` to
+    Kerberos on every row, which is two of the seven features held at their most
+    benign constant. That is not an ordinary Tuesday, it is the quietest day an
+    estate ever has, and it understated the answer by roughly half.
+
+    Real authentication has typos, expired passwords, locked accounts, and legacy
+    applications that still negotiate NTLM. Those are the features the detector
+    weighs most heavily, so a clean log that contains none of them flatters it.
+    """
+    w = 1.0 / np.arange(1, n_hosts + 1) ** 1.0
+    if dc_share:
+        w = w * (1 - dc_share)
+        w[0] += dc_share * w.sum() / max(w.sum(), 1e-9) * (w.sum() / (1 - dc_share))
+        w[0] = dc_share * (w.sum() / (1 - dc_share)) if dc_share < 1 else w[0]
+    w /= w.sum()
+    n_users = max(3, n_hosts // 5)
+    return pd.DataFrame({
+        "timestamp": np.arange(n_rows) * 7,
+        "user": rng.choice([f"u{i}@corp" for i in range(n_users)], n_rows),
+        "source_host": rng.choice([f"WS{i}" for i in range(max(3, n_hosts // 3))], n_rows),
+        "destination_host": rng.choice([f"SRV{i}" for i in range(n_hosts)], n_rows, p=w),
+        "status": np.where(rng.random(n_rows) < fail_rate, "fail", "success"),
+        "protocol": np.where(rng.random(n_rows) < ntlm_rate, "NTLM", "Kerberos"),
+    })
+
+
+def main() -> None:
+    rng = np.random.default_rng(SEED)
+    rows = []
+    for label, n_rows, n_hosts, fail, ntlm, dc in SHAPES:
+        bundle = analyze_events(clean_log(n_rows, n_hosts, rng,
+                                          fail_rate=fail, ntlm_rate=ntlm, dc_share=dc))
+        inc, cal = bundle["incident"], bundle["meta"]["calibration"]
+        rows.append({
+            "shape": label,
+            "alerts": inc["alert_count"],
+            "rate": inc["alert_count"] / max(1, inc["event_count"]),
+            "incidents": inc["incident_count"],
+            "ood": cal["out_of_distribution"],
+            "top1": cal["top_destination_share"],
+        })
+
+    worst = max(r["rate"] for r in rows)
+    lines = [
+        "# What the detector does to a clean log", "",
+        "Generated by `scripts/eval_clean_log.py`. Synthetic logs with **no attack",
+        "events at all**: Zipf-distributed destinations, users touching a handful of",
+        f"hosts, all successful Kerberos. Seed {SEED}, so this reproduces.", "",
+        "| Shape | Alerts | Alert rate | Incidents | Out of distribution? | Top-1 host share |",
+        "|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        lines.append(f"| {r['shape']} | {r['alerts']:,} | **{r['rate']:.1%}** | "
+                     f"{r['incidents']} | {r['ood']} | {r['top1']} |")
+
+    lines += [
+        "", "## The finding", "",
+        f"**Every one of these logs is entirely benign, and the detector alerts on up",
+        f"to {worst:.0%} of it.**",
+        "",
+        "The spread between the rows is the important part, and it is not size. The",
+        "quiet rows hold `status` at success and `protocol` at Kerberos on every",
+        "event, which is two of the seven features pinned to their most benign",
+        "constant. That is not an ordinary Tuesday, it is the best day an estate ever",
+        "has. Add 3% failed logins -- typos, expired passwords, a locked account --",
+        "and it roughly doubles. Add legacy applications still negotiating NTLM and it",
+        "doubles again. An earlier version of this report measured only the quiet",
+        "rows and published the low number as the answer.",
+        "",
+        "The out-of-distribution probe does not catch this, and should not be expected",
+        "to. It tests the shape of the host population and these logs have the long",
+        "tail a real estate has, which is exactly why they pass. The problem is not",
+        "their shape, it is that the calibration anchors were measured on LANL and",
+        "these are not LANL.",
+        "",
+        "## Why it is not a threshold problem", "",
+        "The behavioural features are corpus-relative and there is no store of what",
+        "normal looks like for the estate being analysed, so they are computed over",
+        "whatever file was uploaded. A single log cannot separate \"this corpus differs",
+        "from the training corpus\" from \"this corpus is under attack\" -- both raise",
+        "reconstruction error, and no statistic over one file tells them apart. Moving",
+        "the alert line would trade this false-positive rate directly against the",
+        "87.7% recall reported elsewhere, on a corpus where we cannot tell which we are",
+        "buying.",
+        "",
+        "## What would fix it", "",
+        "A persistent per-entity profile built from the estate's own history, so that",
+        "`new host for this user` and `rare destination` are judged against months of",
+        "that organisation rather than against the rows in front of the parser, and so",
+        "calibration anchors are that estate's benign distribution rather than LANL's.",
+        "That is the first item of Phase 1 in `docs/product/IMPLEMENTATION_PLAN.md`,",
+        "and it is the reason that phase exists.",
+        "",
+        "## What this does not say", "",
+        "It does not say the detection is worthless. The ranking is good: on the two",
+        "labelled logs the model separates attack from benign at ROC 0.987 and 0.988",
+        "(`reports/triage_cut.md`), and on LANL it reaches 87.7% recall at a 1%",
+        "false-positive rate measured against real red-team labels. What it says is",
+        "that the ABSOLUTE alert line does not transfer between corpora, and that",
+        "every operational claim in this repo is a claim about LANL until an estate's",
+        "own baseline exists.",
+        "",
+    ]
+    REPORT.write_text("\n".join(lines), encoding="utf-8")
+
+    # Onto the scoreboard, not just into a report. A limitation a reader has to
+    # go looking for is a limitation the product is hiding.
+    from src.shared.metrics_store import update
+    update("engine1", "clean_log", {
+        "worst_alert_rate": round(worst, 4),
+        "best_alert_rate": round(min(r["rate"] for r in rows), 4),
+        "shapes_tested": len(rows),
+        "attack_events": 0,
+        "seed": SEED,
+        "note": ("Synthetic clean logs, no attack events at all. The alert rate is "
+                 "the false-positive rate on a quiet estate, and it is high because "
+                 "features are corpus-relative with no stored baseline and the "
+                 "anchors were measured on LANL. Not a threshold problem: see "
+                 "reports/clean_log.md."),
+    })
+    print(f"wrote {REPORT.relative_to(ROOT)}")
+    for r in rows:
+        print(f"  {r['shape']:28s} {r['alerts']:6,} alerts  {r['rate']:6.1%}  ood={r['ood']}")
+
+
+if __name__ == "__main__":
+    main()

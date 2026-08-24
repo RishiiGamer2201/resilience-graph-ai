@@ -53,6 +53,7 @@ import Assessment, { ClaimsPanel } from '@/components/Assessment'
 import EvidenceList from '@/components/EvidenceList'
 import CaseFile from '@/components/CaseFile'
 import CrossCheck from '@/components/CrossCheck'
+import ReasoningAgents from '@/components/ReasoningAgents'
 import Progression from '@/components/Progression'
 import { TwinPanel, VulnPanel } from '@/components/ImpactPanel'
 import ActionPanel from '@/components/ActionPanel'
@@ -570,6 +571,14 @@ export default function Investigate() {
                   workflow governs; agreement or disagreement here moves
                   evidence confidence and is never averaged away. */}
               <CrossCheck crosscheck={result.crosscheck} />
+              {/* Both lanes above are deterministic. This one is not: it is the
+                  only place a model decides what to look at next, which is why
+                  it is opt-in and why its citations are checked in code. */}
+              <ReasoningAgents
+                scenario={result.scenario ?? undefined}
+                criticalAssets={result.understand?.crown_jewels_designated ?? []}
+                incidentId={result.incident_id}
+              />
             </div>
           </Section>
 

@@ -31,6 +31,30 @@ FEATURE_MEANING = {
 }
 
 
+
+def _is_ood(bundle: dict) -> bool:
+    """Was this bundle scored by rank within its own log rather than the shipped anchors?"""
+    return bool(((bundle.get("meta") or {}).get("calibration") or {}).get("out_of_distribution"))
+
+
+def _raw_all(df):
+    """Reconstruction errors for every row of the engineered frame.
+
+    The relative anchors are a property of the whole log, not of the step being
+    explained, so explaining one event means re-deriving them from all of them.
+    Cheap: raw_scores is a single matmul over an already-materialised frame.
+    """
+    import numpy as np
+    from src.engine1.lanl_detect import FEATURES as _F
+    from src.shared import detector as _d
+    try:
+        X = df[list(_F)].to_numpy("float64")
+    except Exception:
+        return np.array([0.0, 1.0])
+    if X.size == 0:
+        return np.array([0.0, 1.0])
+    return _d.raw_scores(X)
+
 def _row_for(df: pd.DataFrame, step: dict) -> pd.Series | None:
     """Find the engineered row behind a correlated step (timestamp + host pair)."""
     m = ((df["timestamp"] == step["timestamp"])
@@ -98,7 +122,15 @@ def explain_step(df: pd.DataFrame, bundle: dict, step_index: int = 0, *,
             raw_err = float(detector.raw_scores([[feats[f] for f in FEATURES]])[0])
         except Exception:
             raw_err = None
-        anchors = detector.anchors()
+        # The anchors that ACTUALLY produced this score. detector.anchors() is
+        # the fixed LANL pair, and on an out-of-distribution log the score was
+        # produced by relative anchors instead -- they disagreed on 124 of 125
+        # rows of the AIIMS demo, so this endpoint was showing a set of numbers
+        # that did not generate the value printed above them. This is the
+        # provenance surface; it is the last place that may be approximately true.
+        cal = (bundle.get("meta") or {}).get("calibration") or {}
+        ood = bool(cal.get("out_of_distribution"))
+        anchors = detector.relative_anchors(_raw_all(df)) if ood else detector.anchors()
         try:
             from src.shared.attribution import explain_score
             attribution = explain_score(feats)
@@ -112,12 +144,22 @@ def explain_step(df: pd.DataFrame, bundle: dict, step_index: int = 0, *,
                       "anchors": anchors,
                       # exact Shapley: which of the seven features moved the score
                       "attribution": attribution},
+            "calibration": cal,
             "explanation": ("The autoencoder was trained on benign authentications only. "
                             "It reconstructs normal behaviour well and unusual behaviour "
                             "badly, so the reconstruction error IS the anomaly signal. "
-                            "The error is mapped onto 0-100 with fixed anchors: benign "
-                            "median → 0, benign 99th percentile → 50 (the 1% "
-                            "false-positive line), extreme → 100. The attribution "
+                            + (("This log is OUT OF DISTRIBUTION for the shipped anchors "
+                                f"(host-rarity sits {abs(float(cal.get('rarity_shift_sigma') or 0)):.1f} "
+                                "training sigmas away), so the error is mapped onto 0-100 "
+                                "against THIS LOG's own distribution: its median -> 0, its "
+                                "80th percentile -> 50, its maximum -> 100. 50 is therefore a "
+                                "rank within this log, NOT a false-positive rate, and this "
+                                "score cannot be compared with one from another log. ")
+                               if ood else
+                               ("The error is mapped onto 0-100 with fixed anchors: benign "
+                                "median -> 0, benign 99th percentile -> 50 (the 1% "
+                                "false-positive line), extreme -> 100. "))
+                            + "The attribution "
                             "block gives EXACT Shapley values per feature: with seven "
                             "features the full 128-coalition enumeration is cheap, so "
                             "there is no sampling error to report."),
@@ -137,8 +179,13 @@ def explain_step(df: pd.DataFrame, bundle: dict, step_index: int = 0, *,
         "value": {"score": step["anomaly_score"], "threshold": ALERT_THRESHOLD,
                   "is_alert": step["is_alert"]},
         "explanation": (f"Scores at or above {ALERT_THRESHOLD} become alerts. "
-                        f"{ALERT_THRESHOLD} is the calibrated 1% false-positive point, "
-                        "not a round number someone liked."),
+                        + ("On this log that is the 80th percentile of its own "
+                           "reconstruction errors, because the shipped calibration does "
+                           "not transfer here -- an operational triage cut, not a "
+                           "measured false-positive rate."
+                           if _is_ood(bundle) else
+                           f"{ALERT_THRESHOLD} is the calibrated 1% false-positive point, "
+                           "not a round number someone liked.")),
     })
 
     inc = bundle["incident"]
@@ -241,7 +288,9 @@ def demo() -> None:
     raw = pd.read_csv("data/demo/scenarios/aiims_ransomware.csv")
     bundle = analyze_events(raw.copy(), critical_assets={"PATIENT-DB-01"})
     df = engineer(coerce(raw.copy()))
-    df["anomaly_score"] = _score(df).round().astype(int)
+    # _score returns (scores, calibration); the calibration block records
+    # whether the shipped anchors applied or the log was scored by rank.
+    df["anomaly_score"] = _score(df)[0].astype(int)
 
     t = explain_step(df, bundle, 0)
     assert t["available"], t

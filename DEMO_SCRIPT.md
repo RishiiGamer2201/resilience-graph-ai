@@ -37,7 +37,7 @@ The whole app then runs on your data.
 I pick the real red-team attack. / And I click Analyze.
 See this badge on top / it says LIVE ANALYSIS. *(feature: LIVE / SAMPLE badge)*
 That means everything you see now / is computed right now. Not fake.
-It scored two thousand seven hundred events. / It found one thousand two hundred alerts. / And joined them into just **one** incident."
+It scored two thousand seven hundred events. / It found one thousand two hundred alerts. / And grouped them into **fifty one** incidents. / Fifty one stories to read, / not twelve hundred rows."
 
 ---
 
@@ -48,7 +48,7 @@ It scored two thousand seven hundred events. / It found one thousand two hundred
 **SAY:**
 "This is the Overview. / A quick summary.
 Here is the time to the first alert, / measured from the log itself. *(feature: measured MTTD)*
-Here is the active incident. / One attack, one story.
+Here is the top incident. / Each one is a story, / not a pile of rows.
 And here are our model scores, / from honest testing. *(feature: detector benchmarks)*"
 
 ---
@@ -155,7 +155,7 @@ Every feature in the product, and the section that shows it:
 - [ ] LIVE / SAMPLE badge — *Intro / Analyze Log*
 - [ ] Analyze any log (pick scenario) — *Analyze Log*
 - [ ] Upload your own CSV — *Analyze Log*
-- [ ] Score every event → 1 incident — *Analyze Log*
+- [ ] Score every event, cluster into incidents -- *Analyze Log*
 - [ ] Measured time-to-detect (MTTD) — *Overview*
 - [ ] Active incident summary — *Overview*
 - [ ] Detector benchmarks — *Overview*
@@ -167,7 +167,7 @@ Every feature in the product, and the section that shows it:
 - [ ] Gated SOAR (simulated, human-approved) — *Live Incident*
 - [ ] Attack-path graph + click a host — *Attack Graph*
 - [ ] All 4 attacker pivots — *Attack Graph*
-- [ ] Blast radius + recommended isolation (cut 463) — *Attack Graph*
+- [ ] Blast radius + recommended isolation (cut 452) — *Attack Graph*
 - [ ] ATT&CK technique mapping — *Threat Intel*
 - [ ] Next-technique prediction — *Threat Intel*
 - [ ] Actor attribution (ranked, explainable) — *Threat Intel*
@@ -197,11 +197,11 @@ That is all **9 sidebar screens** and every feature inside them.
 |---|---|
 | Events analysed | 2,732 |
 | Alerts | 1,243 |
-| Incidents | 1 |
+| Incidents | 51 |
 | Compromised accounts | 104 |
 | Machines in the graph | 473 |
 | Attacker foothold machines | 4 |
-| Isolate C17693, machines cut | 463 |
+| Isolate C17693, machines cut | 452 |
 | Detection score (ROC-AUC) | 0.992 |
 | Attacks caught at 1% false alarms | 616 of 702 |
 | Threat groups ranked for attribution | 172 |

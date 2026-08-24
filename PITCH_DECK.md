@@ -91,15 +91,15 @@ flowchart LR
 **Title:** The layer that connects weak signals
 
 **One sentence (center, large):**
-> Real anomaly fires → weak signals correlate into **one** incident → each step maps to MITRE ATT&CK → the attack path to the crown jewel lights up → we predict the next move, name the likely actor, and recommend gated containment.
+> Real anomaly fires → weak signals correlate into **incidents** → each step maps to MITRE ATT&CK → the attack path to the crown jewel lights up → we predict the next move, name the likely actor, and recommend gated containment.
 
 **The funnel, on real data:**
 
 ```mermaid
 flowchart LR
-  A["2,732 raw<br/>auth events"] --> B["Score every event<br/>IsolationForest"]
+  A["2,732 raw<br/>auth events"] --> B["Score every event<br/>autoencoder"]
   B --> C["1,243 anomaly<br/>alerts"]
-  C --> D["ONE correlated<br/>incident"]
+  C --> D["51 correlated<br/>incidents"]
   D --> E["ATT&CK chain<br/>T1550.002 · T1110 · T1021"]
   E --> F["Attack graph<br/>473 hosts · 4 pivots"]
   F --> G["Gated SOAR<br/>human approval"]
@@ -110,9 +110,9 @@ flowchart LR
 | Compromised accounts in one campaign | **104** |
 | Attacker pivots | **4** — but **C17693 alone carries 670 of 702 red-team events** |
 | Crown jewels reachable | **16** · total exposure **469 hosts** |
-| **Isolate one host (C17693)** | **cuts 463 hosts of blast radius** |
+| **Isolate one host (C17693)** | **cuts 452 hosts of blast radius** |
 
-**Killer line:** "One machine ran almost the entire campaign. Isolate it, sever 463 hosts."
+**Killer line:** "One machine ran almost the entire campaign. Isolate it, sever 452 hosts."
 
 📸 **SCREENSHOT:** **Attack Graph** (full campaign) — 473-node graph with pivots, crown jewels and the blast-radius panel.
 
@@ -125,10 +125,10 @@ flowchart LR
 | Feature | What it does | Real? |
 |---|---|---|
 | **Analyze any log** | Pick a scenario or **upload your own CSV** — the whole app re-renders on your data | ✅ live per request |
-| **Campaign view** | All **104** compromised accounts in one incident, not one victim | ✅ |
+| **Campaign view** | All **104** compromised accounts in one campaign, not one victim | ✅ |
 | **Per-account drill-down** | Open any account → its own scoped incident, graph and report | ✅ |
 | **Attack-path graph** | Click a host to see every authentication; blast radius across **all** pivots | ✅ |
-| **Live event scoring** | Score a single auth event on stage with the real IsolationForest | ✅ |
+| **Live event scoring** | Score a single auth event on stage with the shipped autoencoder | ✅ |
 | **Next-technique prediction** | Ranked next moves with a real transition probability (e.g. **52.5%**) | ✅ |
 | **Actor attribution** | Ranked ATT&CK group + auditable justification | ✅ transparent retrieval |
 | **Threat Radar** | India-first external CTI mapped to ATT&CK, cross-referenced to *your* incident | ✅ live feeds |
@@ -166,7 +166,7 @@ flowchart TB
   DATA --> E2
 
   subgraph SPINE["SHARED SPINE — runs live, per request"]
-    S["normalize → correlate into ONE incident →<br/>ATT&CK map → attack-path graph → gated SOAR"]
+    S["normalize -> correlate into incidents -><br/>ATT&CK map -> attack-path graph -> gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
   E2 -- "next technique + actor" --> SPINE
@@ -191,7 +191,8 @@ flowchart TB
 | **LANL** (the moat) | **ROC-AUC** | **0.992** | vs **702 real red-team events** |
 | LANL | TPR @ 5% FPR | **96.6%** | 678 / 702 caught |
 | LANL | TPR @ 1% FPR | 87.7% | strict operating point |
-| LANL | Behavioural-only ROC (NTLM ablated) | **0.906** | not a protocol crutch |
+| LANL | Behavioural-only ROC (NTLM ablated) | 0.906 | ROC barely moves |
+| LANL | **Behavioural-only TPR @ 1% FPR (NTLM ablated)** | **22.8%** | **down from 87.7%: NTLM carries most of it** |
 | CIC-IDS2017 | PR-AUC (autoencoder) | **0.570** | best model |
 | CIC-IDS2017 | PR-AUC (IsolationForest) | 0.473 | **3.1× random**, **4.8× rule** |
 | UNSW-NB15 | ROC-AUC | **0.829** | 2nd benchmark, official split |
@@ -280,8 +281,8 @@ flowchart LR
 | Dimension | Today | With nextATT&CKs |
 |---|---|---|
 | **Detection** | ~10-day median dwell | First correlated alert within the log window |
-| **Analyst load** | 1,243 alerts to triage | **1 incident** with a narrative |
-| **Containment** | "Which of 473 hosts?" | **Isolate 1 → cut 463** |
+| **Analyst load** | 1,243 alerts to triage | **51 incidents** with narratives, not 1,243 rows |
+| **Containment** | "Which of 473 hosts?" | **Isolate 1 → cut 452** |
 | **Attribution** | Manual CTI reading | Ranked actor + auditable justification |
 | **External intel** | Separate portal | Cross-referenced to *your* techniques |
 
@@ -329,7 +330,7 @@ flowchart LR
 - **Palette:** deep navy/charcoal background, one accent blue (`#4C8DFF`); red reserved **only** for genuine severity — never decoration.
 - **Typography:** one clean sans for prose; **monospace for every identifier** (C17693, T1550.002, U66@DOM1) — it's the product's signature and reads as "real system".
 - **Density:** one idea per slide. Split any table over ~6 rows across two columns if cramped.
-- **Numbers:** big and bare (`0.992`, `1,243 → 1`, `463`). Let them carry the slide.
+- **Numbers:** big and bare (`0.992`, `1,243 → 1`, `452`). Let them carry the slide.
 - **Do not** use stock hacker imagery (hoodies, matrix code). The screenshots are the credibility.
 
 ---

@@ -1,11 +1,12 @@
-"""Two real LLM providers, bring-your-own-key, and neither one is ever in charge.
+"""Three real LLM providers, bring-your-own-key, and none of them is ever in charge.
 
-OpenAI and Google Gemini. Both optional, both off unless a key is present, and
-the product runs its full deterministic path with no key and no network -- that
-constraint does not move because a provider was added.
+OpenAI, Groq and Google Gemini. All optional, all off unless a key is present,
+and the product runs its full deterministic path with no key and no network --
+that constraint does not move because a provider was added.
 
-    NEXTATTACK_LLM_PROVIDER = off | auto | openai | gemini     (default: OFF)
+    NEXTATTACK_LLM_PROVIDER = off | auto | openai | groq | gemini   (default: OFF)
     OPENAI_API_KEY=...            OPENAI_MODEL=gpt-4o-mini
+    GROQ_API_KEY=...              GROQ_MODEL=openai/gpt-oss-120b
     GEMINI_API_KEY=...            GEMINI_MODEL=gemini-1.5-flash
 
 **A key on its own does nothing.** You must also set NEXTATTACK_LLM_PROVIDER.
@@ -47,26 +48,56 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from dataclasses import dataclass, field
 
 from src.shared.nethttp import fetch_url
 
+# Every provider this module knows about. Named once so a new one cannot be
+# half-added: available(), status() and the key table are all checked against it.
+PROVIDERS = ("openai", "groq", "gemini")
+
+# A local .env is how an operator turns a provider on without exporting into
+# their shell. `override=False` matters: a real environment variable always
+# wins over the file, so a deployment cannot be silently reconfigured by a
+# stray .env that shipped in an image.
 try:
+    from pathlib import Path as _Path
+
     from dotenv import load_dotenv
-    from pathlib import Path
-    _ROOT = Path(__file__).resolve().parents[2]
-    load_dotenv(_ROOT / ".env", override=False)
-except Exception:
+
+    load_dotenv(_Path(__file__).resolve().parents[2] / ".env", override=False)
+except Exception:                                # python-dotenv is optional
     pass
 
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
+# Groq serves an OpenAI-compatible chat-completions API, so the body and the
+# parser below are shared. It is here because it is fast enough that an agent
+# loop stays inside a demo's patience budget.
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GEMINI_URL_FMT = ("https://generativelanguage.googleapis.com/v1beta/models/"
                   "{model}:generateContent")
 
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_GEMINI_MODEL = "gemini-1.5-flash"
+# Verified against GET /openai/v1/models on 2026-08-24. Groq rotates its catalogue
+# and llama-3.3-70b-versatile 404s there now, so the default is one that answers.
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
 
 TIMEOUT = 15
+# A free-tier quota is per minute and the agent lane makes seven calls in a row,
+# so one 429 mid-run is normal rather than exceptional. Two retries at 2s and 4s
+# clear it; anything longer belongs to a queue, not to a request handler.
+RETRIES = 2
+RETRY_BACKOFF = 2.0
+
+
+def _rate_limited(e: Exception) -> bool:
+    """A 429, however the transport chose to spell it."""
+    code = getattr(e, "code", None)
+    return code == 429 or "429" in str(e) or "too many requests" in str(e).lower()
+
+
 MAX_BYTES = 1024 * 1024
 MAX_OUTPUT_TOKENS = 700
 TEMPERATURE = 0.2          # low: we want rewording, not invention
@@ -128,6 +159,8 @@ def available() -> list[str]:
         out.append("openai")
     if _key("GEMINI_API_KEY"):
         out.append("gemini")
+    if _key("GROQ_API_KEY"):
+        out.append("groq")
     return out
 
 
@@ -139,7 +172,7 @@ def chosen_provider() -> str | None:
     have = available()
     if not have:
         return None
-    if want in ("openai", "gemini"):
+    if want in ("openai", "gemini", "groq"):
         return want if want in have else None
     if want == "auto":
         return have[0]
@@ -159,6 +192,8 @@ def status() -> dict:
         "providers": {
             "openai": {"key_present": bool(_key("OPENAI_API_KEY")),
                        "model": os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)},
+            "groq": {"key_present": bool(_key("GROQ_API_KEY")),
+                     "model": os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL)},
             "gemini": {"key_present": bool(_key("GEMINI_API_KEY")),
                        "model": os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)},
         },
@@ -214,6 +249,41 @@ def _openai(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
                      error="" if text else "empty OpenAI response")
 
 
+def _groq(system: str, prompt: str, *, model: str, timeout: int,
+          schema: dict | None = None, max_tokens: int | None = None) -> LLMResult:
+    """OpenAI-compatible, so only the URL, key and provider label differ.
+
+    Two extras the other providers do not take. `schema` uses Groq's json_schema
+    response format, which constrains the decoder rather than asking the model
+    nicely: without it a model handed a schema in the prompt returned a
+    completely different shape AND invented six alerts that were not in any tool
+    output. `max_tokens` exists because the default models here reason before
+    they answer, and a 700-token budget is spent thinking before a valid document
+    is emitted -- the API says so in as many words.
+    """
+    payload = {
+        "model": model,
+        "messages": [{"role": "system", "content": system},
+                     {"role": "user", "content": prompt}],
+        "max_tokens": max_tokens or MAX_OUTPUT_TOKENS,
+        "temperature": TEMPERATURE,
+    }
+    if schema:
+        payload["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {"name": "reply", "strict": True, "schema": schema},
+        }
+    body = json.dumps(payload).encode("utf-8")
+    raw = fetch_url(
+        GROQ_URL,
+        headers={"Content-Type": "application/json",
+                 "Authorization": f"Bearer {_key('GROQ_API_KEY')}"},
+        data=body, timeout=timeout, max_bytes=MAX_BYTES,
+    )
+    text = json.loads(raw)["choices"][0]["message"]["content"].strip()
+    return LLMResult(text=text, provider="groq", model=model, ok=bool(text))
+
+
 def _gemini(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
     body = json.dumps({
         "system_instruction": {"parts": [{"text": system}]},
@@ -239,7 +309,8 @@ def _gemini(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
 
 
 def complete(system: str, prompt: str, *, provider: str | None = None,
-             timeout: int = TIMEOUT, untrusted_seen: str = "") -> LLMResult:
+             timeout: int = TIMEOUT, untrusted_seen: str = "",
+             schema: dict | None = None, max_tokens: int | None = None) -> LLMResult:
     """Ask the configured provider to reword. Returns a result, never raises.
 
     `untrusted_seen` is the third-party text that went into the prompt; it is
@@ -251,23 +322,51 @@ def complete(system: str, prompt: str, *, provider: str | None = None,
     if not name:
         return LLMResult(provider="none", error="no provider configured",
                          injection_flagged=flagged)
-    if not _key("OPENAI_API_KEY" if name == "openai" else "GEMINI_API_KEY"):
+    # A table, not a ternary. The two-provider ternary silently mapped any third
+    # provider onto GEMINI_API_KEY, so groq reported "no API key set" while its
+    # own key was present.
+    key_env = {"openai": "OPENAI_API_KEY", "groq": "GROQ_API_KEY",
+               "gemini": "GEMINI_API_KEY"}.get(name, "")
+    if not key_env or not _key(key_env):
         return LLMResult(provider=name, error=f"{name}: no API key set",
                          injection_flagged=flagged)
 
-    model = (os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL) if name == "openai"
+    model = ({"openai": os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
+              "groq": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)}.get(name)
+             if name in ("openai", "groq")
              else os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL))
-    try:
-        res = (_openai if name == "openai" else _gemini)(
-            system, prompt, model=model, timeout=timeout)
-        res.injection_flagged = flagged
-        return res
-    except Exception as e:
-        # Recorded, not swallowed. Two bare excepts in this repo hid dead code
-        # for weeks; a provider that is failing every call must be visible.
-        return LLMResult(provider=name, model=model,
-                         error=f"{type(e).__name__}: {e}"[:200],
-                         injection_flagged=flagged)
+    last: Exception | None = None
+    for attempt in range(RETRIES + 1):
+        try:
+            if name == "groq":
+                res = _groq(system, prompt, model=model, timeout=timeout,
+                            schema=schema, max_tokens=max_tokens)
+            else:
+                # only groq carries the structured-output path today; the others
+                # fall back to schema-in-the-prompt, which is why they are not the
+                # default for the agent lane
+                res = {"openai": _openai, "gemini": _gemini}[name](
+                    system, prompt, model=model, timeout=timeout)
+            res.injection_flagged = flagged
+            return res
+        except Exception as e:
+            last = e
+            # Only a rate limit is retried, and only a couple of times. A 401 or
+            # a malformed schema fails the same way on every attempt, so retrying
+            # those just multiplies the wait before the user sees the reason.
+            #
+            # This matters because the agent lane makes seven calls back to back
+            # and a free-tier quota is per minute: the third call 429'd, returned
+            # no evidence, and the run fell back to the template looking like a
+            # model failure.
+            if attempt >= RETRIES or not _rate_limited(e):
+                break
+            time.sleep(RETRY_BACKOFF * (attempt + 1))
+    # Recorded, not swallowed. Two bare excepts in this repo hid dead code
+    # for weeks; a provider that is failing every call must be visible.
+    return LLMResult(provider=name, model=model,
+                     error=f"{type(last).__name__}: {last}"[:200],
+                     injection_flagged=flagged)
 
 
 # ─── Self-check ───────────────────────────────────────────────────────────────
@@ -287,7 +386,7 @@ def demo() -> None:
         #    silently start billing the user and shipping incident text out.
         os.environ["OPENAI_API_KEY"] = "sk-test"
         os.environ["GEMINI_API_KEY"] = "g-test"
-        assert available() == ["openai", "gemini"]
+        assert available() == ["openai", "gemini"], available()
         assert chosen_provider() is None, "a present key must not enable a provider"
 
         # 3. Selection is explicit.
@@ -304,7 +403,7 @@ def demo() -> None:
         # 4. status() never leaks a key.
         st = json.dumps(status())
         assert "sk-test" not in st and "g-test" not in st
-        assert st.count("key_present") == 2 and status()["authoritative"] is False
+        assert st.count("key_present") == 3 and status()["authoritative"] is False
 
         # 5. Untrusted text is fenced and cannot close its own fence.
         p = render("sys", context="host=A",
@@ -328,7 +427,8 @@ def demo() -> None:
             if v is not None:
                 os.environ[k] = v
 
-    print(f"llm ok: 2 providers wired (openai, gemini) · requested={_requested()} · "
+    print(f"llm ok: {len(PROVIDERS)} providers wired ({', '.join(PROVIDERS)}) · "
+          f"requested={_requested()} · "
           f"active={chosen_provider() or 'none, offline path'} · "
           f"a key alone does not enable a provider")
 

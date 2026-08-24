@@ -72,6 +72,7 @@ def scoreboard() -> dict:
     ret = m.get("retrieval", {}).get("gold_set", {})
     lanl, cic, unsw = e1.get("lanl", {}), e1.get("cicids", {}), e1.get("unsw", {})
     pred = e2.get("predictor", {})
+    clean = e1.get("clean_log", {})
     am, sc = ps7.get("attack_mapping", {}), ps7.get("soar_coverage", {})
     lat, mttd, mttr = ps7.get("latency_ms", {}), ps7.get("mttd", {}), ps7.get("mttr", {})
     audit, rbac = ps7.get("audit", {}), ps7.get("rbac", {})
@@ -194,7 +195,26 @@ def scoreboard() -> dict:
               dataset="CIC-IDS2017, trained Mon-Wed, tested Thu-Fri",
               sample=_ns("n_windows_test", fmt="{:,} held-out windows"),
               value=_pct(_ns("compromise_roc_auc")), unit="%",
-              baseline={"name": "random", "value": 50.0},
+              # Persistence, not random. Traffic is autocorrelated and attacks
+              # arrive in bursts, so "the current window is compromised" already
+              # predicts the next one well; a coin does not. Scoring this against
+              # 0.5 overstated the result by roughly the whole distance that
+              # matters, and the next-state card a few rows down was already
+              # being held to persistence for exactly this reason.
+              #
+              # scripts/eval_netstate.py now computes it, but the value cannot be
+              # filled in from a clone: it needs the CIC-IDS2017 parquet, which is
+              # not committed. Until that run happens the card reports the
+              # baseline as unmeasured rather than substituting an easier one.
+              baseline=({"name": "persistence (current window's attack rate)",
+                         "value": _pct(_ns("compromise_persistence_roc_auc"))}
+                        if _ns("compromise_persistence_roc_auc") is not None else
+                        {"name": "persistence (current window's attack rate)",
+                         "value": None, "state": "not measured",
+                         "why": ("re-run scripts/eval_netstate.py with the "
+                                 "CIC-IDS2017 parquet; the previous comparison "
+                                 "against random 0.5 was the wrong reference "
+                                 "class and has been withdrawn")}),
               report="reports/netstate.md",
               why=("Needs the CIC-IDS2017 parquet, which is not committed. Run "
                    "python -m scripts.eval_netstate after fetching it."),
@@ -371,6 +391,28 @@ def scoreboard() -> dict:
               value=lat.get("p50"), unit=" ms", higher_is_better=False,
               baseline={"name": "p95", "value": lat.get("p95")},
               report="reports/ps7_eval.md"),
+        # The number this product is worst at, on the same board as the ones it is
+        # best at. A limitation a reader has to go looking for is one the product
+        # is hiding, and this is the first question any operator asks.
+        _card("clean_log_false_positive_rate", "Detection",
+              "Alert rate on a log with no attack in it",
+              definition=("False-positive rate on synthetic logs with ZERO attack events: Zipf "
+                          "destination tail, 3% failed logins, 15% NTLM. The quiet "
+                          "variants with neither hold two of seven features at their "
+                          "most benign constant and score about half this."),
+              dataset="synthetic clean logs with ordinary failure and NTLM rates, seeded",
+              sample=f"{clean.get('shapes_tested', 0)} log shapes, 0 attack events",
+              value=_pct(clean.get("worst_alert_rate")), unit="%",
+              higher_is_better=False,
+              baseline={"name": "best shape tested",
+                        "value": _pct(clean.get("best_alert_rate"))},
+              report="reports/clean_log.md",
+              note=("This is bad and it is not a threshold problem. The behavioural "
+                    "features are corpus-relative with no stored baseline, so they are "
+                    "computed over whatever log was uploaded, and the anchors were "
+                    "measured on LANL. A single log cannot separate 'this corpus differs "
+                    "from the training corpus' from 'this corpus is under attack'. The "
+                    "fix is a persistent per-entity profile, not a different number.")),
         _card("throughput", "Performance", "Largest measured single analysis",
               definition="End-to-end pipeline time at the documented 50,000-event cap.",
               dataset="scaling measurements", sample="best of 3 after warm-up",

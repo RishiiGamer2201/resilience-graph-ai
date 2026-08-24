@@ -1,4 +1,4 @@
-"""PS7 operational evaluation harness — the numbers the scoreboard shows.
+"""PS7 operational evaluation harness -- the numbers the scoreboard shows.
 
 The model metrics (ROC-AUC, PR-AUC, top-k) come from the Engine 1/2 eval scripts.
 This harness measures the OPERATIONAL half of PS7, which nothing else measures:
@@ -59,6 +59,28 @@ def scenarios() -> dict[str, list[str]]:
     return out
 
 
+def _all_alerts(scenario: str) -> list[dict]:
+    """EVERY correlated alert in a scenario, scored as the live pipeline scores it.
+
+    Not `result["signals"]["incident"]["steps"]`: that is the frontend payload,
+    which `views.incident_view` caps at 80 alerts. Measuring ATT&CK coverage over
+    it made the denominator a UI display limit (26+26+80+80 = 212) rather than the
+    1,503 alerts the scenarios actually raise. The cap is right for the UI and
+    stays; the harness correlates the log itself instead.
+    """
+    import numpy as np
+    import pandas as pd
+
+    from src.engine1.lanl_detect import engineer
+    from src.shared.correlate import correlate
+    from src.shared.live_analyze import _prepare, _score
+
+    df = engineer(_prepare(pd.read_csv(SCENARIOS / f"{scenario}.csv")))
+    df["anomaly_score"] = np.nan_to_num(_score(df)[0], nan=0.0, posinf=100.0,
+                                        neginf=0.0).astype(int)
+    return correlate(df)["alerts"]
+
+
 def measure(runs: int = 3) -> dict:
     from src.shared.attack_mapper import RULE_MAP
     from src.shared.soar import TACTIC_ACTIONS
@@ -71,6 +93,7 @@ def measure(runs: int = 3) -> dict:
 
     per_scenario, timings = [], []
     total_alerts = mapped_alerts = 0
+    tech_counts: dict[str, int] = {}
     all_tactics: set[str] = set()
     all_techniques: set[str] = set()
     invalid_ids: set[str] = set()
@@ -83,11 +106,19 @@ def measure(runs: int = 3) -> dict:
             result = investigate(scenario=name, critical_assets=crit)
             durations.append((time.perf_counter() - t) * 1000)
         inc = result["signals"]["incident"]
-        steps = inc["steps"]
-        alerts = [s for s in steps if s.get("is_alert")]
+        alerts = _all_alerts(name)
+        # If this ever trips, the harness's re-correlation has drifted from the
+        # pipeline the investigation ran and every number below is measuring a
+        # different log.
+        assert len(alerts) == inc["alert_count"], (
+            f"{name}: re-correlated {len(alerts)} alerts, pipeline reported "
+            f"{inc['alert_count']}")
         mapped = [s for s in alerts if s.get("technique_id") not in (None, "", "-")]
         total_alerts += len(alerts)
         mapped_alerts += len(mapped)
+        for a in alerts:
+            tid = a.get("technique_id") or "unmapped"
+            tech_counts[tid] = tech_counts.get(tid, 0) + 1
         tactics = {s["tactic"] for s in alerts if s["tactic"] != "Normal"}
         all_tactics |= tactics
         all_techniques |= set(inc["technique_ids"])
@@ -99,7 +130,15 @@ def measure(runs: int = 3) -> dict:
             "scenario": name,
             "events": inc["event_count"],
             "alerts": inc["alert_count"],
-            "incidents": 1,
+            # Was hardcoded to 1, which was true only because correlate()
+            # could not return anything else. Now it is measured.
+            "incidents": inc.get("incident_count", 1),
+            # Share of ingested events that raised an alert. Published because it
+            # is the number that decides whether an analyst can run this, and it
+            # is currently bad: the behavioural features are recomputed per upload
+            # rather than against stored history, so on a small log every first
+            # sighting of a host is "new" and effectively everything alerts.
+            "alert_rate": round(inc["alert_count"] / max(1, inc["event_count"]), 4),
             "alert_reduction_ratio": round(inc["event_count"] / max(1, inc["alert_count"]), 2),
             "techniques": inc["technique_ids"],
             "tactics": sorted(tactics),
@@ -179,6 +218,25 @@ def measure(runs: int = 3) -> dict:
             "alerts": total_alerts,
             "alerts_with_technique": mapped_alerts,
             "coverage": round(mapped_alerts / max(1, total_alerts), 4),
+        # Coverage is 100% and CANNOT be otherwise, which the figure alone hides.
+        # `normal_auth` is the only event type that maps to no technique, and
+        # infer_lanl_event_type returns it only when the score is below the alert
+        # line -- the exact condition that makes an event not an alert. So no
+        # alert can reach the unmapped branch. The number is real and it is also
+        # structural, and both belong next to it.
+        "coverage_is_structural": True,
+        "coverage_caveat": (
+            "100% by construction: the only unmapped event type is returned only "
+            "for events below the alert threshold, so no alert can be unmapped. "
+            "Read the technique distribution below instead -- it is what actually "
+            "says how specific the mapping is."),
+        "technique_distribution": {
+            t: {"alerts": c, "share": round(c / max(1, total_alerts), 4)}
+            for t, c in sorted(tech_counts.items(), key=lambda kv: -kv[1])
+        },
+            "denominator": ("every correlated alert in every shipped scenario -- NOT "
+                            "the incident payload the UI receives, which is capped at "
+                            "80 alerts per scenario for display"),
             "invalid_technique_ids": sorted(invalid_ids),
             "id_validity": round(1.0 - len(invalid_ids) / max(1, len(all_techniques)), 4),
             "ground_truth_precision": None,
@@ -219,14 +277,15 @@ def write_report(m: dict) -> None:
         "# PS7 operational evaluation", "",
         f"Evaluated: {m['evaluated_at']}  ·  {m['runs_per_scenario']} run(s) per scenario",
         "", "## Per scenario", "",
-        "| Scenario | Events | Alerts | Incidents | MTTD | Exposure | Likelihood | "
+        "| Scenario | Events | Alerts | Alert rate | Incidents | MTTD | Exposure | Likelihood | "
         "Evidence conf. | Actionable claims | Citations | Actions (gated) | Executed | "
         "Median latency |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for s in m["scenarios"]:
         lines.append(
-            f"| {s['scenario']} | {s['events']} | {s['alerts']} | {s['incidents']} | "
+            f"| {s['scenario']} | {s['events']} | {s['alerts']} | "
+            f"{s['alert_rate']:.0%} | {s['incidents']} | "
             f"{s['mttd_human']} | "
             f"{s['crown_jewel_exposure'] if s['crown_jewel_exposure'] is not None else 'n/a'} | "
             f"{s['attack_progression_likelihood']} | {s['evidence_confidence']} | "
@@ -238,16 +297,23 @@ def write_report(m: dict) -> None:
         "", "## ATT&CK mapping", "",
         f"- alerts carrying a technique: **{am['coverage']:.1%}** "
         f"({am['alerts_with_technique']} of {am['alerts']})",
+        (f"  - **and it is 100% by construction.** {am['coverage_caveat']}"
+         if am.get("coverage_is_structural") else ""),
+        "",
+        "| Technique | Alerts | Share of alerts |",
+        "|---|---|---|",
+        *[f"| `{t}` | {d['alerts']:,} | {d['share']:.1%} |"
+          for t, d in am.get("technique_distribution", {}).items()],
         f"- emitted technique IDs valid against the canonical ATT&CK lookups: "
         f"**{am['id_validity']:.1%}** (invalid: {am['invalid_technique_ids'] or 'none'})",
-        f"- event->technique precision: **Not measured** — {am['ground_truth_note']}",
+        f"- event->technique precision: **Not measured** -- {am['ground_truth_note']}",
         "", "## SOAR coverage", "",
         f"- observed tactics with a playbook action: **{sc['tactic_coverage']:.1%}** "
         f"({', '.join(sc['tactics_with_playbook_action'])})",
         f"- observed techniques with real MITRE mitigations: "
         f"**{sc['mitigation_coverage']:.1%}**",
         f"- actions executed against a real system: **{sc['actions_executed_against_real_systems']}** "
-        "(by design — every action is simulated and human-gated)",
+        "(by design -- every action is simulated and human-gated)",
         "", "## Latency", "",
         f"- p50 **{lat['p50']:.0f} ms**, p95 **{lat['p95']:.0f} ms**, max {lat['max']:.0f} ms "
         f"over {lat['samples']} runs ({lat['scope']})",

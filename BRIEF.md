@@ -45,7 +45,7 @@ share one root cause.
 | Failure | Why it happens |
 |---|---|
 | Low-and-slow evades signatures | Valid credentials match no known-bad rule. Antivirus, firewalls and threshold rules all look for something unauthorised, and nothing here is. |
-| Alert fatigue | Every event is scored alone, so one intrusion becomes thousands of disconnected alerts. On our real campaign that is 1,243 alerts for 1 attack. Analysts triage rows, miss the pattern, burn out. |
+| Alert fatigue | Every event is scored alone, so one intrusion becomes thousands of disconnected alerts. On our real campaign that is 1,243 alerts, which we cluster into 51 incidents. Analysts triage rows, miss the pattern, burn out. |
 | No blast-radius view | Even when one alert is investigated, nobody can see the path from a compromised workstation to the patient database, or answer the only question that matters mid-incident: which single machine do we unplug first? |
 
 **The root cause and our thesis:** the data needed to catch these attacks already
@@ -78,7 +78,7 @@ a log, a shipped scenario or your own CSV, and all seven stages execute on it.
 flowchart LR
   A["Raw auth log<br/>scenario or CSV"] --> N["1 Normalize<br/>schema + aliases"]
   N --> S["2 Score<br/>0 to 100 anomaly"]
-  S --> C["3 Correlate<br/>alerts to ONE incident"]
+  S --> C["3 Correlate<br/>alerts into incidents"]
   C --> M["4 ATT&CK map<br/>verified technique IDs"]
   M --> G["5 Attack graph<br/>paths + blast radius"]
   G --> R["6 Gated SOAR<br/>human-approved actions"]
@@ -91,7 +91,7 @@ flowchart LR
 - **Stages 1 and 2 are Engine 1 (detection):** turn each raw login into 7 behavioural
   features, then score every event 0 to 100 with a benign-trained autoencoder.
 - **Stages 3 to 6 are the shared spine (understanding and response):** group alerts
-  into ONE incident, map each behaviour to a real MITRE ATT&CK technique, build the
+  into incidents, map each behaviour to a real MITRE ATT&CK technique, build the
   attack-path graph, and recommend human-gated containment.
 - **Stage 7 is Engine 2 (looking forward and outward):** predict the next technique and
   rank the likely threat actor.
@@ -109,7 +109,7 @@ prediction), **detect** (Engine 1), **understand** (correlation and graph),
 | Attack graph | 473 hosts, 484 movements, 4 attacker pivots |
 | Concentration | C17693 alone carries 670 of 702 red-team events |
 | Crown jewels reachable, total exposure | 16 reachable, 469 hosts |
-| Isolate one host (C17693) | cuts 463 hosts of blast radius |
+| Isolate one host (C17693) | cuts 452 hosts of blast radius |
 | Detection | ROC-AUC 0.992 against 702 real labelled attack events, zero attack labels in training. At the 1 percent false-positive operating point it catches 616 of 702 |
 
 ---
@@ -147,7 +147,7 @@ Click any machine to see every authentication involving it. It computes blast ra
 across all attacker pivots, not just one.
 **How it solves the problem:** This is the fix for the missing blast-radius view, the
 feature that answers "which machine do we unplug first." It surfaces the killer
-operational fact: isolate C17693, sever 463 hosts. It also fixed a real bug where
+operational fact: isolate C17693, sever 452 hosts. It also fixed a real bug where
 assuming a single entry point under-reported exposure and wrongly cleared four crown
 jewels; reachability is now unioned over every pivot.
 

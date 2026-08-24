@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-23 12:55 IST",
+  "fetched_at": "2026-08-24 01:20 IST",
   "items": [
     {
       "source": "ET CISO (India)",
@@ -130,6 +130,19 @@
       "iocs": [],
       "india": true,
       "techniques": []
+    },
+    {
+      "source": "BleepingComputer",
+      "title": "ToxicPanda Android malware uses VPN permissions to block Google Play",
+      "published": "2026-08-23 19:53 IST",
+      "url": "https://www.bleepingcomputer.com/news/security/toxicpanda-android-malware-uses-vpn-permissions-to-block-google-play/",
+      "text": "The ToxicPanda Android malware has evolved with new malicious functionality, expanding its targeting to 349 applications and adding support for 167 remote commands. [...]",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1133"
+      ]
     },
     {
       "source": "The Hacker News",
@@ -273,19 +286,6 @@
       "techniques": []
     },
     {
-      "source": "CISA advisories",
-      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
-      "published": "2026-08-21 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/alerts/2026/08/21/cisa-adds-one-known-exploited-vulnerability-catalog",
-      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-73570 Zimbra Collaboration Suite (ZCS) OS Command Injection Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV ",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1059"
-      ]
-    },
-    {
       "source": "The Hacker News",
       "title": "Wazuh and AI For Enhanced SOC Workflows",
       "published": "2026-08-21 16:51 IST",
@@ -308,17 +308,6 @@
       "techniques": [
         "T1068"
       ]
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Hackers abuse FTP server banners to deliver new Windows malware",
-      "published": "2026-08-21 16:30 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/hackers-abuse-ftp-server-banners-to-deliver-new-windows-malware/",
-      "text": "Threat actors are abusing FTP banners to hide commands that deliver two previously undocumented remote access trojans named E4del and PINHOLE. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
     },
     {
       "source": "The Hacker News",
@@ -399,30 +388,6 @@
       ]
     },
     {
-      "source": "CISA advisories",
-      "title": "Johnson Controls Simplex Incident Manager",
-      "published": "2026-08-20 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-232-01",
-      "text": "View CSAF Summary Successful exploitation of this vulnerability could allow a local attacker with low privileges to extract user credentials (passwords and authentication tokens) from system memory, potentially leading to unauthorized access to the application and connected systems. The following versions of Johnson Controls Simplex Incident Manager are affected: Simplex Incident Manager &lt;=V2.01 (CVE-2026-27875) CVSS Vendor Equipment Vulnerabilities v3 5.8 Johnson Controls Inc. Johnson Controls Simplex Incident Manager Cleartext Storage of Sensitive Information in Memory Background Critical",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "CISA advisories",
-      "title": "CISA Adds Two Known Exploited Vulnerabilities to Catalog",
-      "published": "2026-08-20 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/alerts/2026/08/20/cisa-adds-two-known-exploited-vulnerabilities-catalog",
-      "text": "CISA has added two new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-72529 TrueConf Server Missing Authentication for Critical Function Vulnerability &nbsp; CVE-2026-72530 TrueConf Server Code Injection Vulnerability These types of vulnerabilities are a frequent attack vector for malicious cyber actors and pose significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian E",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1055"
-      ]
-    },
-    {
       "source": "CISA KEV",
       "title": "CVE-2026-72530 \u2014 TrueConf Server",
       "published": "2026-08-20",
@@ -455,30 +420,6 @@
       "techniques": []
     },
     {
-      "source": "CISA advisories",
-      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
-      "published": "2026-08-19 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/alerts/2026/08/19/cisa-adds-one-known-exploited-vulnerability-catalog",
-      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-64849 MLflow Server-Side Request Forgery Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV Catalog and require",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1190"
-      ]
-    },
-    {
-      "source": "CISA advisories",
-      "title": "Defending Against an Active Threat to Siemens S7 Series PLCs",
-      "published": "2026-08-19 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-231a",
-      "text": "Executive summary Note: This advisory relates to an active threat to Siemens S7 Series programmable logic controllers (PLCs). However, ongoing PLC targeting activity is broader than Siemens PLCs. All PLC owners and operators should apply relevant mitigations to reduce the risk to their devices and systems. The Siemens-specific content in this advisory should be understood and applied as one subset of the wider threat landscape. Top Mitigations Inventory&nbsp; all Siemens S7 Series programmable logic controllers (PLCs) Apply&nbsp; critical security patches &nbsp; Ensure&nbsp; PLCs are not&nbsp;",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
       "source": "CISA KEV",
       "title": "CVE-2026-64849 \u2014 MLflow MLflow",
       "published": "2026-08-19",
@@ -496,27 +437,117 @@
       ]
     },
     {
-      "source": "CISA advisories",
-      "title": "CISA Malcolm",
-      "published": "2026-08-18 17:30 IST",
-      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-230-01",
-      "text": "View CSAF Summary Successful exploitation of these vulnerabilities could allow an attacker to cause a denial-of-service condition or execute arbitrary code. The following versions of CISA Malcolm are affected: Malcolm &lt;26.06.1 (CVE-2026-55676) Malcolm &lt;26.07.0 (CVE-2026-63133, CVE-2026-63134, CVE-2026-63177) Malcolm &lt;=26.07.1 (CVE-2026-19670, CVE-2026-19671) CVSS Vendor Equipment Vulnerabilities v3 8.8 CISA CISA Malcolm Allocation of Resources Without Limits or Throttling, Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'), Unrestricted Upload of File with ",
-      "tags": [],
-      "iocs": [],
+      "source": "CISA KEV",
+      "title": "CVE-2026-33824 \u2014 Microsoft Internet Key Exchange (IKE) Service Extensions",
+      "published": "2026-08-18",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-33824",
+      "text": "Microsoft Internet Key Exchange (IKE) Service Extensions Double Free Vulnerability. Microsoft Internet Key Exchange (IKE) Service Extensions contains a double free vulnerability that could enable remote code execution.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-33824"
+      ],
       "india": false,
       "techniques": [
         "T1190"
+      ]
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-59310 \u2014 Broadcom VMware vCenter",
+      "published": "2026-08-18",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-59310",
+      "text": "Broadcom VMware vCenter Path Traversal Vulnerability. Broadcom VMware vCenter contains a path traversal vulnerability which could allow a threat actor with network access to vCenter to execute arbitrary code.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-59310"
+      ],
+      "india": false,
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-55040 \u2014 Microsoft SharePoint",
+      "published": "2026-08-18",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-55040",
+      "text": "Microsoft SharePoint Weak Authentication Vulnerability. Microsoft SharePoint contains a weak authentication vulnerability which allows an unauthorized attacker to bypass a security feature over a network.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-55040"
+      ],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-65400 \u2014 Apple macOS",
+      "published": "2026-08-18",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-65400",
+      "text": "Apple macOS Improper Authentication Vulnerability. Apple macOS contains an improper authentication vulnerability that could allow an attacker on the network to authenticate to Screen Sharing without valid credentials.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-65400"
+      ],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2025-62593 \u2014 Ray-Project Ray",
+      "published": "2026-08-17",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-62593",
+      "text": "Ray-Project Ray Code Injection Vulnerability. Ray-Project Ray contains a code injection vulnerability that could allow remote code execution. Developers using Ray as a development tool may be exposed to this vulnerability exploitable through Firefox and Safari.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2025-62593"
+      ],
+      "india": false,
+      "techniques": [
+        "T1190",
+        "T1055"
+      ]
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-20349 \u2014 Cisco Secure Firewall Adaptive Security Appliance (ASA) and Secure Firewall Threat Defense (FTD) ",
+      "published": "2026-08-11",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20349",
+      "text": "Cisco Secure Firewall Adaptive Security Appliance (ASA) and Secure Firewall Threat Defense (FTD) Heap Inspection Vulnerability. Cisco Secure Firewall Adaptive Security Appliance (ASA) and Secure Firewall Threat Defense (FTD) contain a heap inspection vulnerability that could allow an unauthenticated, remote attacker to cause the device to reload unexpectedly, resulting in a denial of service (DoS) condition.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-20349"
+      ],
+      "india": false,
+      "techniques": [
+        "T0814",
+        "T1498"
       ]
     }
   ],
   "india_count": 10,
   "technique_names": {
+    "T0814": "Denial of Service",
     "T1055": "Process Injection",
     "T1059": "Command and Scripting Interpreter",
     "T1068": "Exploitation for Privilege Escalation",
+    "T1133": "External Remote Services",
     "T1190": "Exploit Public-Facing Application",
     "T1195": "Supply Chain Compromise",
     "T1204.002": "Malicious File",
+    "T1498": "Network Denial of Service",
     "T1505": "Server Software Component",
     "T1566": "Phishing",
     "T1584.005": "Botnet"
@@ -534,8 +565,9 @@
     },
     {
       "source": "CISA advisories",
-      "ok": true,
-      "items": 10
+      "ok": false,
+      "items": 0,
+      "note": "HTTP Error 403: Forbidden"
     },
     {
       "source": "The Hacker News",

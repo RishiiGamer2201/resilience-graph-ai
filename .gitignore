@@ -39,13 +39,25 @@ models/*
 __pycache__/
 *.py[cod]
 .venv/
+
+# Secrets. .env.example is the tracked template; .env never is.
+.env
+.env.local
+.env.*.local
 venv/
+
+# Secrets. .env.example is the tracked template; .env never is.
+.env
+.env.local
+.env.*.local
 env/
 
-# Local credentials and machine-specific configuration.
+# Secrets. .env.example is the tracked template; .env never is.
 .env
 .env.*
 !.env.example
+.env.local
+.env.*.local
 frontend/.env.local
 frontend/.env.*.local
 .ipynb_checkpoints/

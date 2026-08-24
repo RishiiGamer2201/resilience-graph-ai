@@ -44,9 +44,14 @@ The short version:
 
 Press **Run investigation**.
 
+> 26 of those 125 events raise an alert, not 125 of 125. Against this scenario's
+> labels that is 74% recall at 100% precision. Say this line if the alert count is
+> visible; it is the number the whole detector rests on.
+
+
 ### 0:15 — The seven stages (20 s)
-The rail fills with real per-node timings; the whole thing lands in about a tenth of
-a second.
+The rail fills with real per-node timings; the whole thing lands in about a fifth of
+a second (median 221 ms, measured in `reports/ps7_eval.md`).
 
 > Seven bounded stages, not an agent loop. Understand, Plan, Evidence, Signals,
 > Replan, Impact, Action. Each one is timed, and each one reports what it could

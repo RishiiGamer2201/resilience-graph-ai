@@ -1,5 +1,5 @@
 """
-Screen-payload transforms — turn a spine `full` incident dict into the JSON each
+Screen-payload transforms -- turn a spine `full` incident dict into the JSON each
 UI screen consumes. Shared by BOTH the offline cache builder (scripts/build_cache.py)
 and the live analysis engine (src/shared/live_analyze.py) so cached and live results
 are identical in shape and computed the same way (no hardcoded numbers).
@@ -24,11 +24,22 @@ ROOT = Path(__file__).resolve().parents[2]
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
 MARKOV = ROOT / "models" / "next_technique_markov.pkl"
 
-# Industry dwell-time reference — a CITATION, not our measurement. Mandiant
+# Industry dwell-time reference -- a CITATION, not our measurement. Mandiant
 # M-Trends 2024 reports a global median attacker dwell time of ~10 days; APT
 # campaigns run longer. We compare our per-log detection latency against it.
 DWELL_CITATION_DAYS = 10
 DWELL_CITATION = "Mandiant M-Trends 2024 - global median dwell ~10 days"
+
+
+def _incident_phrase(inc: dict) -> str:
+    """How many incidents the alerts clustered into, in prose.
+
+    Was the literal "this single incident", which was accurate only while
+    correlate() could not return anything else.
+    """
+    n = inc.get("incident_count", 1)
+    return "a single incident" if n == 1 else f"{n} separate incidents"
+
 
 def _scorecard() -> list[dict]:
     """Model-level benchmark scorecard, read from the canonical metrics store.
@@ -79,7 +90,7 @@ def _human_duration(seconds: int) -> str:
 
 
 def compute_mttd(full: dict) -> dict:
-    """Detection latency measured from the incident's OWN timestamps — the time
+    """Detection latency measured from the incident's OWN timestamps -- the time
     from the first event in the log to the first correlated alert. No hardcoding.
     Industry dwell time is attached as a labelled citation for the weeks→minutes
     comparison, not as our own claim."""
@@ -106,14 +117,14 @@ def compute_mttd(full: dict) -> dict:
 def attackers_view(full: dict) -> list[dict]:
     """Per-account breakdown of the incident/campaign.
 
-    A campaign log covers many compromised accounts; this is the "who" table —
+    A campaign log covers many compromised accounts; this is the "who" table --
     each account's own footprint, computed from its alerts only.
     """
     by_user: dict[str, dict] = {}
     for s in full["incident"]["steps"]:
         if not s.get("is_alert"):
             continue
-        u = s.get("user") or "—"
+        u = s.get("user") or "--"
         a = by_user.setdefault(u, {
             "user": u, "alerts": 0, "hosts": set(), "pivots": set(),
             "techniques": [], "max_score": 0,
@@ -154,7 +165,7 @@ def _account_label(full: dict) -> str:
     users = full["incident"].get("users_involved", [])
     if len(users) > 1:
         return f"{len(users)} accounts"
-    return full.get("victim") or (users[0] if users else "—")
+    return full.get("victim") or (users[0] if users else "--")
 
 
 def _summary(full: dict) -> str:
@@ -162,7 +173,7 @@ def _summary(full: dict) -> str:
     names = _names()
     top = Counter(inc["attack_chain"]).most_common(1)
     tactic = top[0][0] if top else "anomalous"
-    tech = names.get(inc["technique_ids"][0], inc["technique_ids"][0]) if inc["technique_ids"] else "—"
+    tech = names.get(inc["technique_ids"][0], inc["technique_ids"][0]) if inc["technique_ids"] else "--"
     if _is_campaign(full):
         n_users = len(inc["users_involved"])
         pivots = {s["source_host"] for s in inc["steps"] if s.get("is_alert") and s.get("source_host")}
@@ -203,6 +214,12 @@ def incident_view(full: dict) -> dict:
         "max_anomaly_score": inc["max_anomaly_score"],
         "account": _account_label(full), "pivot": full["pivot"],
         "alert_count": inc["alert_count"], "event_count": inc["event_count"],
+        # How many DISTINCT incidents the alerts clustered into. The roll-up
+        # fields above describe the whole log, which is what every screen has
+        # always read; this is the number that says whether "one incident" was
+        # an analytical result or just the shape of the return value. It used
+        # to always be 1 because correlate() could not return anything else.
+        "incident_count": inc.get("incident_count", 1),
         "attack_chain": inc["attack_chain"], "technique_ids": inc["technique_ids"],
         "is_campaign": _is_campaign(full),
         # Both names on purpose: the screens have always read `accounts_involved`,
@@ -242,7 +259,7 @@ def graph_view(full: dict) -> dict:
                 "tactic": s["tactic"],
                 "score": s["anomaly_score"],          # max across the pair's events
                 "explanation": s.get("explanation", ""),
-                # a campaign sends MANY accounts down the same host pair — keep them
+                # a campaign sends MANY accounts down the same host pair -- keep them
                 # all, otherwise filtering the graph by account silently loses edges
                 "users": [s["user"]] if s.get("user") else [],
                 "first_seen": s["timestamp"], "last_seen": s["timestamp"],
@@ -291,7 +308,7 @@ def threat_intel_view(full: dict) -> dict:
                    for r in ranked]
     return {"mapping": mapping, "attribution": attribution,
             "note": "Attribution is transparent profile retrieval over public ATT&CK "
-                    "group usage — not a trained classifier."}
+                    "group usage -- not a trained classifier."}
 
 
 def report_view(full: dict) -> dict:
@@ -304,7 +321,7 @@ def report_view(full: dict) -> dict:
     from src.shared import predictor
     nxt = predictor.top_ids(inc["technique_ids"], 3) if inc["technique_ids"] else []
 
-    crit = ", ".join(g["critical_assets_at_risk"]) or "—"
+    crit = ", ".join(g["critical_assets_at_risk"]) or "--"
     tac = Counter(inc["attack_chain"])
     br = g["blast_radius_size"]
     if _is_campaign(full):
@@ -322,7 +339,8 @@ def report_view(full: dict) -> dict:
             f"From pivot host {full['pivot']}, the account authenticated to "
             f"{br} hosts, reaching the critical asset {crit}. "
             f"{inc['alert_count']} anomaly alerts were correlated from "
-            f"{inc['event_count']} events into this single incident."
+            f"{inc['event_count']} events into "
+            f"{_incident_phrase(inc)}."
         )
     mttd = compute_mttd(full)
     return {
@@ -335,7 +353,7 @@ def report_view(full: dict) -> dict:
         "techniques": [{"technique_id": t, "name": names.get(t, t)} for t in inc["technique_ids"]],
         "attack_path": next(iter(g["paths_to_critical"].values()), []),
         "attributed_actor": ({"actor": top["actor"], "justification": top["justification"]}
-                             if top else {"actor": "—", "justification": "no techniques observed"}),
+                             if top else {"actor": "--", "justification": "no techniques observed"}),
         "predicted_next": [{"technique_id": t, "name": names.get(t, t)} for t in nxt],
         "response_actions": soar["actions"],
         "mitigations": soar.get("mitre_mitigations", []),

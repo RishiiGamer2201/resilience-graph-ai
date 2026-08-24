@@ -25,7 +25,7 @@ flowchart TB
   DATA --> E2
 
   subgraph SPINE["SHARED SPINE — src/shared/live_analyze.py (runs per request)"]
-    S["normalize → correlate into ONE incident →<br/>ATT&CK map → attack-path graph → gated SOAR"]
+    S["normalize → correlate into incidents →<br/>ATT&CK map → attack-path graph → gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
   E2 -- "next technique + actor" --> SPINE
@@ -103,7 +103,7 @@ ET_HACK_26/
 │   ├── engine2/                # build_{sequences,embeddings,predictor} · attribution
 │   └── shared/
 │       ├── parse_attack.py     # ATT&CK STIX (Ent+ICS+Mobile) → attack_lookups.pkl
-│       ├── correlate.py        # alerts → ONE incident
+│       ├── correlate.py        # alerts cluster into incidents
 │       ├── attack_mapper.py    # event → ATT&CK technique (no hallucinated IDs)
 │       ├── attack_graph.py     # networkx graph; blast radius / choke points across ALL pivots
 │       ├── soar.py             # gated response actions
@@ -114,7 +114,7 @@ ET_HACK_26/
 │       └── timeutil.py         # IST timestamps (fixed +5:30, no tzdata needed)
 ├── frontend/                   # Vite + React 19 SPA
 │   └── src/
-│       ├── api.js              # API client + live→cached fallback
+│       ├── api.js              # API client; live model calls fail visibly, no fallback
 │       ├── lib/analysis.jsx    # AnalysisProvider + useScreenData (live bundle overrides sample)
 │       ├── components/         # Layout, Sidebar, Topbar, Card, widgets, IncidentReport
 │       └── screens/            # Login, Analyze, Overview, Attackers, Incident, Graph, ThreatIntel, ThreatRadar, Metrics, Methodology

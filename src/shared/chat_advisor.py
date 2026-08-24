@@ -94,6 +94,36 @@ def _get_rag_citations(query: str, k: int = 4) -> list[dict]:
     return citations
 
 
+
+def _graph_for_scenario(scenario: str) -> dict | None:
+    """Analyse a shipped scenario and return its graph view.
+
+    Falls back to the committed cache, and finally to None -- which the advisor
+    then reports as "not known" rather than inventing. No exception escapes: a
+    chat question must not be able to take the endpoint down.
+    """
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    csv = root / "data" / "demo" / "scenarios" / f"{scenario}.csv"
+    if csv.exists():
+        try:
+            import pandas as pd
+
+            from src.shared.live_analyze import analyze_events
+            return analyze_events(pd.read_csv(csv)).get("graph")
+        except Exception:
+            pass
+    cached = root / "api" / "cache" / "graph.json"
+    if cached.exists():
+        try:
+            return json.loads(cached.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return None
+
+
 def _facts(graph: dict | None, incident_id: str, scenario: str | None) -> dict:
     """Everything the reply is allowed to state, and nothing else.
 
@@ -415,6 +445,13 @@ def ask_advisor(
 ) -> dict:
     """Answer a question about the current incident in plain English."""
     citations = _get_rag_citations(message, k=3)
+    # `scenario` was accepted and never used. A caller that named a scenario but
+    # passed no graph got every fact as None, and the advisor dutifully answered
+    # "the entry host is not known, no critical assets are recorded" about an
+    # incident the system had fully analysed. Absent facts must stay absent, but
+    # facts we can compute are not absent.
+    if not graph and scenario:
+        graph = _graph_for_scenario(scenario)
     f = _facts(graph, incident_id, scenario)
 
     res = _call_llm_advisor(message, f, citations, history=history)

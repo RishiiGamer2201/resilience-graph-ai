@@ -22,6 +22,7 @@ accuracy (meaningless at 0.006% attack prevalence).
 | LANL | TPR @ 1% FPR | **87.7%** (616 of 702 caught) |
 | LANL | TPR @ 5% FPR | 96.6% (678 of 702 caught) |
 | LANL | Behavioural-only ROC (NTLM removed) | 0.906 |
+| LANL | **Behavioural-only TPR @ 1% FPR (NTLM removed)** | **22.8%** (down from 87.7%) |
 | CIC-IDS2017 | PR-AUC, autoencoder | 0.570 |
 | CIC-IDS2017 | PR-AUC, IsolationForest | 0.473 |
 | CIC-IDS2017 | PR-AUC, rule baseline | 0.098 (worse than random) |
@@ -51,10 +52,26 @@ threshold the regression is unusable, F1 0.004 at a
 the 87.7% headline above, which comes from the day-wise
 protocol in `reports/lanl_redteam_detection.md`; the two are not comparable.
 
-The NTLM ablation: 100% of red-team logins used the older NTLM protocol versus
-about 6% of benign, a powerful but evadable signal. Removing it and scoring on
-behaviour alone still gives ROC-AUC 0.906, so detection is
-driven by generalisable behaviour, not one brittle artifact.
+The NTLM ablation, and it goes against us. 100% of red-team logins used the
+older NTLM protocol versus about 6% of benign, so `is_ntlm` is a powerful signal
+and a trivially evadable one -- the attacker switches to Kerberos. Removing it
+and scoring on behaviour alone leaves ROC-AUC almost intact at
+0.906, but **TPR at the 1% false-positive operating point
+collapses from 87.7% to
+22.8%** -- a
+74% relative
+drop. ROC-AUC integrates over every threshold including ones no analyst would
+run at, which is why it barely moves; the operating point is where the detector
+is actually used, and there NTLM is carrying most of the result.
+
+An earlier version of this section reported only the ROC number and concluded
+that detection was "driven by generalisable behaviour, not one brittle
+artifact." That conclusion does not survive its own ablation. The honest
+statement is that this detector is substantially dependent on one evadable
+protocol flag, that the behavioural features alone are a much weaker detector
+than the headline suggests, and that fixing it means adding signal -- Kerberos
+service-ticket behaviour, process and flow telemetry -- not re-describing the
+existing result.
 
 ## 2. Prediction and attribution (Engine 2)
 
@@ -103,7 +120,7 @@ burst appears on both sides.
 
 | Metric | Model | Baseline | |
 |---|---|---|---|
-| Next-window compromise, ROC-AUC | **0.9872** | 0.5 | random |
+| Next-window compromise, ROC-AUC | **0.9872** | _not measured_ | persistence (current window's attack rate) |
 | Next-window compromise, PR-AUC | 0.9333 | | |
 | Attack-rate Brier @ 1 step | **0.02217** | 0.12353 | always predict prevalence |
 | Next-state top-1, online adaptive | **0.3964** | 0.362 | persistence |
@@ -158,7 +175,7 @@ flag distribution; a port-scan signature built from unique destination ports,
 ports per host and SYN-without-ACK rate; and a retransmission rate counted from
 repeated (flow, sequence) pairs carrying payload.
 
-Two readers: Scapy and a stdlib reader. Classic pcap parses with `struct` alone, so the slim
+Two readers: a stdlib reader (Scapy not installed here). Classic pcap parses with `struct` alone, so the slim
 deployed image keeps every packet feature without a new dependency; Scapy is
 used when present because it handles pcapng and awkward link types properly.
 The two are cross-checked on the same file and must agree exactly. That check
@@ -180,7 +197,7 @@ Live run of the full LANL red-team campaign through the complete pipeline.
 
 | Output | Value |
 |---|---|
-| Events analysed, alerts, incidents | 2,732 then 1,243 then 1 |
+| Events analysed, alerts, incidents | 2,732 then 1,243 then 51 |
 | Compromised accounts | 104 |
 | Attack graph | 473 hosts, 484 movements, 4 attacker pivots |
 | Critical assets reachable | 16 |
@@ -218,23 +235,49 @@ clone with no dataset download.
 | SOAR playbook coverage of observed tactics | 100.0% |
 | MITRE mitigation coverage of observed techniques | 100.0% |
 | Actions executed against real systems | 0 (by design) |
-| Investigation latency, p50 then p95 | 790 ms then 1411 ms |
-| Evidence recall@1 then recall@5 | 64.3% then 85.7% |
-| Evidence MRR | 0.717 |
+| Investigation latency, p50 then p95 | 208 ms then 1793 ms |
+| Evidence recall@1 then recall@5 (lexical, the shipped backend) | 64.3% then 85.7% |
+| Evidence MRR (lexical, the shipped backend) | 0.717 |
 | Citation integrity failures | 0 |
 | Audit tampering detected | yes |
 | Unauthorised approval blocked server side | yes |
 | Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
 
+**Which retriever produced those rows: the lexical one, and it is the one that
+ships.** `requirements-deploy.txt` deliberately excludes `chromadb` and
+`sentence-transformers`, so the deployed container answers every query from the
+bundled BM25 index. The retrieval rows above are the numbers that container
+produces, not a better number measured on a machine with more installed.
+
+A semantic retriever (MiniLM + ChromaDB) does score better on a shared subset,
+and it is **full install only, not in the deployed image**:
+
+| Retriever | Recall@1 | Recall@5 | MRR | p50 | In the deployed image |
+|---|---|---|---|---|---|
+| Lexical BM25, bundled | 60.0% | 80.0% | 0.683 | 2.7 ms | **yes, this is what ships** |
+| MiniLM + ChromaDB | 70.0% | 100.0% | 0.850 | 6.3 ms | no, full install only |
+
+Scored over 10 shared queries at k=5; the
+4 queries answerable only from the bundled index
+are excluded from both sides. Full workings in `reports/retrieval_compare.md`.
+
+The cost of shipping the weaker one is
+20 percentage points of recall@5.
+The reason is measured, not assumed: `sentence-transformers` pulls torch for
+1.09 GB of installed dependencies against a 512 MB free-tier instance, and the
+query path loads MiniLM at request time from a weights file that is neither
+vendored nor pre-fetched, so the first query in a fresh container would reach out
+to HuggingFace and break the offline guarantee. ADR 0008 records the decision and
+what would reverse it.
+
 ## 7. Engineering
 
-- 490 automated tests, no network required (pipeline correctness, multi-pivot
+- 553 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
   monotonicity, workflow boundedness and degradation, SSRF guards, and the SPA
   payload contract).
-- Browser end-to-end across 15 user flows, 14 passed.
 - One container: FastAPI serves the built SPA from the same origin. Verify it with
   `scripts/verify.ps1 -Docker` (or `bash scripts/verify.sh --docker`), which builds
   the image and smoke-tests the running container.

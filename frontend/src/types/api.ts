@@ -1198,3 +1198,34 @@ export interface IncidentReportData {
     source: string
   }
 }
+
+/** One run of the reasoning lane: an Investigator agent, then a Critic.
+ *
+ * `refuted` is deliberately a tri-state. `null` means the review never
+ * returned a verdict, which is NOT the same as the hypothesis standing --
+ * rendering it as agreement would claim a corroboration nobody performed. */
+export interface AgentReasoning {
+  method: 'agents' | 'template'
+  provider: string
+  hypothesis: string
+  techniques: string[]
+  confidence: number
+  evidence_ids: string[]
+  /** Citations the agent made up. Dropped in Python, shown here on purpose. */
+  rejected_citations: string[]
+  missing: string[]
+  refuted: boolean | null
+  critic_reasons: string[]
+  alternative: string
+  tool_calls: {
+    agent: string
+    tool: string
+    rows: number
+    error?: string | null
+  }[]
+  notes: string[]
+  authoritative: false
+  incident_id: string
+  workflow_severity?: string
+  workflow_techniques?: string[]
+}

@@ -383,3 +383,72 @@ def test_online_beats_persistence_and_stays_under_the_oracle():
     assert ns["online_top1"] < ns["oracle_top1"], (
         "online must stay below an oracle counted on the test days; at or above "
         "it means future information is leaking into the causal walk")
+
+
+# --------------------------------------------------------------------------- #
+# baselines: the compromise forecast must be scored against persistence        #
+# --------------------------------------------------------------------------- #
+def test_compromise_detection_reports_a_persistence_baseline(model_and_obs):
+    """The compromise warning used to be reported against random (0.5).
+
+    That is the wrong reference class. Attacks arrive in bursts and traffic is
+    autocorrelated, so 'the current window is compromised' is already a strong
+    predictor of the next one -- which is exactly why next-state prediction is
+    scored against persistence a few functions away. This test fails if the
+    persistence comparison is ever dropped again.
+    """
+    from scripts.eval_netstate import compromise_detection
+    model, obs = model_and_obs
+    det = compromise_detection(model, obs)
+    if det.get("state") == "not measured":
+        pytest.skip("synthetic fixture is single-class at this threshold")
+
+    for key in ("persistence_rate_roc_auc", "persistence_binary_roc_auc",
+                "persistence_rate_pr_auc", "beats_persistence",
+                "roc_auc_lift_over_persistence"):
+        assert key in det, f"{key} missing: the persistence baseline was dropped"
+
+    assert 0.0 <= det["persistence_rate_roc_auc"] <= 1.0
+    assert det["beats_persistence"] == (
+        det["roc_auc"] > det["persistence_rate_roc_auc"])
+    assert det["roc_auc_lift_over_persistence"] == pytest.approx(
+        det["roc_auc"] - det["persistence_rate_roc_auc"], abs=1e-9)
+
+
+def test_persistence_baseline_is_strong_when_traffic_is_autocorrelated():
+    """A perfectly autocorrelated stream must give persistence ROC-AUC 1.0.
+
+    This is the whole point of the baseline: on bursty data a forecaster that
+    beats random by a wide margin can still be adding nothing over 'assume no
+    change'. If this ever returns ~0.5 the baseline is not being computed from
+    the current window and the comparison is meaningless.
+    """
+    from sklearn.metrics import roc_auc_score
+    # bursty: long clean runs and long compromised runs, so rates[t] predicts
+    # rates[t+1] everywhere except the two run boundaries
+    rates = np.array([0.0] * 60 + [1.0] * 60 + [0.0] * 60, dtype=float)
+    truth = (rates[1:] > 0.5).astype(int)
+    persistence = rates[:-1]
+    auc = roc_auc_score(truth, persistence)
+    assert auc > 0.95, auc
+    # and the point of the whole test: random is 0.5, so a model reporting 0.98
+    # against 0.5 has claimed a win it may not have against this.
+    assert auc - 0.5 > 0.4, "persistence must be far above random on bursty data"
+
+
+def test_forecast_calibration_carries_both_baselines(model_and_obs):
+    """Brier must be reported against persistence as well as prevalence.
+
+    Prevalence is the easy baseline and the model was already beating it.
+    Persistence is the hard one, and holding next-state to persistence while
+    holding the forecast only to prevalence grades two halves of one model on
+    two different curves.
+    """
+    from scripts.eval_netstate import forecast_calibration
+    model, obs = model_and_obs
+    cal = forecast_calibration(model, obs, horizon=2)
+    assert cal["per_step"], "no horizons scored"
+    for step in cal["per_step"]:
+        assert "brier_persistence_baseline" in step, "persistence baseline dropped"
+        assert "brier_prevalence_baseline" in step
+        assert step["brier_persistence_baseline"] >= 0.0

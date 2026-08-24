@@ -1,7 +1,7 @@
 """Tamper-evident audit chain for evidence and response decisions.
 
-Every consequential act in an investigation — an analysis run, a retrieved
-citation, a proposed containment, an approval, a refusal, an export — is appended
+Every consequential act in an investigation -- an analysis run, a retrieved
+citation, a proposed containment, an approval, a refusal, an export -- is appended
 as a record whose hash covers the record AND the hash before it. Change any
 earlier record and every hash after it stops matching, which `verify()` finds and
 names.
@@ -84,7 +84,7 @@ class AuditChain:
         with self._lock:
             if len(self._records) >= MAX_RECORDS:
                 raise RuntimeError(
-                    f"audit chain is full ({MAX_RECORDS} records) — export and reset")
+                    f"audit chain is full ({MAX_RECORDS} records) -- export and reset")
             prev = self._records[-1]["hash"] if self._records else GENESIS_PREV
             payload = {
                 "seq": len(self._records),
@@ -144,10 +144,10 @@ class AuditChain:
                 return False, f"record {i}: sequence number is {payload.get('seq')}, expected {i}"
             if payload.get("prev_hash") != prev:
                 return False, (f"record {i} ({rec.get('kind')}): prev_hash does not match "
-                               f"record {i - 1} — a record was altered, inserted or removed")
+                               f"record {i - 1} -- a record was altered, inserted or removed")
             expected = record_hash(prev, payload)
             if rec.get("hash") != expected:
-                return False, (f"record {i} ({rec.get('kind')}): content hash mismatch — "
+                return False, (f"record {i} ({rec.get('kind')}): content hash mismatch -- "
                                f"this record's contents were altered after it was written")
             prev = rec["hash"]
         return True, None
@@ -196,8 +196,8 @@ class AuditChain:
         for r in exp["records"]:
             lines.append(
                 f"| {r['seq']} | {r['at']} | {r['kind']} | {r['actor']} ({r['role']}) | "
-                f"{r['incident_id'] or '—'} | {r['decision'] or '—'} | "
-                f"{(r['reason'] or '—')[:90]} |")
+                f"{r['incident_id'] or '--'} | {r['decision'] or '--'} | "
+                f"{(r['reason'] or '--')[:90]} |")
         lines += ["", "## Records", ""]
         for r in exp["records"]:
             lines += [f"### {r['seq']} · {r['kind']}", "",

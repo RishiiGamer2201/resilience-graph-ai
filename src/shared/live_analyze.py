@@ -2,8 +2,8 @@
 Live analysis engine — run the WHOLE spine on an arbitrary event log at request
 time. This is what makes the SOC Command Center actually work rather than replay
 one pre-baked incident: feed it events (a CSV/rows in the common schema) and it
-scores every event with the real IsolationForest, correlates them into one
-incident, builds the attack-path graph, gates SOAR, attributes an actor, and
+scores every event with the shipped autoencoder, correlates the alerts into
+incidents, builds the attack-path graph, gates SOAR, attributes an actor, and
 predicts the next technique — all computed live.
 
     from src.shared.live_analyze import analyze_events
@@ -47,13 +47,107 @@ def _ref():
     return _state["ref"]
 
 
-def _score(df: pd.DataFrame) -> np.ndarray:
-    """Score every row 0-100 with the shipped LANL detector (benign-trained
-    autoencoder, NumPy inference), calibrated with the FIXED score_ref anchors
-    (not batch min/max) so scores are comparable across uploads and consistent
-    with the /score-event endpoint."""
+def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
+    """Score every row 0-100 with the shipped LANL detector.
+
+    Fixed `score_ref` anchors by default, so a score means the same thing across
+    two uploads and matches the /score-event endpoint.
+
+    Out-of-distribution logs are the exception. The shipped anchors were measured
+    on LANL, and a log whose host population is shaped differently lands entirely
+    above the alert line regardless of content -- the measured failure on the
+    synthetic India scenarios, where 125 of 125 events alerted. Those are scored
+    by RANK within themselves, and the returned `calibration` block says so, so
+    no surface can quote such a score as if it were comparable to a LANL one.
+
+    Below MIN_SAMPLE events nothing is claimed at all: a corpus statistic taken
+    over a handful of rows is not a measurement, and saying so is more useful
+    than returning a confident zero.
+    """
     X = df[FEATURES].to_numpy("float64")
-    return detector.scores_0_100(X, _ref())
+    # Rows the detector cannot score at all: a blank destination makes dst_rarity
+    # NaN, and a NaN feature makes the whole reconstruction error NaN. These were
+    # silently coerced to 0 -- the lowest possible score -- so an event with a
+    # missing field looked like the most ordinary event in the log, and nothing
+    # anywhere said how many there were.
+    unscorable = ~np.isfinite(X).all(axis=1)
+    n_unscored = int(unscorable.sum())
+    raw = detector.raw_scores(X)
+    ref = _ref()
+
+    counts = df["destination_host"].value_counts().to_numpy()
+    ood, top1 = detector.out_of_distribution(X, dst_counts=counts)
+    # The EFFECTIVE sample is the number of usable destination observations, not
+    # the row count. A 40-row log with 18 blank destinations has 22 of them, and
+    # judging the verdict on 22 while describing it as 40 produced a note that
+    # argued against itself: "one destination takes 14%, against a 30% limit,
+    # so the anchor does not transfer".
+    usable = int(counts.sum())
+    confidence = detector.sample_confidence(usable)
+
+    if ood:
+        ref = detector.relative_anchors(raw)
+
+    scores = detector.calibrate(raw, ref).round()
+    scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
+
+    # The note states the ACTUAL trigger. It used to describe concentration in
+    # every case, so a 40-row log that tripped the sample gate was told "one
+    # destination takes 9% of the authentications, so the anchor does not
+    # transfer" -- 9% against a 30% threshold argues the opposite, and a log with
+    # no destinations at all was told one took 100%.
+    if confidence == "insufficient":
+        blanks = len(df) - usable
+        shortfall = (f"Only {usable} of {len(df)} events name a destination"
+                     if blanks else f"Only {usable} events")
+        note = (f"{shortfall}. Below {detector.MIN_SAMPLE} there is no corpus to "
+                f"compare against: host rarity, fan-out and the concentration test "
+                f"all need a population. Scores are ranked within what you supplied "
+                f"and should be read as an ordering, not as severities.")
+    elif ood and top1 is not None:
+        note = (f"One destination takes {top1:.0%} of the authentications in this log, "
+                f"against a {detector.CONCENTRATION_LIMIT:.0%} limit. The corpus the "
+                f"detector was calibrated on has a long tail (LANL's busiest "
+                f"destination takes 6%), so the shipped 1%-false-positive anchor does "
+                f"not transfer. Events are RANKED within this log and the top "
+                f"{100 - ref.get('triage_percentile', 80)}% are surfaced for triage. "
+                f"That cut is an operational choice, not a measured false-positive "
+                f"rate, and these scores are not comparable with scores from another log.")
+    elif ood:
+        note = ("This log has no usable destination field, so the corpus test could "
+                "not run. Events are ranked within the log rather than scored on the "
+                "shipped scale.")
+    elif confidence == "low":
+        # The caveat FADES rather than switching off at exactly MIN_SAMPLE. One
+        # extra benign row used to buy the difference between a 21% alert rate
+        # with an explanation and a 73% one with none.
+        note = (f"{len(df)} events. The corpus test passed, but a top-destination "
+                f"share over this few events is noisy -- one busy host moves it "
+                f"several points, where over {detector.RELIABLE_SAMPLE}+ it barely "
+                f"moves. Scores use the shipped scale, and the judgement that this "
+                f"log resembles the calibration corpus is low-confidence at this size.")
+    else:
+        note = ""
+
+    if n_unscored:
+        quality = (f"{n_unscored} of {len(df)} events could not be scored: a blank or "
+                   f"unparseable field leaves the behavioural features undefined for "
+                   f"that row. They are shown at 0 and are NOT evidence of anything "
+                   f"-- an unscored event is missing data, not a quiet one.")
+        note = f"{note} {quality}".strip() if note else quality
+
+    return scores, {
+        "basis": ref.get("basis", "fixed-anchors-lanl"),
+        "out_of_distribution": ood,
+        "insufficient_sample": confidence == "insufficient",
+        "sample_confidence": confidence,
+        "unscored_events": n_unscored,
+        "top_destination_share": top1,
+        # kept beside the verdict because it is informative, and explicitly not
+        # the verdict: it is a log-size test, see detector.out_of_distribution
+        "rarity_shift_sigma": detector.rarity_shift(X),
+        "note": note,
+    }
 
 
 def _prepare(df: pd.DataFrame) -> pd.DataFrame:
@@ -87,7 +181,12 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     critical_assets = set(critical_assets or set())
     df = _prepare(df)
     df = engineer(df)                       # 7 behavioral features, per-user chronological
-    df["anomaly_score"] = _score(df).round().astype(int)
+    scores, calibration = _score(df)
+    # A row with a missing host yields a NaN feature and therefore a NaN score.
+    # astype(int) turned that into 0 with only a RuntimeWarning, so the event we
+    # would most want to look at scored lowest possible. Treat it as unscored.
+    scores = np.nan_to_num(scores, nan=0.0, posinf=100.0, neginf=0.0)
+    df["anomaly_score"] = scores.astype(int)
     if account:
         df = df[df["user"].astype(str) == account]
         if df.empty:
@@ -114,7 +213,11 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             "analyzed_at": fmt_ist(),
             "account": account,
             "accounts_involved": len(incident.get("users_involved", [])),
-            "critical_assets": sorted(critical_assets)}
+            "critical_assets": sorted(critical_assets),
+            # How these scores were calibrated, and whether they are comparable
+            # with any other run. Travels with every bundle so a screen can never
+            # present a log-relative score as if it were the shipped scale.
+            "calibration": calibration}
 
     return {
         "overview": views.overview(full, views.SCORECARD),

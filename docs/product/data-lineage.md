@@ -61,8 +61,10 @@ raw event log (CSV / rows)
       └─ src/engine1/lanl_detect.py::engineer ..... 7 behavioural features, per account,
       │                                             chronological                [computed]
       └─ src/shared/detector.py ................... autoencoder reconstruction error
-      │                                             → 0-100 via fixed anchors    [MODEL]
-      └─ src/shared/correlate.py .................. score ≥ 50 → alert; alerts → ONE incident
+      │                                             → 0-100 via fixed anchors, or
+      │                                             ranked within the log if it is
+      │                                             out-of-distribution           [MODEL]
+      └─ src/shared/correlate.py .................. score >= 50 -> alert; alerts cluster into incidents
       └─ src/shared/attack_mapper.py .............. behaviour → ATT&CK technique  [rule, ID-validated]
       └─ src/shared/attack_graph.py ............... pivots, reachability, paths, choke points
       └─ src/shared/evidence.py ................... official citation per technique [VERIFIED]

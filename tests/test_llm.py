@@ -23,7 +23,8 @@ import pytest
 
 from src.shared import llm
 
-ENV = ("OPENAI_API_KEY", "GEMINI_API_KEY", "OPENAI_MODEL", "GEMINI_MODEL",
+ENV = ("OPENAI_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY",
+       "OPENAI_MODEL", "GEMINI_MODEL", "GROQ_MODEL",
        "NEXTATTACK_LLM_PROVIDER")
 
 
@@ -100,10 +101,14 @@ def test_status_says_it_is_not_authoritative():
 def test_status_never_leaks_a_key(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-super-secret-value")
     monkeypatch.setenv("GEMINI_API_KEY", "AIza-super-secret-value")
+    monkeypatch.setenv("GROQ_API_KEY", "gsk-super-secret-value")
     blob = json.dumps(llm.status())
     assert "sk-super-secret-value" not in blob
     assert "AIza-super-secret-value" not in blob
-    assert blob.count("key_present") == 2
+    assert "gsk-super-secret-value" not in blob
+    # one entry per wired provider, and the count is asserted so adding a
+    # provider without reporting its key state fails here
+    assert blob.count("key_present") == len(llm.PROVIDERS), blob
 
 
 def test_no_key_travels_in_a_url():
@@ -126,13 +131,40 @@ def test_the_health_endpoint_reports_the_layer_without_the_key(monkeypatch):
 # --------------------------------------------------------------------------- #
 # egress                                                                       #
 # --------------------------------------------------------------------------- #
-def test_both_providers_are_on_the_egress_allowlist():
+def test_every_provider_is_on_the_egress_allowlist():
+    """Adding a provider without allowlisting it fails here rather than at runtime."""
     from urllib.parse import urlparse
 
     from src.shared.nethttp import allowed_hosts
     hosts = allowed_hosts()
-    assert urlparse(llm.OPENAI_URL).hostname in hosts
-    assert urlparse(llm.GEMINI_URL_FMT.format(model="m")).hostname in hosts
+    for url in (llm.OPENAI_URL, llm.GROQ_URL, llm.GEMINI_URL_FMT.format(model="m")):
+        assert urlparse(url).hostname in hosts, url
+
+
+def test_groq_sends_its_key_in_a_header_and_can_carry_a_schema(monkeypatch):
+    """Groq is the agent lane's provider, and the only one with structured output.
+
+    Handed a schema in the prompt alone, a model returned a different shape and
+    invented evidence ids; json_schema constrains the decoder instead. The key
+    still travels in a header, never a URL.
+    """
+    seen = {}
+
+    def fake(url, headers=None, data=None, **kw):
+        seen["url"], seen["headers"], seen["body"] = url, headers, json.loads(data)
+        return json.dumps({"choices": [{"message": {"content": '{"a":1}'}}]}).encode()
+
+    monkeypatch.setattr(llm, "fetch_url", fake)
+    monkeypatch.setenv("GROQ_API_KEY", "gsk-test")
+    monkeypatch.setenv("NEXTATTACK_LLM_PROVIDER", "groq")
+    schema = {"type": "object", "properties": {"a": {"type": "integer"}},
+              "required": ["a"], "additionalProperties": False}
+    r = llm.complete("sys", "prompt", schema=schema, max_tokens=1234)
+    assert r.ok and r.provider == "groq"
+    assert seen["headers"]["Authorization"] == "Bearer gsk-test"
+    assert "gsk-test" not in seen["url"]
+    assert seen["body"]["response_format"]["json_schema"]["schema"] == schema
+    assert seen["body"]["max_tokens"] == 1234
 
 
 def test_providers_route_through_the_guard(monkeypatch):

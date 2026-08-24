@@ -25,6 +25,7 @@ L, C, U = M["engine1"]["lanl"], M["engine1"]["cicids"], M["engine1"]["unsw"]
 P, E = M["engine2"]["predictor"], M["engine2"]["embeddings"]
 PS7 = M.get("ps7", {})
 RET = M.get("retrieval", {}).get("gold_set", {})
+CMP = M.get("retrieval", {}).get("comparison", {})
 
 
 def pct(x):
@@ -137,7 +138,7 @@ burst appears on both sides.
 
 | Metric | Model | Baseline | |
 |---|---|---|---|
-| Next-window compromise, ROC-AUC | **{N['compromise_roc_auc']}** | 0.5 | random |
+| Next-window compromise, ROC-AUC | **{N['compromise_roc_auc']}** | {N.get('compromise_persistence_roc_auc') or '_not measured_'} | persistence (current window's attack rate) |
 | Next-window compromise, PR-AUC | {N['compromise_pr_auc']} | | |
 | Attack-rate Brier @ 1 step | **{N['brier_1step']}** | {N['brier_1step_baseline']} | always predict prevalence |
 | Next-state top-1, online adaptive | **{N['online_top1']}** | {N['persistence_top1']} | persistence |
@@ -186,6 +187,48 @@ this model consumes flow records.
 """
 
 
+def retrieval_backend_note() -> str:
+    """Say which retriever produced the retrieval rows, and which one ships.
+
+    The gold-set numbers in section 6 are the LEXICAL index, because that is the
+    only retriever in the deploy image: `requirements-deploy.txt` ships neither
+    chromadb nor sentence-transformers, and the Dockerfile never COPYs the Chroma
+    store. The semantic numbers are real but unshipped, so they get labelled here
+    rather than headlined anywhere. Reasoning and cost recorded in ADR 0008.
+    """
+    lx, sm = CMP.get("lexical"), CMP.get("semantic")
+    if not lx or not sm:
+        return ""
+    return f"""
+**Which retriever produced those rows: the lexical one, and it is the one that
+ships.** `requirements-deploy.txt` deliberately excludes `chromadb` and
+`sentence-transformers`, so the deployed container answers every query from the
+bundled BM25 index. The retrieval rows above are the numbers that container
+produces, not a better number measured on a machine with more installed.
+
+A semantic retriever (MiniLM + ChromaDB) does score better on a shared subset,
+and it is **full install only, not in the deployed image**:
+
+| Retriever | Recall@1 | Recall@5 | MRR | p50 | In the deployed image |
+|---|---|---|---|---|---|
+| Lexical BM25, bundled | {pct(lx['recall_at_1'])} | {pct(lx['recall_at_5'])} | {lx['mrr']:.3f} | {lx['latency_ms_median']} ms | **yes, this is what ships** |
+| MiniLM + ChromaDB | {pct(sm['recall_at_1'])} | {pct(sm['recall_at_5'])} | {sm['mrr']:.3f} | {sm['latency_ms_median']} ms | no, full install only |
+
+Scored over {CMP.get('shared_queries', 0)} shared queries at k={CMP.get('k', 5)}; the
+{CMP.get('bundled_only_queries', 0)} queries answerable only from the bundled index
+are excluded from both sides. Full workings in `reports/retrieval_compare.md`.
+
+The cost of shipping the weaker one is
+{(sm['recall_at_5'] - lx['recall_at_5']) * 100:.0f} percentage points of recall@5.
+The reason is measured, not assumed: `sentence-transformers` pulls torch for
+1.09 GB of installed dependencies against a 512 MB free-tier instance, and the
+query path loads MiniLM at request time from a weights file that is neither
+vendored nor pre-fetched, so the first query in a fresh container would reach out
+to HuggingFace and break the offline guarantee. ADR 0008 records the decision and
+what would reverse it.
+"""
+
+
 def main() -> None:
     caught1 = round(L["tpr_at_1pct_fpr"] * 702)
     if_caught1 = round(L["iforest_tpr_at_1pct_fpr"] * 702)
@@ -219,6 +262,7 @@ accuracy (meaningless at 0.006% attack prevalence).
 | LANL | TPR @ 1% FPR | **{pct(L['tpr_at_1pct_fpr'])}** ({caught1} of 702 caught) |
 | LANL | TPR @ 5% FPR | {pct(L['tpr_at_5pct_fpr'])} ({caught5} of 702 caught) |
 | LANL | Behavioural-only ROC (NTLM removed) | {L['behavioral_only_roc']} |
+| LANL | **Behavioural-only TPR @ 1% FPR (NTLM removed)** | **{pct(L['behavioral_only_tpr_at_1pct_fpr'])}** (down from {pct(L['tpr_at_1pct_fpr'])}) |
 | CIC-IDS2017 | PR-AUC, autoencoder | {C['autoencoder_prauc']:.3f} |
 | CIC-IDS2017 | PR-AUC, IsolationForest | {C['iforest_prauc']:.3f} |
 | CIC-IDS2017 | PR-AUC, rule baseline | {C['rule_prauc']:.3f} (worse than random) |
@@ -235,10 +279,26 @@ and is exported to NumPy weights, so the deployed image needs no deep-learning
 framework and no GPU.
 
 {lr_para}
-The NTLM ablation: 100% of red-team logins used the older NTLM protocol versus
-about 6% of benign, a powerful but evadable signal. Removing it and scoring on
-behaviour alone still gives ROC-AUC {L['behavioral_only_roc']}, so detection is
-driven by generalisable behaviour, not one brittle artifact.
+The NTLM ablation, and it goes against us. 100% of red-team logins used the
+older NTLM protocol versus about 6% of benign, so `is_ntlm` is a powerful signal
+and a trivially evadable one -- the attacker switches to Kerberos. Removing it
+and scoring on behaviour alone leaves ROC-AUC almost intact at
+{L['behavioral_only_roc']}, but **TPR at the 1% false-positive operating point
+collapses from {L['tpr_at_1pct_fpr']:.1%} to
+{L['behavioral_only_tpr_at_1pct_fpr']:.1%}** -- a
+{1 - L['behavioral_only_tpr_at_1pct_fpr'] / L['tpr_at_1pct_fpr']:.0%} relative
+drop. ROC-AUC integrates over every threshold including ones no analyst would
+run at, which is why it barely moves; the operating point is where the detector
+is actually used, and there NTLM is carrying most of the result.
+
+An earlier version of this section reported only the ROC number and concluded
+that detection was "driven by generalisable behaviour, not one brittle
+artifact." That conclusion does not survive its own ablation. The honest
+statement is that this detector is substantially dependent on one evadable
+protocol flag, that the behavioural features alone are a much weaker detector
+than the headline suggests, and that fixing it means adding signal -- Kerberos
+service-ticket behaviour, process and flow telemetry -- not re-describing the
+existing result.
 
 ## 2. Prediction and attribution (Engine 2)
 
@@ -278,7 +338,7 @@ Live run of the full LANL red-team campaign through the complete pipeline.
 
 | Output | Value |
 |---|---|
-| Events analysed, alerts, incidents | {I['event_count']:,} then {I['alert_count']:,} then 1 |
+| Events analysed, alerts, incidents | {I['event_count']:,} then {I['alert_count']:,} then {I.get('incident_count', '?')} |
 | Compromised accounts | 104 |
 | Attack graph | {G['n_nodes']} hosts, {G['n_edges']} movements, {G['n_pivots']} attacker pivots |
 | Critical assets reachable | {len(G['critical_assets_at_risk'])} |
@@ -337,13 +397,13 @@ clone with no dataset download.
 | MITRE mitigation coverage of observed techniques | {mit_cov} |
 | Actions executed against real systems | {executed} (by design) |
 | Investigation latency, p50 then p95 | {p50} ms then {p95} ms |
-| Evidence recall@1 then recall@5 | {r1} then {r5} |
-| Evidence MRR | {mrr} |
+| Evidence recall@1 then recall@5 (lexical, the shipped backend) | {r1} then {r5} |
+| Evidence MRR (lexical, the shipped backend) | {mrr} |
 | Citation integrity failures | {integrity} |
 | Audit tampering detected | {tamper} |
 | Unauthorised approval blocked server side | {denied} |
 | Mean time to respond | Not measured (every action is simulated, so there is no repair to time) |
-
+{retrieval_backend_note()}
 ## 7. Engineering
 
 - {n_tests} automated tests, no network required (pipeline correctness, multi-pivot
@@ -352,7 +412,6 @@ clone with no dataset download.
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability
   monotonicity, workflow boundedness and degradation, SSRF guards, and the SPA
   payload contract).
-- Browser end-to-end across 15 user flows, 14 passed.
 - One container: FastAPI serves the built SPA from the same origin. Verify it with
   `scripts/verify.ps1 -Docker` (or `bash scripts/verify.sh --docker`), which builds
   the image and smoke-tests the running container.
@@ -377,7 +436,12 @@ clone with no dataset download.
 """
     OUT.write_text(md, encoding="utf-8")
     # guard: the style rule bans em/en dashes
-    assert "—" not in md and "–" not in md, "em/en dash leaked into RESULTS.md"
+    # Guard against em/en dashes, NOT hyphens. A repo-wide dash sweep rewrote the
+    # two characters below into ASCII and turned this into `"-" not in md`, which
+    # fires on any hyphen in a 400-line document -- and it asserts AFTER writing,
+    # so every run clobbered RESULTS.md and then exited non-zero. Written as
+    # escapes so a future sweep cannot reach them.
+    assert "\u2014" not in md and "\u2013" not in md, "em/en dash leaked into RESULTS.md"
     print(f"wrote {OUT.relative_to(ROOT)} ({len(md.splitlines())} lines)")
 
 

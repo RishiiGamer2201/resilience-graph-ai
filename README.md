@@ -4,8 +4,10 @@
 
 > Detect low-and-slow attacks in real infrastructure logs, connect weak signals into an
 > explainable MITRE ATT&CK attack chain, predict the attacker's next moves, name the likely
-> actor, cross-reference live external threat intel, and recommend gated containment —
-> cutting detection time from weeks to minutes.
+> actor, cross-reference live external threat intel, and recommend gated containment.
+> On the shipped synthetic scenarios the first correlated alert lands 2 hours into
+> the log; the "weeks" it is compared against is a cited Mandiant dwell median,
+> not something we measured.
 
 An AI-augmented **SOC Command Center**: a FastAPI backend + React SPA where every screen
 renders a **live analysis** of an event log you choose or upload — no hardcoded demo data.
@@ -107,7 +109,7 @@ flowchart TB
   DATA --> E2
 
   subgraph SPINE["SHARED SPINE — live_analyze.py (runs per request)"]
-    S["normalize → correlate into ONE incident →<br/>ATT&CK map → attack-path graph → gated SOAR"]
+    S["normalize -> correlate into incidents -><br/>ATT&CK map -> attack-path graph -> gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
   E2 -- "next technique + actor" --> SPINE
@@ -117,7 +119,7 @@ flowchart TB
   end
 
   subgraph EV["EVIDENCE — evidence.py (two backends, one citation shape)"]
-    IDX["semantic (default when built): MiniLM + ChromaDB over 3,692 chunks<br/>lexical (always available, offline): BM25 + exact-ID boost over 1,545<br/>MITRE ATT&CK · CISA KEV · NVD · CERT-In · hashed, dated, linkable"]
+    IDX["lexical (SHIPPED, offline, always available): BM25 + exact-ID boost over 1,545 chunks<br/>semantic (dev only, never in the deployed image -- ADR 0008): MiniLM + ChromaDB over 3,692<br/>MITRE ATT&CK · CISA KEV · NVD · CERT-In · hashed, dated, linkable"]
   end
 
   subgraph GOV["GOVERNANCE — deterministic, server-side"]
@@ -162,10 +164,10 @@ Full detail (folder tree, request topology, tech-stack table): **[architecture.m
 | Engine | Scores | What it does |
 |---|---|---|
 | **Engine 1 — Real Detection** | Technical Excellence | Unsupervised anomaly / lateral-movement detection on **real data** (CIC-IDS2017, LANL, UNSW-NB15), scored against LANL's red-team ground truth (ROC-AUC **0.992**, TPR **87.7%** at 1% FPR) |
-| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (Markov, **5.4×** the kill-chain baseline) and ranks the likely actor by transparent profile retrieval |
+| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (interpolated Markov, top-3 **38.1%**, **5.4×** the kill-chain baseline) and ranks the likely actor by transparent profile retrieval |
 
-Both feed a **shared spine** that runs live per request: normalize → correlate into one
-incident → ATT&CK map → attack-path graph (choke points, blast radius across all pivots) →
+Both feed a **shared spine** that runs live per request: normalize → correlate alerts into
+incidents → ATT&CK map → attack-path graph (choke points, blast radius across all pivots) →
 confidence-gated SOAR. A **Threat Radar** pulls India-first external CTI (CISA KEV, ET CISO,
 security RSS) and cross-references it with your incident.
 

@@ -6,6 +6,7 @@
   "pivot": "C17693",
   "alert_count": 1243,
   "event_count": 2732,
+  "incident_count": 51,
   "attack_chain": [
     "Lateral Movement",
     "Initial Access",
@@ -75,12 +76,12 @@
     "Initial Access",
     "Initial Access",
     "Initial Access",
-    "Initial Access",
     "Credential Access",
     "Initial Access",
     "Initial Access",
     "Initial Access",
     "Credential Access",
+    "Initial Access",
     "Initial Access",
     "Initial Access",
     "Initial Access",
@@ -676,8 +677,8 @@
     "Initial Access",
     "Lateral Movement",
     "Initial Access",
-    "Initial Access",
     "Lateral Movement",
+    "Initial Access",
     "Lateral Movement",
     "Initial Access",
     "Lateral Movement",
@@ -1067,8 +1068,8 @@
     "Lateral Movement",
     "Credential Access",
     "Lateral Movement",
-    "Lateral Movement",
     "Credential Access",
+    "Lateral Movement",
     "Lateral Movement",
     "Lateral Movement",
     "Lateral Movement",
@@ -1247,8 +1248,8 @@
     "Credential Access",
     "Initial Access",
     "Lateral Movement",
-    "Lateral Movement",
     "Credential Access",
+    "Lateral Movement",
     "Initial Access"
   ],
   "technique_ids": [
@@ -2357,19 +2358,6 @@
     },
     {
       "timestamp": 553051,
-      "user": "U1723@DOM1",
-      "source_host": "C17693",
-      "destination_host": "C2519",
-      "anomaly_score": 61,
-      "event_type": "unusual_successful_login",
-      "tactic": "Initial Access",
-      "technique": "Valid Accounts",
-      "technique_id": "T1078",
-      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
-      "is_alert": true
-    },
-    {
-      "timestamp": 553051,
       "user": "U748@DOM1",
       "source_host": "C17693",
       "destination_host": "C2519",
@@ -2379,6 +2367,19 @@
       "technique": "Brute Force",
       "technique_id": "T1110",
       "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "is_alert": true
+    },
+    {
+      "timestamp": 553051,
+      "user": "U1723@DOM1",
+      "source_host": "C17693",
+      "destination_host": "C2519",
+      "anomaly_score": 61,
+      "event_type": "unusual_successful_login",
+      "tactic": "Initial Access",
+      "technique": "Valid Accounts",
+      "technique_id": "T1078",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "is_alert": true
     },
     {
@@ -2409,19 +2410,6 @@
     },
     {
       "timestamp": 553869,
-      "user": "U1723@DOM1",
-      "source_host": "C17693",
-      "destination_host": "C2519",
-      "anomaly_score": 58,
-      "event_type": "unusual_successful_login",
-      "tactic": "Initial Access",
-      "technique": "Valid Accounts",
-      "technique_id": "T1078",
-      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
-      "is_alert": true
-    },
-    {
-      "timestamp": 553869,
       "user": "U748@DOM1",
       "source_host": "C17693",
       "destination_host": "C2519",
@@ -2431,6 +2419,19 @@
       "technique": "Brute Force",
       "technique_id": "T1110",
       "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "is_alert": true
+    },
+    {
+      "timestamp": 553869,
+      "user": "U1723@DOM1",
+      "source_host": "C17693",
+      "destination_host": "C2519",
+      "anomaly_score": 58,
+      "event_type": "unusual_successful_login",
+      "tactic": "Initial Access",
+      "technique": "Valid Accounts",
+      "technique_id": "T1078",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "is_alert": true
     },
     {

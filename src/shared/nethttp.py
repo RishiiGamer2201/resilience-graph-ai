@@ -52,6 +52,7 @@ ALLOWED_HOSTS: set[str] = {
     # which is why they are called out here and in SECURITY.md.
     "generativelanguage.googleapis.com",
     "api.openai.com",
+    "api.groq.com",
 }
 
 
