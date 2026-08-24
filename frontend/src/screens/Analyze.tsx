@@ -1,5 +1,5 @@
 /**
- * Analyze — run the pipeline on a shipped scenario or on your own CSV.
+ * Analyze - run the pipeline on a shipped scenario or on your own CSV.
  *
  * Two streaming paths, both real Server-Sent Events endpoints, both ending in a
  * `done` frame carrying the full analysis bundle:
@@ -65,7 +65,7 @@ type Lane = 'agents' | 'events'
 
 /** One completed stage of whichever lane is running. Both lanes are normalised
  *  to this so the progression renders once. `ms` and `confidence` are null when
- *  the backend did not send them — they are never defaulted to a number. */
+ *  the backend did not send them - they are never defaulted to a number. */
 interface Stage {
   key: string
   index: number
@@ -251,7 +251,7 @@ export default function Analyze() {
     <PageHeader
       eyebrow="Check security activity"
       title="Analyze a security log"
-      description="Choose a sample or upload a CSV file. The app checks each event, groups related warnings, and explains the attacker behaviors it finds."
+      description="Run a sample or upload a CSV to detect and explain suspicious activity."
       actions={done?.incident ? <SeverityBadge severity={done.incident.severity} /> : null}
     />
   )
@@ -400,7 +400,7 @@ export default function Analyze() {
               <EmptyState
                 icon={FlaskConical}
                 title="No scenarios shipped with this build"
-                detail="The backend returned an empty list. Upload a CSV instead — nothing is substituted here."
+                detail="The backend returned an empty list. Upload a CSV instead - nothing is substituted here."
               />
             ) : null}
 
@@ -462,7 +462,7 @@ export default function Analyze() {
                 >
                   sample incident CSV
                 </a>{' '}
-                — a fictional estate, unrelated to any shipped scenario, that shows the pipeline
+                - a fictional estate, unrelated to any shipped scenario, that shows the pipeline
                 analysing whatever it is given. Its crown jewels are whichever hosts you
                 designate below.
               </p>
@@ -511,7 +511,7 @@ export default function Analyze() {
                 ))}
                 {!crit.length ? (
                   <span className="text-xs text-faint">
-                    None added — each scenario&apos;s own default is used.
+                    None added - each scenario&apos;s own default is used.
                   </span>
                 ) : null}
               </div>

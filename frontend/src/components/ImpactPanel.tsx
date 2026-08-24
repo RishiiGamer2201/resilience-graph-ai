@@ -94,13 +94,6 @@ export function TwinPanel({
           this incident&apos;s attack graph and recompute what the attacker can still reach. The
           live graph is never touched.
         </p>
-        <FinePrint>
-          Named precisely: this is a counterfactual containment twin over the attack graph, not
-          a full cyber-resilience digital twin. A complete twin would also carry synchronised
-          asset, identity, dependency and control state, expected behaviour by operating mode,
-          and — for OT — validated process models with uncertainty. Those are on the roadmap,
-          not on screen.
-        </FinePrint>
         {error ? <ErrorState error={error} /> : null}
       </CardBody>
 
@@ -221,14 +214,14 @@ function Factors({ finding, weights }: { finding: VulnFinding; weights?: Record<
           <li key={name} className="flex flex-wrap items-baseline gap-2 text-xs">
             <span className="w-44 shrink-0 font-mono text-dim">{name.replace(/_/g, ' ')}</span>
             <span className="w-16 shrink-0 font-mono tabular-nums text-text">
-              {fac.value === null ? <NotMeasured why="This factor is unknown for this asset. It is excluded from the weighted average and lowers confidence — it is never scored as zero." /> : fac.value}
+              {fac.value === null ? <NotMeasured why="This factor is unknown for this asset. It is excluded from the weighted average and lowers confidence - it is never scored as zero." /> : fac.value}
             </span>
             <span className="min-w-0 flex-1 text-faint">{fac.fact}</span>
           </li>
         ))}
       </ul>
       <FinePrint>
-        Unknown factors are excluded from the weighted average and lower confidence — they are
+        Unknown factors are excluded from the weighted average and lower confidence - they are
         never scored as zero.
         {weights ? (
           <>
@@ -271,13 +264,8 @@ export function VulnPanel({ vulns }: { vulns: VulnReport | null | undefined }) {
         <>
           <CardBody>
             <p className="text-xs text-dim">
-              {vulns?.total_findings} finding(s) across {vulns?.assets_considered} inventoried
-              assets
-              {vulns?.kev_catalog_size
-                ? `, matched against ${vulns.kev_catalog_size} CISA Known-Exploited entries`
-                : ''}
-              . Ranked by asset criticality, known exploitation, reachability in{' '}
-              <em>this</em> attack graph, technique overlap, severity and evidence freshness.
+              {vulns?.total_findings} findings across {vulns?.assets_considered} assets, ranked
+              for this incident.
             </p>
           </CardBody>
           <Table>

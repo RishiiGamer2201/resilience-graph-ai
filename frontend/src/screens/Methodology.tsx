@@ -1,5 +1,5 @@
 /**
- * Data & methodology — which datasets feed which engine, and the list of
+ * Data & methodology - which datasets feed which engine, and the list of
  * things we say plainly about our own numbers.
  *
  * The honesty notes are the point of this screen. They come from the backend
@@ -27,7 +27,7 @@ export default function Methodology() {
     <PageHeader
       eyebrow="How results were made"
       title="Data, method, and limitations"
-      description="See where the data came from, how each result was calculated, which simple baselines were used, and which claims still need manual verification."
+      description="Review data sources, calculations, baselines, and limits."
     />
   )
 

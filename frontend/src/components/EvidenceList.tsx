@@ -11,7 +11,7 @@
  */
 import { ExternalLink, FileSearch, ShieldCheck } from 'lucide-react'
 import { EmptyState, RevealList } from '@/components/primitives'
-import { FinePrint } from '@/components/Disclosure'
+import { Disclosure, FinePrint } from '@/components/Disclosure'
 import { Badge } from '@/components/ui/badge'
 import type { EvidenceBundle, EvidenceHit } from '@/types/api'
 
@@ -44,12 +44,14 @@ export function EvidenceCard({ hit }: { hit: EvidenceHit }) {
         {hit.published || 'no date stated by source'}
         {hit.retrieved_at ? ` · retrieved ${hit.retrieved_at}` : ''}
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-dim">{hit.excerpt}</p>
+      <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-dim" title={hit.excerpt}>
+        {hit.excerpt}
+      </p>
       <footer className="mt-2 flex flex-wrap items-baseline justify-between gap-2 font-mono text-xs text-faint">
         <span title="Why the retriever returned this chunk">
           why: {hit.match_reason || hit.why_relevant || 'not stated by the retriever'}
         </span>
-        <span title="SHA-256 of the indexed text — the citation is checkable">
+        <span title="SHA-256 of the indexed text - the citation is checkable">
           sha256:{(hit.sha256 ?? '').slice(0, 16)}
           {hit.sha256 ? '…' : 'not reported'}
         </span>
@@ -72,13 +74,15 @@ export default function EvidenceList({
         title="No official source matched"
         detail={
           evidence?.disclosure ??
-          'That is reported, not filled in — a citation we cannot produce is a citation we do not invent.'
+          'That is reported, not filled in - a citation we cannot produce is a citation we do not invent.'
         }
       />
     )
   }
 
   const corpus = Object.entries(evidence?.corpus ?? {})
+  const primary = hits.slice(0, 2)
+  const more = hits.slice(2)
 
   return (
     <div className="space-y-3">
@@ -89,10 +93,22 @@ export default function EvidenceList({
         {evidence?.retrieval ? ` · ${evidence.retrieval}` : ''}
       </div>
       <RevealList className="space-y-2">
-        {hits.map((h) => (
+        {primary.map((h) => (
           <EvidenceCard key={h.chunk_id} hit={h} />
         ))}
       </RevealList>
+      {more.length ? (
+        <Disclosure
+          label={`Show ${more.length} more source${more.length === 1 ? '' : 's'}`}
+          labelOpen="Hide additional sources"
+        >
+          <div className="space-y-2">
+            {more.map((h) => (
+              <EvidenceCard key={h.chunk_id} hit={h} />
+            ))}
+          </div>
+        </Disclosure>
+      ) : null}
       <FinePrint>
         Retrieved document text is treated as evidence, never as instruction. Excerpts are
         sanitised before display.

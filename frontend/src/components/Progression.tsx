@@ -2,7 +2,7 @@
  * Forward simulation: where the attack goes next, and how much to trust it.
  *
  * Two curves, deliberately NOT multiplied together. The bar height is
- * P(the trajectory has reached an impact-stage technique by step k) — monotone,
+ * P(the trajectory has reached an impact-stage technique by step k) - monotone,
  * it cannot fall. The bar opacity and the bottom row are horizon confidence,
  * which decays fast. A step-5 bar at 96% drawn nearly transparent is the honest
  * picture: the model says it is likely, and the model is not worth much that

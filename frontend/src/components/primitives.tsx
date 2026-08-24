@@ -1,5 +1,5 @@
 /**
- * Domain primitives. These are not styling helpers — several of them ARE the
+ * Domain primitives. These are not styling helpers - several of them ARE the
  * product's honesty guarantees, expressed as components so a screen cannot
  * quietly drop one.
  *

@@ -2,7 +2,7 @@
  * Formatting and severity helpers, ported from lib/format.js.
  *
  * Only the pieces the TypeScript screens actually use. The thresholds mirror
- * `api/main.py::_severity` — if the backend's bands move, this moves with them,
+ * `api/main.py::_severity` - if the backend's bands move, this moves with them,
  * because a label that contradicts the number it sits next to is a lie.
  */
 import type { IncidentStep, Severity } from '@/types/api'
@@ -32,7 +32,7 @@ export function severityFromStep(step: IncidentStep): Severity {
 /** LANL timestamps are integer seconds from the capture start; render a clock. */
 export function fmtTime(ts: number | string | undefined): string {
   const n = typeof ts === 'number' ? ts : Number(ts)
-  if (!Number.isFinite(n)) return '—'
+  if (!Number.isFinite(n)) return 'Not available'
   const s = ((Math.floor(n) % 86400) + 86400) % 86400
   const p = (v: number) => String(v).padStart(2, '0')
   return `${p(Math.floor(s / 3600))}:${p(Math.floor((s % 3600) / 60))}:${p(s % 60)}`

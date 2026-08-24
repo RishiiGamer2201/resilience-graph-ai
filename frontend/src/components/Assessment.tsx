@@ -1,5 +1,5 @@
 /**
- * Four numbers, deliberately not collapsed into one — and the claims table that
+ * Four numbers, deliberately not collapsed into one - and the claims table that
  * says what we actually assert.
  *
  * A single "87% attack score" hides which of the four is weak. Anomaly says the

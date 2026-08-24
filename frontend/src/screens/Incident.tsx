@@ -1,12 +1,12 @@
 /**
- * Live incident — the correlated chain, in the order the events happened.
+ * Live incident - the correlated chain, in the order the events happened.
  *
  * `GET /api/incident` is the whole of the left-hand side; `GET /api/scenarios`
  * feeds the replay picker and `GET /api/analyze/stream` re-scores a shipped
  * scenario event by event over SSE. `IncidentReport` adds `GET /api/report`.
  *
  * The old screen carried a paragraph headed "What this means" that asserted the
- * account "appears to reuse stolen authentication material" — a sentence no
+ * account "appears to reuse stolen authentication material" - a sentence no
  * analysis produced. It is not ported. The backend writes its own summary and
  * that summary is in the report card below.
  */
@@ -219,7 +219,7 @@ export default function Incident() {
       <PageHeader
         eyebrow="Event timeline"
         title="How the incident developed"
-        description="Related sign-in events are placed in time order so you can follow the attack from one computer to the next."
+        description="Follow related attack events in time order."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
@@ -368,7 +368,7 @@ export default function Incident() {
             <div className="border-t border-border px-4 py-2 text-xs text-faint">
               The API returns {data.steps_shown.toLocaleString()} of{' '}
               {data.steps_total.toLocaleString()} correlated steps. The remainder is not
-              withheld as a summary — it is simply not in this response.
+              withheld as a summary - it is simply not in this response.
             </div>
           ) : null}
         </Card>
@@ -467,9 +467,9 @@ function StepRow({ step }: { step: IncidentStep }) {
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 font-mono text-xs">
-          <span className="text-text">{step.user ?? '—'}</span>
+          <span className="text-text">{step.user ?? 'Not available'}</span>
           <span className="text-faint">
-            {step.source_host ?? '—'} → {step.destination_host ?? '—'}
+            {step.source_host ?? 'Not available'} → {step.destination_host ?? 'Not available'}
           </span>
           {step.is_alert ? (
             <span className="rounded-full border border-sev-high/40 bg-sev-high/10 px-1.5 text-xs text-sev-high">

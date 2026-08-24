@@ -1,5 +1,5 @@
 /**
- * "Why did you flag this one line?" — the whole computation, read back, for a
+ * "Why did you flag this one line?" - the whole computation, read back, for a
  * single alert.
  *
  * Each stage names the module that produced it and the value it produced, so an

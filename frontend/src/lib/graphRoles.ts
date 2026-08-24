@@ -5,7 +5,7 @@
  * and detail panel all need the same role definitions.
  *
  * Five roles, five tokens, no invented colours. `recommended_isolation` is a
- * sixth distinction and deliberately is NOT a colour — the palette holds five
+ * sixth distinction and deliberately is NOT a colour - the palette holds five
  * legible severity/accent hues and `--sev-low` is the same value as `--accent`,
  * so a sixth would either repeat one or break the token contract. It is drawn
  * as a ring instead.

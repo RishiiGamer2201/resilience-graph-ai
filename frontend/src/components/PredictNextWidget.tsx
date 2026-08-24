@@ -10,7 +10,7 @@
  *     mapped, passed in by the screen.
  *   - It read `result.live`, a field the endpoint does not return, so the badge
  *     always said "cached". The endpoint returns `source`, which distinguishes
- *     an order-2 transition from a bare frequency fallback — a far more useful
+ *     an order-2 transition from a bare frequency fallback - a far more useful
  *     admission, so that is what is shown.
  *
  * Everything here is `predicted`, never observed, and says so.

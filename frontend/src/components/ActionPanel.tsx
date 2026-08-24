@@ -1,5 +1,5 @@
 /**
- * Proposed containment — read as proposals awaiting a human, because that is
+ * Proposed containment - read as proposals awaiting a human, because that is
  * what they are.
  *
  * Every action is simulated; nothing contacts a real system. The gate comes
@@ -157,7 +157,7 @@ function Proposal({
           <span className="font-medium text-sev-critical">
             {refused.status === 403 ? 'Refused by the server' : 'Rejected'}
           </span>{' '}
-          — <span className="font-mono">{refused.message}</span>
+          - <span className="font-mono">{refused.message}</span>
         </div>
       ) : null}
     </div>
@@ -168,7 +168,7 @@ function RfiBlock({ rfi }: { rfi: Rfi | null | undefined }) {
   if (!rfi) return null
   return (
     <Disclosure
-      label={`Request for information — ${rfi.subject}`}
+      label={`Request for information - ${rfi.subject}`}
       labelOpen={`Hide the request for information`}
     >
       <div className="space-y-2">
@@ -180,7 +180,7 @@ function RfiBlock({ rfi }: { rfi: Rfi | null | undefined }) {
           {rfi.questions.map((q) => (
             <li key={q.field}>
               <span className="text-text">{q.ask}</span>
-              <span className="text-faint"> — {q.why}</span>
+              <span className="text-faint"> - {q.why}</span>
             </li>
           ))}
         </ul>
@@ -226,7 +226,7 @@ export default function ActionPanel({
           <span>
             Every action below is <span className="font-medium text-text">simulated</span>.
             Nothing contacts a real system. Actions touching a crown jewel or a wide blast
-            radius require a named human and a written reason, enforced by the API — not by
+            radius require a named human and a written reason, enforced by the API - not by
             hiding the button.
           </span>
         </div>

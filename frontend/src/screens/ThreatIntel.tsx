@@ -61,7 +61,9 @@ function NarrativeCard({ bundle }: { bundle: AnalysisBundle | null }) {
           <ErrorState error={cached.error} />
         ) : narrative ? (
           <>
-            <p className="text-sm leading-relaxed text-text">{narrative}</p>
+            <p className="line-clamp-4 text-sm leading-relaxed text-text" title={narrative}>
+              {narrative}
+            </p>
             <ProvenanceForLane method={lane?.point_b_method} error={lane?.error} />
           </>
         ) : (
@@ -132,7 +134,9 @@ function ActorRow({ match, rank }: { match: ActorMatch; rank: number }) {
         </div>
       )}
 
-      <p className="mt-1.5 text-xs text-faint">{match.justification}</p>
+      <p className="line-clamp-2 mt-1.5 text-xs text-faint" title={match.justification}>
+        {match.justification}
+      </p>
     </div>
   )
 }
@@ -186,7 +190,7 @@ export default function ThreatIntel() {
       <PageHeader
         eyebrow="Known threat comparison"
         title="Does this look like a known attacker?"
-        description="Compare the behaviors seen here with public profiles of known groups. A similarity is a useful clue, but it is not proof of who is responsible."
+        description="Compare observed behavior with public threat profiles."
         actions={
           <Badge variant={source === 'live' ? 'accent' : 'outline'}>
             {source === 'live'
@@ -246,7 +250,7 @@ export default function ThreatIntel() {
           </CardHeader>
           <CardBody>
             <SectionLabel className="mb-2">
-              Ranked candidates — not an identification
+              Ranked candidates - not an identification
             </SectionLabel>
             {attribution.length ? (
               attribution.map((a, i) => <ActorRow key={a.actor} match={a} rank={i + 1} />)
