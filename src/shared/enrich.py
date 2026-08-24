@@ -109,7 +109,10 @@ def enrich_bundle(bundle: dict, *, df: pd.DataFrame | None = None,
                                      progression_likelihood)
 
     inc = bundle.get("incident", {})
-    graph = bundle.get("graph", {})
+    # `or {}` because the key can be present and null. Everything below calls
+    # graph.get(), so a null graph raised AttributeError inside a request that
+    # had already done all its real work.
+    graph = bundle.get("graph") or {}
     critical = list(critical or [])
     incident_id = inc.get("incident_id", "INC-LIVE-001")
 

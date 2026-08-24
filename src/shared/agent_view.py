@@ -209,7 +209,17 @@ def _map_agent_bundle(bundle: dict, agent_summary: dict) -> dict:
     # place of it. `_map_agent_graph` keeps the real nodes/edges and adds its own
     # under `agent_graph`; the attack-path analysis and the digital twin continue
     # to read the host topology they were computed from.
-    bundle["graph"] = _map_agent_graph(agent_summary, bundle.get("graph", {}))
+    # `or bundle["graph"]`, not a bare assignment. _map_agent_graph returns None
+    # when the agent lane emitted no entity nodes, and assigning that dropped the
+    # authoritative host topology on the floor -- the exact thing the comment
+    # above says must never happen. On a shipped scenario the agent lane always
+    # has nodes, so this only ever fired on someone's own log: a real 60-host
+    # graph became null, the map fell back to the bundled sample and showed 473
+    # hosts that were not theirs, blast radius read "not measured", and
+    # designating a crown jewel 500'd in crown_jewel_exposure(None).
+    agent_graph = _map_agent_graph(agent_summary, bundle.get("graph", {}))
+    if agent_graph is not None:
+        bundle["graph"] = agent_graph
 
     if technique_mapping:
         ti = bundle.setdefault("threat_intel", {})
