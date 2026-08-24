@@ -102,6 +102,12 @@ export interface AttackGraph {
   nodes: GraphNode[]
   edges: GraphEdge[]
   entry_host: string | null
+  /** What was named as worth protecting. Empty means nothing was designated --
+   *  a fact distinct from `critical_assets_at_risk` being empty, which means
+   *  something WAS designated and none of it is reachable. Collapsing those
+   *  two into one number is how "no crown jewels were specified" used to read
+   *  as "we checked and nothing critical is at risk". */
+  critical_assets_designated: string[]
   critical_assets_at_risk: string[]
   blast_radius_size: number
   recommended_isolation: string | null

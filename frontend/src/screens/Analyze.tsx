@@ -522,7 +522,10 @@ export default function Analyze() {
                 ))}
                 {!crit.length ? (
                   <span className="text-xs text-faint">
-                    None added - each scenario&apos;s own default is used.
+                    None added. A shipped scenario falls back to its own default; an
+                    uploaded log has none until you add some here, and blast-radius
+                    reachability to a crown jewel will read as &quot;none designated&quot;
+                    rather than being checked.
                   </span>
                 ) : null}
               </div>
