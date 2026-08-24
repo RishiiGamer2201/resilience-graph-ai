@@ -223,7 +223,11 @@ def scoreboard() -> dict:
                     "vector, not over ATT&CK techniques. 24 latent states, exact "
                     "matrix rollout, no sampling. Temporal split, so no day "
                     "appears on both sides. Read the next card before quoting "
-                    "this one.")),
+                    "this one. RESEARCH SURFACE: served by POST "
+                    "/api/netstate/analyze, with no screen, and it feeds no "
+                    "alert, score or severity anywhere else in the product. "
+                    "These numbers are results on CIC-IDS2017, never a claim "
+                    "about a log you analyse here.")),
         _card("netstate_vs_persistence", "Attribution & prediction",
               "Next-state prediction vs a persistence baseline",
               definition=("Top-1 accuracy at predicting the next latent traffic "
@@ -366,10 +370,15 @@ def scoreboard() -> dict:
               dataset="none", report="reports/ps7_eval.md"),
         _card("audit_tamper_detection", "Response & governance",
               "Audit tampering detected",
-              definition=("A record is edited in an exported chain and the chain is "
-                          "re-verified. 1 = the edit was detected and located."),
+              definition=("A record is edited in an exported chain and the chain "
+                          "is re-verified. 1 = the edit was detected and located. "
+                          "This measures DETECTION. Retention is a separate "
+                          "property: the chain is persisted to SQLite and "
+                          "verified across a process restart, and "
+                          "/api/audit/verify reports `durable` so a reader can "
+                          "see which mode is running rather than assume."),
               dataset="synthetic tamper test, run every evaluation",
-              sample="edit + deletion",
+              sample="edit + deletion, plus a restart-and-resume check",
               value=(1 if audit.get("tamper_detected") else 0), unit="",
               baseline={"name": "unlinked log", "value": 0},
               report="reports/ps7_eval.md",

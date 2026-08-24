@@ -375,6 +375,16 @@ def _attempt(name: str, system: str, prompt: str, *, timeout: int,
             # agent lane rather than its default.
             return _gemini(system, prompt, model=model, timeout=timeout)
         except Exception as e:
+            # A provider's 4xx body says WHY. Without it the error reads
+            # "HTTP Error 400: Bad Request", which is not diagnosable -- and a
+            # 400 from a schema or token problem looks identical to a 400 from
+            # a malformed request.
+            detail = getattr(e, "read", None)
+            if callable(detail):
+                try:
+                    e = type(e)(f"{e}: {detail().decode('utf-8', 'replace')[:300]}")
+                except Exception:
+                    pass
             last = e
             # Only a rate limit is retried, and only a couple of times. A 401 or
             # a malformed schema fails the same way on every attempt, so retrying

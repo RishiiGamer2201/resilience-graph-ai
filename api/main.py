@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import io
 import json
+import threading
 import os
 import pickle
 from pathlib import Path
@@ -128,24 +129,36 @@ app.add_middleware(CORSMiddleware,
 
 # --- lazy singletons (loaded once, on first use) ---
 _state: dict = {}
+# Both loaders below are check-then-set on a shared dict, and sync handlers run
+# in FastAPI's threadpool, so two concurrent cold requests could both miss and
+# both load -- including a duplicate pickle.load of the lookups file. Benign
+# under the GIL today, but it is a trap for whoever next puts something
+# non-atomic in _state. audit.py already does this correctly with _chain_lock.
+_state_lock = threading.Lock()
 
 
 def _score_ref():
     """Fixed 0-100 calibration anchors. The detector itself lives in
     src/shared/detector.py (NumPy inference over the exported autoencoder)."""
-    if "ref" not in _state:
-        _state["ref"] = json.loads((CACHE / "score_ref.json").read_text())
-    return _state["ref"]
+    with _state_lock:
+        if "ref" not in _state:
+            _state["ref"] = json.loads((CACHE / "score_ref.json").read_text())
+        return _state["ref"]
 
 
-def _markov():
+def _technique_names() -> dict:
     """Technique display names. The transition model itself is served by
-    src/shared/predictor.py, which owns the artifact format."""
-    if "names" not in _state:
-        with LOOKUPS.open("rb") as f:
-            lk = pickle.load(f)
-        _state["names"] = lk["technique_to_name"]
-    return None, _state["names"], None
+    src/shared/predictor.py, which owns the artifact format.
+
+    Was `_markov()` returning `(None, names, None)`, so every caller wrote
+    `_, names, _ =` and the signature advertised two things that never existed.
+    """
+    with _state_lock:
+        if "names" not in _state:
+            with LOOKUPS.open("rb") as f:
+                lk = pickle.load(f)
+            _state["names"] = lk["technique_to_name"]
+        return _state["names"]
 
 
 def _severity(score: float) -> str:
@@ -242,13 +255,20 @@ class RadarRequest(BaseModel):
 
 
 @app.post("/api/threat-radar")
-def threat_radar_scored(req: RadarRequest):
+def threat_radar_scored(req: RadarRequest,
+                        # The stricter principal, not analyze_principal: this
+                        # route can trigger outbound fetches to third-party CTI
+                        # feeds, and it was reachable with no header at all.
+                        # An egress trigger should not inherit the demo-headers
+                        # concession that exists for EventSource.
+                        p: dict = Depends(_finalist_principal)):
     """Radar cross-referenced against the incident you're investigating.
 
     Scoring runs here (one implementation, `src.shared.osint.relevance`) rather
     than in the frontend. `refresh` re-fetches the free feeds live; if no source
     responds we serve the cache — never an empty radar labelled live.
     """
+    _require(p, "analyze")
     from src.shared.osint import collect as collect_osint, relevance   # noqa: PLC0415
 
     data = None
@@ -300,6 +320,21 @@ def threat_radar_scored(req: RadarRequest):
                        reverse=True)
     data["relevant_count"] = sum(1 for i in data["items"] if i["relevance"]["score"] > 0)
     return data
+
+
+def _limit(p: dict, bucket: str) -> None:
+    """429 when a principal is using more than its share of a costly endpoint.
+
+    Applied to the analyze pipeline and the agent lane only: those are the two
+    that spend CPU seconds and third-party quota. Everything else is a cached
+    read. The refusal is a 429 with Retry-After, not a silent slowdown.
+    """
+    from src.shared import ratelimit
+    ok, wait = ratelimit.check(bucket, p.get("actor") or "anonymous")
+    if not ok:
+        raise HTTPException(
+            429, f"rate limit for '{bucket}': try again in {wait:.0f}s",
+            headers={"Retry-After": str(max(1, int(wait + 0.5)))})
 
 
 def analyze_principal(
@@ -384,7 +419,7 @@ def predict_next(c: Chain, p: dict = Depends(analyze_principal)):
     """
     _require(p, "analyze")
     from src.shared import predictor
-    _, names, _ = _markov()                    # technique_id -> display name
+    names = _technique_names()                 # technique_id -> display name
     top, source = predictor.rank_next(list(c.technique_ids), max(1, c.k))
     preds = [{"rank": i + 1, "technique_id": t, "name": names.get(t, t),
               "score": round(p, 3)}
@@ -400,6 +435,10 @@ def predict_next(c: Chain, p: dict = Depends(analyze_principal)):
 # This is what makes the app WORK rather than replay one baked incident: score
 # every event → correlate → graph → SOAR → attribute → predict, computed live.
 from src.shared.live_analyze import analyze_events, MAX_ROWS   # noqa: E402
+# Moved to src/shared so a library no longer has to import this module back out
+# of the API layer. See src/shared/agent_view.py for why that mattered.
+from src.shared.agent_view import (                                # noqa: E402
+    _agent_pipeline_summary, _map_agent_bundle, _map_agent_graph)
 
 
 async def _read_upload(file: UploadFile) -> bytes:
@@ -494,219 +533,6 @@ def _resolve_use_llm(requested: bool | None) -> bool:
     return bool(requested)
 
 
-def _agent_pipeline_summary(result) -> dict:
-    data = result.as_dict()
-    return {
-        "enabled": True,
-        "status": data["status"],
-        "incident_id": data["incident_id"],
-        "scenario": data["scenario"],
-        "severity": data["severity"],
-        "total_ms": data["total_ms"],
-        "point_b_method": data["point_b_method"],
-        "incident_narrative": data["incident_narrative"],
-        "agent_traces": data["agent_traces"],
-        "ranked_chains": data["ranked_chains"],
-        "chain_explanations": data["chain_explanations"],
-        "predictions": data["predictions"],
-        "evidence_refs": data["evidence_refs"],
-        "notes": data["notes"],
-    }
-
-
-def _agent_trace(agent_summary: dict, agent_name: str) -> dict:
-    for trace in agent_summary.get("agent_traces", []):
-        if trace.get("agent") == agent_name:
-            return trace
-    return {}
-
-
-def _agent_output(agent_summary: dict, agent_name: str) -> dict:
-    return _agent_trace(agent_summary, agent_name).get("output", {}) or {}
-
-
-def _agent_technique_mapping(agent_summary: dict) -> list[dict]:
-    from src.shared.attack_mapper import explanation
-    from src.shared.views import _names
-
-    names = _names()
-    mapped = _agent_output(agent_summary, "intelligence").get("mapped", [])
-    seen: set[str] = set()
-    out: list[dict] = []
-    for item in mapped:
-        tid = item.get("technique_id")
-        if not tid or tid in seen:
-            continue
-        seen.add(tid)
-        out.append({
-            "technique_id": tid,
-            "name": item.get("technique_name") or names.get(tid, tid),
-            "tactic": item.get("tactic") or "",
-            "confidence": item.get("confidence", 0),
-            "method": item.get("method", "agent_intelligence"),
-            "explanation": explanation(tid),
-        })
-    return out
-
-
-def _map_ranked_chains(agent_summary: dict) -> list[dict]:
-    chains = agent_summary.get("ranked_chains") or _agent_output(agent_summary, "prioritizer").get("ranked_chains", [])
-    out = []
-    for i, chain in enumerate(chains, start=1):
-        out.append({
-            **chain,
-            "rank": i,
-            "id": f"chain-{i}",
-            "title": chain.get("entity", f"Threat chain {i}"),
-            "severity": chain.get("risk_band", "low"),
-            "score": chain.get("risk_score", 0),
-            "techniques": chain.get("technique_ids", []),
-            "summary": (
-                f"{chain.get('confirmation', 'unconfirmed')} chain on {chain.get('entity', 'unknown')} "
-                f"with {len(chain.get('technique_ids', []))} ATT&CK technique(s)"
-            ),
-        })
-    return out
-
-
-def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
-    """Map the KB Connector's entity graph as advisory data.
-
-    This graph is not the attack-path topology used by the twin. It may contain
-    users or external IPs, so it must never replace the host graph's nodes/edges.
-    """
-    kb_graph = _agent_output(agent_summary, "kb_connector").get("graph_view", {})
-    observer_nodes = _agent_output(agent_summary, "graph_observer").get("nodes", [])
-    raw_nodes = kb_graph.get("nodes") or observer_nodes
-    raw_edges = kb_graph.get("edges") or []
-
-    if not raw_nodes:
-        return None
-
-    # The KB connector emits an ENTITY graph (users, external IPs). The attack
-    # graph is a HOST topology, and the digital twin simulates containment on it.
-    # Swapping one for the other left the bundle claiming a 28-host blast radius
-    # over a 2-node graph, and made the twin recommend isolating a user account.
-    # Keep both, clearly separated.
-    authoritative_nodes = base_graph.get("nodes")
-    authoritative_edges = base_graph.get("edges")
-
-    entry_host = (
-        base_graph.get("entry_host")
-        or next((c.get("entity") for c in agent_summary.get("ranked_chains", []) if c.get("entity")), None)
-        or raw_nodes[0].get("id")
-    )
-    critical_assets = set(base_graph.get("critical_assets_at_risk", []))
-    nodes = []
-    for node in raw_nodes:
-        node_id = node.get("id")
-        node_type = node.get("type", "host")
-        nodes.append({
-            "id": node_id,
-            "type": node_type,
-            "label": node.get("label", node_id),
-            "critical": bool(node.get("critical") or node_type == "critical_asset" or node_id in critical_assets),
-            "pivot": node_id == entry_host or node_type in {"user", "external_ip"},
-            "entry": node_id == entry_host,
-            "meta": node.get("meta", {}),
-        })
-
-    links = []
-    for edge in raw_edges:
-        src = edge.get("from")
-        dst = edge.get("to")
-        if not src or not dst:
-            continue
-        links.append({
-            "source": src,
-            "target": dst,
-            "from": src,
-            "to": dst,
-            "relation": edge.get("relation", "related"),
-            "technique": edge.get("technique") or "-",
-            "tactic": edge.get("tactic", ""),
-            "score": edge.get("score", 0),
-            "event_count": edge.get("event_count", 1),
-            "users": edge.get("users", []),
-            "first_seen": edge.get("timestamp", edge.get("first_seen", 0)),
-            "last_seen": edge.get("timestamp", edge.get("last_seen", 0)),
-        })
-
-    # The KB connector emits an ENTITY graph (users, hosts, external IPs). The
-    # attack graph is a HOST topology, and the digital twin simulates containment
-    # on it. Swapping one for the other left the bundle reporting a 28-host blast
-    # radius over a 2-node graph, and made the twin recommend isolating
-    # `reception.rao@AIIMS` -- a user account -- with a claimed 100% reduction.
-    # Both views are kept, clearly separated, authoritative one untouched.
-    agent_view = {
-        "nodes": nodes,
-        # the React force graph reads `edges`; 3D consumers usually read `links`
-        "edges": links,
-        "links": links,
-        "n_nodes": len(nodes),
-        "n_edges": len(links),
-        "entry_host": entry_host,
-        "note": ("Entity view from the KB-connector agent. Advisory: the attack-path "
-                 "topology in nodes/edges is authoritative and is what containment "
-                 "is simulated on."),
-    }
-    graph = {**base_graph, "agent_graph": agent_view}
-    if not graph.get("nodes"):
-        # no authoritative topology at all (an empty incident): the agent view is
-        # better than nothing, and is labelled as the source.
-        graph.update({"nodes": nodes, "edges": links, "links": links,
-                      "n_nodes": len(nodes), "n_edges": len(links),
-                      "entry_host": entry_host, "topology_source": "agent"})
-    else:
-        graph.setdefault("topology_source", "attack-path analysis")
-    if not graph.get("attacker_pivots"):
-        graph["attacker_pivots"] = [n["id"] for n in nodes if n["pivot"]][:5]
-    graph["n_pivots"] = len(graph.get("attacker_pivots", []))
-    return graph
-
-
-def _map_agent_bundle(bundle: dict, agent_summary: dict) -> dict:
-    """Map 10-agent output into the standard dashboard bundle shape."""
-    narrative = agent_summary.get("incident_narrative", "")
-    ranked_chains = _map_ranked_chains(agent_summary)
-    technique_mapping = _agent_technique_mapping(agent_summary)
-
-    # ADR 0007: the workflow is authoritative, the agent lane is advisory. Every
-    # field below is ADDITIVE. The deterministic summary, report, host topology
-    # and ATT&CK mapping stay exactly as computed.
-    if narrative:
-        bundle.setdefault("overview", {})["agent_narrative"] = narrative
-        bundle.setdefault("report", {})["agent_narrative"] = narrative
-
-    if ranked_chains:
-        bundle.setdefault("incident", {})["agent_ranked_chains"] = ranked_chains
-        bundle.setdefault("overview", {})["agent_ranked_chains"] = ranked_chains[:5]
-        bundle.setdefault("report", {})["agent_ranked_chains"] = ranked_chains
-
-    # The agent view is attached ALONGSIDE the authoritative topology, never in
-    # place of it. `_map_agent_graph` keeps the real nodes/edges and adds its own
-    # under `agent_graph`; the attack-path analysis and the digital twin continue
-    # to read the host topology they were computed from.
-    bundle["graph"] = _map_agent_graph(agent_summary, bundle.get("graph", {}))
-
-    if technique_mapping:
-        ti = bundle.setdefault("threat_intel", {})
-        ti["agent_mapping"] = technique_mapping
-        ti["agent_validated_technique_ids"] = [m["technique_id"] for m in technique_mapping]
-        ti["agent_note"] = (
-            "A second opinion: these ATT&CK techniques are emitted by the Intelligence "
-            "agent and validated by the orchestrator's schema/evidence gates. The "
-            "authoritative mapping above is unchanged."
-        )
-
-    predictions = agent_summary.get("predictions") or []
-    if predictions:
-        # already agent-prefixed and additive
-        bundle.setdefault("report", {})["agent_predicted_next"] = predictions
-
-    return bundle
-
-
 def _attach_agent_pipeline(bundle: dict, agent_summary: dict) -> dict:
     """Expose 10-agent reasoning without changing the SPA's screen contracts."""
     bundle.setdefault("meta", {})["agent_pipeline"] = agent_summary
@@ -799,6 +625,7 @@ def analyze(req: AnalyzeRequest, p: dict = Depends(analyze_principal)):
     `run_in_threadpool` there and nothing here.
     """
     _require(p, "analyze")
+    _limit(p, "analyze")
     if req.scenario:
         path = SCENARIOS / f"{req.scenario}.csv"
         if not path.exists():
@@ -823,6 +650,7 @@ async def analyze_upload(file: UploadFile = File(...),
                          p: dict = Depends(analyze_principal)):
     """Analyze an uploaded CSV (rows in the common event schema)."""
     _require(p, "analyze")
+    _limit(p, "analyze")
     raw = await _read_upload(file)                  # 413 before anything parses
 
     def work():
@@ -848,6 +676,7 @@ async def analyze_stream(scenario: str, critical_assets: str = "", delay: float 
     from fastapi.responses import StreamingResponse
 
     _require(p, "analyze")
+    _limit(p, "analyze")
     path = SCENARIOS / f"{scenario}.csv"
     if not path.exists():
         raise HTTPException(404, f"unknown scenario '{scenario}'")
@@ -914,8 +743,8 @@ def _check_rag() -> bool:
 
 
 class RetrieveRequest(BaseModel):
-    query: str
-    top_k: int = 10
+    query: str = Field(max_length=4096)
+    top_k: int = Field(default=10, ge=1, le=100)
     source_filter: str | None = None
     domain_filter: str | None = None
     severity_filter: str | None = None
@@ -924,9 +753,9 @@ class RetrieveRequest(BaseModel):
 
 
 class IncidentRetrieveRequest(BaseModel):
-    technique_ids: list[str] = []
-    incident_text: str = ""
-    top_k: int = 15
+    technique_ids: list[str] = Field(default_factory=list, max_length=64)
+    incident_text: str = Field(default="", max_length=8192)
+    top_k: int = Field(default=15, ge=1, le=100)
 
 
 @app.get("/api/rag/status")
@@ -940,11 +769,13 @@ def rag_status():
 
 
 @app.post("/api/retrieve")
-def retrieve_endpoint(req: RetrieveRequest):
+def retrieve_endpoint(req: RetrieveRequest,
+                      p: dict = Depends(analyze_principal)):
     """
     Semantic search over the cybersecurity knowledge corpus.
     Returns ranked chunks from ATT&CK, CISA KEV, CVEs, malware KB, etc.
     """
+    _require(p, "read")
     if not _check_rag():
         raise HTTPException(status_code=503, detail={
             "error": "RAG vector store not built.",
@@ -977,11 +808,13 @@ def technique_context(technique_id: str):
 
 
 @app.post("/api/retrieve/incident")
-def retrieve_for_incident(req: IncidentRetrieveRequest):
+def retrieve_for_incident(req: IncidentRetrieveRequest,
+                          p: dict = Depends(analyze_principal)):
     """
     Retrieve RAG context most relevant to a running incident.
     Combines technique-specific lookups with free-text semantic search.
     """
+    _require(p, "read")
     if not _check_rag():
         raise HTTPException(status_code=503, detail="RAG vector store not built.")
     from src.retrieval.query import retrieve_for_incident
@@ -995,6 +828,92 @@ def retrieve_for_incident(req: IncidentRetrieveRequest):
         "results": results,
         "count": len(results),
     }
+
+
+# --- engine3: the network-state world model --------------------------------
+# This subsystem was 1,200 lines reachable only from eval scripts, while
+# scoreboard.py published its measured numbers to a reviewer. Publishing metrics
+# for something no user of the product can reach is the half of that pair which
+# is not defensible, so it is reachable now.
+#
+# Honest about what it is: research-grade, one route, no screen. /api/netstate/
+# status says so, and the scoreboard cards say so.
+class NetStateRequest(BaseModel):
+    """Flow rows in the CIC-IDS2017 column vocabulary."""
+    flows: list[dict] = Field(min_length=1, max_length=200_000)
+    horizon: int = Field(default=5, ge=1, le=16)
+
+
+@app.get("/api/netstate/status")
+def netstate_status():
+    """Whether the world model can serve, and what it is and is not."""
+    from src.engine3 import netstate as ns
+    ready = ns.MODEL.exists()
+    return {
+        "ready": ready,
+        "model": str(ns.MODEL.name),
+        "n_states": ns.N_STATES,
+        "window": ns.WINDOW,
+        "state_dim": ns.STATE_DIM,
+        "flow_features": list(ns.FLOW_FEATURES),
+        "surface": "API only -- there is no screen for this",
+        "claim": ("A discrete latent state-space model over traffic windows. "
+                  "Its published numbers are research results on CIC-IDS2017, "
+                  "not a claim about the log you analyse elsewhere in this "
+                  "product, and it does not feed any alert, score or severity."),
+        "not_ready_note": None if ready else
+            "train it with python -m scripts.eval_netstate",
+    }
+
+
+@app.post("/api/netstate/analyze")
+def netstate_analyze(req: NetStateRequest, p: dict = Depends(analyze_principal)):
+    """Window the supplied flows, encode each to a latent state, forecast ahead.
+
+    Returns the per-window latent state and the k-step forecast. It deliberately
+    does NOT return a severity or an alert: this model was evaluated on
+    next-window prediction, and the honest thing to hand back is the forecast it
+    was measured on rather than a verdict it was not.
+    """
+    _require(p, "analyze")
+    _limit(p, "analyze")
+    from src.engine3 import netstate as ns
+
+    if not ns.MODEL.exists():
+        raise HTTPException(503, "world model artifact is not built; run "
+                                 "python -m scripts.eval_netstate")
+
+    def work():
+        df = pd.DataFrame(req.flows)
+        missing = [c for c in ns.FLOW_FEATURES if c not in df.columns]
+        if missing:
+            raise HTTPException(
+                422, f"{len(missing)} of {len(ns.FLOW_FEATURES)} flow features "
+                     f"missing, first few: {missing[:5]}")
+        if "label" not in df.columns:
+            df["label"] = 0.0            # unlabelled input is the normal case
+        states, attack_rate = ns.windows(df)
+        if len(states) == 0:
+            raise HTTPException(
+                422, f"need at least {ns.WINDOW} flows to form one window; "
+                     f"got {len(df)}")
+        model = ns.NetStateModel.load()
+        latent = model.encode(states)
+        # forecast() encodes internally, so it takes the 48-dim window states,
+        # not the latent ids. Passing `latent` here broadcast (1,3) against (48,).
+        fc = model.forecast(states, horizon=req.horizon)
+        return {
+            "windows": int(len(states)),
+            "window_size": ns.WINDOW,
+            "latent_state": [int(x) for x in latent],
+            "forecast": fc,
+            "observed_attack_rate": [round(float(a), 4) for a in attack_rate],
+            "authoritative": False,
+            "note": ("Research surface. This model does not feed any alert, "
+                     "score or severity elsewhere in the product."),
+        }
+
+    return work()
 
 
 # --- finalist surface: workflow, evidence, vulnerabilities, twin, RBAC, audit
@@ -1033,6 +952,7 @@ def agents_analyze(req: AgentAnalysisRequest, p: dict = Depends(analyze_principa
     from src.agents.orchestrator import run_pipeline
 
     _require(p, "analyze")
+    _limit(p, "agents")
 
     # Load scenario events (.csv or .parquet)
     csv_file = SCENARIOS / f"{req.scenario}.csv"
@@ -1075,6 +995,7 @@ async def agents_analyze_upload(
     from src.shared.normalize import normalize
 
     _require(p, "analyze")
+    _limit(p, "agents")
     # Outside the try below on purpose: that block turns every exception into a
     # 400, which would have relabelled the 413 as a parse failure.
     contents = await _read_upload(file)
@@ -1125,6 +1046,7 @@ async def agents_stream(
     from src.shared.enrich import enrich_bundle
 
     _require(p, "analyze")
+    _limit(p, "agents")
     path = SCENARIOS / f"{scenario}.csv"
     if not path.exists():
         raise HTTPException(404, f"unknown scenario '{scenario}'")
@@ -1196,6 +1118,7 @@ async def agents_upload_stream(
     from src.shared.normalize import normalize
 
     _require(p, "analyze")
+    _limit(p, "agents")
     raw = await _read_upload(file)                  # 413 before anything parses
     crit = [c.strip() for c in critical_assets.split(",") if c.strip()]
 

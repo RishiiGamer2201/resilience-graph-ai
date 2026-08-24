@@ -33,29 +33,54 @@ from src.agents import AgentResult, AgentStatus
 # ─── Thresholds ────────────────────────────────────────────────────────────────
 HIGH_SCORE_THRESHOLD = 75   # anomaly score that counts as a corroboration signal
 MIN_SIGNALS_CONFIRMED = 2   # minimum independent signals for "confirmed"
+TOTAL_SIGNALS = 5           # evidence index, RAG, anomaly score, multi-chunk, APT
+
+# A probe returns 1 (corroborates), 0 (does not), or UNAVAILABLE (cannot be
+# evaluated here at all). The third state is the whole point: `except: return 0`
+# made "the retriever is not installed" indistinguishable from "no evidence
+# corroborates this technique", and the deploy image ships without chromadb or
+# sentence-transformers, so the RAG probe was silently 0 for EVERY technique
+# while still being counted out of five.
+UNAVAILABLE = None
 
 
-def _evidence_search(tid: str) -> int:
-    """Returns 1 if the evidence index has a citation for this technique ID, else 0."""
+def _evidence_search(tid: str) -> int | None:
+    """1 if the evidence index cites this technique, 0 if not, UNAVAILABLE if
+    the index cannot be consulted."""
     try:
         from src.shared.evidence import repository
-        hits = repository().search(tid, k=1)
-        return 1 if hits else 0
     except Exception:
-        return 0
+        return UNAVAILABLE
+    try:
+        repo = repository()
+    except Exception:
+        return UNAVAILABLE
+    try:
+        return 1 if repo.search(tid, k=1) else 0
+    except Exception:
+        return UNAVAILABLE
 
 
-def _rag_search(tid: str, text: str) -> int:
-    """Returns 1 if semantic RAG retrieval returns a confident match."""
+def _rag_search(tid: str, text: str) -> int | None:
+    """1 on a confident semantic match, 0 on no match, UNAVAILABLE if the
+    vector store is not built or its dependencies are not installed.
+
+    The deploy image excludes chromadb and sentence-transformers on purpose,
+    so UNAVAILABLE is the NORMAL answer in production, not an error.
+    """
     try:
         from src.retrieval.query import RAGQueryEngine
-        rag = RAGQueryEngine()
-        results = rag.retrieve(text or tid, top_k=1, source_filter=["mitre_attack"])
-        if results and results[0].get("score", 0) >= 0.55:
-            return 1
     except Exception:
-        pass
-    return 0
+        return UNAVAILABLE          # dependency absent: the slim deploy image
+    try:
+        rag = RAGQueryEngine()
+    except Exception:
+        return UNAVAILABLE          # store not built
+    try:
+        results = rag.retrieve(text or tid, top_k=1, source_filter=["mitre_attack"])
+    except Exception:
+        return UNAVAILABLE
+    return 1 if results and results[0].get("score", 0) >= 0.55 else 0
 
 
 def _apt_profile_match(tid: str) -> int:
@@ -69,12 +94,32 @@ def _apt_profile_match(tid: str) -> int:
         return 0
 
 
-def _tag_confidence(n_signals: int) -> tuple[str, float]:
+def _tag_confidence(n_signals: int, n_unavailable: int = 0) -> tuple[str, float]:
+    """Corroboration strength as a SHARE OF THE PROBES THAT COULD RUN.
+
+    This used to be `min(0.5 + n_signals * 0.12, 0.95)` -- five constants,
+    inline and uncommented, fitted against nothing, producing a number labelled
+    "confidence" and rendered on screen. In a codebase whose whole argument is
+    that every number carries where it came from, that was the loudest
+    exception.
+
+    It is now a fraction with a stated denominator, which is a thing that can
+    be checked: k corroborating probes out of the n that were able to run.
+    Still not a calibrated probability, and deliberately not called one -- the
+    chain also carries `n_signals` and `n_signals_available` so a reader can
+    see the fraction rather than trust the float.
+
+    `n_unavailable` shrinks the denominator instead of the numerator. The deploy
+    image ships without the vector store, so scoring a missing probe as a
+    failure understated every chain by up to a fifth.
+    """
+    available = max(TOTAL_SIGNALS - n_unavailable, 1)
+    share = min(n_signals, available) / available
     if n_signals >= MIN_SIGNALS_CONFIRMED:
-        return "confirmed", min(0.5 + n_signals * 0.12, 0.95)
-    elif n_signals == 1:
-        return "partially_confirmed", 0.45
-    return "unconfirmed", 0.25
+        return "confirmed", round(share, 3)
+    if n_signals == 1:
+        return "partially_confirmed", round(share, 3)
+    return "unconfirmed", round(share, 3)
 
 
 def run(
@@ -123,17 +168,31 @@ def run(
         technique_texts = " ".join(c.get("point_a_text", "") for c in chunks)
 
         signals: list[str] = []
+        # Probes that could not run at all. Counted separately so the score has
+        # an honest denominator instead of silently losing a fifth of itself.
+        unavailable: list[str] = []
 
         # Signal 1: Evidence index citation for primary technique
+        ev = UNAVAILABLE
         for tid in technique_ids[:2]:
-            if tid and _evidence_search(tid):
+            if not tid:
+                continue
+            ev = _evidence_search(tid)
+            if ev == 1:
                 signals.append(f"evidence_index:{tid}")
                 break
+            if ev == 0:
+                break
+        if ev is UNAVAILABLE:
+            unavailable.append("evidence_index")
 
         # Signal 2: RAG retrieval match
         primary_tid = technique_ids[0] if technique_ids else ""
-        if primary_tid and _rag_search(primary_tid, technique_texts):
+        rag = _rag_search(primary_tid, technique_texts) if primary_tid else UNAVAILABLE
+        if rag == 1:
             signals.append(f"rag_match:{primary_tid}")
+        elif rag is UNAVAILABLE:
+            unavailable.append("rag_match")
 
         # Signal 3: High anomaly score
         if max_score >= HIGH_SCORE_THRESHOLD:
@@ -149,7 +208,7 @@ def run(
                 signals.append(f"apt_profile_match:{tid}")
                 break
 
-        tag, conf = _tag_confidence(len(signals))
+        tag, conf = _tag_confidence(len(signals), len(unavailable))
         for tid in technique_ids:
             evidence_refs.append(tid)
 
@@ -166,6 +225,10 @@ def run(
             "confidence": conf,
             "corroborating_signals": signals,
             "n_signals": len(signals),
+            # The denominator. Without these two a reader cannot tell a genuine
+            # 2-of-5 from a 2-of-4 where the fifth probe was never installed.
+            "n_signals_available": TOTAL_SIGNALS - len(unavailable),
+            "signals_unavailable": unavailable,
         })
 
     confirmed = sum(1 for c in chains if c["confirmation"] == "confirmed")

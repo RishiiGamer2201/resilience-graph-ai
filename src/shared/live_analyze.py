@@ -129,6 +129,23 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     else:
         note = ""
 
+    # A collapsed scale LEADS the note, because it is not a question of how much
+    # to trust the ordering -- there is no ordering. It does not replace what is
+    # already there: a log can be both uniform and short of destinations, and
+    # overwriting one caveat with the other loses a fact the reader needs.
+    if ref.get("collapsed"):
+        collapse = (f"Every event in this log produces the same anomaly score, so "
+                    f"there is no distribution to rank within: the median and the "
+                    f"triage cut coincide. That happens when the log is perfectly "
+                    f"uniform -- one account, one source, one destination, repeated "
+                    f"-- which is what a password spray, a scripted beacon or an "
+                    f"automated loop looks like, and equally what {len(df)} ordinary "
+                    f"repeated logons look like. The detector CANNOT TELL THOSE APART "
+                    f"from this log alone. Treat the "
+                    f"score as a placeholder, not a severity, and note that the count "
+                    f"of alerts here reflects the feature space rather than the traffic.")
+        note = f"{collapse} {note}".strip() if note else collapse
+
     if n_unscored:
         quality = (f"{n_unscored} of {len(df)} events could not be scored: a blank or "
                    f"unparseable field leaves the behavioural features undefined for "
@@ -139,6 +156,9 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     return scores, {
         "basis": ref.get("basis", "fixed-anchors-lanl"),
         "out_of_distribution": ood,
+        # No distribution to rank within: see relative_anchors. Travels with the
+        # bundle so a screen cannot present a collapsed scale as a severity.
+        "scale_collapsed": bool(ref.get("collapsed")),
         "insufficient_sample": confidence == "insufficient",
         "sample_confidence": confidence,
         "unscored_events": n_unscored,
@@ -169,6 +189,54 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+# Only `insufficient` caps, and the reason is the detector's own definition of
+# the two words: below MIN_SAMPLE=30 "no corpus statistic means anything", while
+# below RELIABLE_SAMPLE=300 the statistic is "noisy, not absent". A noisy
+# statistic still carries signal and should not have its verdict overridden; an
+# absent one should.
+#
+# Capping `low` as well was tried and reverted. It is the stricter reading, but
+# it downgraded both shipped 125-event scenarios from critical to high on a
+# sample the code itself says is usable -- trading a real finding for a caveat
+# that was already printed beside it.
+_SEV_CAP = {"insufficient": "medium"}
+
+
+def _cap_severity(incident: dict, cal: dict) -> None:
+    """Do not report a severity the sample cannot support.
+
+    `correlate._severity` is `max(anomaly_score)` and nothing else. Under
+    `relative_anchors` the top of ANY distribution is 100, so a twelve-row log
+    of self-authentications came back `critical` -- while the calibration block
+    sitting beside it already said `sample_confidence: insufficient`.
+
+    The caveat was computed and published and then nothing consumed it. This
+    consumes it. The cap is stated in the incident so the reduction is visible
+    rather than silent, and the original is kept so nothing is lost.
+    """
+    conf = cal.get("sample_confidence")
+    cap = _SEV_CAP.get(conf)
+    if cal.get("scale_collapsed"):
+        # Independent of sample size: a thousand identical events have an "ok"
+        # sample and still no distribution to rank within, so the 100 that comes
+        # out of a collapsed scale is not a severity. This is the case
+        # sample_confidence alone could never catch.
+        cap = "medium"
+        conf = "a collapsed score scale"
+    if not cap:
+        return
+    order = ["low", "medium", "high", "critical"]
+    was = incident.get("severity")
+    if was not in order or order.index(was) <= order.index(cap):
+        return
+    incident["severity"] = cap
+    incident["severity_uncapped"] = was
+    incident["severity_note"] = (
+        f"reported as {cap}, not {was}: the sample is {conf} "
+        f"({cal.get('note') and 'see the calibration note' or 'too small'}), "
+        f"and a severity is only as good as the distribution behind it")
+
+
 def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
                    incident_id: str = "INC-LIVE-001", account: str | None = None) -> dict:
     """Run score → correlate → graph → SOAR → attribute → report on `df` live.
@@ -181,6 +249,14 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
     critical_assets = set(critical_assets or set())
     df = _prepare(df)
     df = engineer(df)                       # 7 behavioral features, per-user chronological
+
+    # Per-entity history, when a store is configured and has enough in it.
+    # Off by default on purpose: recomputing these features invalidates every
+    # number in reports/, which was measured on file-local ones. See
+    # src/shared/baseline.py. `baseline_state` travels with the bundle so a
+    # screen can say which mode produced the scores.
+    from src.shared import baseline
+    df, base_st = baseline.apply(df)
     scores, calibration = _score(df)
     # A row with a missing host yields a NaN feature and therefore a NaN score.
     # astype(int) turned that into 0 with only a RuntimeWarning, so the event we
@@ -193,6 +269,7 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             raise ValueError(f"no events for account '{account}' in this log")
 
     incident = correlate(df, incident_id=incident_id)
+    _cap_severity(incident, calibration)
     g = build_graph(incident, critical_assets=critical_assets)
     ga = analyze(g, critical_assets=critical_assets)
     soar = recommend(incident, ga)
@@ -217,7 +294,10 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             # How these scores were calibrated, and whether they are comparable
             # with any other run. Travels with every bundle so a screen can never
             # present a log-relative score as if it were the shipped scale.
-            "calibration": calibration}
+            "calibration": calibration,
+            # Which feature mode produced these scores: file-local (the default,
+            # and what every published metric was measured on) or history-backed.
+            "baseline": base_st}
 
     return {
         "overview": views.overview(full, views.SCORECARD),

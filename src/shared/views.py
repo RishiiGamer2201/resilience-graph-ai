@@ -211,6 +211,11 @@ def incident_view(full: dict) -> dict:
     alerts = [s for s in inc["steps"] if s["is_alert"]][:80]   # cap payload
     return {
         "incident_id": inc["incident_id"], "severity": inc["severity"],
+        # A capped severity must carry why, or the reduction is as silent as the
+        # inflation it replaced. Absent when nothing was capped.
+        **({"severity_uncapped": inc["severity_uncapped"],
+            "severity_note": inc["severity_note"]}
+           if "severity_uncapped" in inc else {}),
         "max_anomaly_score": inc["max_anomaly_score"],
         "account": _account_label(full), "pivot": full["pivot"],
         "alert_count": inc["alert_count"], "event_count": inc["event_count"],
