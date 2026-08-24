@@ -9,6 +9,9 @@
  *                        self-reported confidence.
  *   /api/analyze/stream  the deterministic lane replaying each event's real
  *                        score, one `step` frame at a time.
+ *   /api/agents/stream/upload
+ *                        the same 10-agent lane over a file you supply. A POST,
+ *                        because an uploaded CSV cannot be a query string.
  *
  * The stage progression IS the animation on this screen: a stage advancing is a
  * state change, which is the one thing motion is for here. Reduced motion drops
@@ -33,7 +36,14 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { techniqueList } from '@/lib/techniques'
 
-import { agentStreamUrl, analyzeUpload, getScenarios, readEventStream, streamUrl } from '@/lib/api'
+import {
+  agentStreamUploadInit,
+  agentStreamUploadUrl,
+  agentStreamUrl,
+  getScenarios,
+  readEventStream,
+  streamUrl,
+} from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalysis } from '@/providers/analysis'
 import { DURATION, EASE, fadeUp } from '@/lib/motion'
@@ -56,7 +66,6 @@ import type {
   AgentProgress,
   AnalysisBundle,
   AnalyzeStreamStep,
-  ApiError,
   Scenario,
   ScenarioList,
 } from '@/types/api'
@@ -140,7 +149,13 @@ export default function Analyze() {
 
   /** Both lanes share this: open the stream, normalise its progress frames into
    *  Stage, and land the `done` bundle. */
-  function open(url: string, which: Lane, progressEvent: string, toStage: (d: unknown) => Stage | null) {
+  function open(
+    url: string,
+    which: Lane,
+    progressEvent: string,
+    toStage: (d: unknown) => Stage | null,
+    init?: { method?: string; body?: BodyInit },
+  ) {
     const controller = new AbortController()
     streamController.current = controller
     let completed = false
@@ -170,6 +185,7 @@ export default function Analyze() {
         }
       },
       controller.signal,
+      init,
     ).then(() => {
       if (!completed) throw new Error('The stream closed before returning a completed analysis.')
     }).catch((cause: unknown) => {
@@ -183,22 +199,27 @@ export default function Analyze() {
     })
   }
 
+  /** One mapper, because both agent lanes emit the same `progress` frame. It
+   *  was inline in the scenario lane, which is part of why the upload lane
+   *  never grew one. */
+  const agentStage = (d: unknown): Stage | null => {
+    const p = asAgentProgress(d)
+    if (!p) return null
+    return {
+      key: `${p.stage_num}-${p.agent}`,
+      index: p.stage_num,
+      total: p.total_stages,
+      name: p.name,
+      detail: p.summary,
+      ms: num(p.ms),
+      confidence: num(p.confidence),
+    }
+  }
+
   function runAgents(s: Scenario) {
     const critical = crit.length ? crit : s.critical_default
     reset('agents', `Running the 10-agent pipeline on ${s.label}`)
-    open(agentStreamUrl(s.name, critical), 'agents', 'progress', (d) => {
-      const p = asAgentProgress(d)
-      if (!p) return null
-      return {
-        key: `${p.stage_num}-${p.agent}`,
-        index: p.stage_num,
-        total: p.total_stages,
-        name: p.name,
-        detail: p.summary,
-        ms: num(p.ms),
-        confidence: num(p.confidence),
-      }
-    })
+    open(agentStreamUrl(s.name, critical), 'agents', 'progress', agentStage)
   }
 
   function runEvents(s: Scenario) {
@@ -222,26 +243,16 @@ export default function Analyze() {
     })
   }
 
-  async function runUpload() {
+  function runUpload() {
     if (!file) return
-    streamController.current?.abort()
-    setLane('agents')
-    setBusy(true)
-    setError(null)
-    setStatus(`Analysing ${file.name}`)
-    setStages([])
-    setCurrent(null)
-    setDone(null)
-    try {
-      const bundle = await analyzeUpload(file, crit)
-      setBundle(bundle)
-      setDone(bundle)
-      setStatus('Analysis complete. The bundle is loaded into the console.')
-    } catch (e) {
-      setError(e as ApiError)
-    } finally {
-      setBusy(false)
-    }
+    reset('agents', `Running the 10-agent pipeline on ${file.name}`)
+    open(
+      agentStreamUploadUrl(),
+      'agents',
+      'progress',
+      agentStage,
+      agentStreamUploadInit(file, crit),
+    )
   }
 
   const progress = current && current.total ? current.index / current.total : done ? 1 : 0
@@ -476,12 +487,12 @@ export default function Analyze() {
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 />
               </label>
-              <Button className="w-fit" disabled={busy || !file} onClick={() => void runUpload()}>
+              <Button className="w-fit" disabled={busy || !file} onClick={runUpload}>
                 {busy && lane === 'agents' && !stages.length ? status : 'Analyze upload'}
               </Button>
               <FinePrint>
-                The upload path is a single request, not a stream, so it reports one stage: the
-                result. It runs the same pipeline.
+                Your file runs the same ten-agent pipeline as the shipped scenarios, and
+                streams the same per-agent trace while it does.
               </FinePrint>
             </CardBody>
           </Card>
