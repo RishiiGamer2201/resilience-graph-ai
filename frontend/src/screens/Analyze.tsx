@@ -49,6 +49,7 @@ import { useAnalysis } from '@/providers/analysis'
 import { DURATION, EASE, fadeUp } from '@/lib/motion'
 
 import { PageHeader } from '@/components/Layout'
+import BaselineLearningBanner from '@/components/BaselineLearningBanner'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -270,6 +271,8 @@ export default function Analyze() {
   return (
     <>
       {header}
+
+      <BaselineLearningBanner baseline={done?.meta?.baseline} />
 
       {/* ── Execution monitor ────────────────────────────────────────────── */}
       {busy || stages.length > 0 || done || error ? (

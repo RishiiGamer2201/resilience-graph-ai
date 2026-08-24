@@ -189,6 +189,20 @@ def _map_agent_graph(agent_summary: dict, base_graph: dict) -> dict | None:
 
 def _map_agent_bundle(bundle: dict, agent_summary: dict) -> dict:
     """Map 10-agent output into the standard dashboard bundle shape."""
+    if (bundle.get("meta", {}).get("baseline", {}).get("allow_operational_alerts")
+            is False):
+        # Agents may still run as an engineering diagnostic, but their narrative,
+        # ATT&CK mapping and graph must not repopulate the operational UI after
+        # the deterministic lane has correctly suppressed a learning baseline.
+        summary = bundle.setdefault("meta", {}).setdefault(
+            "agent_pipeline", agent_summary)
+        summary["operational"] = False
+        note = ("Non-operational while the entity baseline is learning; output was not "
+                "mapped into incident, graph, threat-intelligence or report surfaces.")
+        if note not in summary.setdefault("notes", []):
+            summary["notes"].append(note)
+        return bundle
+
     narrative = agent_summary.get("incident_narrative", "")
     ranked_chains = _map_ranked_chains(agent_summary)
     technique_mapping = _agent_technique_mapping(agent_summary)

@@ -14,6 +14,7 @@ import { Activity, GitBranch, ShieldAlert, Users } from 'lucide-react'
 import { getOverviewBundle } from '@/lib/api'
 import { useAnalysis, useScreenData } from '@/providers/analysis'
 import { PageHeader } from '@/components/Layout'
+import BaselineLearningBanner from '@/components/BaselineLearningBanner'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
@@ -92,6 +93,8 @@ export default function Overview() {
           </>
         }
       />
+
+      <BaselineLearningBanner baseline={data.meta?.baseline} />
 
       {/* One connected status ledger, not four disconnected KPI cards. */}
       <Reveal>

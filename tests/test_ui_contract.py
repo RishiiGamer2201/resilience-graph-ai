@@ -10,6 +10,8 @@ When you change a payload, change this file in the same commit.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 AIIMS_CSV = "data/demo/scenarios/aiims_ransomware.csv"
@@ -242,6 +244,18 @@ def test_capabilities_shape(client):
     for name, cap in caps["capabilities"].items():
         _has(cap, "state", "detail")
         assert isinstance(cap["state"], str), name
+
+
+def test_learning_baseline_has_a_visible_non_operational_banner():
+    root = Path(__file__).resolve().parents[1] / "frontend" / "src"
+    banner = (root / "components" / "BaselineLearningBanner.tsx").read_text(
+        encoding="utf-8")
+    assert "alerts and response are paused" in banner
+    assert 'role="progressbar"' in banner
+    assert "non-operational diagnostics" in banner
+    for screen in ("Analyze.tsx", "Overview.tsx", "Incident.tsx", "Investigate.tsx"):
+        source = (root / "screens" / screen).read_text(encoding="utf-8")
+        assert "<BaselineLearningBanner" in source, screen
 
 
 def test_meta_carries_the_calibration_basis(result):

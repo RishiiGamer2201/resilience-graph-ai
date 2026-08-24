@@ -31,6 +31,7 @@ const SEV_CLASS: Record<Severity, string> = {
   medium: 'border-sev-medium/40 bg-sev-medium/10 text-sev-medium',
   low: 'border-sev-low/40 bg-sev-low/10 text-sev-low',
   normal: 'border-sev-normal/40 bg-sev-normal/10 text-sev-normal',
+  learning: 'border-warn/40 bg-warn/10 text-warn',
 }
 
 /** Severity always carries its word as well as its hue: colour is never the

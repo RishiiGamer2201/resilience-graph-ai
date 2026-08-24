@@ -129,6 +129,10 @@ def _baseline_capability() -> dict:
         "detail": st.get("detail", ""),
         "days_of_history": st.get("days"),
         "accounts": st.get("users"),
+        "events": st.get("events"),
+        "minimum_history_days": st.get("min_history_days"),
+        "learning_progress_percent": st.get("progress_percent"),
+        "operational_alerts_enabled": st.get("allow_operational_alerts"),
         "network_required": False,
         "note": ("With no baseline, `new host for this account` means first in "
                  "THIS file, so a clean log still alerts on up to 48.2% of "

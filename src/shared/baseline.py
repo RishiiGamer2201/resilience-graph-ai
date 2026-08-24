@@ -25,8 +25,10 @@ the scoreboard remain true statements about what ships.
 
 COLD START IS PART OF THE FIX, NOT AN AFTERTHOUGHT. A profile store with two
 days in it is worse than none: everything still looks new, but now it looks new
-authoritatively. Under `MIN_HISTORY_DAYS` the store reports `learning` and the
-caller must not alert. That is enforced here rather than requested of callers.
+authoritatively. Under `MIN_HISTORY_DAYS` the store reports `learning` with
+`allow_operational_alerts=False`. The live-analysis boundary consumes that
+control before correlation, graph analysis and response generation; regression
+tests cover the complete API and investigation paths.
 
 Storage is stdlib sqlite3 -- no new dependency, one file, ADR 0001 intact.
 """
@@ -131,9 +133,13 @@ def status(path: Path | None = None) -> dict:
     path = path or db_path()
     if path is None:
         return {"enabled": False, "state": "off",
+                "allow_operational_alerts": True,
+                "progress_percent": None,
                 "detail": f"set {DB_ENV} to build per-entity baselines"}
     if not path.exists():
         return {"enabled": True, "state": "learning", "days": 0.0, "users": 0,
+                "events": 0, "min_history_days": MIN_HISTORY_DAYS,
+                "allow_operational_alerts": False, "progress_percent": 0.0,
                 "detail": "no history yet"}
     with _lock, _connect(path) as c:
         users = c.execute("SELECT COUNT(*) FROM user_stats").fetchone()[0]
@@ -147,6 +153,8 @@ def status(path: Path | None = None) -> dict:
         "state": "ready" if ready else "learning",
         "days": round(days, 2), "users": int(users), "events": int(events),
         "min_history_days": MIN_HISTORY_DAYS,
+        "allow_operational_alerts": ready,
+        "progress_percent": round(min(100.0, days / MIN_HISTORY_DAYS * 100.0), 1),
         "detail": (f"{days:.1f} days of history across {users} accounts"
                    if ready else
                    f"{days:.1f} of {MIN_HISTORY_DAYS} days needed. In learning "

@@ -316,6 +316,8 @@ def test_a_thin_baseline_refuses_to_be_used():
     assert baseline.status(path)["state"] == "learning"
     out, st = baseline.apply(log(30, 3 * day), path)
     assert st["state"] == "learning"
+    assert st["allow_operational_alerts"] is False
+    assert 0 <= st["progress_percent"] < 100
     assert "new_dst_for_user" not in out.columns, (
         "learning mode must leave features alone rather than half-apply them")
 

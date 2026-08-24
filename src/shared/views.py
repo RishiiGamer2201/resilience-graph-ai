@@ -170,6 +170,10 @@ def _account_label(full: dict) -> str:
 
 def _summary(full: dict) -> str:
     inc = full["incident"]
+    if inc.get("operational_status") == "suppressed-baseline-learning":
+        return (f"Learning normal behaviour from {inc['event_count']} events. "
+                "No operational alerts, incident severity or response actions "
+                "are produced until the entity baseline is ready.")
     names = _names()
     top = Counter(inc["attack_chain"]).most_common(1)
     tactic = top[0][0] if top else "anomalous"
@@ -213,9 +217,14 @@ def incident_view(full: dict) -> dict:
         "incident_id": inc["incident_id"], "severity": inc["severity"],
         # A capped severity must carry why, or the reduction is as silent as the
         # inflation it replaced. Absent when nothing was capped.
-        **({"severity_uncapped": inc["severity_uncapped"],
-            "severity_note": inc["severity_note"]}
+        **({"severity_uncapped": inc["severity_uncapped"]}
            if "severity_uncapped" in inc else {}),
+        **({"severity_note": inc["severity_note"]}
+           if "severity_note" in inc else {}),
+        **({"operational_status": inc["operational_status"]}
+           if "operational_status" in inc else {}),
+        **({"diagnostic_scores": inc["diagnostic_scores"]}
+           if "diagnostic_scores" in inc else {}),
         "max_anomaly_score": inc["max_anomaly_score"],
         "account": _account_label(full), "pivot": full["pivot"],
         "alert_count": inc["alert_count"], "event_count": inc["event_count"],
@@ -329,7 +338,13 @@ def report_view(full: dict) -> dict:
     crit = ", ".join(g["critical_assets_at_risk"]) or "--"
     tac = Counter(inc["attack_chain"])
     br = g["blast_radius_size"]
-    if _is_campaign(full):
+    if inc.get("operational_status") == "suppressed-baseline-learning":
+        summary = (
+            f"The entity baseline is learning from {inc['event_count']} events. "
+            "Detector scores are diagnostic only; no operational incident severity, "
+            "ATT&CK finding, attack path or response action has been produced."
+        )
+    elif _is_campaign(full):
         n_users = len(inc["users_involved"])
         summary = (
             f"A {inc['severity'].upper()} campaign spanning {n_users} compromised accounts. "
