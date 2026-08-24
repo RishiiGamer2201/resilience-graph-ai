@@ -952,4 +952,61 @@ def ingest_status(feed: str = "default", p: dict = Depends(principal)):
             "checkpoint": feed_mod.checkpoint(feed, path)}
 
 
+# --------------------------------------------------------------------------- #
+# causal network-state tracker                                                 #
+# --------------------------------------------------------------------------- #
+class TrackerRequest(BaseModel):
+    flows: list[dict] = Field(default_factory=list)
+    tenant: str = "default"
+    horizon: int = Field(default=5, ge=1, le=20)
+
+
+@router.post("/netstate/track")
+def netstate_track(req: TrackerRequest, p: dict = Depends(principal)):
+    """Feed flow windows to the adaptive tracker and get evidence back.
+
+    Distinct from /api/netstate/analyze, which stays exactly as it was: that one
+    loads the OFFLINE model and forecasts from scratch on every request, so the
+    adaptation the measurement is about never happens. This one keeps its live
+    transition counts per tenant, forecasts a window BEFORE observing it, and
+    returns the support the number rests on.
+
+    The forecast is evidence. It is not a severity, does not raise an alert and
+    does not touch a score: the model was evaluated on next-window prediction,
+    and its usefulness as an alert has not been measured.
+    """
+    _require(p, "analyze")
+    from src.engine3 import netstate as ns
+    from src.shared import netstate_tracker as tracker
+
+    if not req.flows:
+        raise HTTPException(422, "no flows provided")
+    df = pd.DataFrame(req.flows)
+    missing = [c for c in ns.FLOW_FEATURES if c not in df.columns]
+    if missing:
+        raise HTTPException(
+            422, f"{len(missing)} of {len(ns.FLOW_FEATURES)} flow features "
+                 f"missing, first few: {missing[:5]}")
+    if "label" not in df.columns:
+        df["label"] = 0.0
+    states, _ = ns.windows(df)
+    if len(states) == 0:
+        raise HTTPException(422, f"need at least {ns.WINDOW} flows to form one "
+                                 f"window; got {len(df)}")
+    out = tracker.observe(states, tenant=req.tenant, horizon=req.horizon)
+    if out.get("state") == "feature_mismatch":
+        raise HTTPException(422, out["detail"])
+    if out.get("state") == "unavailable":
+        raise HTTPException(503, out["detail"])
+    return out
+
+
+@router.get("/netstate/track/status")
+def netstate_track_status(tenant: str = "default", p: dict = Depends(principal)):
+    """The tracker's current state, its support, and where it came from."""
+    _require(p, "read")
+    from src.shared import netstate_tracker as tracker
+    return tracker.status(tenant)
+
+
 __all__ = ["router"]
