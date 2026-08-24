@@ -79,6 +79,28 @@ CREATE TABLE IF NOT EXISTS entity_activity (
 -- committed in the SAME transaction as the counts for that chunk, so a crash
 -- leaves the ledger and the counts agreeing with each other and the next run
 -- continues from the boundary rather than from the start.
+-- Tenant score anchors, fitted on enrolled benign history. The shipped
+-- api/cache/score_ref.json was measured on LANL; on an estate that does not
+-- resemble LANL those anchors are wrong in a stable direction, which is how a
+-- clean log alerts on 48.2% of its events. The store held entity counts and no
+-- score distribution at all, so turning the baseline on changed which features
+-- were computed without changing where the alert line sits.
+--
+-- `budget_alert_rate` is what was ASKED for; `heldout_alert_rate` is what a
+-- held-out split of the same benign history actually produced. Both are stored,
+-- because a calibration that missed its budget must be visible rather than
+-- quietly applied.
+CREATE TABLE IF NOT EXISTS calibration (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    p50 REAL NOT NULL, p99 REAL NOT NULL, hi REAL NOT NULL,
+    samples INTEGER NOT NULL DEFAULT 0,
+    heldout_samples INTEGER NOT NULL DEFAULT 0,
+    budget_alert_rate REAL NOT NULL DEFAULT 0.01,
+    heldout_alert_rate REAL NOT NULL DEFAULT 0,
+    within_budget INTEGER NOT NULL DEFAULT 0,
+    fingerprint TEXT NOT NULL DEFAULT '',
+    version TEXT NOT NULL DEFAULT '',
+    created REAL NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS enrollment (
     batch_id TEXT PRIMARY KEY,
     source TEXT NOT NULL DEFAULT '',
@@ -394,12 +416,72 @@ def enroll(df: pd.DataFrame, *, source: str = "", batch_id: str | None = None,
         c.execute("UPDATE enrollment SET state='done', finished=? WHERE batch_id=?",
                   (_now(), batch_id))
 
+    # Calibrate on what was just enrolled. Anchors come from the SAME history
+    # that built the profiles, and are refitted per batch rather than once,
+    # because an estate's ordinary traffic is what the last month says it is.
+    fitted = _calibrate_from(df, path)
+
     out = enrollment(batch_id, path) or {}
     resumed = start_at > 0
-    return {**out, "resumed_from": start_at if resumed else None,
+    return {**out, "calibration": fitted, "resumed_from": start_at if resumed else None,
             "detail": (f"resumed at row {start_at} and completed" if resumed
                        else f"enrolled {total} rows"),
             "status": status(path)}
+
+
+def _calibrate_from(df: pd.DataFrame, path: Path) -> dict:
+    """Score the enrolled benign history and fit this estate's alert line.
+
+    Imported here rather than at module scope: baseline is imported by
+    live_analyze, and the detector imports back through it. A local import keeps
+    the cycle from forming while leaving the call site obvious.
+
+    A failure to calibrate is reported, never raised -- the profiles are already
+    committed and are useful on their own, and an operator should not lose a
+    completed enrolment because the anchors could not be fitted.
+    """
+    from src.shared import calibration as cal
+
+    try:
+        from src.engine1.lanl_detect import FEATURES, engineer
+        from src.shared import detector as det
+        from src.shared.live_analyze import _prepare
+
+        # _prepare first: engineer() reads columns an arbitrary upload may not
+        # carry (status, protocol), and enrolment accepts the same shapes the
+        # analysis path does. Without it this raised KeyError('status') on a
+        # frame that had already been folded into the profiles.
+        scored = engineer(_prepare(df.copy()))
+        missing = [f for f in FEATURES if f not in scored.columns]
+        if missing:
+            return {"state": "unavailable",
+                    "detail": f"engineered frame is missing {missing[:3]}"}
+        X = scored[FEATURES].to_numpy("float64")
+        X = X[np.isfinite(X).all(axis=1)]
+        if not len(X):
+            return {"state": "unavailable",
+                    "detail": "no fully-scorable rows in the enrolled history"}
+        fitted = cal.fit(det.raw_scores(X), features=list(FEATURES),
+                         detector_path=getattr(det, "AE_PATH", None))
+    except Exception as e:                        # noqa: BLE001 - reported
+        return {"state": "error", "detail": f"{type(e).__name__}: {e}"[:200]}
+
+    if fitted.get("state") in ("fitted", "over_budget"):
+        with _lock, _connect(path) as c:
+            cal.store(c, fitted)
+    return fitted
+
+
+def _calibration_summary(path: Path | None) -> dict:
+    """Local-scale provenance for status(). Never raises: it is reporting."""
+    try:
+        from src.engine1.lanl_detect import FEATURES
+        from src.shared import calibration as cal
+        from src.shared import detector as det
+        return cal.summary(path, features=list(FEATURES),
+                           detector_path=getattr(det, "AE_PATH", None))
+    except Exception as e:                        # noqa: BLE001
+        return {"state": "unavailable", "detail": f"{type(e).__name__}: {e}"[:150]}
 
 
 def _now() -> float:
@@ -494,6 +576,11 @@ def status(path: Path | None = None) -> dict:
         "progress_percent": progress,
         "enrollment": {"last": last_enrollment,
                        "batches": {k: int(v) for k, v in enroll_counts.items()}},
+        # Where the alert line came from, and what a held-out slice of benign
+        # history did against it. Turning the baseline on changes which features
+        # are computed; without this it would not say whether it also changed
+        # the threshold those features are judged against.
+        "calibration": _calibration_summary(path),
         "detail": (
             f"{active_days} distinct active days and {events} events; "
             f"{mature_entities} of {total_entities} acting entities meet the "

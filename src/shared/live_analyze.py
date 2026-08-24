@@ -47,6 +47,43 @@ def _ref():
     return _state["ref"]
 
 
+def _tenant_ref() -> tuple[dict, dict]:
+    """(anchors, provenance). Local anchors if this estate has a usable
+    calibration; the shipped LANL ones otherwise.
+
+    `local` is refused rather than degraded when its fingerprint no longer
+    matches the detector artifact and feature list, or when the held-out benign
+    slice missed the declared alert budget. Both cases fall back to the shipped
+    scale and say so: anchors fitted for a model that has since changed are
+    tenant-specific, confident and wrong, which is worse than being foreign.
+    """
+    # Both imported locally, as baseline already is at its other call site:
+    # live_analyze -> baseline -> detector -> live_analyze is a cycle at module
+    # scope and not one at call time.
+    from src.shared import baseline
+    from src.shared import calibration as cal
+
+    shipped = _ref()
+    path = baseline.db_path()
+    if path is None or not path.exists():
+        return shipped, cal.shipped_ref_source(shipped)
+    try:
+        import sqlite3
+        with sqlite3.connect(path) as c:
+            local = cal.load(c, features=list(FEATURES),
+                             detector_path=getattr(detector, "AE_PATH", None))
+    except Exception:                             # noqa: BLE001 - scoring must not fail on this
+        return shipped, cal.shipped_ref_source(shipped)
+    if not local or local.get("state") != "ready":
+        provenance = cal.shipped_ref_source(shipped)
+        if local:
+            provenance["local_calibration"] = {k: local.get(k) for k in
+                                               ("state", "detail", "samples",
+                                                "heldout_alert_rate")}
+        return shipped, provenance
+    return cal.as_ref(local), cal.as_ref(local)
+
+
 def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     """Score every row 0-100 with the shipped LANL detector.
 
@@ -73,7 +110,11 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
     unscorable = ~np.isfinite(X).all(axis=1)
     n_unscored = int(unscorable.sum())
     raw = detector.raw_scores(X)
-    ref = _ref()
+    # This estate's anchors when it has earned them, the shipped LANL ones
+    # otherwise -- and the calibration block below says which, because a score
+    # calibrated on someone else's traffic is not comparable to one calibrated
+    # on yours and no screen should have to guess.
+    ref, ref_source = _tenant_ref()
 
     counts = df["destination_host"].value_counts().to_numpy()
     ood, top1 = detector.out_of_distribution(X, dst_counts=counts)
@@ -155,6 +196,9 @@ def _score(df: pd.DataFrame) -> tuple[np.ndarray, dict]:
 
     return scores, {
         "basis": ref.get("basis", "fixed-anchors-lanl"),
+        # Where the alert line came from, how much benign traffic placed it, and
+        # what a held-out slice of that traffic actually did against it.
+        "anchors": ref_source,
         "out_of_distribution": ood,
         # No distribution to rank within: see relative_anchors. Travels with the
         # bundle so a screen cannot present a collapsed scale as a severity.
