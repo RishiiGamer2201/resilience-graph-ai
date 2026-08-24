@@ -156,7 +156,7 @@ export default function Analyze() {
                     <div style={{ fontWeight: 600, fontSize: 13 }}>
                       Running: {currentAgent.name}
                     </div>
-                    <div className="mono" style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                    <div className="mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                       {currentAgent.summary || 'Processing event telemetry…'}
                     </div>
                   </div>

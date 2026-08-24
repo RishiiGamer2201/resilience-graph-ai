@@ -590,7 +590,7 @@ export default function Graph() {
                 </div>
                 <span
                   className={`tag-pill ${activeSimStep.riskBand === 'critical' ? 's-critical' : 's-low'}`}
-                  style={{ fontSize: 10.5, textTransform: 'uppercase', marginLeft: 8, whiteSpace: 'nowrap' }}
+                  style={{ fontSize: 10, textTransform: 'uppercase', marginLeft: 8, whiteSpace: 'nowrap' }}
                 >
                   {activeSimStep.riskBand} Risk
                 </span>

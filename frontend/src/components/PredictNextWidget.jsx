@@ -59,7 +59,7 @@ export default function PredictNextWidget() {
       <div className="chips" style={{ marginTop: -4 }}>
         <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>quick add:</span>
         {SUGGEST.filter((s) => !chain.includes(s)).map((s) => (
-          <button key={s} className="btn ghost" style={{ padding: '3px 8px', fontSize: 11.5 }}
+          <button key={s} className="btn ghost" style={{ padding: '3px 8px', fontSize: 11 }}
             onClick={() => add(s)}>+ {s}</button>
         ))}
       </div>
@@ -95,7 +95,7 @@ export default function PredictNextWidget() {
                 background: 'var(--surface-sunken)',
                 borderRadius: 6,
                 border: '1px solid var(--border-soft)',
-                fontSize: 12.5,
+                fontSize: 12,
                 lineHeight: 1.55,
                 color: 'var(--text)',
               }}

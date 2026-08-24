@@ -30,7 +30,7 @@ export default class ErrorBoundary extends React.Component {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <AlertTriangle size={22} style={{ color: 'var(--sev-critical, #ef4444)' }} />
-              <h3 style={{ margin: 0, fontSize: 16 }}>An error occurred in this view</h3>
+              <h3 style={{ margin: 0, fontSize: 17 }}>An error occurred in this view</h3>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted, #94a3b8)', marginBottom: 16 }}>
               {this.state.error?.message || String(this.state.error)}

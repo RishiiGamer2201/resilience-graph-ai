@@ -70,12 +70,17 @@ export function Reveal({ title, summary, open = false, children }) {
   const [on, setOn] = useState(open)
   return (
     <section className={`reveal${on ? ' on' : ''}`}>
+      {/* The chevron is on the trailing edge, not the leading one. Two reasons:
+          the title is content and the chevron is a control, and a leading
+          chevron pushed every Reveal title 18px right of the Answer's text
+          above it -- two competing left edges down the page, which is the
+          thing a reader feels as unresolved without being able to name. */}
       <button className="reveal-h" onClick={() => setOn((o) => !o)} aria-expanded={on}>
+        <span className="reveal-t">{title}</span>
+        {summary && <span className="reveal-s">{summary}</span>}
         {on
           ? <ChevronDown size={15} aria-hidden="true" />
           : <ChevronRight size={15} aria-hidden="true" />}
-        <span className="reveal-t">{title}</span>
-        {summary && <span className="reveal-s">{summary}</span>}
       </button>
       {on && <div className="reveal-b">{children}</div>}
     </section>

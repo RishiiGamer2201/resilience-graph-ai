@@ -126,9 +126,9 @@ export default function Attackers() {
                   <td className="num">{a.alerts}</td>
                   <td className="num">{a.hosts_reached}</td>
                   <td className={`num s-${a.severity}`}>{a.max_score}</td>
-                  <td className="mono" style={{ fontSize: 11.5 }}>{a.pivots.join(' · ')}</td>
-                  <td className="mono" style={{ fontSize: 11.5 }}>{a.techniques.join(' ')}</td>
-                  <td className="mono" style={{ fontSize: 11.5 }}>{fmtTime(a.first_seen)}</td>
+                  <td className="mono" style={{ fontSize: 11 }}>{a.pivots.join(' · ')}</td>
+                  <td className="mono" style={{ fontSize: 11 }}>{a.techniques.join(' ')}</td>
+                  <td className="mono" style={{ fontSize: 11 }}>{fmtTime(a.first_seen)}</td>
                   <td style={{ textAlign: 'right' }}>
                     {a.critical_reached.length > 0 && (
                       <span className="tag-pill" title={`reached ${a.critical_reached.join(', ')}`}
@@ -139,7 +139,7 @@ export default function Attackers() {
                     )}
                     <button className="btn" disabled={busy === a.user}
                       onClick={() => openAccount(a.user)}
-                      style={{ padding: '2px 8px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                      style={{ padding: '2px 8px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                       {busy === a.user
                         ? <><Loader2 size={11} className="spin" /> Analyzing…</>
                         : <><Crosshair size={11} /> Open incident</>}

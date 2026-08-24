@@ -54,6 +54,17 @@ function SourceStatus({ sources }) {
   )
 }
 
+/** Collapse tactics whose movement list is byte-identical into one row. */
+function groupIdentical(bridge) {
+  const groups = new Map()
+  for (const [key, moves] of Object.entries(bridge)) {
+    const sig = moves.map((m) => `${m.from}>${m.to}`).join('|')
+    if (!groups.has(sig)) groups.set(sig, [[], moves])
+    groups.get(sig)[0].push(key)
+  }
+  return [...groups.values()]
+}
+
 function RadarItem({ item, names, onAlert, alerted }) {
   // These movement scores are detector output, so the tooltip carries their scale.
   const { bundle } = useAnalysis()
@@ -62,10 +73,12 @@ function RadarItem({ item, names, onAlert, alerted }) {
   const strong = rel.matched_techniques.length > 0 || rel.matched_actors.length > 0
   const related = rel.score > 0
   return (
-    <div className="tech" style={{
-      borderLeft: related ? `3px solid var(--sev-${strong ? 'critical' : 'high'})` : '3px solid transparent',
-      paddingLeft: 10,
-    }}>
+    /* The relevance marker is a class, not an inline style. It carries meaning
+       -- does this advisory describe what is in your log, and how directly --
+       so it belongs in the token system with every other meaningful colour.
+       As an inline style it also outranked the stylesheet, which is why this
+       row stayed four bordered surfaces deep after everything else flattened. */
+    <div className={`tech${related ? (strong ? ' rel-strong' : ' rel-weak') : ''}`}>
       <div className="th" style={{ flexWrap: 'wrap', gap: 6 }}>
         <span className="chip">{item.source}</span>
         <span className="mono" style={{ fontSize: 11, color: 'var(--text-faint)' }}>{item.published}</span>
@@ -123,14 +136,23 @@ function RadarItem({ item, names, onAlert, alerted }) {
         const techs = exposureTechs(item)   // techniques the graph should highlight
         return (
           <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-            <div style={{ fontSize: 11.5, fontWeight: 600, marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 4 }}>
               <Crosshair size={12} aria-hidden="true" style={{ verticalAlign: -2, color: 'var(--sev-high)' }} />
               {' '}Where you're exposed — {exact ? 'same technique' : 'same tactic'} in your own incident
             </div>
-            {Object.entries(bridge).map(([key, moves]) => (
-              <div key={key} style={{ marginBottom: 4 }}>
-                <span className="mono" style={{ fontSize: 11, color: 'var(--sev-high)' }}>{key}</span>
-                <span style={{ fontSize: 11.5, color: 'var(--text-dim)' }}> — {moves.length} of your movements:</span>
+            {/* One tactic per row printed the SAME movement list three times over.
+                That is not a data bug -- T1078 Valid Accounts genuinely serves
+                initial access, privilege escalation and defence evasion, so the
+                same eight movements really do belong under each. But printing
+                them three times makes eight movements look like twenty-four.
+                Identical sets collapse into one row that names every tactic. */}
+            {groupIdentical(bridge).map(([keys, moves]) => (
+              <div key={keys.join('|')} style={{ marginBottom: 4 }}>
+                <span className="mono" style={{ fontSize: 11, color: 'var(--sev-high)' }}>{keys.join(', ')}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>
+                  {' '}— the same {moves.length} movement{moves.length === 1 ? '' : 's'}
+                  {keys.length > 1 ? ', because one technique serves all of these' : ''}:
+                </span>
                 <div className="chips" style={{ marginTop: 3 }}>
                   {moves.slice(0, 8).map((m, k) => (
                     <span key={k} className="chip mono" title={`${m.technique} · anomaly score ${m.score}${scale}`}>
@@ -332,7 +354,7 @@ export default function ThreatRadar() {
                       View draft advisory
                     </summary>
                     <pre className="mono" style={{
-                      whiteSpace: 'pre-wrap', fontSize: 11.5, background: 'var(--surface-2)',
+                      whiteSpace: 'pre-wrap', fontSize: 11, background: 'var(--surface-2)',
                       border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
                       padding: 10, marginTop: 6, color: 'var(--text-dim)',
                     }}>{draftAdvisory(e, incident?.incident_id)}</pre>
@@ -342,11 +364,11 @@ export default function ThreatRadar() {
                     {e.status === 'pending' && (
                       <>
                         <button className="btn primary" onClick={() => setStatus(e.item.url, 'approved')}
-                          style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                          style={{ padding: '3px 9px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                           <Check size={12} aria-hidden="true" /> Approve (simulated)
                         </button>
                         <button className="btn" onClick={() => setStatus(e.item.url, 'dismissed')}
-                          style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                          style={{ padding: '3px 9px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                           <X size={12} aria-hidden="true" /> Dismiss
                         </button>
                       </>
@@ -354,11 +376,11 @@ export default function ThreatRadar() {
                     <Link to={exposureTechs(e.item).length
                       ? `/graph?techniques=${encodeURIComponent(exposureTechs(e.item).join(','))}`
                       : '/graph'} className="btn"
-                      style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                      style={{ padding: '3px 9px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                       <Waypoints size={12} aria-hidden="true" /> Review your attack path
                     </Link>
                     <a className="btn" href={e.item.url} target="_blank" rel="noopener noreferrer"
-                      style={{ padding: '3px 9px', fontSize: 11.5, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                      style={{ padding: '3px 9px', fontSize: 11, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                       <ExternalLink size={12} aria-hidden="true" /> Source report
                     </a>
                   </div>

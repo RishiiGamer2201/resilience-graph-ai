@@ -293,7 +293,7 @@ export default function DigitalTwin() {
                   </div>
 
                   {cost && (
-                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px dashed var(--border-soft)', paddingTop: 8 }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px dashed var(--border-soft)', paddingTop: 8 }}>
                       <b>Operational Cost:</b> Disconnects {cost.hosts_taken_offline} host ({cost.sessions_severed} active sessions), disrupting {cost.accounts_disrupted?.length || 0} user account(s).
                     </div>
                   )}
@@ -373,7 +373,7 @@ export default function DigitalTwin() {
                         <div
                           style={{
                             marginTop: 4,
-                            fontSize: 10.5,
+                            fontSize: 10,
                             color: 'var(--text-faint)',
                             fontFamily: 'var(--mono)',
                           }}
@@ -399,7 +399,7 @@ export default function DigitalTwin() {
                                 rel="noreferrer"
                                 className="tag-pill"
                                 style={{
-                                  fontSize: 10.5,
+                                  fontSize: 10,
                                   background: 'var(--surface-raised)',
                                   color: 'var(--accent)',
                                   border: '1px solid var(--border-soft)',
