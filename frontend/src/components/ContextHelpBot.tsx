@@ -12,6 +12,13 @@ interface Message {
   error?: boolean
 }
 
+interface SelectionPrompt {
+  text: string
+  nearby: string
+  top: number
+  left: number
+}
+
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Welcome',
   '/investigate': 'Guided investigation',
@@ -41,18 +48,19 @@ const HELP_SEEN_KEY = 'nextattacks-beginner-guide-seen'
 const WELCOME_MESSAGE: Message = {
   id: 1,
   from: 'bot',
-  text: 'Ask me a question, or keep this guide open and then select words on the page for an AI explanation.',
+  text: 'Ask me a question, select words while this guide is open, or use the Explain bubble that appears when it is closed.',
 }
 
-function selectedText(): { text: string; anchor: Element | null; nearby: string } {
+function selectedText(): { text: string; anchor: Element | null; nearby: string; rect: DOMRect | null } {
   const selection = window.getSelection()
   const text = selection?.toString().trim() ?? ''
+  const rect = selection?.rangeCount ? selection.getRangeAt(0).getBoundingClientRect() : null
   const anchor = selection?.anchorNode instanceof Element
     ? selection.anchorNode
     : selection?.anchorNode?.parentElement ?? null
   const contextElement = anchor?.closest('p, li, td, th, button, a, label, h1, h2, h3, [data-help]') ?? anchor
   const nearby = (contextElement?.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 1000)
-  return { text, anchor, nearby }
+  return { text, anchor, nearby, rect }
 }
 
 export default function ContextHelpBot() {
@@ -67,6 +75,7 @@ export default function ContextHelpBot() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE])
+  const [selectionPrompt, setSelectionPrompt] = useState<SelectionPrompt | null>(null)
   const nextId = useRef(2)
   const panelRef = useRef<HTMLDivElement>(null)
   const lastSelection = useRef('')
@@ -74,6 +83,7 @@ export default function ContextHelpBot() {
   const openGuide = () => {
     window.getSelection()?.removeAllRanges()
     lastSelection.current = ''
+    setSelectionPrompt(null)
     setOpen(true)
   }
 
@@ -135,6 +145,51 @@ export default function ContextHelpBot() {
     }
   }
 
+  const explainPromptedSelection = () => {
+    if (!selectionPrompt) return
+    const { text, nearby } = selectionPrompt
+    setShowCoach(false)
+    openGuide()
+    try { window.localStorage.setItem(HELP_SEEN_KEY, 'yes') } catch { /* storage can be disabled */ }
+    void ask(text, 'selection', nearby)
+  }
+
+  useEffect(() => {
+    if (open) return
+
+    const offerExplanation = () => {
+      const { text, anchor, nearby, rect } = selectedText()
+      if (!text || !rect || panelRef.current?.contains(anchor)) {
+        setSelectionPrompt(null)
+        return
+      }
+
+      const promptWidth = 92
+      const preferredLeft = rect.right + 8
+      const left = preferredLeft + promptWidth <= window.innerWidth - 8
+        ? preferredLeft
+        : Math.max(8, rect.right - promptWidth)
+      const preferredTop = rect.top - 38
+      const top = preferredTop >= 8 ? preferredTop : Math.min(rect.bottom + 8, window.innerHeight - 38)
+      setSelectionPrompt({ text, nearby, top, left })
+    }
+    const clearPrompt = () => {
+      if (!window.getSelection()?.toString().trim()) setSelectionPrompt(null)
+    }
+    const dismissPrompt = () => setSelectionPrompt(null)
+
+    document.addEventListener('pointerup', offerExplanation)
+    document.addEventListener('selectionchange', clearPrompt)
+    window.addEventListener('scroll', dismissPrompt, true)
+    window.addEventListener('resize', dismissPrompt)
+    return () => {
+      document.removeEventListener('pointerup', offerExplanation)
+      document.removeEventListener('selectionchange', clearPrompt)
+      window.removeEventListener('scroll', dismissPrompt, true)
+      window.removeEventListener('resize', dismissPrompt)
+    }
+  })
+
   useEffect(() => {
     if (!open) return
 
@@ -168,11 +223,25 @@ export default function ContextHelpBot() {
   })
 
   return (
-    <div ref={panelRef} className="fixed bottom-4 right-4 z-[80] flex max-w-[calc(100vw-2rem)] flex-col items-end sm:bottom-6 sm:right-6">
+    <>
+      {selectionPrompt && !open ? (
+        <button
+          type="button"
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={explainPromptedSelection}
+          style={{ top: selectionPrompt.top, left: selectionPrompt.left }}
+          className="fixed z-[90] flex items-center gap-1.5 rounded-full border border-accent/50 bg-accent px-3 py-2 text-xs font-semibold text-accent-fg shadow-xl transition hover:-translate-y-0.5"
+          aria-label={`Explain selected text: ${selectionPrompt.text.slice(0, 80)}`}
+        >
+          <HelpCircle className="size-3.5" /> Explain
+        </button>
+      ) : null}
+
+      <div ref={panelRef} className="fixed bottom-4 right-4 z-[80] flex max-w-[calc(100vw-2rem)] flex-col items-end sm:bottom-6 sm:right-6">
       {showCoach ? (
         <button type="button" onClick={acknowledgeCoach} className="mb-3 w-72 rounded-xl border border-accent/40 bg-surface p-3 text-left shadow-2xl">
           <span className="flex items-center gap-2 text-sm font-semibold text-text"><Sparkles className="size-4 text-accent" /> Need help?</span>
-          <span className="mt-1 block text-xs leading-5 text-dim">Open the guide first. While it is open, select words for an AI explanation or type any question. This tip disappears after you open it once.</span>
+          <span className="mt-1 block text-xs leading-5 text-dim">Select words and tap Explain, or open this guide to ask questions and explain selections instantly. This tip disappears after you open it once.</span>
         </button>
       ) : null}
 
@@ -208,6 +277,7 @@ export default function ContextHelpBot() {
       <button type="button" onClick={() => { if (showCoach) acknowledgeCoach(); else if (open) setOpen(false); else openGuide() }} className="flex items-center gap-2 rounded-full border border-accent/50 bg-accent px-4 py-3 text-sm font-medium text-accent-fg shadow-xl" aria-label="Open AI beginner guide">
         {open ? <Sparkles className="size-4" /> : <HelpCircle className="size-4" />} Ask what this means
       </button>
-    </div>
+      </div>
+    </>
   )
 }
