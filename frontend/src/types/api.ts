@@ -585,6 +585,10 @@ export interface AuditRecord {
   action?: string
   actor?: string
   role?: string
+  /** Immutable credential subject in authenticated modes; null in demo mode. */
+  subject?: string | null
+  /** Optional trusted display name bound to the credential. */
+  display_name?: string | null
   decision?: string
   at?: string
   timestamp?: string

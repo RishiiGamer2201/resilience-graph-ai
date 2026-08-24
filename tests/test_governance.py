@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
+from src.shared import audit as audit_mod
 from src.shared import rbac
 from src.shared.audit import AuditChain, canonical, record_hash
 
@@ -73,14 +74,50 @@ def test_wide_blast_radius_forces_approval_even_without_a_crown_jewel():
 
 
 def test_bearer_tokens_take_over_when_configured(monkeypatch):
-    monkeypatch.setenv("NEXTATTACK_ROLE_TOKENS", "s3cret:responder")
+    monkeypatch.setenv(
+        "NEXTATTACK_ROLE_TOKENS",
+        "s3cret:responder:ravi@soc:Ravi Responder",
+    )
     assert rbac.auth_mode() == "bearer-tokens"
     with pytest.raises(rbac.AuthError):
         rbac.resolve_principal("admin", None, None)          # declared role ignored
     with pytest.raises(rbac.AuthError):
         rbac.resolve_principal(None, None, "Bearer wrong")
-    p = rbac.resolve_principal("admin", None, "Bearer s3cret")
+    p = rbac.resolve_principal("admin", "forged-admin@corp", "Bearer s3cret")
     assert p["role"] == "responder" and p["authenticated"] is True
+    assert p["subject"] == "ravi@soc"
+    assert p["display_name"] == "Ravi Responder"
+    assert p["actor"] == "Ravi Responder"
+
+
+def test_legacy_token_identity_is_stable_and_ignores_actor_header(monkeypatch):
+    monkeypatch.setenv("NEXTATTACK_ROLE_TOKENS", "legacy-secret:analyst")
+    first = rbac.resolve_principal(None, "victim@corp", "Bearer legacy-secret")
+    second = rbac.resolve_principal(None, "different@corp", "Bearer legacy-secret")
+    assert first["subject"].startswith("legacy-token:")
+    assert first["subject"] == second["subject"]
+    assert first["actor"] == second["actor"] == first["subject"]
+    assert first["display_name"] is None
+
+
+def test_authenticated_audit_record_keeps_subject_not_x_actor(client, monkeypatch):
+    monkeypatch.setenv(
+        "NEXTATTACK_ROLE_TOKENS",
+        "audit-secret:analyst:asha@soc:Asha Analyst",
+    )
+    headers = {
+        "Authorization": "Bearer audit-secret",
+        "X-Role": "admin",
+        "X-Actor": "forged-admin@corp",
+    }
+    response = client.get("/api/audit/export", headers=headers)
+    assert response.status_code == 200, response.text
+    record = audit_mod.chain().records()[-1]
+    assert record["kind"] == "audit.exported"
+    assert record["actor"] == "Asha Analyst"
+    assert record["subject"] == "asha@soc"
+    assert record["display_name"] == "Asha Analyst"
+    assert record["actor"] != headers["X-Actor"]
 
 
 # --------------------------------------------------------------------------- #
@@ -147,6 +184,8 @@ def test_export_is_honest_about_what_it_claims():
     assert "tamper-EVIDENT" in exp["claim"] or "Tamper-EVIDENT" in exp["claim"]
     assert "blockchain" in exp["claim"].lower()          # explicitly disclaimed
     assert exp["record_count"] == len(exp["records"])
+    assert all("subject" in record and "display_name" in record
+               for record in exp["records"])
 
 
 def test_markdown_export_lists_every_record():

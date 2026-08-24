@@ -183,7 +183,7 @@ def test_approval_response_shape(result, client):
     body = r.json()
     _has(body, "recorded", "executed", "decision", "proposal_id",
          "proposal_digest", "policy", "record", "chain", "note")
-    _has(body["record"], "seq", "hash", "at", "actor", "role")
+    _has(body["record"], "seq", "hash", "at", "actor", "role", "subject", "display_name")
     assert body["record"]["actor"] == "contract@test"
     assert body["record"]["role"] == "responder"
 
@@ -194,7 +194,7 @@ def test_audit_list_shape(client):
     _has(body, "records", "count", "head", "verified", "problem")
     for r in body["records"]:
         _has(r, "seq", "at", "kind", "actor", "role", "decision", "reason", "hash",
-             "prev_hash", "incident_id", "evidence", "technique_ids",
+             "subject", "display_name", "prev_hash", "incident_id", "evidence", "technique_ids",
              "affected_assets", "action", "versions")
 
 
