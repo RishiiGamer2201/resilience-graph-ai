@@ -293,6 +293,7 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
         }
     else:
         base_st = {**base_st, "analysis_coverage": analysis_coverage}
+    collapsed = bool(calibration.get("scale_collapsed"))
     if learning:
         # Keep the detector useful for engineering diagnostics, but do not let a
         # thin baseline turn "everything is new" into an incident. Correlation,
@@ -314,6 +315,17 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
                 "severity and response proposals are suppressed. "
                 + calibration.get("note", "")
             ).strip(),
+        }
+    elif collapsed:
+        # The detector can produce a diagnostic ordering only when the relative
+        # scale has a usable distribution. If that scale collapses, the top row
+        # is an artefact of the feature space, not an operational alert.
+        df["diagnostic_anomaly_score"] = diagnostic_scores
+        df["anomaly_score"] = 0
+        calibration = {
+            **calibration,
+            "operational": False,
+            "diagnostic_only": True,
         }
     elif partial:
         df["diagnostic_anomaly_score"] = diagnostic_scores
@@ -354,6 +366,24 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
                          if len(diagnostic_view) else None),
             },
         })
+    elif collapsed:
+        incident.update({
+            "severity": "low",
+            "max_anomaly_score": 0,
+            "operational_status": "suppressed-collapsed-scale",
+            "severity_note": (
+                "No operational severity is assigned because the score scale "
+                "collapsed: the log has no usable distribution to rank within."
+            ),
+            "diagnostic_scores": {
+                "label": "non-operational",
+                "count": int(len(diagnostic_view)),
+                "minimum": int(diagnostic_view.min()) if len(diagnostic_view) else None,
+                "maximum": int(diagnostic_view.max()) if len(diagnostic_view) else None,
+                "mean": (round(float(diagnostic_view.mean()), 2)
+                         if len(diagnostic_view) else None),
+            },
+        })
     else:
         _cap_severity(incident, calibration)
     g = build_graph(incident, critical_assets=critical_assets)
@@ -368,12 +398,22 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             "operational": False,
             "note": "No response proposal is produced from a learning baseline.",
         }
+    elif collapsed:
+        soar = {
+            "incident_id": incident_id,
+            "severity": "low",
+            "gating_policy": "suppressed because the score scale collapsed",
+            "mitre_mitigations": [],
+            "actions": [],
+            "operational": False,
+            "note": "No response proposal is produced from a collapsed score scale.",
+        }
     else:
         soar = recommend(incident, ga)
 
     # victim = account with the most alerts (label-free); pivot = graph entry host
     alert_users = [s["user"] for s in incident["alerts"] if s["user"]]
-    if learning:
+    if learning or collapsed:
         victim = "—"
     elif alert_users:
         victim = max(set(alert_users), key=alert_users.count)
@@ -399,13 +439,18 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             # Which feature mode produced these scores: file-local (the default,
             # and what every published metric was measured on) or history-backed.
             "baseline": base_st,
-            "operational": not learning,
+            "operational": not (learning or collapsed),
             "diagnostic_scoring": ({
                 "available": True,
                 "operational": False,
                 "label": "non-operational while baseline is learning",
                 **incident.get("diagnostic_scores", {}),
-            } if learning else ({
+            } if learning else {
+                "available": True,
+                "operational": False,
+                "label": "non-operational because score scale collapsed",
+                **incident.get("diagnostic_scores", {}),
+            } if collapsed else ({
                 "available": True,
                 "operational": False,
                 "label": "diagnostic-only for learning entities",
