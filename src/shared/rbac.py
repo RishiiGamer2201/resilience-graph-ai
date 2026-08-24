@@ -15,14 +15,18 @@ Identity, honestly:
     `X-Role`. This is AUTHORISATION WITHOUT AUTHENTICATION and the capabilities
     endpoint says so out loud. It exists so a judge can switch roles and watch
     the server refuse, with zero signup.
-  * Configured — set `NEXTATTACK_ROLE_TOKENS="tok1:responder,tok2:admin"` and the
-    service requires a matching `Authorization: Bearer <token>`; declared roles
-    are then ignored. Still not an identity provider, and we do not claim it is.
+  * Configured — set
+    `NEXTATTACK_ROLE_TOKENS="tok1:responder:ravi@soc:Ravi Kumar"` and the service
+    requires a matching `Authorization: Bearer <token>`. Role, immutable subject
+    and optional display name all come from that trusted binding; `X-Role` and
+    `X-Actor` are ignored. Still not an identity provider, and we do not claim it
+    is.
 
     from src.shared.rbac import resolve_principal, require, policy_for
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
 import os
 
@@ -59,14 +63,35 @@ class Denied(Exception):
             f"Allowed roles: {', '.join(PERMISSIONS.get(permission, ()))}.")
 
 
-def _token_map() -> dict[str, str]:
+def _token_map() -> dict[str, dict[str, str | None]]:
+    """Parse token bindings without ever exposing a raw token as identity.
+
+    Preferred format is ``token:role:subject[:display name]``. The legacy
+    ``token:role`` form remains valid, but receives a stable pseudonymous subject
+    derived from a one-way token fingerprint. In both forms the caller's headers
+    cannot alter the authenticated identity.
+    """
     raw = os.environ.get("NEXTATTACK_ROLE_TOKENS", "").strip()
-    out = {}
+    out: dict[str, dict[str, str | None]] = {}
     for pair in raw.split(","):
-        if ":" in pair:
-            tok, role = pair.split(":", 1)
-            if tok.strip() and role.strip() in ROLES:
-                out[tok.strip()] = role.strip()
+        parts = [part.strip() for part in pair.split(":", 3)]
+        if len(parts) < 2:
+            continue
+        tok, role = parts[0], parts[1]
+        if not tok or role not in ROLES:
+            continue
+        if len(parts) >= 3 and parts[2]:
+            subject = parts[2][:120]
+            display_name = parts[3][:120] if len(parts) == 4 and parts[3] else None
+        else:
+            fingerprint = hashlib.sha256(tok.encode("utf-8")).hexdigest()[:16]
+            subject = f"legacy-token:{fingerprint}"
+            display_name = None
+        out[tok] = {
+            "role": role,
+            "subject": subject,
+            "display_name": display_name,
+        }
     return out
 
 
@@ -83,16 +108,25 @@ def resolve_principal(role_header: str | None, actor_header: str | None,
         if not authorization or not authorization.lower().startswith(prefix):
             raise AuthError("bearer token required (NEXTATTACK_ROLE_TOKENS is configured)")
         supplied = authorization[len(prefix):].strip()
-        for tok, role in tokens.items():
+        for tok, binding in tokens.items():
             if hmac.compare_digest(tok, supplied):     # constant-time compare
-                return {"role": role, "actor": actor_header or f"token:{role}",
-                        "auth_mode": "bearer-tokens", "authenticated": True}
+                subject = str(binding["subject"])
+                display_name = binding.get("display_name")
+                return {
+                    "role": binding["role"],
+                    "actor": display_name or subject,
+                    "subject": subject,
+                    "display_name": display_name,
+                    "auth_mode": "bearer-tokens",
+                    "authenticated": True,
+                }
         raise AuthError("unrecognised bearer token")
 
     role = (role_header or DEFAULT_ROLE).strip().lower()
     if role not in ROLES:
         role = DEFAULT_ROLE
     return {"role": role, "actor": (actor_header or f"demo-{role}").strip()[:80],
+            "subject": None, "display_name": None,
             "auth_mode": "demo-headers", "authenticated": False}
 
 

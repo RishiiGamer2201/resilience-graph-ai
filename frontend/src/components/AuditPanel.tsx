@@ -245,8 +245,11 @@ export default function AuditPanel({
                 <TDMono className="whitespace-nowrap">{String(r.at ?? r.timestamp ?? '')}</TDMono>
                 <TD className="text-xs">{String(r.kind ?? '')}</TD>
                 <TDMono>
-                  {r.actor}
+                  {r.display_name ?? r.actor}
                   <span className="text-faint"> ({r.role})</span>
+                  {r.subject ? (
+                    <div className="text-[10px] text-faint">subject: {r.subject}</div>
+                  ) : null}
                 </TDMono>
                 <TD
                   className={`text-xs ${

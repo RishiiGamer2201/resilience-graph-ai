@@ -43,13 +43,23 @@ def principal(x_role: str | None = Header(default=None, alias="X-Role"),
         raise HTTPException(401, str(e))
 
 
+def _audit_identity(p: dict) -> dict:
+    """Identity fields whose trust level is explicit in every audit record."""
+    return {
+        "actor": p["actor"],
+        "role": p["role"],
+        "subject": p.get("subject"),
+        "display_name": p.get("display_name"),
+    }
+
+
 def _require(p: dict, permission: str, *, incident_id: str | None = None) -> None:
     """Authorise, and record the refusal in the audit chain when it is one."""
     try:
         rbac.require(p, permission)
     except rbac.Denied as e:
         audit_mod.chain().append(
-            "action.denied", actor=p["actor"], role=p["role"], incident_id=incident_id,
+            "action.denied", **_audit_identity(p), incident_id=incident_id,
             decision="denied", reason=str(e),
             details={"permission": permission, "auth_mode": p["auth_mode"]})
         raise HTTPException(403, str(e))
@@ -196,7 +206,8 @@ def _capabilities() -> dict:
         "authorisation": {
             "state": rbac.auth_mode(),
             "roles": list(rbac.ROLES),
-            "detail": ("Bearer tokens configured via NEXTATTACK_ROLE_TOKENS."
+            "detail": ("Bearer tokens bind role and subject via "
+                       "NEXTATTACK_ROLE_TOKENS; X-Role and X-Actor are ignored."
                        if rbac.auth_mode() == "bearer-tokens" else
                        "DEMO MODE: the caller declares a role in X-Role. This is "
                        "authorisation without authentication — deliberately, so a judge "
@@ -310,7 +321,7 @@ def investigate(req: InvestigateRequest, p: dict = Depends(principal)):
 
     inc = result["signals"]["incident"]
     c = audit_mod.chain()
-    c.append("analysis.completed", actor=p["actor"], role=p["role"],
+    c.append("analysis.completed", **_audit_identity(p),
              incident_id=inc["incident_id"],
              inputs={"scenario": req.scenario, "events": result["understand"]["n_events"],
                      "crown_jewels": crit, "account": req.account},
@@ -321,13 +332,13 @@ def investigate(req: InvestigateRequest, p: dict = Depends(principal)):
                       "trace_ms": result["trace"]["total_ms"],
                       "degraded_nodes": result["trace"]["degraded"]})
     if result["evidence"].get("citations"):
-        c.append("evidence.retrieved", actor=p["actor"], role=p["role"],
+        c.append("evidence.retrieved", **_audit_identity(p),
                  incident_id=inc["incident_id"],
                  evidence=result["evidence"]["citations"],
                  reason="official evidence retrieved for the observed techniques")
     if result["impact"].get("counterfactual"):
         cf = result["impact"]["counterfactual"]
-        c.append("impact.simulated", actor=p["actor"], role=p["role"],
+        c.append("impact.simulated", **_audit_identity(p),
                  incident_id=inc["incident_id"],
                  action={"kind": "counterfactual-isolation", **cf["candidate"]},
                  affected_assets=cf["delta"]["crown_jewels_protected"],
@@ -358,7 +369,7 @@ def investigate(req: InvestigateRequest, p: dict = Depends(principal)):
             )
             issued.append(server_proposal)
             c.append(
-                "action.proposed", actor=p["actor"], role=p["role"],
+                "action.proposed", **_audit_identity(p),
                 incident_id=inc["incident_id"], action=server_proposal,
                 evidence=evidence, technique_ids=inc["technique_ids"],
                 affected_assets=graph["critical_assets_at_risk"],
@@ -566,7 +577,7 @@ def agents_reason(req: AgentInvestigateRequest, p: dict = Depends(principal)):
 
     inc = result["signals"]["incident"]
     audit_mod.chain().append(
-        "agents.reasoned", actor=p["actor"], role=p["role"],
+        "agents.reasoned", **_audit_identity(p),
         incident_id=inc["incident_id"], technique_ids=out.get("techniques") or [],
         reason="advisory agent lane run over the graph tools",
         details={"provider": out.get("provider"),
@@ -678,7 +689,7 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
 
     if decision == "approve" and policy["requires_approval"] and not req.reason.strip():
         audit_mod.chain().append(
-            "action.denied", actor=p["actor"], role=p["role"],
+            "action.denied", **_audit_identity(p),
             incident_id=incident_id, decision="rejected-by-policy",
             action=action, reason="approval attempted without a written reason",
             details={"policy": policy, "proposal_id": req.proposal_id,
@@ -702,7 +713,7 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
 
     rec = audit_mod.chain().append(
         "action.approved" if decision == "approve" else "action.rejected",
-        actor=p["actor"], role=p["role"], incident_id=incident_id,
+        **_audit_identity(p), incident_id=incident_id,
         action={**action, "policy": policy, "executed": False},
         decision="approved" if decision == "approve" else "rejected",
         reason=req.reason.strip() or "(no reason given)",
@@ -728,6 +739,8 @@ def approve(req: ApprovalRequest, p: dict = Depends(principal)):
             "at": rec["at"],
             "actor": rec["actor"],
             "role": rec["role"],
+            "subject": rec["subject"],
+            "display_name": rec["display_name"],
         },
         "chain": {"records": len(audit_mod.chain()), "head": audit_mod.chain().head()},
         "note": ("SIMULATION ONLY. The decision is recorded in the tamper-evident audit "
@@ -786,7 +799,7 @@ def audit_verify_export(export: dict, p: dict = Depends(principal)):
 def audit_export(p: dict = Depends(principal)):
     _require(p, "export_audit")
     exp = audit_mod.chain().export()
-    audit_mod.chain().append("audit.exported", actor=p["actor"], role=p["role"],
+    audit_mod.chain().append("audit.exported", **_audit_identity(p),
                              reason="audit chain exported as JSON",
                              details={"records": exp["record_count"]})
     return exp
@@ -796,7 +809,7 @@ def audit_export(p: dict = Depends(principal)):
 def audit_export_md(p: dict = Depends(principal)):
     _require(p, "export_audit")
     md = audit_mod.chain().markdown()
-    audit_mod.chain().append("report.exported", actor=p["actor"], role=p["role"],
+    audit_mod.chain().append("report.exported", **_audit_identity(p),
                              reason="audit chain exported as Markdown")
     return Response(md, media_type="text/markdown; charset=utf-8",
                     headers={"Content-Disposition":
@@ -807,7 +820,7 @@ def audit_export_md(p: dict = Depends(principal)):
 def audit_reset(p: dict = Depends(principal)):
     """One-click demo reset. Export first if you want to keep the chain."""
     _require(p, "reset_session")
-    rec = audit_mod.chain().reset(actor=p["actor"], role=p["role"])
+    rec = audit_mod.chain().reset(**_audit_identity(p))
     return {"reset": True, "records": len(audit_mod.chain()), "head": rec["hash"]}
 
 

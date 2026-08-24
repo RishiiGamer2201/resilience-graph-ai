@@ -34,7 +34,7 @@ from src.shared.timeutil import fmt_ist
 
 ROOT = Path(__file__).resolve().parents[2]
 HASH_ALGORITHM = "sha256"
-CHAIN_VERSION = "1.0.0"
+CHAIN_VERSION = "1.1.0"
 GENESIS_PREV = "0" * 64
 MAX_RECORDS = 5000            # bounded: the demo is session-scoped, not a SIEM
 
@@ -100,6 +100,7 @@ class AuditChain:
 
     # -- write ------------------------------------------------------------
     def append(self, kind: str, *, actor: str, role: str, reason: str = "",
+               subject: str | None = None, display_name: str | None = None,
                incident_id: str | None = None, inputs: dict | None = None,
                evidence: list[dict] | None = None,
                technique_ids: list[str] | None = None,
@@ -118,6 +119,10 @@ class AuditChain:
                 "at": fmt_ist(),
                 "actor": actor,
                 "role": role,
+                # In authenticated modes subject comes from the credential
+                # binding, never X-Actor. Demo mode honestly records None.
+                "subject": subject,
+                "display_name": display_name,
                 "reason": reason,
                 "incident_id": incident_id,
                 "inputs": inputs or {},
@@ -175,7 +180,8 @@ class AuditChain:
         """Whether this chain survives a restart. Reported, never assumed."""
         return self._db is not None
 
-    def reset(self, actor: str = "system", role: str = "system") -> dict:
+    def reset(self, actor: str = "system", role: str = "system",
+              subject: str | None = None, display_name: str | None = None) -> dict:
         """Start a fresh chain (the old one is gone unless it was exported)."""
         with self._lock:
             self._records = []
@@ -183,6 +189,7 @@ class AuditChain:
                 with sqlite3.connect(self._db) as c:
                     c.execute("DELETE FROM audit")
         return self.append("session.started", actor=actor, role=role,
+                           subject=subject, display_name=display_name,
                            reason="session reset",
                            details={"chain_version": CHAIN_VERSION,
                                     "hash_algorithm": HASH_ALGORITHM})
@@ -260,8 +267,11 @@ class AuditChain:
         lines += ["| # | Time | Event | Actor (role) | Incident | Decision | Reason |",
                   "|---|---|---|---|---|---|---|"]
         for r in exp["records"]:
+            identity = f"{r['actor']} ({r['role']})"
+            if r.get("subject"):
+                identity += f" [{r['subject']}]"
             lines.append(
-                f"| {r['seq']} | {r['at']} | {r['kind']} | {r['actor']} ({r['role']}) | "
+                f"| {r['seq']} | {r['at']} | {r['kind']} | {identity} | "
                 f"{r['incident_id'] or '--'} | {r['decision'] or '--'} | "
                 f"{(r['reason'] or '--')[:90]} |")
         lines += ["", "## Records", ""]

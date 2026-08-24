@@ -74,7 +74,9 @@ Please include the endpoint or file, what you did, and what happened.
   in `X-Role`, deliberately, so a judge can switch roles and watch the server refuse
   with no signup. `/api/capabilities` reports `auth_mode: "demo-headers"` in plain
   words. Setting `NEXTATTACK_ROLE_TOKENS` switches to bearer tokens compared in
-  constant time. Neither is an identity provider.
+  constant time. Each credential binds an immutable subject and optional trusted
+  display name; authenticated requests ignore `X-Actor`. This interim token map
+  is still not an identity provider.
 - **The audit chain is tamper-evident, not tamper-proof**, and it is not a blockchain.
   Its own export says so. It is session-scoped and held in memory, because the free
   host has an ephemeral filesystem and we will not imply durability we do not have.
