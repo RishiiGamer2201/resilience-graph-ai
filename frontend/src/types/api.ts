@@ -1025,6 +1025,8 @@ export interface AuditChain {
   records: AuditRecord[]
   count: number
   head: string
+  generation_id: string
+  retention_mode: 'durable-generational' | 'process-generational'
   verified: boolean
   problem?: string
 }
@@ -1034,6 +1036,8 @@ export interface AuditVerification {
   problem?: string
   records: number
   hash_algorithm: string
+  generation_id?: string
+  retention_mode?: 'durable-generational' | 'process-generational'
   claim: string
 }
 

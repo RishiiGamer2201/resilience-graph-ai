@@ -191,7 +191,8 @@ def test_approval_response_shape(result, client):
 # --- AuditPanel.jsx --------------------------------------------------------
 def test_audit_list_shape(client):
     body = client.get("/api/audit?limit=20", headers=ANALYST).json()
-    _has(body, "records", "count", "head", "verified", "problem")
+    _has(body, "records", "count", "head", "generation_id", "retention_mode",
+         "verified", "problem")
     for r in body["records"]:
         _has(r, "seq", "at", "kind", "actor", "role", "decision", "reason", "hash",
              "subject", "display_name", "prev_hash", "incident_id", "evidence", "technique_ids",
@@ -200,8 +201,9 @@ def test_audit_list_shape(client):
 
 def test_audit_export_shape(client):
     exp = client.get("/api/audit/export", headers={"X-Role": "admin"}).json()
-    _has(exp, "chain_version", "hash_algorithm", "canonicalisation", "exported_at",
-         "record_count", "head_hash", "verified", "records", "claim")
+    _has(exp, "chain_version", "generation_id", "genesis_prev_hash", "hash_algorithm",
+         "canonicalisation", "exported_at", "record_count", "head_hash", "verified",
+         "records", "claim")
 
 
 # --- ExplainTrace.jsx ------------------------------------------------------

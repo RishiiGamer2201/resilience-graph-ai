@@ -43,7 +43,7 @@ PERMISSIONS: dict[str, tuple[str, ...]] = {
     "approve_critical":  ("responder", "admin"),
     "export_audit":      ("analyst", "responder", "admin"),
     "verify_audit":      ("viewer", "analyst", "responder", "admin"),
-    "reset_session":     ("analyst", "responder", "admin"),
+    "rotate_audit":      ("admin",),
 }
 
 DEFAULT_ROLE = "viewer"

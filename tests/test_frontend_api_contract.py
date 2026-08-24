@@ -54,7 +54,7 @@ FRONTEND_REQUESTS = {
     ("get", "/api/audit/verify"),
     ("get", "/api/audit/export"),
     ("post", "/api/audit/verify-export"),
-    ("post", "/api/audit/reset"),
+    ("post", "/api/audit/rotate"),
     ("get", "/api/audit/export.md"),
 }
 

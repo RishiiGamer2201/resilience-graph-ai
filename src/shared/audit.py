@@ -7,9 +7,10 @@ earlier record and every hash after it stops matching, which `verify()` finds an
 names.
 
 Deliberately NOT called immutable or blockchain. It is a hash-linked append-only
-log held for the session and exportable as JSON. Anyone holding the export can
-recompute the chain and detect edits; nobody is prevented from throwing the whole
-file away. That is the honest claim, and it is the one auditors actually use.
+log, exportable as JSON and optionally durable in SQLite. Rotation seals a complete
+generation and makes its head the next generation's genesis link; no application
+route deletes history. Anyone with filesystem access can still throw the database
+away. That is the honest claim, and it is the one auditors actually use.
 
 Canonicalisation is fixed and documented, because a hash over "some JSON" is not
 reproducible: `json.dumps(payload, sort_keys=True, separators=(",", ":"),
@@ -28,13 +29,14 @@ import os
 import pathlib
 import sqlite3
 import threading
+import uuid
 from pathlib import Path
 
 from src.shared.timeutil import fmt_ist
 
 ROOT = Path(__file__).resolve().parents[2]
 HASH_ALGORITHM = "sha256"
-CHAIN_VERSION = "1.1.0"
+CHAIN_VERSION = "1.2.0"
 GENESIS_PREV = "0" * 64
 MAX_RECORDS = 5000            # bounded: the demo is session-scoped, not a SIEM
 
@@ -43,7 +45,7 @@ MAX_RECORDS = 5000            # bounded: the demo is session-scoped, not a SIEM
 KNOWN_KINDS = {
     "session.started", "analysis.completed", "evidence.retrieved",
     "impact.simulated", "action.proposed", "action.approved", "action.rejected",
-    "action.denied", "report.exported", "audit.exported", "session.reset",
+    "action.denied", "report.exported", "audit.exported",
 }
 
 
@@ -86,6 +88,9 @@ class AuditChain:
         self._records: list[dict] = []
         self._versions = artifact_versions or {}
         self._db = pathlib.Path(path) if path else None
+        self._generation = uuid.uuid4().hex
+        self._previous_head = GENESIS_PREV
+        self._memory_archives: dict[str, dict] = {}
         if self._db is not None:
             self._open()
             if self._records:
@@ -111,38 +116,48 @@ class AuditChain:
         with self._lock:
             if len(self._records) >= MAX_RECORDS:
                 raise RuntimeError(
-                    f"audit chain is full ({MAX_RECORDS} records) -- export and reset")
-            prev = self._records[-1]["hash"] if self._records else GENESIS_PREV
-            payload = {
-                "seq": len(self._records),
-                "kind": kind,
-                "at": fmt_ist(),
-                "actor": actor,
-                "role": role,
-                # In authenticated modes subject comes from the credential
-                # binding, never X-Actor. Demo mode honestly records None.
-                "subject": subject,
-                "display_name": display_name,
-                "reason": reason,
-                "incident_id": incident_id,
-                "inputs": inputs or {},
-                # evidence is referenced by hash + URL, never copied wholesale
-                "evidence": [{"chunk_id": e.get("chunk_id"), "url": e.get("url"),
-                              "sha256": e.get("sha256"), "publisher": e.get("publisher"),
-                              "title": e.get("title")}
-                             for e in (evidence or [])],
-                "technique_ids": list(technique_ids or []),
-                "affected_assets": list(affected_assets or []),
-                "action": action or {},
-                "decision": decision,
-                "details": details or {},
-                "versions": self._versions,
-                "prev_hash": prev,
-            }
+                    f"audit chain is full ({MAX_RECORDS} records) -- an admin must rotate it")
+            prev = self._records[-1]["hash"] if self._records else self._previous_head
+            payload = self._payload(
+                seq=len(self._records), prev_hash=prev, kind=kind, actor=actor,
+                role=role, subject=subject, display_name=display_name,
+                reason=reason, incident_id=incident_id, inputs=inputs,
+                evidence=evidence, technique_ids=technique_ids,
+                affected_assets=affected_assets, action=action, decision=decision,
+                details=details,
+            )
             rec = {**payload, "hash": record_hash(prev, payload)}
             self._records.append(rec)
             self._persist(rec)
             return rec
+
+    def _payload(self, *, seq: int, prev_hash: str, kind: str, actor: str,
+                 role: str, subject: str | None = None,
+                 display_name: str | None = None, reason: str = "",
+                 incident_id: str | None = None,
+                 inputs: dict | None = None, evidence: list[dict] | None = None,
+                 technique_ids: list[str] | None = None,
+                 affected_assets: list[str] | None = None,
+                 action: dict | None = None, decision: str | None = None,
+                 details: dict | None = None) -> dict:
+        """Build the exact hashed payload for append and rotation genesis."""
+        return {
+            "seq": seq, "kind": kind, "at": fmt_ist(), "actor": actor,
+            "role": role,
+            # In authenticated modes subject comes from the credential binding,
+            # never X-Actor. Demo mode honestly records None.
+            "subject": subject, "display_name": display_name,
+            "reason": reason, "incident_id": incident_id,
+            "inputs": inputs or {},
+            # Evidence is referenced by hash + URL, never copied wholesale.
+            "evidence": [{"chunk_id": e.get("chunk_id"), "url": e.get("url"),
+                          "sha256": e.get("sha256"), "publisher": e.get("publisher"),
+                          "title": e.get("title")} for e in (evidence or [])],
+            "technique_ids": list(technique_ids or []),
+            "affected_assets": list(affected_assets or []),
+            "action": action or {}, "decision": decision, "details": details or {},
+            "versions": self._versions, "prev_hash": prev_hash,
+        }
 
     # -- durability -------------------------------------------------------
     def _open(self) -> None:
@@ -152,6 +167,27 @@ class AuditChain:
             c.execute("CREATE TABLE IF NOT EXISTS audit ("
                       "seq INTEGER PRIMARY KEY, hash TEXT NOT NULL, "
                       "record TEXT NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS audit_meta ("
+                      "key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS audit_generations ("
+                      "generation_id TEXT PRIMARY KEY, sealed_at TEXT NOT NULL, "
+                      "sealed_head TEXT NOT NULL, previous_head TEXT NOT NULL, "
+                      "reason TEXT NOT NULL, actor TEXT NOT NULL, role TEXT NOT NULL, "
+                      "record_count INTEGER NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS audit_archive ("
+                      "generation_id TEXT NOT NULL, seq INTEGER NOT NULL, "
+                      "hash TEXT NOT NULL, record TEXT NOT NULL, "
+                      "PRIMARY KEY (generation_id, seq), "
+                      "FOREIGN KEY (generation_id) REFERENCES audit_generations(generation_id))")
+            meta = dict(c.execute("SELECT key, value FROM audit_meta").fetchall())
+            if "active_generation" not in meta:
+                c.execute("INSERT INTO audit_meta(key, value) VALUES (?, ?)",
+                          ("active_generation", self._generation))
+                c.execute("INSERT INTO audit_meta(key, value) VALUES (?, ?)",
+                          ("active_previous_head", GENESIS_PREV))
+            else:
+                self._generation = meta["active_generation"]
+                self._previous_head = meta.get("active_previous_head", GENESIS_PREV)
             rows = c.execute("SELECT record FROM audit ORDER BY seq").fetchall()
         try:
             self._records = [json.loads(r[0]) for r in rows]
@@ -180,19 +216,97 @@ class AuditChain:
         """Whether this chain survives a restart. Reported, never assumed."""
         return self._db is not None
 
-    def reset(self, actor: str = "system", role: str = "system",
-              subject: str | None = None, display_name: str | None = None) -> dict:
-        """Start a fresh chain (the old one is gone unless it was exported)."""
+    @property
+    def generation_id(self) -> str:
+        return self._generation
+
+    @property
+    def retention_mode(self) -> str:
+        return "durable-generational" if self.durable else "process-generational"
+
+    def rotate(self, *, actor: str, role: str, reason: str,
+               subject: str | None = None,
+               display_name: str | None = None) -> dict:
+        """Seal this generation and start a linked one without deleting history.
+
+        The API also enforces RBAC, but this storage primitive refuses non-admin
+        callers too. Durable rotation is one SQLite transaction: archive, new
+        linked genesis, and active-generation metadata all commit together.
+        """
+        reason = reason.strip()
+        if role != "admin":
+            raise PermissionError("audit rotation requires the admin role")
+        if len(reason) < 8:
+            raise ValueError("rotation reason must contain at least 8 characters")
         with self._lock:
-            self._records = []
+            ok, problem = self.verify_records(self._records, self._previous_head)
+            if not ok:
+                raise RuntimeError(f"cannot rotate a broken audit generation: {problem}")
+            old_generation = self._generation
+            old_previous = self._previous_head
+            old_records = json.loads(json.dumps(self._records))
+            old_head = old_records[-1]["hash"] if old_records else old_previous
+            new_generation = uuid.uuid4().hex
+            sealed_at = fmt_ist()
+            genesis_payload = self._payload(
+                seq=0, prev_hash=old_head, kind="session.started", actor=actor,
+                role=role, subject=subject, display_name=display_name,
+                reason=reason,
+                details={
+                    "chain_version": CHAIN_VERSION,
+                    "hash_algorithm": HASH_ALGORITHM,
+                    "generation_id": new_generation,
+                    "previous_generation_id": old_generation,
+                    "previous_sealed_head": old_head,
+                    "rotation_reason": reason,
+                },
+            )
+            genesis = {**genesis_payload, "hash": record_hash(old_head, genesis_payload)}
+
             if self._db is not None:
                 with sqlite3.connect(self._db) as c:
+                    c.execute("BEGIN IMMEDIATE")
+                    c.execute(
+                        "INSERT INTO audit_generations VALUES (?,?,?,?,?,?,?,?)",
+                        (old_generation, sealed_at, old_head, old_previous, reason,
+                         actor, role, len(old_records)),
+                    )
+                    c.executemany(
+                        "INSERT INTO audit_archive(generation_id, seq, hash, record) "
+                        "VALUES (?,?,?,?)",
+                        [(old_generation, r["seq"], r["hash"],
+                          json.dumps(r, sort_keys=True)) for r in old_records],
+                    )
                     c.execute("DELETE FROM audit")
-        return self.append("session.started", actor=actor, role=role,
-                           subject=subject, display_name=display_name,
-                           reason="session reset",
-                           details={"chain_version": CHAIN_VERSION,
-                                    "hash_algorithm": HASH_ALGORITHM})
+                    c.execute("INSERT INTO audit(seq, hash, record) VALUES (?,?,?)",
+                              (0, genesis["hash"], json.dumps(genesis, sort_keys=True)))
+                    c.execute("UPDATE audit_meta SET value=? WHERE key='active_generation'",
+                              (new_generation,))
+                    c.execute("UPDATE audit_meta SET value=? WHERE key='active_previous_head'",
+                              (old_head,))
+            else:
+                self._memory_archives[old_generation] = {
+                    "generation_id": old_generation,
+                    "sealed_at": sealed_at,
+                    "sealed_head": old_head,
+                    "previous_head": old_previous,
+                    "reason": reason,
+                    "actor": actor,
+                    "role": role,
+                    "record_count": len(old_records),
+                    "records": old_records,
+                }
+
+            self._generation = new_generation
+            self._previous_head = old_head
+            self._records = [genesis]
+            return {
+                "sealed_generation_id": old_generation,
+                "sealed_head": old_head,
+                "new_generation_id": new_generation,
+                "new_head": genesis["hash"],
+                "reason": reason,
+            }
 
     # -- read -------------------------------------------------------------
     def records(self, limit: int | None = None) -> list[dict]:
@@ -204,13 +318,72 @@ class AuditChain:
         return len(self._records)
 
     def head(self) -> str:
-        return self._records[-1]["hash"] if self._records else GENESIS_PREV
+        return self._records[-1]["hash"] if self._records else self._previous_head
+
+    def generations(self) -> list[dict]:
+        """Return sealed generations plus the active generation, newest first."""
+        if self._db is not None:
+            with sqlite3.connect(self._db) as c:
+                rows = c.execute(
+                    "SELECT generation_id, sealed_at, sealed_head, previous_head, "
+                    "reason, actor, role, record_count FROM audit_generations "
+                    "ORDER BY rowid DESC"
+                ).fetchall()
+            sealed = [dict(zip(
+                ("generation_id", "sealed_at", "sealed_head", "previous_head",
+                 "reason", "actor", "role", "record_count"), row
+            )) for row in rows]
+        else:
+            sealed = [
+                {k: v for k, v in generation.items() if k != "records"}
+                for generation in reversed(list(self._memory_archives.values()))
+            ]
+        active = {
+            "generation_id": self._generation,
+            "sealed_at": None,
+            "sealed_head": None,
+            "previous_head": self._previous_head,
+            "reason": None,
+            "actor": None,
+            "role": None,
+            "record_count": len(self._records),
+            "active": True,
+        }
+        return [active, *[{**g, "active": False} for g in sealed]]
+
+    def generation_export(self, generation_id: str) -> dict | None:
+        """Export an active or sealed generation without modifying the chain."""
+        if generation_id == self._generation:
+            return self.export()
+        if self._db is not None:
+            with sqlite3.connect(self._db) as c:
+                meta = c.execute(
+                    "SELECT previous_head FROM audit_generations WHERE generation_id=?",
+                    (generation_id,),
+                ).fetchone()
+                rows = c.execute(
+                    "SELECT record FROM audit_archive WHERE generation_id=? ORDER BY seq",
+                    (generation_id,),
+                ).fetchall()
+            if not meta:
+                return None
+            recs = [json.loads(row[0]) for row in rows]
+            return self._export_records(recs, generation_id, meta[0])
+        archived = self._memory_archives.get(generation_id)
+        if archived is None:
+            return None
+        return self._export_records(
+            json.loads(json.dumps(archived["records"])),
+            generation_id,
+            archived["previous_head"],
+        )
 
     # -- verify -----------------------------------------------------------
     @staticmethod
-    def verify_records(records: list[dict]) -> tuple[bool, str | None]:
+    def verify_records(records: list[dict],
+                       genesis_prev_hash: str = GENESIS_PREV) -> tuple[bool, str | None]:
         """Recompute the whole chain. Returns (ok, first problem described)."""
-        prev = GENESIS_PREV
+        prev = genesis_prev_hash
         for i, rec in enumerate(records):
             payload = {k: v for k, v in rec.items() if k != "hash"}
             if payload.get("seq") != i:
@@ -226,23 +399,28 @@ class AuditChain:
         return True, None
 
     def verify(self) -> tuple[bool, str | None]:
-        return self.verify_records(self.records())
+        return self.verify_records(self.records(), self._previous_head)
 
     # -- export -----------------------------------------------------------
     def export(self) -> dict:
         recs = self.records()
-        ok, problem = self.verify_records(recs)
+        return self._export_records(recs, self._generation, self._previous_head)
+
+    def _export_records(self, recs: list[dict], generation_id: str,
+                        previous_head: str) -> dict:
+        ok, problem = self.verify_records(recs, previous_head)
         unknown = sorted({r["kind"] for r in recs} - KNOWN_KINDS)
         return {
             "chain_version": CHAIN_VERSION,
+            "generation_id": generation_id,
             "hash_algorithm": HASH_ALGORITHM,
             "canonicalisation": ('json.dumps(payload, sort_keys=True, '
                                  'separators=(",",":"), ensure_ascii=False).encode("utf-8"); '
                                  'hash = sha256(prev_hash + "\\n" + canonical)'),
-            "genesis_prev_hash": GENESIS_PREV,
+            "genesis_prev_hash": previous_head,
             "exported_at": fmt_ist(),
             "record_count": len(recs),
-            "head_hash": recs[-1]["hash"] if recs else GENESIS_PREV,
+            "head_hash": recs[-1]["hash"] if recs else previous_head,
             "verified": ok,
             "verification_problem": problem,
             "unknown_record_kinds": unknown,

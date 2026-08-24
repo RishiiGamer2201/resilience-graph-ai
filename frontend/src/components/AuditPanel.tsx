@@ -10,7 +10,7 @@
  * stays on screen.
  */
 import * as React from 'react'
-import { Download, FileCheck2, Link2, RotateCcw, ShieldX } from 'lucide-react'
+import { Archive, Download, FileCheck2, Link2, ShieldX } from 'lucide-react'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Table, TBody, TD, TDMono, TH, THead, TR } from '@/components/ui/table'
@@ -21,11 +21,12 @@ import {
   exportAudit,
   exportAuditMarkdown,
   getAudit,
-  resetAudit,
+  rotateAudit,
   verifyAudit,
   verifyAuditExport,
 } from '@/lib/api'
 import type { ApiError, AuditChain, AuditVerification } from '@/types/api'
+import { useSession } from '@/providers/session'
 
 function download(name: string, text: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }))
@@ -44,13 +45,8 @@ interface TamperProof {
   target: number
 }
 
-export default function AuditPanel({
-  refreshKey,
-  onReset,
-}: {
-  refreshKey: number
-  onReset?: () => void
-}) {
+export default function AuditPanel({ refreshKey }: { refreshKey: number }) {
+  const { role } = useSession()
   const [data, setData] = React.useState<AuditChain | null>(null)
   const [error, setError] = React.useState<unknown>(null)
   const [loading, setLoading] = React.useState(true)
@@ -58,6 +54,8 @@ export default function AuditPanel({
   const [proof, setProof] = React.useState<TamperProof | null>(null)
   const [proofError, setProofError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
+  const [rotationOpen, setRotationOpen] = React.useState(false)
+  const [rotationReason, setRotationReason] = React.useState('')
 
   const load = React.useCallback(() => {
     setLoading(true)
@@ -112,11 +110,12 @@ export default function AuditPanel({
     }
   }
 
-  async function doReset() {
+  async function doRotate() {
     setBusy(true)
     try {
-      await resetAudit()
-      onReset?.()
+      await rotateAudit(rotationReason)
+      setRotationOpen(false)
+      setRotationReason('')
       setProof(null)
       setLive(null)
       load()
@@ -160,13 +159,49 @@ export default function AuditPanel({
           <Button size="sm" variant="outline" disabled={busy} onClick={() => void doExport('md')}>
             <Download className="size-3" aria-hidden /> Report
           </Button>
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => void doReset()}>
-            <RotateCcw className="size-3" aria-hidden /> Reset
-          </Button>
+          {role === 'admin' ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setRotationOpen((open) => !open)}
+            >
+              <Archive className="size-3" aria-hidden /> Rotate generation
+            </Button>
+          ) : null}
         </div>
       </CardHeader>
 
       <CardBody className="space-y-3">
+        {rotationOpen ? (
+          <div className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-surface-2 p-3">
+            <label className="min-w-64 flex-1 text-xs text-dim">
+              Reason for rotation
+              <input
+                value={rotationReason}
+                onChange={(event) => setRotationReason(event.target.value)}
+                placeholder="For example: incident review completed"
+                maxLength={500}
+                className="mt-1 h-8 w-full rounded-md border border-border bg-surface px-2 text-sm text-text"
+              />
+            </label>
+            <Button
+              size="sm"
+              disabled={busy || rotationReason.trim().length < 8}
+              onClick={() => void doRotate()}
+            >
+              Seal and rotate
+            </Button>
+            <Button size="sm" variant="ghost" disabled={busy} onClick={() => setRotationOpen(false)}>
+              Cancel
+            </Button>
+            <FinePrint>
+              The previous generation is archived, not deleted. The new genesis links to its
+              sealed head.
+            </FinePrint>
+          </div>
+        ) : null}
+
         {error ? <ErrorState error={error} retry={load} /> : null}
 
         {data ? (
@@ -281,8 +316,9 @@ export default function AuditPanel({
 
       <CardBody className="border-t border-border">
         <FinePrint>
-          Session-scoped and held in memory: free hosts have an ephemeral filesystem, so we do
-          not imply this survives a restart. Export it to keep it.
+          Audit history cannot be reset or deleted here. Administrators can rotate to a new,
+          cryptographically linked generation; configure durable storage to retain generations
+          across restarts.
         </FinePrint>
       </CardBody>
     </Card>

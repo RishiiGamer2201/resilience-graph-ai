@@ -388,7 +388,8 @@ export const verifyAudit = () => get<AuditVerification>('/audit/verify')
 export const exportAudit = () => get<AuditExport>('/audit/export')
 export const verifyAuditExport = (exp: AuditExport) =>
   post<AuditVerification>('/audit/verify-export', exp)
-export const resetAudit = () => post<Record<string, unknown>>('/audit/reset', {})
+export const rotateAudit = (reason: string) =>
+  post<Record<string, unknown>>('/audit/rotate', { reason })
 
 /** Markdown export goes through fetch rather than a plain <a href>: the role
  *  header is what authorises it and a browser navigation would not send one. */
