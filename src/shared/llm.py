@@ -10,7 +10,13 @@ that constraint does not move because a provider was added.
     GEMINI_API_KEY=...            GEMINI_MODEL=gemini-1.5-flash
 
 **A key on its own does nothing.** You must also set NEXTATTACK_LLM_PROVIDER.
-`auto` then uses whichever key is present, preferring OpenAI when both are.
+`auto` then uses whichever key is present, preferring OpenAI when both are,
+and falls through to the next one that has a key if the first fails.
+
+OpenAI is the default and the provider the agent lane is tuned against: it and
+groq constrain the decoder with a real json_schema, so a schema is enforced
+rather than requested. Gemini has no decoder-level schema here, which makes it
+the last resort for structured work, not the first.
 
 The default is off because a present key is not consent. Writing this module
 found an OPENAI_API_KEY already exported in the development shell for unrelated
@@ -30,7 +36,7 @@ and reports which path produced the text.
 
 Safety properties, each of which is a bug we already shipped somewhere
 ----------------------------------------------------------------------
-- **Egress stays fenced.** Both providers go through `src.shared.nethttp`, so
+- **Egress stays fenced.** Every provider goes through `src.shared.nethttp`, so
   the host allowlist, the resolved-IP private-range check, the redirect
   re-validation and the size and time caps all apply. An earlier version of the
   Gemini call bypassed nethttp entirely and put the key in the URL query string.
@@ -226,14 +232,30 @@ def render(system: str, *, context: str, untrusted: str = "") -> str:
 
 
 # ─── Providers ────────────────────────────────────────────────────────────────
-def _openai(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
-    body = json.dumps({
+def _openai(system: str, prompt: str, *, model: str, timeout: int,
+            schema: dict | None = None, max_tokens: int | None = None) -> LLMResult:
+    """The default provider, and the one the agent lane is tuned against.
+
+    It takes the same two extras as groq. `schema` uses OpenAI Structured
+    Outputs, which constrains the decoder instead of asking the model to please
+    return JSON -- the agent lane used to hand openai a schema in the prompt and
+    get back a different shape, so the run silently degraded to the template on
+    a provider that was working fine. `max_tokens` because the agent lane needs
+    a bigger budget than a one-paragraph narrative does.
+    """
+    payload = {
         "model": model,
         "messages": [{"role": "system", "content": system},
                      {"role": "user", "content": prompt}],
-        "max_tokens": MAX_OUTPUT_TOKENS,
+        "max_tokens": max_tokens or MAX_OUTPUT_TOKENS,
         "temperature": TEMPERATURE,
-    }).encode("utf-8")
+    }
+    if schema:
+        payload["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {"name": "reply", "strict": True, "schema": schema},
+        }
+    body = json.dumps(payload).encode("utf-8")
     raw = fetch_url(
         OPENAI_URL,
         headers={"Content-Type": "application/json",
@@ -308,28 +330,34 @@ def _gemini(system: str, prompt: str, *, model: str, timeout: int) -> LLMResult:
     return LLMResult(provider="gemini", model=model, ok=False, error="No content in Gemini response")
 
 
-def complete(system: str, prompt: str, *, provider: str | None = None,
-             timeout: int = TIMEOUT, untrusted_seen: str = "",
-             schema: dict | None = None, max_tokens: int | None = None) -> LLMResult:
-    """Ask the configured provider to reword. Returns a result, never raises.
+def _candidates(explicit: str | None) -> list[str]:
+    """Which providers to try, best first.
 
-    `untrusted_seen` is the third-party text that went into the prompt; it is
-    scanned so the caller can label a reply that was built over instruction-like
-    content, whether or not the model noticed.
+    A NAMED provider is used alone. Asking for openai and quietly being answered
+    by gemini would make the `provider` label on screen a lie, and that label is
+    how a reader knows where their incident text went. `auto` is the only mode
+    allowed to fall through, and it walks available(), which puts openai first.
     """
-    flagged = bool(untrusted_seen and INJECTION.search(untrusted_seen))
-    name = provider or chosen_provider()
-    if not name:
-        return LLMResult(provider="none", error="no provider configured",
-                         injection_flagged=flagged)
+    if explicit:
+        return [explicit]
+    chosen = chosen_provider()
+    if not chosen:
+        return []
+    if _requested() != "auto":
+        return [chosen]
+    return [chosen] + [p for p in available() if p != chosen]
+
+
+def _attempt(name: str, system: str, prompt: str, *, timeout: int,
+             schema: dict | None, max_tokens: int | None) -> LLMResult:
+    """One provider, with its retries. Returns a result; never raises."""
     # A table, not a ternary. The two-provider ternary silently mapped any third
     # provider onto GEMINI_API_KEY, so groq reported "no API key set" while its
     # own key was present.
     key_env = {"openai": "OPENAI_API_KEY", "groq": "GROQ_API_KEY",
                "gemini": "GEMINI_API_KEY"}.get(name, "")
     if not key_env or not _key(key_env):
-        return LLMResult(provider=name, error=f"{name}: no API key set",
-                         injection_flagged=flagged)
+        return LLMResult(provider=name, error=f"{name}: no API key set")
 
     model = ({"openai": os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
               "groq": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)}.get(name)
@@ -338,17 +366,14 @@ def complete(system: str, prompt: str, *, provider: str | None = None,
     last: Exception | None = None
     for attempt in range(RETRIES + 1):
         try:
-            if name == "groq":
-                res = _groq(system, prompt, model=model, timeout=timeout,
-                            schema=schema, max_tokens=max_tokens)
-            else:
-                # only groq carries the structured-output path today; the others
-                # fall back to schema-in-the-prompt, which is why they are not the
-                # default for the agent lane
-                res = {"openai": _openai, "gemini": _gemini}[name](
-                    system, prompt, model=model, timeout=timeout)
-            res.injection_flagged = flagged
-            return res
+            if name in ("openai", "groq"):
+                return {"openai": _openai, "groq": _groq}[name](
+                    system, prompt, model=model, timeout=timeout,
+                    schema=schema, max_tokens=max_tokens)
+            # gemini is the one left without a decoder-level schema here, so it
+            # falls back to schema-in-the-prompt and is the last resort for the
+            # agent lane rather than its default.
+            return _gemini(system, prompt, model=model, timeout=timeout)
         except Exception as e:
             # A provider's 4xx body says WHY. Without it the error reads
             # "HTTP Error 400: Bad Request", which is not diagnosable -- and a
@@ -375,8 +400,38 @@ def complete(system: str, prompt: str, *, provider: str | None = None,
     # Recorded, not swallowed. Two bare excepts in this repo hid dead code
     # for weeks; a provider that is failing every call must be visible.
     return LLMResult(provider=name, model=model,
-                     error=f"{type(last).__name__}: {last}"[:200],
-                     injection_flagged=flagged)
+                     error=f"{type(last).__name__}: {last}"[:200])
+
+
+def complete(system: str, prompt: str, *, provider: str | None = None,
+             timeout: int = TIMEOUT, untrusted_seen: str = "",
+             schema: dict | None = None, max_tokens: int | None = None) -> LLMResult:
+    """Ask the configured provider to reword. Returns a result, never raises.
+
+    `untrusted_seen` is the third-party text that went into the prompt; it is
+    scanned so the caller can label a reply that was built over instruction-like
+    content, whether or not the model noticed.
+
+    Under `auto` a provider that fails is followed by the next one that has a
+    key, so a rate limit on one account does not cost the narrative when another
+    provider could have answered. Every caller still has a deterministic
+    fallback below this, and the returned `error` names the LAST provider tried
+    rather than pretending the failures did not happen.
+    """
+    flagged = bool(untrusted_seen and INJECTION.search(untrusted_seen))
+    names = _candidates(provider)
+    if not names:
+        return LLMResult(provider="none", error="no provider configured",
+                         injection_flagged=flagged)
+    res = LLMResult(provider="none", error="no provider configured")
+    for name in names:
+        res = _attempt(name, system, prompt, timeout=timeout,
+                       schema=schema, max_tokens=max_tokens)
+        res.injection_flagged = flagged
+        if res.ok:
+            return res
+    res.injection_flagged = flagged
+    return res
 
 
 # ─── Self-check ───────────────────────────────────────────────────────────────

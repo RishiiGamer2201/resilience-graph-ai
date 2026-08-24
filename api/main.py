@@ -234,7 +234,9 @@ def report():
 @app.get("/api/attackers")
 def attackers():
     """Per-account breakdown of the campaign — the 'who' table."""
-    return {"attackers": _cached("attackers")}
+    meta = _cached("attackers_meta")
+    return {"attackers": _cached("attackers"),
+            "scenario": meta.get("scenario")}
 
 
 @app.get("/api/threat-radar")
@@ -517,6 +519,20 @@ def _prepare_agent_events(df: pd.DataFrame) -> pd.DataFrame:
     return events
 
 
+def _resolve_use_llm(requested: bool | None) -> bool:
+    """None follows the configured provider; True and False are honoured as-is.
+
+    A caller that says False on a host with a provider configured gets the
+    deterministic path, which is the only way to compare the two lanes on the
+    same log.
+    """
+    from src.shared import llm
+
+    if requested is None:
+        return llm.chosen_provider() is not None
+    return bool(requested)
+
+
 def _attach_agent_pipeline(bundle: dict, agent_summary: dict) -> dict:
     """Expose 10-agent reasoning without changing the SPA's screen contracts."""
     bundle.setdefault("meta", {})["agent_pipeline"] = agent_summary
@@ -542,7 +558,13 @@ def _run_agents_for_standard_bundle(
             scenario=scenario,
             incident_id=incident_id,
             entity_col=entity_col,
-            use_llm=False,
+            # Follow the one documented switch instead of hardcoding off. This
+            # was False unconditionally, so an operator who set
+            # NEXTATTACK_LLM_PROVIDER, saw /api/health report the provider
+            # active, and pressed Run investigation still got a template with
+            # nothing saying why. With no provider configured this is False and
+            # the path is byte-for-byte the offline one.
+            use_llm=_resolve_use_llm(None),
         )
         summary = _agent_pipeline_summary(result)
         return summary
@@ -907,7 +929,10 @@ class AgentAnalysisRequest(BaseModel):
     scenario: str = "lanl_campaign_all"
     incident_id: str = "INC-001"
     entity_col: str = "user"
-    use_llm: bool = False   # default off; set True if GEMINI_API_KEY is set
+    # None means "follow NEXTATTACK_LLM_PROVIDER", which is the switch the rest
+    # of the product obeys. True and False still force it either way, so a
+    # caller can pin the deterministic path on a configured host.
+    use_llm: bool | None = None
 
 
 @app.post("/api/agents/analyze")
@@ -946,7 +971,7 @@ def agents_analyze(req: AgentAnalysisRequest, p: dict = Depends(analyze_principa
             scenario=req.scenario,
             incident_id=req.incident_id,
             entity_col=req.entity_col,
-            use_llm=req.use_llm,
+            use_llm=_resolve_use_llm(req.use_llm),
         )
         return result.as_dict()
     except Exception as e:
@@ -958,7 +983,7 @@ async def agents_analyze_upload(
     file: UploadFile = File(...),
     incident_id: str = Form("INC-001"),
     entity_col: str = Form("user"),
-    use_llm: bool = Form(False),
+    use_llm: bool | None = Form(None),
     p: dict = Depends(analyze_principal),
 ):
     """Run the 10-agent pipeline on an uploaded CSV log file.
@@ -992,7 +1017,7 @@ async def agents_analyze_upload(
                 scenario=f"upload:{file.filename}",
                 incident_id=incident_id,
                 entity_col=entity_col,
-                use_llm=use_llm,
+                use_llm=_resolve_use_llm(use_llm),
             )
             return result.as_dict()
         except HTTPException:
@@ -1011,7 +1036,7 @@ async def agents_stream(
     critical_assets: str = "",
     incident_id: str = "INC-STREAM-001",
     entity_col: str = "user",
-    use_llm: bool = False,
+    use_llm: bool | None = None,
     p: dict = Depends(analyze_principal),
 ):
     """Server-Sent Events: stream the 10-agent pipeline executing live agent by agent."""
@@ -1046,7 +1071,7 @@ async def agents_stream(
             scenario=scenario,
             incident_id=incident_id,
             entity_col=entity_col,
-            use_llm=use_llm,
+            use_llm=_resolve_use_llm(use_llm),
         )
         while (item := await _astep(it)) is not _GEN_DONE:
             event_type, payload = item
@@ -1082,7 +1107,7 @@ async def agents_upload_stream(
     critical_assets: str = Form(""),
     incident_id: str = Form("INC-UPLOAD-001"),
     entity_col: str = Form("user"),
-    use_llm: bool = Form(False),
+    use_llm: bool | None = Form(None),
     p: dict = Depends(analyze_principal),
 ):
     """Server-Sent Events: stream the 10-agent pipeline executing live on an uploaded log."""
@@ -1124,7 +1149,7 @@ async def agents_upload_stream(
             scenario=f"upload:{file.filename}",
             incident_id=incident_id,
             entity_col=entity_col,
-            use_llm=use_llm,
+            use_llm=_resolve_use_llm(use_llm),
         )
         while (item := await _astep(it)) is not _GEN_DONE:
             event_type, payload = item

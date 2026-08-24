@@ -40,7 +40,7 @@ class PipelineResult:
     status: str                          # ok | partial | failed
     severity: str                        # critical | high | medium | low
     incident_narrative: str
-    point_b_method: str                  # "llm" | "template"
+    point_b_method: str                  # provider name ("openai") | "template"
     chain_explanations: list[dict]
     ranked_chains: list[dict]
     predictions: list[dict]

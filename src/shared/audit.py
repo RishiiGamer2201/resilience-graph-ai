@@ -160,8 +160,15 @@ class AuditChain:
         if self._db is None:
             return
         with sqlite3.connect(self._db) as c:
-            c.execute("INSERT OR REPLACE INTO audit (seq, hash, record) VALUES (?,?,?)",
-                      (rec["seq"], rec["hash"], json.dumps(rec, sort_keys=True)))
+            try:
+                c.execute("INSERT INTO audit (seq, hash, record) VALUES (?,?,?)",
+                          (rec["seq"], rec["hash"], json.dumps(rec, sort_keys=True)))
+            except sqlite3.IntegrityError as e:
+                raise RuntimeError(
+                    f"audit seq {rec['seq']} already exists in {self._db.name}: two "
+                    f"chains are writing to one file. Refusing rather than "
+                    f"overwriting -- silent replacement is what corrupts a chain."
+                ) from e
 
     @property
     def durable(self) -> bool:
@@ -302,20 +309,33 @@ DEFAULT_AUDIT_DB = Path(__file__).resolve().parents[2] / "data" / "audit" / "cha
 
 
 def _audit_path() -> Path | None:
+    """Where the chain lives, or None for in-memory.
+
+    Opt-in, and deliberately so. Durable-by-default was tried and reverted: it
+    pointed every process at one file, so a test run and a developer's curl
+    wrote to the same chain, two AuditChain objects assigned the same seq, and
+    the linkage broke at record 463 of 572. An audit log that a second writer
+    can corrupt is worse than one that does not persist.
+
+        NEXTATTACK_AUDIT_DB=/var/lib/nextattack/chain.db
+
+    `DEFAULT_AUDIT_DB` is the suggested location, not an implicit one.
+    """
     raw = os.environ.get(AUDIT_DB_ENV, "").strip()
-    if raw.lower() in ("off", "none", "memory", ":memory:"):
+    if not raw or raw.lower() in ("off", "none", "memory", ":memory:"):
         return None
-    return Path(raw) if raw else DEFAULT_AUDIT_DB
+    return Path(raw)
 
 
 def chain() -> AuditChain:
-    """Process-wide chain, durable unless NEXTATTACK_AUDIT_DB says otherwise.
+    """Process-wide chain, durable when NEXTATTACK_AUDIT_DB points somewhere.
 
-    Was ephemeral by design, on the argument that free hosts have no disk. The
-    argument was sound and the consequence was not: a restart erased the log the
-    scoreboard cites as tamper-evident. Durability is now the default and
-    opting out is explicit, because the failure mode of the old default was a
-    claim that stopped being true without saying so.
+    The old docstring said "ephemeral by design (free hosts have no disk)",
+    which was true and left the scoreboard citing tamper-evidence for a log a
+    restart erased. Durability now exists and is verified across a restart; it
+    is opt-in because pointing every process at one file by default is how two
+    writers corrupt one chain. `/api/audit/verify` reports `durable`, so which
+    mode is running is never a guess.
     """
     global _chain
     with _chain_lock:

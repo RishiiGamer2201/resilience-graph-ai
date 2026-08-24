@@ -25,6 +25,7 @@ import { SectionLabel } from '@/components/primitives'
 import { FinePrint } from '@/components/Disclosure'
 import { reasonWithAgents } from '@/lib/api'
 import type { AgentReasoning } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 const WHO: Record<string, typeof Bot> = { investigator: Bot, critic: Gavel }
 
@@ -134,7 +135,7 @@ export default function ReasoningAgents({
                   {run.techniques.length ? (
                     run.techniques.map((t) => (
                       <Badge key={t} variant={agreed.includes(t) ? 'ok' : 'default'}>
-                        {t}
+                        {techniqueName(t)}
                       </Badge>
                     ))
                   ) : (

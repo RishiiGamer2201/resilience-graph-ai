@@ -22,8 +22,8 @@ export default defineConfig({
     // 2 MB of libraries that the lazy routes were supposed to defer. First paint
     // pulled the 3D graph even if you never opened /graph.
     //
-    // The routes in App.tsx are already React.lazy, and AttackGraph3D/LoginScene
-    // are lazy inside their screens. Left alone, the bundler keeps each behind
+    // The routes in App.tsx are already React.lazy, and the 2D attack map is
+    // lazy inside its screen. Left alone, the bundler keeps each behind
     // its dynamic import, which is what we wanted in the first place.
     chunkSizeWarningLimit: 1600,
   },

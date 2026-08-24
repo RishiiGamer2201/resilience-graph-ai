@@ -141,9 +141,11 @@ export default function DigitalTwin() {
     try {
       const res = await twinChat({
         message,
-        history: history.map((m) => ({ role: m.role, content: m.content })),
+        history: messages.map((m) => ({ role: m.role, content: m.content })),
         graph: data.graph,
         incident_id: data.incidentId,
+        require_llm: true,
+        assistant_mode: 'incident',
       })
       setMessages((prev) => [
         ...prev,
@@ -217,9 +219,9 @@ export default function DigitalTwin() {
   return (
     <>
       <PageHeader
-        eyebrow="Counterfactual"
-        title="Digital twin"
-        description="Containment tried on a clone of the incident graph, and an advisor that restates the result in plain words."
+        eyebrow="Safe response test"
+        title="What happens if we isolate a computer?"
+        description="Test a response on a copy of the attack map. This shows the likely effect without changing or disconnecting any real system."
         actions={
           <>
             <Badge variant={source === 'live' ? 'accent' : 'outline'}>
@@ -457,7 +459,7 @@ export default function DigitalTwin() {
             {!messages.length ? (
               <EmptyState
                 title="Ask the advisor about this incident"
-                detail="It restates figures the analysis already computed — what is exposed, what isolation would cost, what the analysis cannot tell you. It does not decide, and it never approves an action. Every reply carries the line saying whether a language model or a template wrote it."
+                detail="Ask what is exposed, what isolation would cost, or what the analysis cannot tell you. Answers come from the configured language model using the incident facts; it does not decide or approve actions."
                 icon={Bot}
               />
             ) : null}

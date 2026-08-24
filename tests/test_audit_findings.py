@@ -217,9 +217,31 @@ def test_a_durable_chain_resumes_and_still_detects_tampering():
 
 
 def test_the_verify_endpoint_reports_whether_the_chain_is_durable():
-    r = client.get("/api/audit/verify", headers=ANALYST)
-    assert r.status_code == 200
-    assert "durable" in r.json()
+    """Durability is opt-in, so the endpoint has to SAY which mode is running.
+
+    Durable-by-default was tried and reverted: it pointed every process at one
+    file, two AuditChain objects assigned the same seq, and the linkage broke
+    at record 463 of 572. An audit log a second writer can corrupt is worse
+    than one that does not persist -- so the default is off and a seq collision
+    now raises instead of silently replacing a row.
+    """
+    body = client.get("/api/audit/verify", headers=ANALYST).json()
+    assert "durable" in body
+    assert body["verified"] is True
+    if not body["durable"]:
+        assert "NEXTATTACK_AUDIT_DB" in body["claim"]
+
+
+def test_a_second_writer_on_one_chain_file_is_refused():
+    from src.shared.audit import AuditChain
+
+    path = pathlib.Path(tempfile.mkdtemp()) / "chain.db"
+    a = AuditChain({"x": "1"}, path=path)
+    b = AuditChain({"x": "1"}, path=path)       # a resume, which is fine
+    assert b.verify()[0] is True
+    a.append("k", actor="a", role="analyst")
+    with pytest.raises(RuntimeError, match="already exists"):
+        b.append("k", actor="a", role="analyst")
 
 
 # --------------------------------------------------------------------------- #

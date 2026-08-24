@@ -15,6 +15,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { explainStep } from '@/lib/api'
 import * as React from 'react'
 import type { ExplainTraceResult } from '@/types/api'
+import { techniqueName } from '@/lib/techniques'
 
 export default function ExplainTrace({
   scenario,
@@ -103,7 +104,7 @@ export default function ExplainTrace({
           <Microscope className="mt-0.5 size-3.5 shrink-0" aria-hidden />
           <span>
             {step.user} · {step.source_host} → {step.destination_host} · score{' '}
-            {step.anomaly_score} · {step.technique_id}
+            {step.anomaly_score} · {techniqueName(step.technique_id)}
           </span>
         </div>
 

@@ -25,9 +25,9 @@ export default function Methodology() {
 
   const header = (
     <PageHeader
-      eyebrow="Evidence"
-      title="Data & methodology"
-      description="Every metric is reported the way the data allows: PR-AUC and TPR at a fixed false-positive rate for unsupervised detectors, honest baselines, and unverified manual mappings flagged as such."
+      eyebrow="How results were made"
+      title="Data, method, and limitations"
+      description="See where the data came from, how each result was calculated, which simple baselines were used, and which claims still need manual verification."
     />
   )
 

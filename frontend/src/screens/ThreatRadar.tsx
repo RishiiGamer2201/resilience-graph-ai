@@ -39,6 +39,7 @@ import { Card, CardBody, CardFooter, CardHeader, CardMeta, CardTitle } from '@/c
 import { SkeletonRows } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState, SectionLabel } from '@/components/primitives'
 import { cn } from '@/lib/utils'
+import { techniqueList, techniqueName } from '@/lib/techniques'
 import type {
   AttackGraph,
   ExposureMove,
@@ -109,7 +110,7 @@ function draftAdvisory(entry: QueueEntry, incidentId: string | undefined): strin
   const r = entry.relevance
   const why = [
     r.matched_techniques.length
-      ? `shares technique(s) ${r.matched_techniques.join(', ')}`
+      ? `shares attacker behavior(s) ${techniqueList(r.matched_techniques, ', ')}`
       : null,
     !r.matched_techniques.length && r.matched_tactics.length
       ? `shares ATT&CK tactic(s) ${r.matched_tactics.join(', ')}`
@@ -126,7 +127,7 @@ function draftAdvisory(entry: QueueEntry, incidentId: string | undefined): strin
     '',
     `Relevance to ${incidentId || 'the open incident'}: ${why || 'context only'}.`,
     entry.item.techniques.length
-      ? `Techniques in report: ${entry.item.techniques.join(', ')}`
+      ? `Attacker behaviors in report: ${techniqueList(entry.item.techniques, ', ')}`
       : '',
     '',
     'Recommended action: review your own detections for the technique(s) above.',
@@ -198,8 +199,7 @@ function TechniqueChips({
                 : 'border-accent/30 bg-accent-soft text-accent',
             )}
           >
-            {t}
-            {names[t] ? <span className="ml-1 font-sans text-dim">{names[t]}</span> : null}
+            {techniqueName(t, names[t])}
           </span>
         )
       })}
@@ -227,7 +227,7 @@ function ExposureBlock({ item }: { item: RadarItem }) {
             {moves[key].slice(0, 8).map((m, i) => (
               <span
                 key={`${m.from}-${m.to}-${i}`}
-                title={`${m.technique ?? 'no technique'} · anomaly score ${m.score ?? 'not measured'}`}
+                title={`${m.technique ? techniqueName(m.technique) : 'Technique not identified'} · anomaly score ${m.score ?? 'not measured'}`}
                 className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-dim"
               >
                 {m.from}→{m.to}
@@ -307,7 +307,7 @@ function RadarEntry({
             {rel.matched_techniques.length ? (
               <>
                 Same technique as your incident:{' '}
-                <span className="font-mono">{rel.matched_techniques.join(', ')}</span>.{' '}
+                <span>{techniqueList(rel.matched_techniques, ', ')}</span>.{' '}
               </>
             ) : rel.matched_tactics.length ? (
               <>Same ATT&amp;CK tactic as your incident: {rel.matched_tactics.join(', ')}. </>
@@ -372,7 +372,7 @@ function QueueEntryCard({
         {entry.relevance.matched_techniques.length ? (
           <>
             technique{' '}
-            <span className="font-mono">{entry.relevance.matched_techniques.join(', ')}</span>
+            <span>{techniqueList(entry.relevance.matched_techniques, ', ')}</span>
           </>
         ) : entry.relevance.matched_tactics.length ? (
           <>tactic {entry.relevance.matched_tactics.join(', ')}</>
@@ -565,7 +565,7 @@ function Radar({
           <CardTitle>Cross-referenced hits</CardTitle>
           <CardMeta>
             {techniqueIds.length
-              ? `matching ${techniqueIds.join(', ')}${actors.length ? ` · ${actors[0]}` : ''}`
+              ? `matching ${techniqueList(techniqueIds, ', ')}${actors.length ? ` · ${actors[0]}` : ''}`
               : 'no incident techniques to match on'}
           </CardMeta>
         </CardHeader>
@@ -591,7 +591,7 @@ function Radar({
               {techniqueIds.length ? (
                 <>
                   {' '}
-                  (<span className="font-mono text-xs">{techniqueIds.join(', ')}</span>)
+                  (<span className="text-xs">{techniqueList(techniqueIds, ', ')}</span>)
                 </>
               ) : null}
               , while today&apos;s public feeds are dominated by vulnerability and
@@ -703,9 +703,9 @@ export default function ThreatRadar() {
 
   const header = (
     <PageHeader
-      eyebrow="External intel"
-      title="Threat Radar"
-      description="Free, purpose-built CTI feeds mapped to MITRE ATT&CK and cross-referenced with the incident you are investigating."
+      eyebrow="Public threat reports"
+      title="What are others seeing?"
+      description="Compare this incident with recent public security reports and highlight reports that describe the same attacker behaviors."
       actions={
         <Badge variant={radarSource === 'live' ? 'accent' : 'outline'}>
           {radarSourceLabel}

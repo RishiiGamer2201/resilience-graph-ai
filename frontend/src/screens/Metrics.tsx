@@ -128,9 +128,9 @@ export default function Metrics() {
 
   const header = (
     <PageHeader
-      eyebrow="Evidence"
-      title="Models & metrics"
-      description="Read from reports/metrics.json through /api/metrics. Unsupervised detectors are reported as PR-AUC and TPR at a fixed false-positive rate, never as accuracy."
+      eyebrow="Model checks"
+      title="How well did the models perform?"
+      description="See the test results behind each model. Technical measurements are kept separate so a single score cannot hide weak areas."
     />
   )
 
