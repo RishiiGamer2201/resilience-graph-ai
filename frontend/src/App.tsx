@@ -13,7 +13,6 @@ const Login = lazy(() => import('@/screens/Login'))
 const Investigate = lazy(() => import('@/screens/Investigate'))
 const Analyze = lazy(() => import('@/screens/Analyze'))
 const Overview = lazy(() => import('@/screens/Overview'))
-const DigitalTwin = lazy(() => import('@/screens/DigitalTwin'))
 const Attackers = lazy(() => import('@/screens/Attackers'))
 const Incident = lazy(() => import('@/screens/Incident'))
 const Graph = lazy(() => import('@/screens/Graph'))
@@ -47,8 +46,8 @@ export default function App() {
                 <Route path="/investigate" element={page(<Investigate />)} />
                 <Route path="/analyze" element={page(<Analyze />)} />
                 <Route path="/overview" element={page(<Overview />)} />
-                <Route path="/digital-twin" element={page(<DigitalTwin />)} />
-                <Route path="/twin" element={<Navigate to="/digital-twin" replace />} />
+                <Route path="/digital-twin" element={<Navigate to="/overview" replace />} />
+                <Route path="/twin" element={<Navigate to="/overview" replace />} />
                 <Route path="/attackers" element={page(<Attackers />)} />
                 <Route path="/incident" element={page(<Incident />)} />
                 <Route path="/graph" element={page(<Graph />)} />

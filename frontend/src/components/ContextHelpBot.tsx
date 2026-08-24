@@ -19,7 +19,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/overview': 'Incident summary',
   '/incident': 'Incident timeline',
   '/graph': '2D attack map',
-  '/digital-twin': 'Safe response test',
   '/attackers': 'Compromised accounts',
   '/threat-intel': 'Known threat comparison',
   '/threat-radar': 'External threat reports',
@@ -33,7 +32,6 @@ const QUICK_QUESTIONS: Record<string, string[]> = {
   '/overview': ['What is the blast radius?', 'What should I check first?'],
   '/incident': ['Explain this timeline', 'What is an anomaly score?'],
   '/graph': ['How do I read this map?', 'What is a crown jewel?'],
-  '/digital-twin': ['What does isolation change?', 'Which computer is safest to isolate?'],
   '/attackers': ['What is a compromised account?', 'What is an attacker pivot?'],
   '/threat-intel': ['Is this attribution proof?', 'What is MITRE ATT&CK?'],
   '/metrics': ['Explain these model scores', 'What is a false positive?'],
@@ -43,7 +41,7 @@ const HELP_SEEN_KEY = 'nextattacks-beginner-guide-seen'
 const WELCOME_MESSAGE: Message = {
   id: 1,
   from: 'bot',
-  text: 'Ask a question, or select any words on the page and I will explain them using the AI advisor.',
+  text: 'Ask me a question, or keep this guide open and then select words on the page for an AI explanation.',
 }
 
 function selectedText(): { text: string; anchor: Element | null; nearby: string } {
@@ -73,9 +71,15 @@ export default function ContextHelpBot() {
   const panelRef = useRef<HTMLDivElement>(null)
   const lastSelection = useRef('')
 
+  const openGuide = () => {
+    window.getSelection()?.removeAllRanges()
+    lastSelection.current = ''
+    setOpen(true)
+  }
+
   const acknowledgeCoach = () => {
     setShowCoach(false)
-    setOpen(true)
+    openGuide()
     try { window.localStorage.setItem(HELP_SEEN_KEY, 'yes') } catch { /* storage can be disabled */ }
   }
 
@@ -132,6 +136,8 @@ export default function ContextHelpBot() {
   }
 
   useEffect(() => {
+    if (!open) return
+
     const captureSelection = () => {
       const { text, anchor, nearby } = selectedText()
       if (!text || text === lastSelection.current || panelRef.current?.contains(anchor)) return
@@ -151,6 +157,8 @@ export default function ContextHelpBot() {
   })
 
   useEffect(() => {
+    if (!open) return
+
     const onContextHelp = (event: Event) => {
       const detail = (event as CustomEvent<string>).detail
       if (detail) void ask(detail, 'selection')
@@ -164,7 +172,7 @@ export default function ContextHelpBot() {
       {showCoach ? (
         <button type="button" onClick={acknowledgeCoach} className="mb-3 w-72 rounded-xl border border-accent/40 bg-surface p-3 text-left shadow-2xl">
           <span className="flex items-center gap-2 text-sm font-semibold text-text"><Sparkles className="size-4 text-accent" /> Need help?</span>
-          <span className="mt-1 block text-xs leading-5 text-dim">Select any words for an AI explanation, or tap here to ask a question. This tip disappears after you open it once.</span>
+          <span className="mt-1 block text-xs leading-5 text-dim">Open the guide first. While it is open, select words for an AI explanation or type any question. This tip disappears after you open it once.</span>
         </button>
       ) : null}
 
@@ -197,7 +205,7 @@ export default function ContextHelpBot() {
         </section>
       ) : null}
 
-      <button type="button" onClick={() => { if (showCoach) acknowledgeCoach(); else setOpen((value) => !value) }} className="flex items-center gap-2 rounded-full border border-accent/50 bg-accent px-4 py-3 text-sm font-medium text-accent-fg shadow-xl" aria-label="Open AI beginner guide">
+      <button type="button" onClick={() => { if (showCoach) acknowledgeCoach(); else if (open) setOpen(false); else openGuide() }} className="flex items-center gap-2 rounded-full border border-accent/50 bg-accent px-4 py-3 text-sm font-medium text-accent-fg shadow-xl" aria-label="Open AI beginner guide">
         {open ? <Sparkles className="size-4" /> : <HelpCircle className="size-4" />} Ask what this means
       </button>
     </div>

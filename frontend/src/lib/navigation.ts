@@ -3,7 +3,6 @@ import {
   Activity,
   ChartNoAxesCombined,
   ClipboardCheck,
-  Cpu,
   Crosshair,
   Database,
   LayoutDashboard,
@@ -42,7 +41,6 @@ export const navigationGroups: NavigationGroup[] = [
     items: [
       { to: '/overview', label: 'Incident summary', shortLabel: 'Summary', description: 'Get the important facts at a glance', icon: LayoutDashboard },
       { to: '/graph', label: '2D attack map', shortLabel: 'Map', description: 'See how the attacker moved between computers', icon: Waypoints },
-      { to: '/digital-twin', label: 'Safe response test', shortLabel: 'Test', description: 'Test isolation without touching real systems', icon: Cpu },
       { to: '/attackers', label: 'Compromised accounts', shortLabel: 'Accounts', description: 'See which accounts were used in the attack', icon: Users },
       { to: '/threat-intel', label: 'Known threat comparison', shortLabel: 'Threats', description: 'Compare this incident with known attacker behavior', icon: Shield },
       { to: '/threat-radar', label: 'External threat reports', shortLabel: 'Reports', description: 'Find public reports related to this incident', icon: Satellite },
