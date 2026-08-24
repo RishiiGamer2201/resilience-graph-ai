@@ -16,8 +16,9 @@ Implements the two summarization points from Sarthak's architecture doc:
   Point B — Incident Summarizer (after graph is built, before reasoning):
     This is the ONLY place an LLM touches the pipeline. It condenses all
     Point-A summaries across the whole incident graph into one coherent
-    narrative for the Reasoning Agent. Falls back to deterministic template
-    concatenation if no LLM is configured (GEMINI_API_KEY env var absent).
+    narrative for the Reasoning Agent. Which provider, if any, is decided by
+    src.shared.llm (NEXTATTACK_LLM_PROVIDER plus that provider's key); with
+    none configured it falls back to deterministic template concatenation.
     LLM output is ALWAYS labelled non-authoritative.
 
 Usage:
@@ -27,8 +28,10 @@ Usage:
 """
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING
+
+from src.shared import llm
+from src.shared.llm import LLMResult
 
 if TYPE_CHECKING:
     from src.agents.chunker import EventChunk
@@ -143,14 +146,34 @@ def summarize_chunk(chunk: "EventChunk") -> dict:
 
 # ─── Point B: Incident Summarizer ─────────────────────────────────────────────
 
+# Written for the smallest model any provider defaults to. The first version of
+# this prompt asked for "a coherent narrative" and got "Over a period of time,
+# multiple users made numerous successful login attempts" -- fluent, true of
+# every auth log ever written, and useless to a responder. Naming the specific
+# failure modes is what a small model needs; a large one avoids them unprompted.
 _POINT_B_SYSTEM = (
     "You are a cyber-incident analyst assistant. "
     "You receive a list of behavioral observations (Point-A summaries) from an "
-    "ongoing investigation. Produce ONE concise, coherent incident narrative "
-    "(3-5 sentences) that describes what happened, in chronological order, using "
-    "the ATT&CK technique IDs where mentioned. "
-    "Output ONLY the narrative — no headers, no bullet points. "
-    "Do NOT invent facts or technique IDs not present in the input."
+    "ongoing investigation. Produce ONE incident narrative of 3-5 sentences "
+    "describing what happened, in chronological order, using the ATT&CK "
+    "technique IDs where they are given.\n"
+    "\n"
+    "Write it the way an analyst hands an incident to the next shift:\n"
+    "- Lead with the specific account and host the activity starts from. Name "
+    "them. 'A user' and 'multiple users' are failures, not summaries.\n"
+    "- Give the numbers you were given: how many hosts, how many events, over "
+    "what span. Never write 'over a period of time' when you were given one.\n"
+    "- Say what the pattern is (fan-out, burst, off-hours), not merely that it "
+    "was 'unusual' or 'abnormal'.\n"
+    "- End on what an adversary would do next from here, if the observations "
+    "support it. If they do not, end on what is still unknown.\n"
+    "\n"
+    "Hard rules:\n"
+    "- Use ONLY facts present in the input. Do not invent accounts, hosts, "
+    "counts, times or technique IDs, and do not round a number you were given.\n"
+    "- Do not recommend an action, assign a severity, or state a probability. "
+    "Those are computed elsewhere and you will be contradicting them.\n"
+    "- Output ONLY the narrative: no headers, no bullet points, no preamble."
 )
 
 _DISCLAIMER = "[LLM-assisted narrative — non-authoritative, for analyst review only]"
@@ -215,47 +238,24 @@ def _template_fallback(summaries: list[dict], technique_chain: list[str]) -> str
     return " ".join(sentences)
 
 
-# The single remote egress path in this product, and it is off unless a key is
-# set. Everything else runs locally with no network.
-_GEMINI_URL = ("https://generativelanguage.googleapis.com/v1beta/models/"
-               "gemini-1.5-flash:generateContent")
+# Point B's remote call. It does not talk to a provider itself: src.shared.llm
+# owns provider selection, the key table, retries and the egress guard, and it
+# is what /api/health and /api/capabilities report on. This used to call Gemini
+# directly off GEMINI_API_KEY, which meant an operator could set
+# NEXTATTACK_LLM_PROVIDER=openai with a valid key, see /api/health report
+# "active_provider: openai", and still get a template here -- with no error,
+# because a missing GEMINI_API_KEY simply returned None. A provider that the
+# product says is on must be on everywhere, or the status is a lie.
+def _call_llm(prompt: str, untrusted: str = "") -> LLMResult:
+    """Ask the configured provider to word the Point-B narrative.
 
-
-def _call_gemini(prompt: str) -> str | None:
-    """Attempt a Gemini call for narrative wording only. None on any failure.
-
-    Three things this deliberately does NOT do, each of which it used to:
-      * bypass src.shared.nethttp.fetch_url -- every outbound request in this
-        product goes through the host allowlist and SSRF guard, and adding this
-        host was a reviewable decision rather than an implicit one;
-      * put the API key in the URL query string, where it lands in proxy logs,
-        access logs and shell history -- it goes in a header;
-      * pretend this is local. Enabling it TRANSMITS INCIDENT SUMMARIES TO
-        GOOGLE. That is documented in SECURITY.md and reported by
-        /api/capabilities, because a security product must not move a customer's
-        incident data off the host quietly.
+    Returns an LLMResult in every case, including "no provider configured".
+    The caller falls back to the deterministic template on anything but ok.
     """
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        return None
-    try:
-        import json as _json
-
-        from src.shared.nethttp import fetch_url
-
-        body = _json.dumps({
-            "system_instruction": {"parts": [{"text": _POINT_B_SYSTEM}]},
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"maxOutputTokens": 300, "temperature": 0.2},
-        }).encode()
-        raw = fetch_url(
-            _GEMINI_URL,
-            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
-            data=body, timeout=10, max_bytes=1024 * 1024)
-        data = _json.loads(raw)
-        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
-    except Exception:
-        return None
+    # No max_tokens here on purpose: complete() forwards it to groq only, so
+    # passing one would read as a budget that openai and gemini quietly ignore.
+    # Length is the system prompt's job ("3-5 sentences") and llm.MAX_OUTPUT_TOKENS'.
+    return llm.complete(_POINT_B_SYSTEM, prompt, untrusted_seen=untrusted)
 
 
 def summarize_incident(
@@ -267,7 +267,8 @@ def summarize_incident(
     """Point B: condense all Point-A summaries into one incident narrative.
 
     This is the ONLY place in the pipeline where an LLM is used.
-    Falls back to template concatenation if GEMINI_API_KEY is not set.
+    Falls back to template concatenation when src.shared.llm has no provider
+    configured, or when the one configured fails to answer.
 
     Args:
         chunk_summaries: list of Point-A summary dicts (from summarize_chunk).
@@ -277,7 +278,11 @@ def summarize_incident(
     Returns:
         {
           "narrative":        str,   ← the coherent incident summary
-          "method":           str,   ← "llm" | "template"
+          "method":           str,   ← provider name ("openai") | "template"
+          "provider":         str,   ← who answered; "none" if none configured
+          "model":            str,
+          "llm_error":        str,   ← why a configured provider produced nothing
+          "injection_flagged": bool, ← instruction-like text in the log fields
           "authoritative":    bool,  ← always False; LLM output is advisory only
           "disclaimer":       str,
           "technique_chain":  list[str],
@@ -287,17 +292,30 @@ def summarize_incident(
     narrative: str
     method: str
 
+    provider = model = ""
+    llm_error = ""
+    injection_flagged = False
+
     if use_llm:
         obs_lines = "\n".join(f"- {s['text']}" for s in chunk_summaries)
         tchain = " → ".join(technique_chain) if technique_chain else "none identified"
-        prompt = (
-            f"ATT&CK technique chain so far: {tchain}\n\n"
-            f"Behavioral observations:\n{obs_lines}"
-        )
-        llm_result = _call_gemini(prompt)
-        if llm_result:
-            narrative = llm_result
-            method = "llm"
+        # The technique chain is ours, off the ATT&CK table. The observation
+        # lines carry account and host names lifted out of the customer's log,
+        # so they are third-party text and belong in the fenced half -- an
+        # attacker who can name a machine could otherwise write into this prompt.
+        prompt = llm.render(_POINT_B_SYSTEM,
+                            context=f"ATT&CK technique chain so far: {tchain}",
+                            untrusted=f"Behavioral observations:\n{obs_lines}")
+        res = _call_llm(prompt, untrusted=obs_lines)
+        provider, model = res.provider, res.model
+        llm_error = res.error
+        injection_flagged = res.injection_flagged
+        if res.ok and res.text.strip():
+            narrative = res.text.strip()
+            # The provider name, not a bare "llm". The UI prints this verbatim
+            # beside the narrative, and "openai" tells a reader where their
+            # incident text went; "llm" does not.
+            method = provider
         else:
             narrative = _template_fallback(chunk_summaries, technique_chain)
             method = "template"
@@ -309,7 +327,13 @@ def summarize_incident(
         "narrative": narrative,
         "method": method,
         "authoritative": False,   # HARD RULE: LLM output is never authoritative
-        "disclaimer": _DISCLAIMER if method == "llm" else "",
+        "disclaimer": _DISCLAIMER if method != "template" else "",
+        "provider": provider,
+        "model": model,
+        # Empty when no provider was asked for. Non-empty means one WAS asked
+        # for and did not answer -- an operational fact, not the default.
+        "llm_error": llm_error,
+        "injection_flagged": injection_flagged,
         "technique_chain": technique_chain,
         "n_chunks": len(chunk_summaries),
     }

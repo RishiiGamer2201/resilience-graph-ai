@@ -142,7 +142,7 @@ def test_every_provider_is_on_the_egress_allowlist():
 
 
 def test_groq_sends_its_key_in_a_header_and_can_carry_a_schema(monkeypatch):
-    """Groq is the agent lane's provider, and the only one with structured output.
+    """Groq constrains the decoder with a real json_schema, as openai now does.
 
     Handed a schema in the prompt alone, a model returned a different shape and
     invented evidence ids; json_schema constrains the decoder instead. The key
@@ -165,6 +165,74 @@ def test_groq_sends_its_key_in_a_header_and_can_carry_a_schema(monkeypatch):
     assert "gsk-test" not in seen["url"]
     assert seen["body"]["response_format"]["json_schema"]["schema"] == schema
     assert seen["body"]["max_tokens"] == 1234
+
+
+def test_openai_constrains_the_decoder_with_a_schema(monkeypatch):
+    """The agent lane hands complete() a schema. openai used to drop it on the
+    floor -- the request went out with no response_format, the reply came back
+    the wrong shape, and the run degraded to the template on a provider that was
+    answering fine. The schema must reach the wire."""
+    seen = {}
+
+    def fake(url, headers=None, data=None, **kw):
+        seen["url"], seen["headers"], seen["body"] = url, headers, json.loads(data)
+        return json.dumps({"choices": [{"message": {"content": '{"a":1}'}}]}).encode()
+
+    monkeypatch.setattr(llm, "fetch_url", fake)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("NEXTATTACK_LLM_PROVIDER", "openai")
+    schema = {"type": "object", "properties": {"a": {"type": "integer"}},
+              "required": ["a"], "additionalProperties": False}
+    r = llm.complete("sys", "prompt", schema=schema, max_tokens=2600)
+    assert r.ok and r.provider == "openai"
+    assert seen["body"]["response_format"]["json_schema"]["schema"] == schema
+    assert seen["body"]["response_format"]["json_schema"]["strict"] is True
+    assert seen["body"]["max_tokens"] == 2600
+    assert "sk-test" not in seen["url"]
+
+
+def test_auto_falls_through_to_the_next_provider(monkeypatch):
+    """A rate limit on one account should not cost the narrative when another
+    provider has a key. Only `auto` may do this."""
+    calls = []
+
+    def fake(url, headers=None, data=None, **kw):
+        calls.append(url)
+        if url == llm.OPENAI_URL:
+            raise RuntimeError("HTTP Error 429: Too Many Requests")
+        return json.dumps(
+            {"candidates": [{"content": {"parts": [{"text": "from gemini"}]}}]}).encode()
+
+    monkeypatch.setattr(llm, "fetch_url", fake)
+    monkeypatch.setattr(llm, "RETRIES", 0)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("GEMINI_API_KEY", "g-test")
+    monkeypatch.setenv("NEXTATTACK_LLM_PROVIDER", "auto")
+
+    r = llm.complete("sys", "prompt")
+    assert r.ok and r.provider == "gemini", "auto did not fall through"
+    assert r.text == "from gemini"
+    assert calls[0] == llm.OPENAI_URL, "openai must be tried first"
+
+
+def test_a_named_provider_never_falls_through(monkeypatch):
+    """Asking for openai and being answered by gemini would make the provider
+    label a lie, and that label is how a reader knows where their text went."""
+    def fake(url, headers=None, data=None, **kw):
+        if url == llm.OPENAI_URL:
+            raise RuntimeError("HTTP Error 429: Too Many Requests")
+        raise AssertionError("a named provider fell through to another")
+
+    monkeypatch.setattr(llm, "fetch_url", fake)
+    monkeypatch.setattr(llm, "RETRIES", 0)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("GEMINI_API_KEY", "g-test")
+    monkeypatch.setenv("NEXTATTACK_LLM_PROVIDER", "openai")
+
+    r = llm.complete("sys", "prompt")
+    assert not r.ok
+    assert r.provider == "openai"
+    assert "429" in r.error, r.error
 
 
 def test_providers_route_through_the_guard(monkeypatch):
