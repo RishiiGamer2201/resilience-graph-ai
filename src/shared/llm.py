@@ -26,13 +26,12 @@ had pointed at this app. Turning a provider on is an explicit act.
 
 What an LLM is allowed to do here
 ---------------------------------
-Reword facts this codebase already computed. That is all.
-
-It never produces a score, a severity, a technique id, a probability or an
-approval. Those come from deterministic Python and are passed to the model as
-fixed context. A model that is unreachable, rate-limited, or returns nonsense
-costs us prose, never a decision -- every caller has a deterministic fallback
-and reports which path produced the text.
+Most callers only reword facts this codebase already computed. The explicit
+``/predict-next`` action is the narrow exception: it asks the model to rank
+three IDs from a deterministic ATT&CK candidate set and cite campaign examples
+from the bundled artifact. Returned IDs and campaign names are validated before
+they leave the API. It remains advisory and never produces a score, severity,
+probability or approval.
 
 Safety properties, each of which is a bug we already shipped somewhere
 ----------------------------------------------------------------------
@@ -204,9 +203,11 @@ def status() -> dict:
                        "model": os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)},
         },
         "authoritative": False,
-        "note": ("A language model only rewords figures computed deterministically. "
-                 "It never produces a score, a severity, a technique id or an "
-                 "approval. Disabled by default: a key must be present AND "
+        "note": ("A language model rewords deterministic incident facts. On the "
+                 "explicit next-attack action it ranks a bounded ATT&CK candidate set; "
+                 "the API validates every technique and campaign name. It never "
+                 "produces a score, severity, probability or approval. Disabled by "
+                 "default: a key must be present AND "
                  "NEXTATTACK_LLM_PROVIDER must select it. With no provider the "
                  "product runs its full offline path."),
     }

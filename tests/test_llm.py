@@ -430,3 +430,23 @@ def test_a_greeting_does_not_dump_findings():
     reply = ask_advisor("Hello", graph=GRAPH)["reply"]
     assert "C17693" not in reply, "a greeting is not the place for findings"
     assert "do not decide" in reply.lower()
+
+
+def test_general_chat_refuses_non_cyber_questions_before_calling_a_model(monkeypatch):
+    from src.shared.chat_advisor import ask_advisor
+    def model_must_not_run(*args, **kwargs):
+        raise AssertionError("out-of-scope questions must be stopped before the LLM")
+    monkeypatch.setattr(llm, "complete", model_must_not_run)
+    result = ask_advisor("Write me a chocolate cake recipe", assistant_mode="general",
+                         ui_context="Current cybersecurity application page: Incident summary.")
+    assert result["method"] == "scope-guard"
+    assert result["intent"] == "out_of_scope"
+    assert "cybersecurity" in result["reply"].lower()
+
+
+def test_general_chat_keeps_greetings_and_cyber_questions_in_scope():
+    from src.shared.chat_advisor import _in_scope
+    assert _in_scope("Hello", assistant_mode="general")
+    assert _in_scope("How does ransomware spread?", assistant_mode="general")
+    assert not _in_scope("Who won the football match?", assistant_mode="general")
+    assert not _in_scope("Summarize Attack on Titan", assistant_mode="general")

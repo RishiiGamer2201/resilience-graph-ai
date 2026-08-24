@@ -337,7 +337,7 @@ export const scoreEvent = (features: ScoreFeatures) =>
  *  Throws when the backend is unreachable. It used to return five hardcoded
  *  techniques flagged `live: false`, which rendered on screen identically to a
  *  real prediction. */
-export const predictNext = (techniqueIds: string[], k = 5) =>
+export const predictNext = (techniqueIds: string[], k = 3) =>
   post<PredictNextResult>('/predict-next', { technique_ids: techniqueIds, k })
 
 // ─── Finalist surface ────────────────────────────────────────────────────────

@@ -102,16 +102,17 @@ export default function ContextHelpBot() {
       .filter((message) => !message.error && message.id !== 1)
       .slice(-6)
       .map((message) => ({ role: message.from === 'bot' ? 'assistant' : 'user', content: message.text }))
-    const prompt = source === 'selection'
-      ? `The user selected this exact text on the “${title}” page: “${clean}”. Nearby interface text is: “${nearby || clean}”. Explain what the selected text means here in beginner-friendly language. Do not give a general incident summary unless it is necessary to explain the selection.`
-      : `The user is currently on the “${title}” page. Their message is: “${clean}”. Treat it as normal conversation unless they are clearly asking about the page, cybersecurity, or the current incident. Answer their actual message directly.`
+    const uiContext = source === 'selection'
+      ? `Selected cybersecurity interface text on the “${title}” page. Nearby interface text: “${nearby || clean}”.`
+      : `Current cybersecurity application page: “${title}”.`
 
     setMessages((current) => [...current.slice(-7), { id: nextId.current++, from: 'user', text: userText }])
     setOpen(true)
     setBusy(true)
     try {
       const response = await twinChat({
-        message: prompt,
+        message: clean,
+        ui_context: uiContext,
         history,
         graph: bundle?.graph,
         scenario: bundle?.meta?.scenario,

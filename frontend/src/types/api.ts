@@ -540,17 +540,18 @@ export interface Prediction {
   score?: number
   probability?: number
   source?: string
+  reason?: string
+  previous_attacks?: Array<{ name: string; brief: string }>
 }
 
 export interface PredictNextResult {
   given: string[]
   predictions: Prediction[]
-  /** Deterministic plain-English projection built by
-   *  src/shared/predictor.generate_prediction_narrative. Template, not a model. */
-  projection_narrative?: string
-  /** `markov-interpolated-order2` | `markov-interpolated-order1` |
-   *  `frequency-fallback`. The last one means no observed context matched. */
-  source?: string
+  source: string
+  provider: string
+  model: string
+  authoritative: false
+  disclaimer: string
 }
 
 // ─── Scoring ─────────────────────────────────────────────────────────────────
@@ -1097,6 +1098,18 @@ export interface ActorMatch {
   coverage: number
   matched: string[]
   justification: string
+  rank_explanation?: string
+  score_factors?: {
+    coverage: number
+    jaccard: number
+    semantic_similarity: number
+  }
+  past_activity?: {
+    summary: string
+    source: string
+    source_url?: string
+  }
+  known_techniques?: Array<{ technique_id: string; name: string }>
 }
 
 export interface ThreatIntelView {

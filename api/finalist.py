@@ -506,6 +506,7 @@ def twin_candidates(req: TwinRankRequest, p: dict = Depends(principal)):
 
 class TwinChatRequest(BaseModel):
     message: str
+    ui_context: str = ""
     history: list[dict] = Field(default_factory=list)
     scenario: str | None = None
     incident_id: str = "INC-LIVE-001"
@@ -587,6 +588,7 @@ def twin_chat(req: TwinChatRequest, p: dict = Depends(principal)):
     from src.shared.chat_advisor import ask_advisor
     reply = ask_advisor(
         req.message,
+        ui_context=req.ui_context,
         history=req.history,
         graph=req.graph,
         scenario=req.scenario,

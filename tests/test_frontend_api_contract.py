@@ -137,28 +137,47 @@ def test_score_event_rejects_out_of_domain_features(client, field, value):
     ).status_code == 422
 
 
-def test_predict_next_requires_a_nonempty_bounded_chain(client):
+def test_predict_next_requires_exactly_three_llm_predictions(client, monkeypatch):
     assert client.post(
         "/api/predict-next", json={"technique_ids": [], "k": 5}, headers=ANALYST
     ).status_code == 422
     assert client.post(
         "/api/predict-next", json={"technique_ids": ["T1059"], "k": 0}, headers=ANALYST
     ).status_code == 422
+    assert client.post(
+        "/api/predict-next", json={"technique_ids": ["T1059"], "k": 5}, headers=ANALYST
+    ).status_code == 422
+    from src.shared import llm, llm_prediction
+    monkeypatch.setattr(llm, "chosen_provider", lambda: "openai")
+    monkeypatch.setattr(llm_prediction, "generate", lambda technique_ids, k: {
+        "given": technique_ids,
+        "predictions": [
+            {"rank": rank, "technique_id": tid, "name": tid,
+             "reason": "Grounded test reason.",
+             "previous_attacks": [{"name": "Operation Test", "brief": "First line. Second line."}]}
+            for rank, tid in enumerate(("T1059.001", "T1059.003", "T1204.002"), 1)
+        ],
+        "source": "llm:openai", "provider": "openai", "model": "test-model",
+        "authoritative": False, "disclaimer": "predicted, not observed",
+    })
 
     response = client.post(
         "/api/predict-next",
-        json={"technique_ids": ["T1059"], "k": 5},
+        json={"technique_ids": ["T1059"], "k": 3},
         headers=ANALYST,
     )
     assert response.status_code == 200, response.text
-    assert {"given", "predictions", "projection_narrative", "source"} <= response.json().keys()
+    body = response.json()
+    assert {"given", "predictions", "source", "provider", "model", "disclaimer"} <= body.keys()
+    assert len(body["predictions"]) == 3
+    assert all(p["reason"] and p["previous_attacks"] for p in body["predictions"])
 
 
 @pytest.mark.parametrize(
     "method,path,payload",
     [
         ("post", "/api/score-event", VALID_SCORE_FEATURES),
-        ("post", "/api/predict-next", {"technique_ids": ["T1059"], "k": 5}),
+        ("post", "/api/predict-next", {"technique_ids": ["T1059"], "k": 3}),
         ("post", "/api/analyze", {"scenario": "aiims_ransomware"}),
         ("get", "/api/analyze/stream?scenario=aiims_ransomware", None),
         ("get", "/api/agents/stream?scenario=aiims_ransomware", None),

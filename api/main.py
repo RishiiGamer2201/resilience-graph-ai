@@ -213,7 +213,11 @@ def graph():
 
 @app.get("/api/threat-intel")
 def threat_intel():
-    return _cached("threat_intel")
+    cached = _cached("threat_intel")
+    if cached.get("attribution") and not cached["attribution"][0].get("rank_explanation"):
+        from src.shared.views import threat_intel_view
+        return threat_intel_view({"incident": _cached("incident")})
+    return cached
 
 
 @app.get("/api/metrics")
@@ -407,28 +411,21 @@ def score_event(f: EventFeatures, p: dict = Depends(analyze_principal)):
 # --- LIVE endpoint 2: predict next technique ---
 class Chain(BaseModel):
     technique_ids: list[str] = Field(min_length=1)
-    k: int = Field(default=5, ge=1, le=50)
+    k: int = Field(default=3, ge=3, le=3)
 
 
 @app.post("/api/predict-next")
 def predict_next(c: Chain, p: dict = Depends(analyze_principal)):
-    """Next-technique ranking from the shipped interpolated Markov model.
-
-    Scores are real interpolated transition probabilities
-    (l2*order2 + l1*order1 + l0*unigram), not a bare ranked list.
-    """
+    """Generate three grounded next-technique predictions with the configured LLM."""
     _require(p, "analyze")
-    from src.shared import predictor
-    names = _technique_names()                 # technique_id -> display name
-    top, source = predictor.rank_next(list(c.technique_ids), max(1, c.k))
-    preds = [{"rank": i + 1, "technique_id": t, "name": names.get(t, t),
-              "score": round(p, 3)}
-             for i, (t, p) in enumerate(top)]
-    narrative = predictor.generate_prediction_narrative(preds, list(c.technique_ids))
-    return {"given": c.technique_ids,
-            "predictions": preds,
-            "projection_narrative": narrative,
-            "source": source}
+    from src.shared import llm
+    from src.shared.llm_prediction import generate
+    if llm.chosen_provider() is None:
+        raise HTTPException(503, "Next-attack prediction requires an enabled LLM provider. Set a provider key and NEXTATTACK_LLM_PROVIDER, then try again.")
+    try:
+        return generate(list(c.technique_ids), c.k)
+    except RuntimeError as exc:
+        raise HTTPException(502, str(exc)) from exc
 
 
 # --- LIVE endpoint 3: full pipeline analysis of an event log ---------------
