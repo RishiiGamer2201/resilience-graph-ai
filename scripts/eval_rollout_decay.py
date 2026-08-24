@@ -9,7 +9,7 @@ What is measured
 Exactly what the UI renders: for a prefix of a held-out sequence, roll forward
 with `simulate_progression` and ask whether the technique that ACTUALLY came at
 offset h is in the top-3 the rollout shows at step h. That is top-3 accuracy at
-horizon h -- the same metric, and the same top-3 shape, as the one-step 38.1%
+horizon h -- the same metric, and the same top-3 shape, as the published one-step
 already published in `reports/prediction_eval.md`.
 
 Where the data comes from
@@ -75,10 +75,10 @@ BOOT_REPS = 2000   # sequence-level bootstrap replicates
 BOOT_SEED = 42     # fixed so the reported interval reproduces byte-identically
 
 # The published one-step figures we must land on before trusting the split.
-# top-3 is 38.1% in the report and 38.5% here: `rank_next` breaks probability
+# top-3 is 38.2% in the report and 38.6% here: `rank_next` breaks probability
 # ties by technique id, `build_predictor`'s ranker leaves ties in dict order.
-# Three prediction points out of 780 land differently. Noted, not papered over.
-PUBLISHED = {"n": 780, "oov": 45, "top1": 23.1, "top5": 44.4}
+# Three prediction points out of 777 land differently. Noted, not papered over.
+PUBLISHED = {"n": 777, "oov": 45, "top1": 23.2, "top3": 38.2, "top5": 44.5}
 
 
 def split():
@@ -402,7 +402,7 @@ before quoting anything downstream of this constant**, because the rounding to
 For each prefix of a held-out sequence, `simulate_progression` is rolled forward
 {MAX_H} steps and asked: is the technique that ACTUALLY came at offset *h* among the
 top-{TOP_K} the rollout renders at step *h*? That is the same metric and the same
-top-3 shape as the published one-step 38.1%, extended along the horizon -- so
+top-3 shape as the published one-step {PUBLISHED['top3']:.1f}%, extended along the horizon -- so
 step 1 here is directly comparable to the number the module already cites.
 
 Accuracy at every horizon is measured over **the same fixed set of prefixes** --
@@ -410,10 +410,10 @@ only those with at least {MAX_H} real techniques left to check against. A shrink
 population would mix horizon decay with "long sequences behave differently".
 
 That restriction moves the step-1 number: **{acc[0]:.1f}%** here versus {R['acc1'][3]:.1f}% over
-all 780 prediction points, because prefixes near the end of a sequence (and every
+all {R['n1']} prediction points, because prefixes near the end of a sequence (and every
 sequence shorter than {MAX_H + 1}) are excluded. Only the *ratios* feed the fit, so this
 does not bias the decay -- but it does mean {acc[0]:.1f}% is not a new headline accuracy
-and must not be quoted as one. The headline stays 38.1%.
+and must not be quoted as one. The headline stays {PUBLISHED['top3']:.1f}%.
 
 ## Provenance of the data
 
@@ -428,13 +428,13 @@ one-step evaluation and refuses to continue unless it lands on
 | | published | reproduced here |
 |---|---|---|
 | sequences | 205 (140/30/35) | {stats['n_sequences']} ({stats['split']['train']}/{stats['split']['val']}/{stats['split']['test']}) |
-| prediction points | 780 | {R['n1']} |
-| OOV (counted as misses) | 45 | {R['oov1']} |
-| top-1 | 23.1% | {R['acc1'][1]:.1f}% |
-| top-3 | 38.1% | {R['acc1'][3]:.1f}% |
-| top-5 | 44.4% | {R['acc1'][5]:.1f}% |
+| prediction points | {PUBLISHED['n']} | {R['n1']} |
+| OOV (counted as misses) | {PUBLISHED['oov']} | {R['oov1']} |
+| top-1 | {PUBLISHED['top1']:.1f}% | {R['acc1'][1]:.1f}% |
+| top-3 | {PUBLISHED['top3']:.1f}% | {R['acc1'][3]:.1f}% |
+| top-5 | {PUBLISHED['top5']:.1f}% | {R['acc1'][5]:.1f}% |
 
-top-3 differs by 0.4pp -- three prediction points out of 780. `predictor.rank_next`
+top-3 differs by 0.4pp -- three prediction points out of {R['n1']}. `predictor.rank_next`
 breaks probability ties by technique id; `build_predictor`'s ranker leaves tied
 techniques in dict order. Same corpus, same model, different coin-flip on ties.
 
@@ -609,7 +609,7 @@ and it points the same way as the bullets above: **{shipped} is an upper bound o
 well this holds up, not a central estimate.**
 
 The one-step CERT-In figure already published in `reports/prediction_eval.md`
-(10.0% top-3, versus 38.1% on the auto split) says the same thing at h = 1. This
+(11.1% top-3, versus 38.2% on the auto split) says the same thing at h = 1. This
 measurement extends that gap along the horizon rather than resolving it. Getting
 a trustworthy multi-step decay needs more hand-verified report-ordered sequences;
 until then, treat any step beyond the first as a lead to check, never a forecast.
@@ -617,7 +617,7 @@ until then, treat any step beyond the first as a lead to check, never a forecast
 ## What this constant does and does not mean
 
 It is the measured rate at which THIS model's top-3 accuracy falls off as the
-horizon grows, on the same held-out split that produced the 38.1% headline. It is
+horizon grows, on the same held-out split that produced the 38.2% headline. It is
 not a probability that a forecast is correct, and it is not a confidence interval.
 It is a decay rate with an experiment behind it, which is the whole and only claim.
 

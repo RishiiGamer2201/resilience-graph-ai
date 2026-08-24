@@ -26,6 +26,8 @@ import pickle
 import random
 from pathlib import Path
 
+from scripts.validate_cert_in_sequences import validate as validate_cert_in
+
 ROOT = Path(__file__).resolve().parents[2]
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
 OUT_DIR = ROOT / "data" / "processed" / "engine2"
@@ -67,7 +69,9 @@ def build() -> tuple[list[dict], dict]:
     # orderings, the honest non-circular check.
     manual_added = manual_verified = 0
     if MANUAL.exists():
-        for m in json.loads(MANUAL.read_text(encoding="utf-8")):
+        manual_entries = json.loads(MANUAL.read_text(encoding="utf-8"))
+        validate_cert_in(manual_entries)
+        for m in manual_entries:
             ids = m.get("ordered_technique_ids", [])
             if len(ids) < 2:
                 continue
@@ -76,6 +80,13 @@ def build() -> tuple[list[dict], dict]:
                 "ordered_technique_ids": list(ids), "is_manual": True,
                 "split": "test", "verified": bool(m.get("verified", False)),
                 "source_ref": m.get("source_url", m.get("source", "")),
+                "source_provenance": {
+                    "advisory_id": m.get("advisory_id"),
+                    "title": m.get("source_title"),
+                    "url": m.get("source_url"),
+                    "sha256": m.get("source_sha256"),
+                    "verified_on": m.get("verified_on"),
+                },
             })
             manual_added += 1
             manual_verified += int(bool(m.get("verified", False)))
@@ -109,7 +120,8 @@ def main() -> None:
         f"{stats['n_campaigns']} campaigns (auto, kill-chain-ordered) + "
         f"**{stats['n_manual']} manual** (E2.2b, report-ordered, forced into TEST).",
         f"- Manual sequences verified by an analyst: **{stats['n_manual_verified']}/{stats['n_manual']}** "
-        f"(flip `verified` in `data/manual/cert_in_sequences.json` after checking mappings).",
+        f"(unique advisory ID, matching official title, source hash, and reviewed mappings "
+        f"are enforced by `scripts.validate_cert_in_sequences`).",
         f"- Prediction vocabulary: **{stats['vocab']}** distinct techniques",
         f"- Length: min {stats['len_min']} · mean {stats['len_mean']} · max {stats['len_max']}",
         f"- Split (sequence-level): {stats['split']}",

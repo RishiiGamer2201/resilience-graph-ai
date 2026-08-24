@@ -29,6 +29,7 @@ from pathlib import Path
 
 from src.shared.evidence import INDEX_PATH, sha256_text
 from src.shared.timeutil import fmt_ist
+from scripts.validate_cert_in_sequences import validate as validate_cert_in
 
 ROOT = Path(__file__).resolve().parents[1]
 STIX_DIR = ROOT / "data" / "raw" / "mitre_attack"
@@ -226,6 +227,7 @@ def certin_chunks(retrieved_at: str) -> list[dict]:
     if not CERTIN.exists():
         return []
     entries = json.loads(CERTIN.read_text(encoding="utf-8"))
+    validate_cert_in(entries)
     chunks = []
     for i, e in enumerate(entries):
         if not e.get("verified"):
@@ -238,7 +240,7 @@ def certin_chunks(retrieved_at: str) -> list[dict]:
             id=f"certin:{i}",
             source_id="cert-in-advisories",
             publisher="CERT-In",
-            title=e.get("source", "CERT-In advisory"),
+            title=e.get("source_title", e.get("source", "CERT-In advisory")),
             url=e.get("source_url", "https://www.cert-in.org.in/"),
             section="Advisory · analyst-verified technique sequence",
             text=body,
@@ -246,8 +248,38 @@ def certin_chunks(retrieved_at: str) -> list[dict]:
             retrieved_at=retrieved_at,
             extraction_method="curated-json (analyst-verified)",
             identifiers=list(dict.fromkeys(tids)),
+            source_sha256=e.get("source_sha256"),
         ))
     return chunks
+
+
+def refresh_certin_only() -> dict:
+    """Replace curated CERT-In chunks without rebuilding unrelated sources.
+
+    A fresh evidence build prefers local raw ATT&CK STIX. Those large raw files
+    are intentionally gitignored, so a source-correction PR must not silently
+    replace the richer committed ATT&CK corpus with the smaller lookup fallback.
+    """
+    if not INDEX_PATH.exists():
+        raise FileNotFoundError(
+            f"{INDEX_PATH} is required for --cert-in-only; run a full build first")
+    with gzip.open(INDEX_PATH, "rt", encoding="utf-8") as f:
+        index = json.load(f)
+    old = index["chunks"]
+    positions = [i for i, chunk in enumerate(old)
+                 if chunk.get("source_id") == "cert-in-advisories"]
+    insert_at = min(positions) if positions else len(old)
+    kept = [chunk for chunk in old
+            if chunk.get("source_id") != "cert-in-advisories"]
+    refreshed = certin_chunks(fmt_ist())
+    index["chunks"] = kept[:insert_at] + refreshed + kept[insert_at:]
+    for source in index.get("meta", {}).get("sources", []):
+        if source.get("source_id") == "cert-in-advisories":
+            source.update({"ok": bool(refreshed), "chunks": len(refreshed),
+                           "note": "analyst-verified advisories only"})
+    with gzip.open(INDEX_PATH, "wt", encoding="utf-8") as f:
+        json.dump(index, f, ensure_ascii=False)
+    return index
 
 
 # --------------------------------------------------------------------------- #
@@ -332,9 +364,12 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--no-network", action="store_true",
                     help="skip the live CISA KEV refresh (offline build)")
+    ap.add_argument("--cert-in-only", action="store_true",
+                    help="refresh curated CERT-In chunks in the committed index only")
     args = ap.parse_args()
-    idx = build(no_network=args.no_network)
-    write_report(idx)
+    idx = refresh_certin_only() if args.cert_in_only else build(no_network=args.no_network)
+    if not args.cert_in_only:
+        write_report(idx)
     print(f"evidence index: {len(idx['chunks'])} chunks -> "
           f"{INDEX_PATH.relative_to(ROOT).as_posix()} "
           f"({INDEX_PATH.stat().st_size / 1024:.0f} KB)")

@@ -97,6 +97,9 @@ class Chunk:
     classification: str       # public
     sha256: str
     identifiers: list[str] = field(default_factory=list)   # T####, CVE-...
+    # For curated sources, hash of the normalized official source body. This is
+    # distinct from `sha256`, which protects the derived retrievable chunk text.
+    source_sha256: str | None = None
 
     @property
     def authority(self) -> str:
@@ -115,6 +118,7 @@ class Chunk:
             "retrieved_at": self.retrieved_at,
             "excerpt": sanitize_excerpt(self.text),
             "sha256": self.sha256,
+            "source_sha256": self.source_sha256,
             "identifiers": self.identifiers,
             "extraction_method": self.extraction_method,
             "classification": self.classification,

@@ -82,20 +82,20 @@ from 205 real attack sequences.
 |---|---|---|
 | Most-frequent baseline | 4.9% | baseline |
 | Kill-chain order baseline | 7.1% | baseline built to beat us |
-| LSTM over MiniLM embeddings | 27.2% | lost, documented negative |
-| Markov, first order | 36.5% | previous shipped |
-| **Interpolated Markov** | **38.1%** | **shipped** |
+| LSTM over MiniLM embeddings | 29.3% | lost, documented negative |
+| Markov, first order | 36.7% | previous shipped |
+| **Interpolated Markov** | **38.2%** | **shipped** |
 
 Anti-circularity: the sequences are tactic-ordered, so a model could cheat by
 re-learning that order. The shipped model beats the kill-chain baseline by
 **5.4x**, evidence it predicts real technique-to-technique transitions. The
-neural models (LSTM 27.2%, and a bidirectional LSTM at 20.0% in
+neural models (LSTM 29.3%, and a bidirectional LSTM at 20.0% in
 `reports/model_experiments.md`) both lost at this data scale, so we ship the
 simpler winner.
 
 Non-circular India test: on 4 analyst-verified CERT-In sequences ordered by the
 real reported timeline (not our heuristic), top-3 is
-10.0% versus 38.1%
+11.1% versus 38.2%
 on the auto-ordered set. Real orderings are harder; we publish both.
 
 Attribution: transparent weighted retrieval over 172 MITRE group profiles
@@ -237,7 +237,7 @@ clone with no dataset download.
 | Actions executed against real systems | 0 (by design) |
 | Investigation latency, p50 then p95 | 208 ms then 1793 ms |
 | Evidence recall@1 then recall@5 (lexical, the shipped backend) | 64.3% then 85.7% |
-| Evidence MRR (lexical, the shipped backend) | 0.717 |
+| Evidence MRR (lexical, the shipped backend) | 0.738 |
 | Citation integrity failures | 0 |
 | Audit tampering detected | yes |
 | Unauthorised approval blocked server side | yes |
@@ -272,7 +272,7 @@ what would reverse it.
 
 ## 7. Engineering
 
-- 553 automated tests, no network required (pipeline correctness, multi-pivot
+- 655 automated tests, no network required (pipeline correctness, multi-pivot
   graph, cross-screen consistency, calibration spread, intelligence mapping
   precision, evidence retrieval and citation integrity, prompt-injection handling,
   RBAC denials, audit tamper detection, digital-twin non-mutation, vulnerability

@@ -1,13 +1,13 @@
 # Evidence retrieval evaluation
 
-Evaluated: 2026-08-18 10:48 IST  ·  corpus 1545 chunks  ·  k=5
+Evaluated: 2026-08-25 03:52 IST  ·  corpus 1545 chunks  ·  k=5
 
 | Metric | Value |
 |---|---|
 | Queries | 14 |
 | Recall@1 | 0.643 |
 | Recall@5 | 0.857 |
-| MRR | 0.717 |
+| MRR | 0.738 |
 | Citation integrity failures | 0 |
 
 ## Per-query
@@ -22,10 +22,10 @@ Evaluated: 2026-08-18 10:48 IST  ·  corpus 1545 chunks  ·  k=5
 | stealing data out over the command and control channel | `attack:T1041` | 2 | MITRE ATT&CK T1646 — Exfiltration Over C2 Channel |
 | enumerating other machines on the network | `attack:T1018` | MISS | CISA KEV CVE-2026-22769 — Dell RecoverPoint for Virtual Machines (RP4VMs) |
 | what does MITRE recommend to mitigate pass the hash | `attack:T1550.002` | 1 | MITRE ATT&CK T1550.002 — Pass the Hash |
-| WhatsApp distributed VBScript loader taking over remote management tools | `certin:0` | 1 | CERT-In advisory CICA-2026-3534 — malware campaign via WhatsApp |
-| Android banking trojan disguised as an RTO eChallan alert | `certin:1` | 1 | CERT-In advisory CICA-2026-3492 — fraudulent-alert Android malware campaign |
-| malicious npm and PyPI packages in a software supply chain attack | `certin:2` | 5 | MITRE ATT&CK T1195.001 — Compromise Software Dependencies and Development Tools |
-| Fortigate SSL VPN administrator credential exposure | `certin:3` | 1 | CERT-In advisory CICA-2026-3534 — potential exposure of Fortigate admin & VPN credentials |
+| WhatsApp distributed VBScript loader taking over remote management tools | `certin:0` | 1 | Malware Campaign spreading through WhatsApp Attachments |
+| Android banking trojan disguised as an RTO eChallan alert | `certin:1` | 1 | Sophisticated RTO/eChallan themed Android Malware Campaign targeting Sensitive Information |
+| malicious npm and PyPI packages in a software supply chain attack | `certin:2` | 2 | MITRE ATT&CK T1195.001 — Compromise Software Dependencies and Development Tools |
+| Fortigate SSL VPN administrator credential exposure | `certin:3` | 1 | Potential Exposure of FortiGate Administrative and VPN Credentials (FortiBleed) |
 | actively exploited vulnerability that CISA requires federal agencies to patch | `any CISA doc` | 1 | CISA KEV CVE-2025-20333 — Cisco Secure Firewall Adaptive Security Appliance and Secure Firewall Threat Defense |
 | known exploited Microsoft Windows privilege escalation flaw | `any CISA doc` | 1 | CISA KEV CVE-2021-43226 — Microsoft Windows |
 
