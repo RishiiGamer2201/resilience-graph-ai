@@ -162,8 +162,9 @@ def _technique_names() -> dict:
 
 
 def _severity(score: float) -> str:
-    return ("critical" if score >= 90 else "high" if score >= 70
-            else "medium" if score >= 45 else "low")
+    """Delegates. This used to carry its own copy of the bands, which disagreed
+    with the incident correlator's: score 72 was `high` here and `medium` there."""
+    return severity_from_score(score)
 
 
 # --- cached endpoints ---
@@ -186,6 +187,7 @@ def health():
             # never has to guess whether prose came from a model or a template,
             # and so an unintended provider is visible rather than silent.
             "llm": _llm.status(),
+            "severity_policy": severity_policy(),
             "version": os.environ.get("NEXTATTACK_VERSION", "dev")}
 
 
@@ -432,6 +434,8 @@ def predict_next(c: Chain, p: dict = Depends(analyze_principal)):
 # This is what makes the app WORK rather than replay one baked incident: score
 # every event → correlate → graph → SOAR → attribute → predict, computed live.
 from src.shared.live_analyze import analyze_events, MAX_ROWS   # noqa: E402
+from src.shared.severity import policy as severity_policy    # noqa: E402
+from src.shared.severity import severity_from_score          # noqa: E402
 # Moved to src/shared so a library no longer has to import this module back out
 # of the API layer. See src/shared/agent_view.py for why that mattered.
 from src.shared.agent_view import (                                # noqa: E402
@@ -895,7 +899,13 @@ def netstate_analyze(req: NetStateRequest, p: dict = Depends(analyze_principal))
                 422, f"need at least {ns.WINDOW} flows to form one window; "
                      f"got {len(df)}")
         model = ns.NetStateModel.load()
-        latent = model.encode(states)
+        try:
+            latent = model.encode(states)
+        except ns.FeatureContractError as e:
+            # 422, not 500: the caller sent windows this artifact cannot answer
+            # for. Retrying sends the same vectors, so the message has to name
+            # both feature sets rather than say "internal error".
+            raise HTTPException(422, str(e))
         # forecast() encodes internally, so it takes the 48-dim window states,
         # not the latent ids. Passing `latent` here broadcast (1,3) against (48,).
         fc = model.forecast(states, horizon=req.horizon)

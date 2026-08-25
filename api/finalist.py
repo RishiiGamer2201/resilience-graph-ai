@@ -12,11 +12,14 @@ Two rules hold across every route in this file:
 """
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import (APIRouter, Depends, File, Form, Header, HTTPException,
+                     Response, UploadFile)
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.shared import audit as audit_mod
@@ -900,6 +903,192 @@ def incident_audit(incident_id: str, p: dict = Depends(principal)):
             "note": ("Filtered view. Verify the FULL export — a subset cannot be "
                      "chain-verified on its own, by design."),
             "verified": None}
+
+
+# --------------------------------------------------------------------------- #
+# baseline enrollment                                                          #
+# --------------------------------------------------------------------------- #
+@router.get("/baseline/status")
+def baseline_status(p: dict = Depends(principal)):
+    """off | learning | partial | ready | error, with coverage and the ledger.
+
+    Readable by anyone who can read an analysis, because it is the answer to
+    "why did this log alert on everything" -- a store still learning says so
+    here rather than in the shape of the results.
+    """
+    _require(p, "read")
+    from src.shared import baseline
+
+    st = baseline.status()
+    return {**st, "recent_batches": baseline.enrollments(limit=10)}
+
+
+@router.post("/baseline/enroll")
+async def baseline_enroll(
+    file: UploadFile = File(...),
+    source: str = Form(""),
+    p: dict = Depends(principal),
+):
+    """Fold a known-good historical log into the entity baselines.
+
+    The gap this closes: `baseline.observe()` existed and nothing in the product
+    called it, so the store could only be built by code outside the application
+    and the UEBA baseline was, in practice, unreachable.
+
+    Admin only. Enrolling history rewrites what "normal" means for every later
+    analysis, and a wrong enrolment is not a wrong answer to one question -- it
+    is a wrong baseline under all of them, invisible in the answers.
+
+    Idempotent by content hash, resumable across restarts, and recorded in the
+    audit chain. Uploading the same export twice is a no-op that says so.
+    """
+    _require(p, "enroll_baseline")
+    from src.shared import baseline
+
+    if not baseline.enabled():
+        raise HTTPException(
+            409, f"baseline storage is off; set {baseline.DB_ENV} to a writable "
+                 f"path and restart before enrolling history")
+
+    from api.main import _read_upload
+    raw = await _read_upload(file)
+
+    def work():
+        try:
+            df = pd.read_csv(io.BytesIO(raw))
+        except Exception as e:
+            raise HTTPException(422, f"could not parse CSV: {e}")
+        try:
+            from src.shared.normalize import normalize
+            df = normalize(df, source="lanl")
+        except Exception:
+            pass                              # already in the common schema
+        try:
+            return baseline.enroll(df, source=source or (file.filename or "upload"))
+        except ValueError as e:
+            raise HTTPException(422, str(e))
+
+    result = await run_in_threadpool(work)
+
+    audit_mod.chain().append(
+        "baseline.enrolled", actor=p["actor"], role=p["role"],
+        incident_id=None,
+        inputs={"source": result.get("source", source), "rows": result.get("rows"),
+                "batch_id": result.get("batch_id")},
+        reason=("known-good history folded into the entity baselines"
+                if result.get("state") != "already_enrolled"
+                else "re-upload of already-enrolled content; counted once"),
+        details={"state": result.get("state"),
+                 "rows_done": result.get("rows_done"),
+                 "resumed_from": result.get("resumed_from"),
+                 "baseline_state": (result.get("status") or {}).get("state")})
+    return result
+
+# continuous ingestion                                                         #
+# --------------------------------------------------------------------------- #
+class IngestRequest(BaseModel):
+    events: list[dict] = Field(default_factory=list)
+    feed: str = "default"
+    critical_assets: list[str] = Field(default_factory=list)
+    incident_id: str = "INC-FEED-001"
+
+
+@router.post("/ingest")
+def ingest_events(req: IngestRequest, p: dict = Depends(principal)):
+    """Feed events in as they arrive; only what is new is scored.
+
+    The existing entry points take a finite batch and compute the whole result
+    from it, so adding ten events meant re-sending the file they belong to --
+    and re-sending a file re-raised every alert already in it. Here an event
+    already ingested is dropped by content fingerprint before scoring, which is
+    what makes a collector's overlapping replay after a restart free rather than
+    a second wave of the same alerts.
+    """
+    _require(p, "analyze")
+    from src.shared import ingest as feed
+
+    if not req.events:
+        raise HTTPException(422, "no events provided")
+    out = feed.ingest(pd.DataFrame(req.events), feed=req.feed,
+                      critical_assets=set(req.critical_assets),
+                      incident_id=req.incident_id)
+    if out.get("state") == "off":
+        raise HTTPException(409, out["detail"])
+    return out
+
+
+@router.get("/ingest/status")
+def ingest_status(feed: str = "default", p: dict = Depends(principal)):
+    """Where a feed got to. On disk, so it survives a restart."""
+    _require(p, "read")
+    from src.shared import baseline
+    from src.shared import ingest as feed_mod
+
+    path = baseline.db_path()
+    if path is None:
+        return {"enabled": False, "state": "off",
+                "detail": (f"continuous ingestion keeps its checkpoint in the "
+                           f"baseline store; set {baseline.DB_ENV} to enable it")}
+    return {"enabled": True, "feed": feed,
+            "checkpoint": feed_mod.checkpoint(feed, path)}
+
+
+# --------------------------------------------------------------------------- #
+# causal network-state tracker                                                 #
+# --------------------------------------------------------------------------- #
+class TrackerRequest(BaseModel):
+    flows: list[dict] = Field(default_factory=list)
+    tenant: str = "default"
+    horizon: int = Field(default=5, ge=1, le=20)
+
+
+@router.post("/netstate/track")
+def netstate_track(req: TrackerRequest, p: dict = Depends(principal)):
+    """Feed flow windows to the adaptive tracker and get evidence back.
+
+    Distinct from /api/netstate/analyze, which stays exactly as it was: that one
+    loads the OFFLINE model and forecasts from scratch on every request, so the
+    adaptation the measurement is about never happens. This one keeps its live
+    transition counts per tenant, forecasts a window BEFORE observing it, and
+    returns the support the number rests on.
+
+    The forecast is evidence. It is not a severity, does not raise an alert and
+    does not touch a score: the model was evaluated on next-window prediction,
+    and its usefulness as an alert has not been measured.
+    """
+    _require(p, "analyze")
+    from src.engine3 import netstate as ns
+    from src.shared import netstate_tracker as tracker
+
+    if not req.flows:
+        raise HTTPException(422, "no flows provided")
+    df = pd.DataFrame(req.flows)
+    missing = [c for c in ns.FLOW_FEATURES if c not in df.columns]
+    if missing:
+        raise HTTPException(
+            422, f"{len(missing)} of {len(ns.FLOW_FEATURES)} flow features "
+                 f"missing, first few: {missing[:5]}")
+    if "label" not in df.columns:
+        df["label"] = 0.0
+    states, _ = ns.windows(df)
+    if len(states) == 0:
+        raise HTTPException(422, f"need at least {ns.WINDOW} flows to form one "
+                                 f"window; got {len(df)}")
+    out = tracker.observe(states, tenant=req.tenant, horizon=req.horizon)
+    if out.get("state") == "feature_mismatch":
+        raise HTTPException(422, out["detail"])
+    if out.get("state") == "unavailable":
+        raise HTTPException(503, out["detail"])
+    return out
+
+
+@router.get("/netstate/track/status")
+def netstate_track_status(tenant: str = "default", p: dict = Depends(principal)):
+    """The tracker's current state, its support, and where it came from."""
+    _require(p, "read")
+    from src.shared import netstate_tracker as tracker
+    return tracker.status(tenant)
+__all__ = ["router"]
 
 
 __all__ = ["router"]

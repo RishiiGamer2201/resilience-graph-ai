@@ -206,11 +206,21 @@ def write_report(m: dict) -> None:
               "highest payload entropy.", ""]
 
     mo = m["model"]
-    lines += ["## One state space, two sources", "",
-              "The window vector is the same shape `src/engine3/netstate.py`",
-              "uses for CIC-IDS2017 flows, so a capture is handed to the same",
-              "latent state-space model unchanged. The model is not told whether",
-              "its input came from flows or from packets.", ""]
+    lines += ["## One shape convention, two feature sets", "",
+              "The window vector follows the same shape CONVENTION",
+              "`src/engine3/netstate.py` uses for CIC-IDS2017 flows -- the mean",
+              "and standard deviation of each feature across the window -- but",
+              "a different feature set, so the two are not interchangeable.", "",
+              "This section used to say a capture is handed to the same latent",
+              "state-space model unchanged. It is not, and that claim",
+              "contradicted the figure directly below it: these numbers come",
+              "from a model fitted on packet windows here, not from",
+              "`models/netstate_cicids.npz`, which was trained on the 24 flow",
+              "features and encodes 48 dimensions. Nothing converts between",
+              "them -- TTL variance and retransmission rate are absent from",
+              "flow records, and `Init_Win_bytes_backward` is absent from a",
+              "packet window. `NetStateModel.encode()` refuses the mismatch by",
+              "name and `/api/netstate/analyze` answers 422.", ""]
     if mo.get("state") == "not measured":
         lines.append(f"Not fitted here: {mo['why']}.")
     else:

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import ForceGraph2D, { type ForceGraphMethods, type NodeObject } from 'react-force-graph-2d'
-import { cssVar } from '@/lib/format'
+import { cssVar, severityFromScore } from '@/lib/format'
 import { ROLE_LABEL, ROLE_TOKEN, type GraphLink, type GraphNode } from '@/lib/graphRoles'
 
 export interface AttackGraph2DProps {
@@ -17,8 +17,13 @@ export interface AttackGraph2DProps {
 type FGNode = NodeObject<GraphNode>
 type FGLink = GraphLink & { source?: string | FGNode; target?: string | FGNode }
 
-const severityToken = (score: number): string =>
-  score >= 90 ? '--sev-critical' : score >= 70 ? '--sev-high' : score >= 45 ? '--sev-medium' : '--sev-normal'
+// Was a fourth copy of the bands, already drifted from the backend's. A node's
+// colour and the label beside it must come from one decision, so this asks
+// format.ts instead of re-deciding.
+const severityToken = (score: number): string => {
+  const sev = severityFromScore(score)
+  return sev === 'low' ? '--sev-normal' : `--sev-${sev}`
+}
 
 export default function AttackGraph2D({ nodes, links, selected, onSelect, showPaths, reducedMotion, height, width }: AttackGraph2DProps) {
   const graphRef = useRef<ForceGraphMethods<FGNode, FGLink> | undefined>(undefined)

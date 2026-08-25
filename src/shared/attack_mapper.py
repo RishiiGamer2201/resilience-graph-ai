@@ -222,7 +222,9 @@ def claim_for_event(step: dict) -> dict:
     return claim.as_dict()
 
 
-ALERT_SCORE = 50            # matches correlate.ALERT_THRESHOLD (the 1% FPR line)
+# Re-exported, not re-declared. This was a second literal 50 kept in step with
+# correlate.ALERT_THRESHOLD by a comment, which is not a mechanism.
+from src.shared.thresholds import ALERT_SCORE   # noqa: F401  (the 1% FPR line)
 
 
 def infer_lanl_event_type(row: dict, alert_threshold: int = ALERT_SCORE) -> str:

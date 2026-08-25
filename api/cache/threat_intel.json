@@ -31,7 +31,44 @@
         "T1110",
         "T1550.002"
       ],
-      "justification": "Ember Bear matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.80)."
+      "justification": "Ember Bear matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.80).",
+      "rank_explanation": "Ranked #1 because its weighted score is 0.625: 3/4 observed techniques match (75% coverage), with 6% profile overlap and 0.80 semantic similarity. It leads #2 by 0.009.",
+      "score_factors": {
+        "coverage": 0.75,
+        "jaccard": 0.062,
+        "semantic_similarity": 0.798
+      },
+      "past_activity": {
+        "summary": "Ember Bear is a Russian state-sponsored cyber espionage group that has been active since at least 2020, linked to Russia's General Staff Main Intelligence Directorate (GRU) 161st Specialist Training Center (Unit 29155). Ember Bear has primarily focused operations against Ukrainian government and telecommunication entities, but has also operated against critical infrastructure entities in Europe and the Americas. Ember Bear conducted the WhisperGate destructive wiper attacks against Ukraine in early 2022. There is some confusion as to whether Ember Bear overlaps with another Russian-linked entity referred to as Saint Bear.",
+        "source_url": "https://attack.mitre.org/groups/G1003/",
+        "source": "MITRE ATT&CK public group profile"
+      },
+      "known_techniques": [
+        {
+          "technique_id": "T1021",
+          "name": "Remote Services"
+        },
+        {
+          "technique_id": "T1110",
+          "name": "Brute Force"
+        },
+        {
+          "technique_id": "T1550.002",
+          "name": "Pass the Hash"
+        },
+        {
+          "technique_id": "T1003",
+          "name": "OS Credential Dumping"
+        },
+        {
+          "technique_id": "T1003.001",
+          "name": "LSASS Memory"
+        },
+        {
+          "technique_id": "T1003.002",
+          "name": "Security Account Manager"
+        }
+      ]
     },
     {
       "actor": "APT28",
@@ -42,7 +79,44 @@
         "T1110",
         "T1550.002"
       ],
-      "justification": "APT28 matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.79)."
+      "justification": "APT28 matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.79).",
+      "rank_explanation": "Ranked #2 because its weighted score is 0.615: 3/4 observed techniques match (75% coverage), with 3% profile overlap and 0.79 semantic similarity. It is 0.009 below #1. It leads #3 by 0.002.",
+      "score_factors": {
+        "coverage": 0.75,
+        "jaccard": 0.032,
+        "semantic_similarity": 0.786
+      },
+      "past_activity": {
+        "summary": "APT28 is a threat group that has been attributed to Russia's General Staff Main Intelligence Directorate (GRU) 85th Main Special Service Center (GTsSS) military unit 26165. This group has been active since at least 2004. APT28 reportedly compromised the Hillary Clinton campaign, the Democratic National Committee, and the Democratic Congressional Campaign Committee in 2016 in an attempt to interfere with the U.S.",
+        "source_url": "https://attack.mitre.org/groups/G0007/",
+        "source": "MITRE ATT&CK public group profile"
+      },
+      "known_techniques": [
+        {
+          "technique_id": "T1078",
+          "name": "Valid Accounts"
+        },
+        {
+          "technique_id": "T1110",
+          "name": "Brute Force"
+        },
+        {
+          "technique_id": "T1550.002",
+          "name": "Pass the Hash"
+        },
+        {
+          "technique_id": "T1001.001",
+          "name": "Junk Data"
+        },
+        {
+          "technique_id": "T1003",
+          "name": "OS Credential Dumping"
+        },
+        {
+          "technique_id": "T1003.001",
+          "name": "LSASS Memory"
+        }
+      ]
     },
     {
       "actor": "Wizard Spider",
@@ -53,7 +127,44 @@
         "T1078",
         "T1550.002"
       ],
-      "justification": "Wizard Spider matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.77)."
+      "justification": "Wizard Spider matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.77).",
+      "rank_explanation": "Ranked #3 because its weighted score is 0.613: 3/4 observed techniques match (75% coverage), with 5% profile overlap and 0.77 semantic similarity. It is 0.002 below #2. It leads #4 by 0.002.",
+      "score_factors": {
+        "coverage": 0.75,
+        "jaccard": 0.046,
+        "semantic_similarity": 0.766
+      },
+      "past_activity": {
+        "summary": "Wizard Spider is a Russia-based financially motivated threat group originally known for the creation and deployment of TrickBot since at least 2016. Wizard Spider possesses a diverse arsenal of tools and has conducted ransomware campaigns against a variety of organizations, ranging from major corporations to hospitals.",
+        "source_url": "https://attack.mitre.org/groups/G0102/",
+        "source": "MITRE ATT&CK public group profile"
+      },
+      "known_techniques": [
+        {
+          "technique_id": "T1021",
+          "name": "Remote Services"
+        },
+        {
+          "technique_id": "T1078",
+          "name": "Valid Accounts"
+        },
+        {
+          "technique_id": "T1550.002",
+          "name": "Pass the Hash"
+        },
+        {
+          "technique_id": "T1003.001",
+          "name": "LSASS Memory"
+        },
+        {
+          "technique_id": "T1003.002",
+          "name": "Security Account Manager"
+        },
+        {
+          "technique_id": "T1003.003",
+          "name": "NTDS"
+        }
+      ]
     },
     {
       "actor": "APT41",
@@ -64,7 +175,44 @@
         "T1110",
         "T1550.002"
       ],
-      "justification": "APT41 matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.77)."
+      "justification": "APT41 matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.77).",
+      "rank_explanation": "Ranked #4 because its weighted score is 0.611: 3/4 observed techniques match (75% coverage), with 4% profile overlap and 0.77 semantic similarity. It is 0.002 below #3. It leads #5 by 0.113.",
+      "score_factors": {
+        "coverage": 0.75,
+        "jaccard": 0.036,
+        "semantic_similarity": 0.765
+      },
+      "past_activity": {
+        "summary": "APT41 is a threat group that researchers have assessed as Chinese state-sponsored espionage group that also conducts financially-motivated operations. Active since at least 2012, APT41 has been observed targeting various industries, including but not limited to healthcare, telecom, technology, finance, education, retail and video game industries in 14 countries. Notable behaviors include using a wide range of malware and tools to complete mission objectives. APT41 overlaps at least partially with public reporting on groups including BARIUM and Winnti Group.",
+        "source_url": "https://attack.mitre.org/groups/G0096/",
+        "source": "MITRE ATT&CK public group profile"
+      },
+      "known_techniques": [
+        {
+          "technique_id": "T1078",
+          "name": "Valid Accounts"
+        },
+        {
+          "technique_id": "T1110",
+          "name": "Brute Force"
+        },
+        {
+          "technique_id": "T1550.002",
+          "name": "Pass the Hash"
+        },
+        {
+          "technique_id": "T1003.001",
+          "name": "LSASS Memory"
+        },
+        {
+          "technique_id": "T1003.002",
+          "name": "Security Account Manager"
+        },
+        {
+          "technique_id": "T1003.003",
+          "name": "NTDS"
+        }
+      ]
     },
     {
       "actor": "FIN5",
@@ -74,8 +222,77 @@
         "T1078",
         "T1110"
       ],
-      "justification": "FIN5 matches 2/4 observed techniques (profile coverage 50%; semantic similarity 0.77)."
+      "justification": "FIN5 matches 2/4 observed techniques (profile coverage 50%; semantic similarity 0.77).",
+      "rank_explanation": "Ranked #5 because its weighted score is 0.499: 2/4 observed techniques match (50% coverage), with 15% profile overlap and 0.77 semantic similarity. It is 0.113 below #4.",
+      "score_factors": {
+        "coverage": 0.5,
+        "jaccard": 0.154,
+        "semantic_similarity": 0.771
+      },
+      "past_activity": {
+        "summary": "FIN5 is a financially motivated threat group that has targeted personally identifiable information and payment card information. The group has been active since at least 2008 and has targeted the restaurant, gaming, and hotel industries. The group is made up of actors who likely speak Russian.",
+        "source_url": "https://attack.mitre.org/groups/G0053/",
+        "source": "MITRE ATT&CK public group profile"
+      },
+      "known_techniques": [
+        {
+          "technique_id": "T1078",
+          "name": "Valid Accounts"
+        },
+        {
+          "technique_id": "T1110",
+          "name": "Brute Force"
+        },
+        {
+          "technique_id": "T1018",
+          "name": "Remote System Discovery"
+        },
+        {
+          "technique_id": "T1059",
+          "name": "Command and Scripting Interpreter"
+        },
+        {
+          "technique_id": "T1070.004",
+          "name": "File Deletion"
+        },
+        {
+          "technique_id": "T1074.001",
+          "name": "Local Data Staging"
+        }
+      ]
     }
   ],
-  "note": "Attribution is transparent profile retrieval over public ATT&CK group usage -- not a trained classifier."
+  "note": "Attribution is transparent profile retrieval over public ATT&CK group usage -- not a trained classifier.",
+  "agent_mapping": [
+    {
+      "technique_id": "T1021",
+      "name": "Remote Services",
+      "tactic": "Lateral Movement",
+      "confidence": 0.275,
+      "method": "rule_based",
+      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC."
+    },
+    {
+      "technique_id": "T1078",
+      "name": "Valid Accounts",
+      "tactic": "Initial Access",
+      "confidence": 0.108,
+      "method": "rule_based",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion."
+    },
+    {
+      "technique_id": "T1550.002",
+      "name": "Use Alternate Authentication Material: Pass the Hash",
+      "tactic": "Lateral Movement",
+      "confidence": 0.282,
+      "method": "rule_based",
+      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls."
+    }
+  ],
+  "agent_validated_technique_ids": [
+    "T1021",
+    "T1078",
+    "T1550.002"
+  ],
+  "agent_note": "A second opinion: these ATT&CK techniques are emitted by the Intelligence agent and validated by the orchestrator's schema/evidence gates. The authoritative mapping above is unchanged."
 }

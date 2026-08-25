@@ -105,7 +105,7 @@
     {
       "name": "Next-technique (interpolated Markov)",
       "metric": "top-3",
-      "value": 0.381,
+      "value": 0.382,
       "kind": "honest"
     }
   ],
@@ -115,7 +115,7 @@
     "incident_id": "INC-PS7-LANL-CAMPAIGN",
     "scenario": "lanl_campaign_all",
     "severity": "high",
-    "total_ms": 1516.9,
+    "total_ms": 2138.3,
     "point_b_method": "template",
     "incident_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
     "agent_traces": [
@@ -878,8 +878,8 @@
                   "auth": 2
                 },
                 "protocol_top": {
-                  "?": 1,
-                  "Kerberos": 1
+                  "Kerberos": 1,
+                  "?": 1
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -8978,8 +8978,8 @@
                   "auth": 14
                 },
                 "protocol_top": {
-                  "?": 7,
-                  "Kerberos": 7
+                  "Kerberos": 7,
+                  "?": 7
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -16213,7 +16213,7 @@
           "entities_seen": 69
         },
         "evidence_refs": [],
-        "ms": 31.9,
+        "ms": 46.7,
         "notes": [
           "Triaged 442 chunks; 358 escalated to Detection."
         ]
@@ -16976,8 +16976,8 @@
                   "auth": 2
                 },
                 "protocol_top": {
-                  "?": 1,
-                  "Kerberos": 1
+                  "Kerberos": 1,
+                  "?": 1
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -25076,8 +25076,8 @@
                   "auth": 14
                 },
                 "protocol_top": {
-                  "?": 7,
-                  "Kerberos": 7
+                  "Kerberos": 7,
+                  "?": 7
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -32310,7 +32310,7 @@
           "max_score": 79
         },
         "evidence_refs": [],
-        "ms": 1.8,
+        "ms": 2.0,
         "notes": [
           "Scored 442 chunks; 287 above threshold.",
           "Max anomaly score: 79/100."
@@ -39817,8 +39817,8 @@
                   "auth": 14
                 },
                 "protocol_top": {
-                  "?": 7,
-                  "Kerberos": 7
+                  "Kerberos": 7,
+                  "?": 7
                 },
                 "bytes_out_total": 0,
                 "port_unique": 0,
@@ -47338,7 +47338,7 @@
           "T1078",
           "T1078"
         ],
-        "ms": 2.5,
+        "ms": 1.6,
         "notes": [
           "Mapped 269/287 flagged chunks to ATT&CK techniques.",
           "18 chunks could not be mapped (flagged low-confidence by Orchestrator)."
@@ -47397,16 +47397,16 @@
               "meta": {}
             },
             {
-              "id": "C612",
+              "id": "C528",
               "type": "host",
-              "label": "C612",
+              "label": "C528",
               "critical": false,
               "meta": {}
             },
             {
-              "id": "C528",
+              "id": "C612",
               "type": "host",
-              "label": "C528",
+              "label": "C612",
               "critical": false,
               "meta": {}
             },
@@ -49663,34 +49663,6 @@
             },
             {
               "source": "C19932",
-              "target": "C612",
-              "from": "C19932",
-              "to": "C612",
-              "event_count": 70,
-              "score": 63,
-              "technique": "T1021",
-              "tactic": "Lateral Movement",
-              "users": [
-                "U737@DOM1"
-              ],
-              "kind": "movement"
-            },
-            {
-              "source": "U737@DOM1",
-              "target": "C612",
-              "from": "U737@DOM1",
-              "to": "C612",
-              "event_count": 70,
-              "score": 63,
-              "technique": "T1021",
-              "tactic": "Lateral Movement",
-              "users": [
-                "U737@DOM1"
-              ],
-              "kind": "authenticated_to"
-            },
-            {
-              "source": "C19932",
               "target": "C528",
               "from": "C19932",
               "to": "C528",
@@ -49709,6 +49681,34 @@
               "from": "U737@DOM1",
               "to": "C528",
               "event_count": 72,
+              "score": 63,
+              "technique": "T1021",
+              "tactic": "Lateral Movement",
+              "users": [
+                "U737@DOM1"
+              ],
+              "kind": "authenticated_to"
+            },
+            {
+              "source": "C19932",
+              "target": "C612",
+              "from": "C19932",
+              "to": "C612",
+              "event_count": 70,
+              "score": 63,
+              "technique": "T1021",
+              "tactic": "Lateral Movement",
+              "users": [
+                "U737@DOM1"
+              ],
+              "kind": "movement"
+            },
+            {
+              "source": "U737@DOM1",
+              "target": "C612",
+              "from": "U737@DOM1",
+              "to": "C612",
+              "event_count": 70,
               "score": 63,
               "technique": "T1021",
               "tactic": "Lateral Movement",
@@ -58857,7 +58857,7 @@
           "edge_count": 663
         },
         "evidence_refs": [],
-        "ms": 123.7,
+        "ms": 146.2,
         "notes": [
           "Built entity graph: 307 nodes {'user': 39, 'host': 265, 'technique': 3}, 663 edges."
         ]
@@ -58916,16 +58916,16 @@
                 "meta": {}
               },
               {
-                "id": "C612",
+                "id": "C528",
                 "type": "host",
-                "label": "C612",
+                "label": "C528",
                 "critical": false,
                 "meta": {}
               },
               {
-                "id": "C528",
+                "id": "C612",
                 "type": "host",
-                "label": "C528",
+                "label": "C612",
                 "critical": false,
                 "meta": {}
               },
@@ -61259,18 +61259,6 @@
               },
               {
                 "from": "U737@DOM1",
-                "to": "C612",
-                "relation": "authenticated_to",
-                "technique": "T1021",
-                "tactic": "Lateral Movement",
-                "score": 63,
-                "users": [
-                  "U737@DOM1"
-                ],
-                "event_count": 70
-              },
-              {
-                "from": "U737@DOM1",
                 "to": "C528",
                 "relation": "authenticated_to",
                 "technique": "T1021",
@@ -61280,6 +61268,18 @@
                   "U737@DOM1"
                 ],
                 "event_count": 72
+              },
+              {
+                "from": "U737@DOM1",
+                "to": "C612",
+                "relation": "authenticated_to",
+                "technique": "T1021",
+                "tactic": "Lateral Movement",
+                "score": 63,
+                "users": [
+                  "U737@DOM1"
+                ],
+                "event_count": 70
               },
               {
                 "from": "U737@DOM1",
@@ -61571,7 +61571,7 @@
               },
               {
                 "from": "C19932",
-                "to": "C612",
+                "to": "C528",
                 "relation": "movement",
                 "technique": "T1021",
                 "tactic": "Lateral Movement",
@@ -61583,7 +61583,7 @@
               },
               {
                 "from": "C19932",
-                "to": "C528",
+                "to": "C612",
                 "relation": "movement",
                 "technique": "T1021",
                 "tactic": "Lateral Movement",
@@ -68983,7 +68983,7 @@
           "T1078",
           "T1550.002"
         ],
-        "ms": 75.8,
+        "ms": 154.4,
         "notes": [
           "Connected graph: 307 nodes, 663 edges."
         ]
@@ -68991,7 +68991,7 @@
       {
         "agent": "validator",
         "status": "ok",
-        "confidence": 0.6,
+        "confidence": 0.385,
         "output": {
           "chains": [
             {
@@ -69002,9 +69002,14 @@
               "max_anomaly_score": 63,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
-              "n_signals": 0
+              "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ]
             },
             {
               "entity": "U737@DOM1",
@@ -69021,13 +69026,17 @@
               "max_anomaly_score": 76,
               "n_chunks": 103,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1021",
                 "high_anomaly_score:76",
                 "multi_chunk_entity:103_chunks"
               ],
-              "n_signals": 3
+              "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1723@DOM1",
@@ -69043,12 +69052,16 @@
               "max_anomaly_score": 57,
               "n_chunks": 6,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1078",
                 "multi_chunk_entity:6_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U748@DOM1",
@@ -69062,11 +69075,15 @@
               "max_anomaly_score": 66,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U4448@DOM1",
@@ -69080,12 +69097,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 4,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:4_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U8946@DOM1",
@@ -69099,12 +69120,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U5087@DOM1",
@@ -69118,12 +69143,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 7,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:7_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U2837@DOM1",
@@ -69137,12 +69166,16 @@
               "max_anomaly_score": 49,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1600@DOM1",
@@ -69156,13 +69189,17 @@
               "max_anomaly_score": 79,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "high_anomaly_score:79",
                 "multi_chunk_entity:2_chunks"
               ],
-              "n_signals": 3
+              "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U9763@DOM1",
@@ -69176,11 +69213,15 @@
               "max_anomaly_score": 72,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U9947@DOM1",
@@ -69194,11 +69235,15 @@
               "max_anomaly_score": 42,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1450@DOM1",
@@ -69212,11 +69257,15 @@
               "max_anomaly_score": 46,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U314@DOM1",
@@ -69230,12 +69279,16 @@
               "max_anomaly_score": 73,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U293@DOM1",
@@ -69249,12 +69302,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 6,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:6_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1653@DOM1",
@@ -69270,12 +69327,16 @@
               "max_anomaly_score": 46,
               "n_chunks": 5,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:5_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U3635@DOM1",
@@ -69289,12 +69350,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1480@DOM1",
@@ -69308,12 +69373,16 @@
               "max_anomaly_score": 49,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U162@DOM1",
@@ -69327,11 +69396,15 @@
               "max_anomaly_score": 55,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1164@DOM1",
@@ -69345,11 +69418,15 @@
               "max_anomaly_score": 46,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U114@DOM1",
@@ -69363,12 +69440,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U995@DOM1",
@@ -69382,11 +69463,15 @@
               "max_anomaly_score": 42,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1048@DOM1",
@@ -69400,12 +69485,16 @@
               "max_anomaly_score": 62,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U66@DOM1",
@@ -69419,13 +69508,17 @@
               "max_anomaly_score": 76,
               "n_chunks": 49,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "high_anomaly_score:76",
                 "multi_chunk_entity:49_chunks"
               ],
-              "n_signals": 3
+              "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U218@DOM1",
@@ -69439,12 +69532,16 @@
               "max_anomaly_score": 56,
               "n_chunks": 4,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:4_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U4112@DOM1",
@@ -69458,11 +69555,15 @@
               "max_anomaly_score": 70,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U3486@DOM1",
@@ -69478,12 +69579,16 @@
               "max_anomaly_score": 68,
               "n_chunks": 47,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1021",
                 "multi_chunk_entity:47_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U207@DOM1",
@@ -69493,9 +69598,14 @@
               "max_anomaly_score": 43,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
-              "n_signals": 0
+              "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ]
             },
             {
               "entity": "U9263@DOM1",
@@ -69509,12 +69619,16 @@
               "max_anomaly_score": 56,
               "n_chunks": 4,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:4_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U12@DOM1",
@@ -69524,9 +69638,14 @@
               "max_anomaly_score": 43,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
-              "n_signals": 0
+              "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ]
             },
             {
               "entity": "U7507@DOM1",
@@ -69540,13 +69659,17 @@
               "max_anomaly_score": 76,
               "n_chunks": 6,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "high_anomaly_score:76",
                 "multi_chunk_entity:6_chunks"
               ],
-              "n_signals": 3
+              "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1145@DOM1",
@@ -69560,11 +69683,15 @@
               "max_anomaly_score": 52,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U415@DOM1",
@@ -69578,12 +69705,16 @@
               "max_anomaly_score": 66,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U3005@DOM1",
@@ -69597,12 +69728,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 5,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:5_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U2231@DOM1",
@@ -69616,11 +69751,15 @@
               "max_anomaly_score": 46,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U737@C10",
@@ -69630,9 +69769,14 @@
               "max_anomaly_score": 49,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
-              "n_signals": 0
+              "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ]
             },
             {
               "entity": "U9407@DOM1",
@@ -69646,12 +69790,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
-              "n_signals": 2
+              "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U1506@DOM1",
@@ -69665,11 +69813,15 @@
               "max_anomaly_score": 59,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U3549@DOM1",
@@ -69683,11 +69835,15 @@
               "max_anomaly_score": 36,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
-              "n_signals": 1
+              "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ]
             },
             {
               "entity": "U8840@DOM1",
@@ -69697,9 +69853,14 @@
               "max_anomaly_score": 43,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
-              "n_signals": 0
+              "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ]
             }
           ],
           "confirmed_count": 22,
@@ -69712,7 +69873,7 @@
           "T1078",
           "T1550.002"
         ],
-        "ms": 180.1,
+        "ms": 178.6,
         "notes": [
           "Validated 39 entity chains: 22 confirmed, 12 partial, 5 unconfirmed.",
           "Unconfirmed chains retained \u2014 not discarded."
@@ -69736,13 +69897,17 @@
               "max_anomaly_score": 76,
               "n_chunks": 49,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "high_anomaly_score:76",
                 "multi_chunk_entity:49_chunks"
               ],
               "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 103,
               "actor_match": true,
               "matched_actors": [
@@ -69770,13 +69935,17 @@
               "max_anomaly_score": 76,
               "n_chunks": 103,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1021",
                 "high_anomaly_score:76",
                 "multi_chunk_entity:103_chunks"
               ],
               "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 30,
               "actor_match": true,
               "matched_actors": [
@@ -69801,13 +69970,17 @@
               "max_anomaly_score": 79,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "high_anomaly_score:79",
                 "multi_chunk_entity:2_chunks"
               ],
               "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 8,
               "actor_match": true,
               "matched_actors": [
@@ -69832,13 +70005,17 @@
               "max_anomaly_score": 76,
               "n_chunks": 6,
               "confirmation": "confirmed",
-              "confidence": 0.86,
+              "confidence": 0.75,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "high_anomaly_score:76",
                 "multi_chunk_entity:6_chunks"
               ],
               "n_signals": 3,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 11,
               "actor_match": true,
               "matched_actors": [
@@ -69863,12 +70040,16 @@
               "max_anomaly_score": 73,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 4,
               "actor_match": true,
               "matched_actors": [
@@ -69893,12 +70074,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 6,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:6_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 20,
               "actor_match": true,
               "matched_actors": [
@@ -69925,12 +70110,16 @@
               "max_anomaly_score": 68,
               "n_chunks": 47,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1021",
                 "multi_chunk_entity:47_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 22,
               "actor_match": true,
               "matched_actors": [
@@ -69955,12 +70144,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 4,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:4_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 9,
               "actor_match": true,
               "matched_actors": [
@@ -69985,12 +70178,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 7,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:7_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 8,
               "actor_match": true,
               "matched_actors": [
@@ -70015,12 +70212,16 @@
               "max_anomaly_score": 69,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 7,
               "actor_match": true,
               "matched_actors": [
@@ -70045,12 +70246,16 @@
               "max_anomaly_score": 66,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 6,
               "actor_match": true,
               "matched_actors": [
@@ -70075,12 +70280,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 5,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:5_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 17,
               "actor_match": true,
               "matched_actors": [
@@ -70105,12 +70314,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 6,
               "actor_match": true,
               "matched_actors": [
@@ -70135,12 +70348,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 4,
               "actor_match": true,
               "matched_actors": [
@@ -70165,12 +70382,16 @@
               "max_anomaly_score": 63,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 4,
               "actor_match": true,
               "matched_actors": [
@@ -70195,12 +70416,16 @@
               "max_anomaly_score": 62,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 6,
               "actor_match": true,
               "matched_actors": [
@@ -70227,12 +70452,16 @@
               "max_anomaly_score": 57,
               "n_chunks": 6,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1078",
                 "multi_chunk_entity:6_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 9,
               "actor_match": true,
               "matched_actors": [
@@ -70257,12 +70486,16 @@
               "max_anomaly_score": 56,
               "n_chunks": 4,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:4_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 12,
               "actor_match": true,
               "matched_actors": [
@@ -70287,12 +70520,16 @@
               "max_anomaly_score": 56,
               "n_chunks": 4,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:4_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 4,
               "actor_match": true,
               "matched_actors": [
@@ -70319,12 +70556,16 @@
               "max_anomaly_score": 46,
               "n_chunks": 5,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:5_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 26,
               "actor_match": true,
               "matched_actors": [
@@ -70349,12 +70590,16 @@
               "max_anomaly_score": 49,
               "n_chunks": 3,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:3_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 11,
               "actor_match": true,
               "matched_actors": [
@@ -70379,12 +70624,16 @@
               "max_anomaly_score": 49,
               "n_chunks": 2,
               "confirmation": "confirmed",
-              "confidence": 0.74,
+              "confidence": 0.5,
               "corroborating_signals": [
                 "evidence_index:T1550.002",
                 "multi_chunk_entity:2_chunks"
               ],
               "n_signals": 2,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 7,
               "actor_match": true,
               "matched_actors": [
@@ -70409,11 +70658,15 @@
               "max_anomaly_score": 72,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 6,
               "actor_match": true,
               "matched_actors": [
@@ -70438,11 +70691,15 @@
               "max_anomaly_score": 70,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 6,
               "actor_match": true,
               "matched_actors": [
@@ -70467,11 +70724,15 @@
               "max_anomaly_score": 66,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 3,
               "actor_match": true,
               "matched_actors": [
@@ -70496,11 +70757,15 @@
               "max_anomaly_score": 59,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 6,
               "actor_match": true,
               "matched_actors": [
@@ -70525,11 +70790,15 @@
               "max_anomaly_score": 55,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 9,
               "actor_match": true,
               "matched_actors": [
@@ -70554,11 +70823,15 @@
               "max_anomaly_score": 52,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 8,
               "actor_match": true,
               "matched_actors": [
@@ -70583,11 +70856,15 @@
               "max_anomaly_score": 46,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 3,
               "actor_match": true,
               "matched_actors": [
@@ -70612,11 +70889,15 @@
               "max_anomaly_score": 46,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 3,
               "actor_match": true,
               "matched_actors": [
@@ -70641,11 +70922,15 @@
               "max_anomaly_score": 46,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 3,
               "actor_match": true,
               "matched_actors": [
@@ -70670,11 +70955,15 @@
               "max_anomaly_score": 42,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 4,
               "actor_match": true,
               "matched_actors": [
@@ -70699,11 +70988,15 @@
               "max_anomaly_score": 42,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 4,
               "actor_match": true,
               "matched_actors": [
@@ -70728,11 +71021,15 @@
               "max_anomaly_score": 36,
               "n_chunks": 1,
               "confirmation": "partially_confirmed",
-              "confidence": 0.45,
+              "confidence": 0.25,
               "corroborating_signals": [
                 "evidence_index:T1550.002"
               ],
               "n_signals": 1,
+              "n_signals_available": 4,
+              "signals_unavailable": [
+                "rag_match"
+              ],
               "blast_radius": 3,
               "actor_match": true,
               "matched_actors": [
@@ -70753,9 +71050,14 @@
               "max_anomaly_score": 63,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
               "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ],
               "blast_radius": 1,
               "actor_match": false,
               "matched_actors": [],
@@ -70770,9 +71072,14 @@
               "max_anomaly_score": 49,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
               "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ],
               "blast_radius": 1,
               "actor_match": false,
               "matched_actors": [],
@@ -70787,9 +71094,14 @@
               "max_anomaly_score": 43,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
               "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ],
               "blast_radius": 1,
               "actor_match": false,
               "matched_actors": [],
@@ -70804,9 +71116,14 @@
               "max_anomaly_score": 43,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
               "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ],
               "blast_radius": 1,
               "actor_match": false,
               "matched_actors": [],
@@ -70821,9 +71138,14 @@
               "max_anomaly_score": 43,
               "n_chunks": 1,
               "confirmation": "unconfirmed",
-              "confidence": 0.25,
+              "confidence": 0.0,
               "corroborating_signals": [],
               "n_signals": 0,
+              "n_signals_available": 3,
+              "signals_unavailable": [
+                "evidence_index",
+                "rag_match"
+              ],
               "blast_radius": 1,
               "actor_match": false,
               "matched_actors": [],
@@ -70843,13 +71165,17 @@
             "max_anomaly_score": 76,
             "n_chunks": 49,
             "confirmation": "confirmed",
-            "confidence": 0.86,
+            "confidence": 0.75,
             "corroborating_signals": [
               "evidence_index:T1550.002",
               "high_anomaly_score:76",
               "multi_chunk_entity:49_chunks"
             ],
             "n_signals": 3,
+            "n_signals_available": 4,
+            "signals_unavailable": [
+              "rag_match"
+            ],
             "blast_radius": 103,
             "actor_match": true,
             "matched_actors": [
@@ -70962,11 +71288,11 @@
           "top_risk_score": 0.7499
         },
         "evidence_refs": [
+          "T1550.002",
           "T1021",
-          "T1078",
-          "T1550.002"
+          "T1078"
         ],
-        "ms": 17.5,
+        "ms": 21.2,
         "notes": [
           "Narrative generated via template.",
           "LLM output (if used) is non-authoritative and labelled accordingly."
@@ -71016,7 +71342,7 @@
           "T1570",
           "T1219.001"
         ],
-        "ms": 3.8,
+        "ms": 5.5,
         "notes": [
           "Predicted next 3 move(s) from chain of 3 techniques.",
           "Top prediction: T1005 @ 12.5%"
@@ -71036,13 +71362,17 @@
         "max_anomaly_score": 76,
         "n_chunks": 49,
         "confirmation": "confirmed",
-        "confidence": 0.86,
+        "confidence": 0.75,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "high_anomaly_score:76",
           "multi_chunk_entity:49_chunks"
         ],
         "n_signals": 3,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 103,
         "actor_match": true,
         "matched_actors": [
@@ -71070,13 +71400,17 @@
         "max_anomaly_score": 76,
         "n_chunks": 103,
         "confirmation": "confirmed",
-        "confidence": 0.86,
+        "confidence": 0.75,
         "corroborating_signals": [
           "evidence_index:T1021",
           "high_anomaly_score:76",
           "multi_chunk_entity:103_chunks"
         ],
         "n_signals": 3,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 30,
         "actor_match": true,
         "matched_actors": [
@@ -71101,13 +71435,17 @@
         "max_anomaly_score": 79,
         "n_chunks": 2,
         "confirmation": "confirmed",
-        "confidence": 0.86,
+        "confidence": 0.75,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "high_anomaly_score:79",
           "multi_chunk_entity:2_chunks"
         ],
         "n_signals": 3,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 8,
         "actor_match": true,
         "matched_actors": [
@@ -71132,13 +71470,17 @@
         "max_anomaly_score": 76,
         "n_chunks": 6,
         "confirmation": "confirmed",
-        "confidence": 0.86,
+        "confidence": 0.75,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "high_anomaly_score:76",
           "multi_chunk_entity:6_chunks"
         ],
         "n_signals": 3,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 11,
         "actor_match": true,
         "matched_actors": [
@@ -71163,12 +71505,16 @@
         "max_anomaly_score": 73,
         "n_chunks": 3,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:3_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 4,
         "actor_match": true,
         "matched_actors": [
@@ -71193,12 +71539,16 @@
         "max_anomaly_score": 69,
         "n_chunks": 6,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:6_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 20,
         "actor_match": true,
         "matched_actors": [
@@ -71225,12 +71575,16 @@
         "max_anomaly_score": 68,
         "n_chunks": 47,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1021",
           "multi_chunk_entity:47_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 22,
         "actor_match": true,
         "matched_actors": [
@@ -71255,12 +71609,16 @@
         "max_anomaly_score": 69,
         "n_chunks": 4,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:4_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 9,
         "actor_match": true,
         "matched_actors": [
@@ -71285,12 +71643,16 @@
         "max_anomaly_score": 69,
         "n_chunks": 7,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:7_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 8,
         "actor_match": true,
         "matched_actors": [
@@ -71315,12 +71677,16 @@
         "max_anomaly_score": 69,
         "n_chunks": 3,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:3_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 7,
         "actor_match": true,
         "matched_actors": [
@@ -71345,12 +71711,16 @@
         "max_anomaly_score": 66,
         "n_chunks": 2,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:2_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 6,
         "actor_match": true,
         "matched_actors": [
@@ -71375,12 +71745,16 @@
         "max_anomaly_score": 63,
         "n_chunks": 5,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:5_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 17,
         "actor_match": true,
         "matched_actors": [
@@ -71405,12 +71779,16 @@
         "max_anomaly_score": 63,
         "n_chunks": 3,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:3_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 6,
         "actor_match": true,
         "matched_actors": [
@@ -71435,12 +71813,16 @@
         "max_anomaly_score": 63,
         "n_chunks": 2,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:2_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 4,
         "actor_match": true,
         "matched_actors": [
@@ -71465,12 +71847,16 @@
         "max_anomaly_score": 63,
         "n_chunks": 2,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:2_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 4,
         "actor_match": true,
         "matched_actors": [
@@ -71495,12 +71881,16 @@
         "max_anomaly_score": 62,
         "n_chunks": 2,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:2_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 6,
         "actor_match": true,
         "matched_actors": [
@@ -71527,12 +71917,16 @@
         "max_anomaly_score": 57,
         "n_chunks": 6,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1078",
           "multi_chunk_entity:6_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 9,
         "actor_match": true,
         "matched_actors": [
@@ -71557,12 +71951,16 @@
         "max_anomaly_score": 56,
         "n_chunks": 4,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:4_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 12,
         "actor_match": true,
         "matched_actors": [
@@ -71587,12 +71985,16 @@
         "max_anomaly_score": 56,
         "n_chunks": 4,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:4_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 4,
         "actor_match": true,
         "matched_actors": [
@@ -71619,12 +72021,16 @@
         "max_anomaly_score": 46,
         "n_chunks": 5,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:5_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 26,
         "actor_match": true,
         "matched_actors": [
@@ -71649,12 +72055,16 @@
         "max_anomaly_score": 49,
         "n_chunks": 3,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:3_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 11,
         "actor_match": true,
         "matched_actors": [
@@ -71679,12 +72089,16 @@
         "max_anomaly_score": 49,
         "n_chunks": 2,
         "confirmation": "confirmed",
-        "confidence": 0.74,
+        "confidence": 0.5,
         "corroborating_signals": [
           "evidence_index:T1550.002",
           "multi_chunk_entity:2_chunks"
         ],
         "n_signals": 2,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 7,
         "actor_match": true,
         "matched_actors": [
@@ -71709,11 +72123,15 @@
         "max_anomaly_score": 72,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 6,
         "actor_match": true,
         "matched_actors": [
@@ -71738,11 +72156,15 @@
         "max_anomaly_score": 70,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 6,
         "actor_match": true,
         "matched_actors": [
@@ -71767,11 +72189,15 @@
         "max_anomaly_score": 66,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 3,
         "actor_match": true,
         "matched_actors": [
@@ -71796,11 +72222,15 @@
         "max_anomaly_score": 59,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 6,
         "actor_match": true,
         "matched_actors": [
@@ -71825,11 +72255,15 @@
         "max_anomaly_score": 55,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 9,
         "actor_match": true,
         "matched_actors": [
@@ -71854,11 +72288,15 @@
         "max_anomaly_score": 52,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 8,
         "actor_match": true,
         "matched_actors": [
@@ -71883,11 +72321,15 @@
         "max_anomaly_score": 46,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 3,
         "actor_match": true,
         "matched_actors": [
@@ -71912,11 +72354,15 @@
         "max_anomaly_score": 46,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 3,
         "actor_match": true,
         "matched_actors": [
@@ -71941,11 +72387,15 @@
         "max_anomaly_score": 46,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 3,
         "actor_match": true,
         "matched_actors": [
@@ -71970,11 +72420,15 @@
         "max_anomaly_score": 42,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 4,
         "actor_match": true,
         "matched_actors": [
@@ -71999,11 +72453,15 @@
         "max_anomaly_score": 42,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 4,
         "actor_match": true,
         "matched_actors": [
@@ -72028,11 +72486,15 @@
         "max_anomaly_score": 36,
         "n_chunks": 1,
         "confirmation": "partially_confirmed",
-        "confidence": 0.45,
+        "confidence": 0.25,
         "corroborating_signals": [
           "evidence_index:T1550.002"
         ],
         "n_signals": 1,
+        "n_signals_available": 4,
+        "signals_unavailable": [
+          "rag_match"
+        ],
         "blast_radius": 3,
         "actor_match": true,
         "matched_actors": [
@@ -72053,9 +72515,14 @@
         "max_anomaly_score": 63,
         "n_chunks": 1,
         "confirmation": "unconfirmed",
-        "confidence": 0.25,
+        "confidence": 0.0,
         "corroborating_signals": [],
         "n_signals": 0,
+        "n_signals_available": 3,
+        "signals_unavailable": [
+          "evidence_index",
+          "rag_match"
+        ],
         "blast_radius": 1,
         "actor_match": false,
         "matched_actors": [],
@@ -72070,9 +72537,14 @@
         "max_anomaly_score": 49,
         "n_chunks": 1,
         "confirmation": "unconfirmed",
-        "confidence": 0.25,
+        "confidence": 0.0,
         "corroborating_signals": [],
         "n_signals": 0,
+        "n_signals_available": 3,
+        "signals_unavailable": [
+          "evidence_index",
+          "rag_match"
+        ],
         "blast_radius": 1,
         "actor_match": false,
         "matched_actors": [],
@@ -72087,9 +72559,14 @@
         "max_anomaly_score": 43,
         "n_chunks": 1,
         "confirmation": "unconfirmed",
-        "confidence": 0.25,
+        "confidence": 0.0,
         "corroborating_signals": [],
         "n_signals": 0,
+        "n_signals_available": 3,
+        "signals_unavailable": [
+          "evidence_index",
+          "rag_match"
+        ],
         "blast_radius": 1,
         "actor_match": false,
         "matched_actors": [],
@@ -72104,9 +72581,14 @@
         "max_anomaly_score": 43,
         "n_chunks": 1,
         "confirmation": "unconfirmed",
-        "confidence": 0.25,
+        "confidence": 0.0,
         "corroborating_signals": [],
         "n_signals": 0,
+        "n_signals_available": 3,
+        "signals_unavailable": [
+          "evidence_index",
+          "rag_match"
+        ],
         "blast_radius": 1,
         "actor_match": false,
         "matched_actors": [],
@@ -72121,9 +72603,14 @@
         "max_anomaly_score": 43,
         "n_chunks": 1,
         "confirmation": "unconfirmed",
-        "confidence": 0.25,
+        "confidence": 0.0,
         "corroborating_signals": [],
         "n_signals": 0,
+        "n_signals_available": 3,
+        "signals_unavailable": [
+          "evidence_index",
+          "rag_match"
+        ],
         "blast_radius": 1,
         "actor_match": false,
         "matched_actors": [],
@@ -72202,6 +72689,233 @@
       "[orchestrator] Prediction 'T1219.001' is not a plausible Markov transition from observed chain \u2014 flagged low-confidence."
     ]
   },
+  "agent_narrative": "The intrusion initiated with anomalous authentication activity linked to U620@DOM1, U748@DOM1 and 67 other account(s), generating 2297 total events across 442 behavioral observation windows. The adversary established an initial foothold and exhibited rapid lateral spread across 12 unique internal endpoints in rapid succession. The attack path matches known adversary behaviors progressing through Remote Services followed by Valid Accounts followed by Pass the Hash, indicating an organized attempt to escalate privileges and access central infrastructure. Immediate isolation of the active entry host is recommended to sever the attacker's path before critical domain assets are compromised.",
+  "agent_ranked_chains": [
+    {
+      "entity": "U66@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 49,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 76,
+      "n_chunks": 49,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "high_anomaly_score:76",
+        "multi_chunk_entity:49_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 103,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.7499,
+      "risk_band": "high",
+      "rank": 1,
+      "id": "chain-1",
+      "title": "U66@DOM1",
+      "severity": "high",
+      "score": 0.7499,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U66@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U737@DOM1",
+      "technique_ids": [
+        "T1021",
+        "T1078",
+        "T1550.002"
+      ],
+      "n_technique_events": 103,
+      "tactic_chain": [
+        "Lateral Movement",
+        "Initial Access"
+      ],
+      "max_anomaly_score": 76,
+      "n_chunks": 103,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1021",
+        "high_anomaly_score:76",
+        "multi_chunk_entity:103_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 30,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT18",
+        "APT28",
+        "APT29",
+        "APT32"
+      ],
+      "risk_score": 0.6904,
+      "risk_band": "high",
+      "rank": 2,
+      "id": "chain-2",
+      "title": "U737@DOM1",
+      "severity": "high",
+      "score": 0.6904,
+      "techniques": [
+        "T1021",
+        "T1078",
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U737@DOM1 with 3 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1600@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 79,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "high_anomaly_score:79",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 8,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.683,
+      "risk_band": "high",
+      "rank": 3,
+      "id": "chain-3",
+      "title": "U1600@DOM1",
+      "severity": "high",
+      "score": 0.683,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U1600@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U7507@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 6,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 76,
+      "n_chunks": 6,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "high_anomaly_score:76",
+        "multi_chunk_entity:6_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 11,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.675,
+      "risk_band": "high",
+      "rank": 4,
+      "id": "chain-4",
+      "title": "U7507@DOM1",
+      "severity": "high",
+      "score": 0.675,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U7507@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U314@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 73,
+      "n_chunks": 3,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:3_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6588,
+      "risk_band": "high",
+      "rank": 5,
+      "id": "chain-5",
+      "title": "U314@DOM1",
+      "severity": "high",
+      "score": 0.6588,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U314@DOM1 with 1 ATT&CK technique(s)"
+    }
+  ],
   "analysis": {
     "claims": [
       {
@@ -73111,9 +73825,37 @@
           "C2553"
         ],
         "shortest_paths": {
+          "C1065": [
+            "C18025",
+            "C1065"
+          ],
+          "C586": [
+            "C17693",
+            "C586"
+          ],
+          "C612": [
+            "C19932",
+            "C612"
+          ],
+          "C3173": [
+            "C17693",
+            "C3173"
+          ],
+          "C528": [
+            "C17693",
+            "C528"
+          ],
           "C231": [
             "C17693",
             "C231"
+          ],
+          "C2106": [
+            "C17693",
+            "C2106"
+          ],
+          "C743": [
+            "C18025",
+            "C743"
           ],
           "C457": [
             "C17693",
@@ -73123,13 +73865,13 @@
             "C17693",
             "C467"
           ],
-          "C585": [
+          "C529": [
             "C17693",
-            "C585"
+            "C529"
           ],
-          "C1065": [
-            "C18025",
-            "C1065"
+          "C706": [
+            "C17693",
+            "C706"
           ],
           "C1015": [
             "C17693",
@@ -73139,41 +73881,13 @@
             "C17693",
             "C625"
           ],
-          "C706": [
-            "C17693",
-            "C706"
-          ],
-          "C743": [
-            "C18025",
-            "C743"
-          ],
-          "C586": [
-            "C17693",
-            "C586"
-          ],
-          "C528": [
-            "C17693",
-            "C528"
-          ],
-          "C2106": [
-            "C17693",
-            "C2106"
-          ],
           "C801": [
             "C17693",
             "C801"
           ],
-          "C529": [
+          "C585": [
             "C17693",
-            "C529"
-          ],
-          "C612": [
-            "C19932",
-            "C612"
-          ],
-          "C3173": [
-            "C17693",
-            "C3173"
+            "C585"
           ]
         },
         "note": "Reachability is measured from the observed graph. A predicted technique does not create new topology here -- we do not invent hosts the attacker has not touched."

@@ -1,6 +1,19 @@
 {
-  "fetched_at": "2026-08-24 01:20 IST",
+  "fetched_at": "2026-08-25 04:29 IST",
   "items": [
+    {
+      "source": "ET CISO (India)",
+      "title": "Proofpoint expands India operations amid rising AI security and data protection needs",
+      "published": "2026-08-24 08:05 IST",
+      "url": "https://ciso.economictimes.indiatimes.com/news/corporate/proofpoint-expands-india-operations-amid-rising-ai-security-and-data-protection-needs/133449288",
+      "text": "Proofpoint is making significant strides in India by establishing an AI Security Engineering Centre of Excellence in Hyderabad to meet the surge in AI adoption. With evolving privacy mandates and increased business growth over the last year, this expansion is a strategic move to enhance protection for employees and sensitive data amidst the rising integration of AI technologies.",
+      "tags": [
+        "india"
+      ],
+      "iocs": [],
+      "india": true,
+      "techniques": []
+    },
     {
       "source": "ET CISO (India)",
       "title": "Why AI adoption without security could become a major business risk",
@@ -119,30 +132,111 @@
       "techniques": []
     },
     {
-      "source": "ET CISO (India)",
-      "title": "Cyber resilience will become India&#039;s next boardroom KPI",
-      "published": "2026-08-10 08:05 IST",
-      "url": "https://ciso.economictimes.indiatimes.com/news/cybercrime-fraud/cyber-resilience-will-become-indias-next-boardroom-kpi/133071273",
-      "text": "Cyber resilience has transitioned into a crucial focus for boardrooms, transcending mere operational issues. With the integration of AI and evolving data protection regulations, cybersecurity conversations are shifting. Boards should pivot from questioning their security posture to evaluating their overall resilience. This involves ingraining resilience in personnel, procedures, governance, and technology. The future of enterprise maturity and sustained business value hinges on effective cyber resilience.",
-      "tags": [
-        "india"
-      ],
+      "source": "The Hacker News",
+      "title": "\u26a1 Weekly Recap: AI-Powered PLC Attacks, GitLab Attacks, Stripe Key Leaks and More",
+      "published": "2026-08-24 20:02 IST",
+      "url": "https://thehackernews.com/2026/08/weekly-recap-ai-powered-plc-attacks.html",
+      "text": "A package gets installed. A login prompt opens. A box sits exposed to the internet. Nothing looks unusual yet. That\u2019s roughly the mood this week. Trusted tools turn hostile, old weak spots get fresh attention, AI makes exploit work cheaper, and researchers keep finding attacks that sound harder than they actually are. Plenty to clean up. Here\u2019s the short version. \u26a1 Threat of the Week U.S.",
+      "tags": [],
       "iocs": [],
-      "india": true,
+      "india": false,
       "techniques": []
     },
     {
-      "source": "BleepingComputer",
-      "title": "ToxicPanda Android malware uses VPN permissions to block Google Play",
-      "published": "2026-08-23 19:53 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/toxicpanda-android-malware-uses-vpn-permissions-to-block-google-play/",
-      "text": "The ToxicPanda Android malware has evolved with new malicious functionality, expanding its targeting to 349 applications and adding support for 167 remote commands. [...]",
+      "source": "The Hacker News",
+      "title": "WordlistLoader Delivers Amatera via ClickFix, SynkLoader Phishes Windows Passwords",
+      "published": "2026-08-24 18:05 IST",
+      "url": "https://thehackernews.com/2026/08/wordlistloader-delivers-amatera-via.html",
+      "text": "Cybersecurity researchers have flagged two new malware families called WordlistLoader and SynkLoader that's used to deliver next-stage payloads and likely sell access to ransomware groups. According to findings from Gen Digital, WordlistLoader is being used to deliver Amatera Stealer (aka ACR Stealer or AcridRain Stealer) via ClearFake campaigns, which employ the ClickFix (aka FakeCaptcha)",
       "tags": [],
       "iocs": [],
       "india": false,
       "techniques": [
-        "T1133"
+        "T1486"
       ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
+      "published": "2026-08-24 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/08/24/cisa-adds-one-known-exploited-vulnerability-catalog",
+      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-21962 Oracle HTTP Server and Oracle Weblogic Server Proxy Plug-in Improper Access Control Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinfor",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Shipping More AI Code Than You Can Secure? Watch How to Control Remediation Debt",
+      "published": "2026-08-24 17:28 IST",
+      "url": "https://thehackernews.com/2026/08/shipping-more-ai-code-than-you-can.html",
+      "text": "If your developers are using AI coding tools, you are probably already seeing the upside: faster development, more code, and less time spent on routine work. The harder part is what comes after. AI can also introduce open-source packages at a pace your security team was never built to handle. More dependencies mean more vulnerabilities to review, more remediation work, and a backlog that can",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Critical Keycloak Password Reset Flaw Could Let Unauthenticated Attackers Take Over Any Account",
+      "published": "2026-08-24 17:26 IST",
+      "url": "https://thehackernews.com/2026/08/critical-keycloak-password-reset-flaw.html",
+      "text": "Red Hat and the Keycloak project have released patches to address a critical security flaw in the open-source identity and access management server that could allow an unauthenticated remote attacker to take over any user account by forcing a password reset. The vulnerability, assigned the CVE identifier&nbsp;CVE-2026-18963, is rated 9.1 on the CVSS scoring system by Red Hat, which acts as",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "Operation QUICSILVER Targets Myanmar Government and IT with QUICAgent Backdoor",
+      "published": "2026-08-24 17:21 IST",
+      "url": "https://thehackernews.com/2026/08/operation-quicsilver-targets-myanmar.html",
+      "text": "Cybersecurity researchers have flagged a cyber espionage campaign targeting Myanmar that uses graduation ceremony invitation lures to deliver a Go backdoor called QUICAgent. The campaign, codenamed Operation QUICSILVER, has been found to target government and information technology sectors, per Seqrite Labs. The activity is assessed to be the work of a China-nexus threat actor with moderate",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1505"
+      ]
+    },
+    {
+      "source": "The Hacker News",
+      "title": "The Outsized Shadow: Why 5% of AI Users Are Your Biggest Security Risk",
+      "published": "2026-08-24 17:00 IST",
+      "url": "https://thehackernews.com/2026/08/the-outsized-shadow-why-5-of-ai-users.html",
+      "text": "Big security risks come in small packages. While enterprise security teams focus on policing the proliferation of employees using ChatGPT and Claude for quick drafting tasks, a more urgent threat is posed by a handful of AI super-adopters who are quietly hardcoding unvetted tools into critical business operations. According to new research published by Akamai, the top 5% of enterprise power",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "The Hacker News",
+      "title": "UAT-10147 Uses AI to Scale Server Attacks, Deploys SPECTRE With EDR Bypass and Linux Rootkit",
+      "published": "2026-08-24 13:38 IST",
+      "url": "https://thehackernews.com/2026/08/uat-10147-uses-ai-to-scale-server.html",
+      "text": "Cybersecurity researchers have disclosed details of a Chinese-speaking cybercrime group dubbed UAT-10147 that's targeting Windows and Linux web servers globally across the education, media, technology, and gaming sectors. The vast majority of the targets are located in Brazil, Bolivia, China, Canada, and Vietnam. Details of the threat activity came to light following the discovery of an open",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "CISA KEV",
+      "title": "CVE-2026-21962 \u2014 Oracle HTTP Server and Oracle Weblogic Server Proxy Plug-in",
+      "published": "2026-08-24",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-21962",
+      "text": "Oracle HTTP Server and Oracle Weblogic Server Proxy Plug-in Improper Access Control Vulnerability. Oracle HTTP Server and Oracle Weblogic Server Proxy Plug-in contain an improper access control vulnerability that can result in unauthorized creation, deletion or modification access to critical data as well as unauthorized access to critical data or complete access to all Oracle HTTP Server and Oracle Weblogic Server Proxy Plug-in accessible data.",
+      "tags": [
+        "actively-exploited"
+      ],
+      "iocs": [
+        "CVE-2026-21962"
+      ],
+      "india": false,
+      "techniques": []
     },
     {
       "source": "The Hacker News",
@@ -150,30 +244,6 @@
       "published": "2026-08-22 20:02 IST",
       "url": "https://thehackernews.com/2026/08/tiktok-agrees-to-400-million-settlement.html",
       "text": "The U.S. Department of Justice (DoJ) announced on Friday that ByteDance-owned TikTok will pay $400 million to settle a 2024 lawsuit accusing the company of violating child privacy laws in the country. As part of the settlement, the social media platform will pay $300 million immediately, and an additional $100 million \"upon entry of an order vacating a prior consent decree entered against",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Hackers infect Android car head units with proxy botnet malware",
-      "published": "2026-08-22 19:44 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/hackers-infect-android-car-head-units-with-proxy-botnet-malware/",
-      "text": "A supply-chain attack targeting Android-based car head units is using a legitimate device-update app to spread malware that enlists compromised devices in a proxy botnet or uses them for ad fraud. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1584.005"
-      ]
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Named Pipes Under Attack: Securing Windows Interprocess Communication",
-      "published": "2026-08-22 18:30 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/named-pipes-under-attack-securing-windows-interprocess-communication/",
-      "text": "Windows named pipes provide fast interprocess communication, but weak access controls can expose privileged services to untrusted processes. ThreatLocker explains how endpoint verification, command authorization, strict input validation, and narrowly scoped privileges can help secure named-pipe communication. [...]",
       "tags": [],
       "iocs": [],
       "india": false,
@@ -194,30 +264,6 @@
       ]
     },
     {
-      "source": "BleepingComputer",
-      "title": "New SynkLoader malware pushed in Microsoft Teams phishing campaign",
-      "published": "2026-08-21 23:31 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/new-synkloader-malware-pushed-in-microsoft-teams-phishing-campaign/",
-      "text": "A previously unknown malware family dubbed SynkLoader is being distributed in Microsoft Teams phishing campaigns to steal credentials via a fake lock screen. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1566"
-      ]
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Hundreds of leaked AWS keys give full control over corporate accounts",
-      "published": "2026-08-21 21:25 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/hundreds-of-leaked-aws-keys-give-full-control-over-corporate-accounts/",
-      "text": "More than 9,300 Amazon Web Services (AWS) access keys publicly exposed between August 2022 and August 2026 are still active and valid. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
       "source": "The Hacker News",
       "title": "Microsoft Defender's Own Driver Can Be Weaponized to Delete Security Software at Boot",
       "published": "2026-08-21 21:22 IST",
@@ -229,146 +275,17 @@
       "techniques": []
     },
     {
-      "source": "The Hacker News",
-      "title": "Android Car Malware Spreads Through Built-In Updaters for Ad Fraud, Proxy Botnet",
-      "published": "2026-08-21 21:11 IST",
-      "url": "https://thehackernews.com/2026/08/android-car-malware-spreads-through.html",
-      "text": "Cybersecurity researchers have flagged a new malware family that's specifically designed to infect Android-based vehicle head unit firmware developed by DoFun. Kaspersky, which discovered the threat in June 2026, said the end goal of the malware is to serve a multi-stage downloader to enable ad fraud and creation of a proxy botnet. \"The malware spread through the built-in updaters of",
+      "source": "CISA advisories",
+      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
+      "published": "2026-08-21 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/08/21/cisa-adds-one-known-exploited-vulnerability-catalog",
+      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-73570 Zimbra Collaboration Suite (ZCS) OS Command Injection Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV ",
       "tags": [],
       "iocs": [],
       "india": false,
       "techniques": [
-        "T1584.005"
+        "T1059"
       ]
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Microsoft blames Windows gaming issues on RGB lighting devices",
-      "published": "2026-08-21 20:24 IST",
-      "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-blames-windows-gaming-issues-on-rgb-lighting-devices/",
-      "text": "Microsoft says ongoing issues causing games to crash or fail to launch after installing the August 2026 Windows updates may be caused by peripherals with RGB lighting. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Is Online Privacy Possible? How Digital Identities Can Help",
-      "published": "2026-08-21 19:30 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/is-online-privacy-possible-how-digital-identities-can-help/",
-      "text": "Using the same email, phone number, payment method, and other identifiers makes it easier for data brokers and attackers to profile your activity. Anonyome Labs explains how separate digital personas can reduce correlation and limit the impact of breaches, spam, and identity theft. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Microsoft rolls out Classic Outlook theme for New Outlook users",
-      "published": "2026-08-21 19:09 IST",
-      "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-rolls-out-classic-outlook-theme-for-new-outlook-users/",
-      "text": "Microsoft has started rolling out a Classic Outlook theme for users of Outlook on the web and the New Outlook for Windows. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "CISA orders feds to patch actively exploited TrueConf Server flaws",
-      "published": "2026-08-21 17:55 IST",
-      "url": "https://www.bleepingcomputer.com/news/security/cisa-orders-feds-to-patch-actively-exploited-trueconf-server-flaws/",
-      "text": "The U.S. Cybersecurity and Infrastructure Security Agency (CISA) ordered U.S. federal agencies to prioritize patching two actively exploited vulnerabilities in the TrueConf Server self-hosted communications platform. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "The Hacker News",
-      "title": "Wazuh and AI For Enhanced SOC Workflows",
-      "published": "2026-08-21 16:51 IST",
-      "url": "https://thehackernews.com/2026/08/wazuh-and-ai-for-enhanced-soc-workflows.html",
-      "text": "Artificial Intelligence (AI) has become one of this decade's defining technologies. From healthcare and finance to manufacturing and education, organizations increasingly rely on AI to automate repetitive tasks, uncover patterns hidden within large datasets, and support faster decision-making. Cybersecurity has experienced a similar transformation. While attackers employ AI to automate",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "BleepingComputer",
-      "title": "Microsoft patches max severity code execution, privilege escalation flaws",
-      "published": "2026-08-21 16:34 IST",
-      "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-warns-of-max-severity-entra-id-flaw-exploited-in-attacks/",
-      "text": "Microsoft has patched a maximum-severity vulnerability in the Entra ID identity and access management (IAM) platform that has been exploited in attacks. [...]",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1068"
-      ]
-    },
-    {
-      "source": "The Hacker News",
-      "title": "Cisco Patches Nine Crosswork and Secure Workload Flaws, Five Scoring CVSS 10.0",
-      "published": "2026-08-21 15:33 IST",
-      "url": "https://thehackernews.com/2026/08/cisco-patches-nine-crosswork-and-secure.html",
-      "text": "Cisco has published another round of security updates for Crosswork platforms and Secure Workload Software as part of a continued comprehensive internal security review. Four of the security vulnerabilities affect Crosswork Data Gateway, Crosswork Network Controller, and Crosswork Planning, regardless of the device configuration. A brief description of each of the flaws is below -",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
-    },
-    {
-      "source": "The Hacker News",
-      "title": "GitLab CVE-2026-19478 Comes Under Active Exploitation Within Days of Disclosure",
-      "published": "2026-08-21 12:34 IST",
-      "url": "https://thehackernews.com/2026/08/gitlab-cve-2026-19478-comes-under.html",
-      "text": "A newly disclosed security flaw in GitLab has come under active exploitation within days of public disclosure, according to watchTowr. The vulnerability in question is CVE-2026-19478 (CVSS score: 9.4), a case of code injection that allows an unauthenticated attacker to modify or delete publicly accessible GitLab projects and rewrite their data under certain conditions without requiring",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1055"
-      ]
-    },
-    {
-      "source": "The Hacker News",
-      "title": "Microsoft Patches Severe Entra ID Flaw (CVSS 10.0) Allowing Remote Code Execution",
-      "published": "2026-08-21 11:36 IST",
-      "url": "https://thehackernews.com/2026/08/microsoft-entra-id-flaw-cvss-100.html",
-      "text": "Update: The story was updated after publication to note that the vulnerability has not been exploited. Although the security bulletin originally marked the \"Exploited\" field under the Exploitability Assessment table as \"Yes,\" on August 21, 2026, Microsoft corrected the \"Exploited\" status to \"No\" after The Hacker News contacted the company for comment. It also noted, \"this vulnerability was not",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1190"
-      ]
-    },
-    {
-      "source": "The Hacker News",
-      "title": "Rust Supply Chain Attack Puts Build-Time Malware in Crates with 245 Million Downloads",
-      "published": "2026-08-21 01:52 IST",
-      "url": "https://thehackernews.com/2026/08/rust-supply-chain-attack-puts-build.html",
-      "text": "The Rust Project has deleted malicious versions of three widely used Rust crates from crates.io after a compromised maintainer account published releases that added a typosquatted dependency whose build script downloaded and executed a remote payload during compilation. The affected releases are arrayref 0.3.10, internment 0.8.7, and append-only-vec 0.1.9, all published from the same owner",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": [
-        "T1195"
-      ]
-    },
-    {
-      "source": "The Hacker News",
-      "title": "Suspected Russian Hackers Abuse Google OAuth and WhatsApp Linking to Hijack Accounts",
-      "published": "2026-08-21 01:29 IST",
-      "url": "https://thehackernews.com/2026/08/suspected-russian-hackers-abuse-google.html",
-      "text": "Three distinct suspected Russian cyber espionage threat clusters have been observed leveraging legitimate authentication flows to single out individuals working in academia, aerospace and defense, governments, and think tanks across Europe, as well as academia and think tanks within the U.S. These clusters include UNC6293, UNC7005, and UNC5976. \"These clusters engage in persistent, adaptive",
-      "tags": [],
-      "iocs": [],
-      "india": false,
-      "techniques": []
     },
     {
       "source": "CISA KEV",
@@ -385,6 +302,30 @@
       "india": false,
       "techniques": [
         "T1059"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "Johnson Controls Simplex Incident Manager",
+      "published": "2026-08-20 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-232-01",
+      "text": "View CSAF Summary Successful exploitation of this vulnerability could allow a local attacker with low privileges to extract user credentials (passwords and authentication tokens) from system memory, potentially leading to unauthorized access to the application and connected systems. The following versions of Johnson Controls Simplex Incident Manager are affected: Simplex Incident Manager &lt;=V2.01 (CVE-2026-27875) CVSS Vendor Equipment Vulnerabilities v3 5.8 Johnson Controls Inc. Johnson Controls Simplex Incident Manager Cleartext Storage of Sensitive Information in Memory Background Critical",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds Two Known Exploited Vulnerabilities to Catalog",
+      "published": "2026-08-20 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/08/20/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+      "text": "CISA has added two new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-72529 TrueConf Server Missing Authentication for Critical Function Vulnerability &nbsp; CVE-2026-72530 TrueConf Server Code Injection Vulnerability These types of vulnerabilities are a frequent attack vector for malicious cyber actors and pose significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian E",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1055"
       ]
     },
     {
@@ -420,6 +361,30 @@
       "techniques": []
     },
     {
+      "source": "CISA advisories",
+      "title": "Defending Against an Active Threat to Siemens S7 Series PLCs",
+      "published": "2026-08-19 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-231a",
+      "text": "Executive summary Note: This advisory relates to an active threat to Siemens S7 Series programmable logic controllers (PLCs). However, ongoing PLC targeting activity is broader than Siemens PLCs. All PLC owners and operators should apply relevant mitigations to reduce the risk to their devices and systems. The Siemens-specific content in this advisory should be understood and applied as one subset of the wider threat landscape. Top Mitigations Inventory&nbsp; all Siemens S7 Series programmable logic controllers (PLCs) Apply&nbsp; critical security patches &nbsp; Ensure&nbsp; PLCs are not&nbsp;",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": []
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
+      "published": "2026-08-19 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/08/19/cisa-adds-one-known-exploited-vulnerability-catalog",
+      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-64849 MLflow Server-Side Request Forgery Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV Catalog and require",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
       "source": "CISA KEV",
       "title": "CVE-2026-64849 \u2014 MLflow MLflow",
       "published": "2026-08-19",
@@ -431,6 +396,45 @@
       "iocs": [
         "CVE-2026-64849"
       ],
+      "india": false,
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "Siemens Simcenter Nastran",
+      "published": "2026-08-18 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-230-02",
+      "text": "View CSAF Summary Simcenter Nastran is affected by a stack overflow vulnerability that could be triggered when an application binary reads arbitrary string as a file argument. If a user is tricked to run one of the impacted application binary with a malicious string, an attacker could leverage the vulnerability to perform remote code execution in the context of the current process. Siemens has released new versions for the affected products and recommends to update to the latest versions. The following versions of Siemens Simcenter Nastran are affected: Simcenter Femap vers:intdot/&lt;2606 (CV",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Adds Four Known Exploited Vulnerabilities to Catalog",
+      "published": "2026-08-18 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/08/18/cisa-adds-four-known-exploited-vulnerabilities-catalog",
+      "text": "CISA has added four new vulnerabilities to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2026-33824 Microsoft Internet Key Exchange (IKE) Service Extensions Double Free Vulnerability CVE-2026-55040 Microsoft SharePoint Weak Authentication Vulnerability CVE-2026-59310 Broadcom VMware vCenter Path Traversal Vulnerability &nbsp; CVE-2026-65400 Apple macOS Improper Authentication Vulnerability These types of vulnerabilities are a frequent attack vector for malicious cyber actors and pose significant risks to the federal enterprise. Binding",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1190"
+      ]
+    },
+    {
+      "source": "CISA advisories",
+      "title": "CISA Malcolm",
+      "published": "2026-08-18 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-230-01",
+      "text": "View CSAF Summary Successful exploitation of these vulnerabilities could allow an attacker to cause a denial-of-service condition or execute arbitrary code. The following versions of CISA Malcolm are affected: Malcolm &lt;26.06.1 (CVE-2026-55676) Malcolm &lt;26.07.0 (CVE-2026-63133, CVE-2026-63134, CVE-2026-63177) Malcolm &lt;=26.07.1 (CVE-2026-19670, CVE-2026-19671) CVSS Vendor Equipment Vulnerabilities v3 8.8 CISA CISA Malcolm Allocation of Resources Without Limits or Throttling, Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'), Unrestricted Upload of File with ",
+      "tags": [],
+      "iocs": [],
       "india": false,
       "techniques": [
         "T1190"
@@ -501,6 +505,19 @@
       "techniques": []
     },
     {
+      "source": "CISA advisories",
+      "title": "CISA Adds One Known Exploited Vulnerability to Catalog",
+      "published": "2026-08-17 17:30 IST",
+      "url": "https://www.cisa.gov/news-events/alerts/2026/08/17/cisa-adds-one-known-exploited-vulnerability-catalog",
+      "text": "CISA has added one new vulnerability to its Known Exploited Vulnerabilities (KEV) Catalog , based on evidence of active exploitation. &nbsp; CVE-2025-62593 Ray-Project Ray Code Injection Vulnerability This type of vulnerability is a frequent attack vector for malicious cyber actors and poses significant risks to the federal enterprise. Binding Operational Directive (BOD) 26-04: Prioritizing Security Updates Based on Risk establishes vulnerability management requirements for Federal Civilian Executive Branch (FCEB) agencies. BOD 26-04 reinforces the importance of the KEV Catalog and requires fe",
+      "tags": [],
+      "iocs": [],
+      "india": false,
+      "techniques": [
+        "T1055"
+      ]
+    },
+    {
       "source": "CISA KEV",
       "title": "CVE-2025-62593 \u2014 Ray-Project Ray",
       "published": "2026-08-17",
@@ -517,40 +534,16 @@
         "T1190",
         "T1055"
       ]
-    },
-    {
-      "source": "CISA KEV",
-      "title": "CVE-2026-20349 \u2014 Cisco Secure Firewall Adaptive Security Appliance (ASA) and Secure Firewall Threat Defense (FTD) ",
-      "published": "2026-08-11",
-      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20349",
-      "text": "Cisco Secure Firewall Adaptive Security Appliance (ASA) and Secure Firewall Threat Defense (FTD) Heap Inspection Vulnerability. Cisco Secure Firewall Adaptive Security Appliance (ASA) and Secure Firewall Threat Defense (FTD) contain a heap inspection vulnerability that could allow an unauthenticated, remote attacker to cause the device to reload unexpectedly, resulting in a denial of service (DoS) condition.",
-      "tags": [
-        "actively-exploited"
-      ],
-      "iocs": [
-        "CVE-2026-20349"
-      ],
-      "india": false,
-      "techniques": [
-        "T0814",
-        "T1498"
-      ]
     }
   ],
   "india_count": 10,
   "technique_names": {
-    "T0814": "Denial of Service",
     "T1055": "Process Injection",
     "T1059": "Command and Scripting Interpreter",
-    "T1068": "Exploitation for Privilege Escalation",
-    "T1133": "External Remote Services",
     "T1190": "Exploit Public-Facing Application",
-    "T1195": "Supply Chain Compromise",
     "T1204.002": "Malicious File",
-    "T1498": "Network Denial of Service",
-    "T1505": "Server Software Component",
-    "T1566": "Phishing",
-    "T1584.005": "Botnet"
+    "T1486": "Data Encrypted for Impact",
+    "T1505": "Server Software Component"
   },
   "sources": [
     {
@@ -565,9 +558,8 @@
     },
     {
       "source": "CISA advisories",
-      "ok": false,
-      "items": 0,
-      "note": "HTTP Error 403: Forbidden"
+      "ok": true,
+      "items": 10
     },
     {
       "source": "The Hacker News",
@@ -576,8 +568,9 @@
     },
     {
       "source": "BleepingComputer",
-      "ok": true,
-      "items": 10
+      "ok": false,
+      "items": 0,
+      "note": "HTTP Error 403: Forbidden"
     },
     {
       "source": "AlienVault OTX",

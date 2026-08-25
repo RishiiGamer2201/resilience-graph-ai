@@ -252,7 +252,7 @@ export interface BundleMeta {
 
 export interface BaselineStatus {
   enabled: boolean
-  state: 'off' | 'learning' | 'partial' | 'ready' | string
+  state: 'off' | 'learning' | 'partial' | 'ready' | 'error' | string
   days?: number
   active_days?: number
   history_span_days?: number
@@ -272,6 +272,17 @@ export interface BaselineStatus {
     coverage_percent: number
   }
   progress_percent?: number | null
+  /** The enrolment ledger. `last.error` is why a store stopped growing. */
+  enrollment?: {
+    last?: {
+      batch_id?: string
+      state?: string
+      error?: string
+      rows?: number
+      rows_done?: number
+    } | null
+    batches?: Record<string, number>
+  }
   allow_operational_alerts?: boolean
   detail?: string
 }

@@ -33,6 +33,7 @@ import uuid
 from pathlib import Path
 
 from src.shared.timeutil import fmt_ist
+from src.shared.severity import policy as severity_policy
 
 ROOT = Path(__file__).resolve().parents[2]
 HASH_ALGORITHM = "sha256"
@@ -486,6 +487,10 @@ def artifact_versions() -> dict:
         "evidence_index": h(ROOT / "data" / "processed" / "evidence" / "index.json.gz"),
         "vuln_config": h(ROOT / "configs" / "vuln_priority.json"),
         "app_version": os.environ.get("NEXTATTACK_VERSION", "dev"),
+        # A stored severity is only meaningful against the bands that produced
+        # it. Without this, a record written under the 45/70 policy and one
+        # written under 50/75 are indistinguishable after the fact.
+        "severity_policy": severity_policy()["version"],
     }
 
 

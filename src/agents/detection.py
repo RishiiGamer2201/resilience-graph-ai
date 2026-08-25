@@ -31,6 +31,9 @@ from src.agents import AgentResult, AgentStatus
 from src.shared import detector as _det
 
 # ─── Thresholds ────────────────────────────────────────────────────────────────
+# The column the orchestrator attaches when it scores the whole log up front.
+SCORE_COLUMN = "_event_anomaly_score"
+
 BASE_THRESHOLD = 50
 THRESHOLD_BY_PRIORITY = {
     "urgent": 35,
@@ -51,50 +54,137 @@ LANL_FEATURES = [
 ]
 
 
-def _heuristic_score(stats: dict, priority: str) -> int:
-    """Fallback anomaly score when engineered features are unavailable."""
-    score = 10  # baseline
-    fail_rate = stats.get("failure_rate", 0.0)
-    n_dst = stats.get("destination_host_unique", 1)
-    n_events = stats.get("n_events", 1)
+def _heuristic_score(stats: dict, priority: str) -> tuple[int, dict]:
+    """Arithmetic over chunk aggregates. NOT a detection, and never labelled one.
 
-    score += int(fail_rate * 40)
-    score += min(n_dst * 3, 30)
-    score += min(n_events // 5, 20)
+    Returns (score, terms) so the number can be shown with the sum that produced
+    it. This runs only when the per-event model features are unavailable.
 
-    # Priority bump from Investigation context
-    if priority == "urgent":
-        score += 20
-    elif priority == "elevated":
-        score += 10
+    The Investigation priority no longer adds to the score. It already LOWERS
+    the threshold this score is compared against (50 -> 42 -> 35), so adding 10
+    or 20 on top applied the same context twice: an urgent chunk was pushed up
+    and the bar was pulled down for the same reason. A chunk scoring 30 on its
+    own behaviour cleared a 35 threshold at 50 with the bump -- flagged on
+    context alone, with the arithmetic hidden inside a single number.
+    """
+    fail_rate = float(stats.get("failure_rate", 0.0) or 0.0)
+    n_dst = int(stats.get("destination_host_unique", 1) or 1)
+    n_events = int(stats.get("n_events", 1) or 1)
 
-    return min(score, 100)
+    terms = {
+        "baseline": 10,
+        "failure_rate": int(fail_rate * 40),
+        "destination_fan_out": min(n_dst * 3, 30),
+        "volume": min(n_events // 5, 20),
+    }
+    score = min(sum(terms.values()), 100)
+    return score, {**terms, "total": score,
+                   "priority_applied_to": "threshold only, not the score"}
 
 
-def _score_chunk(chunk_ref, stats: dict, priority: str) -> tuple[int, str]:
-    """Score one chunk. Returns (score_0_100, method)."""
+def _score_chunk(chunk_ref, stats: dict, priority: str
+                 ) -> tuple[int, str, dict]:
+    """Score one chunk. Returns (score_0_100, method, evidence).
+
+    `evidence` is what the score is made of: for the model path, the top
+    contributing events with their own scores and the features that produced
+    them; for the heuristic path, the arithmetic terms. A chunk finding that
+    cannot be traced back to events is an assertion, not evidence, and this lane
+    is advisory precisely because its claims are supposed to be checkable.
+    """
     events = chunk_ref.events if chunk_ref is not None else pd.DataFrame()
 
-    # Check if engineered LANL features are present
+    # Preferred path: per-event scores already produced for the whole log by the
+    # same calibrated function the workflow lane uses. The chunk score is the
+    # max over its own events, so a chunk is as anomalous as its most anomalous
+    # event and the two lanes cannot disagree about that event.
+    if not events.empty and SCORE_COLUMN in events.columns:
+        per_event = pd.to_numeric(events[SCORE_COLUMN], errors="coerce")
+        usable = per_event.notna()
+        if usable.any():
+            score = int(round(float(per_event[usable].max())))
+            order = per_event.fillna(-1).to_numpy().argsort()[::-1][:3]
+            top = []
+            for i in order:
+                if not bool(usable.iloc[int(i)]):
+                    continue
+                row = events.iloc[int(i)]
+                top.append({
+                    "index": int(events.index[int(i)]),
+                    "score": int(round(float(per_event.iloc[int(i)]))),
+                    "user": str(row.get("user", "")),
+                    "source_host": str(row.get("source_host", "")),
+                    "destination_host": str(row.get("destination_host", "")),
+                    "features": {f: float(row.get(f, 0) or 0)
+                                 for f in LANL_FEATURES if f in events.columns},
+                })
+            return score, "autoencoder", {
+                "method": "autoencoder",
+                "calibration": ("whole-log, shared with the workflow lane "
+                                "(src.shared.live_analyze._score)"),
+                "events_scored": int(usable.sum()),
+                "events_unscorable": int((~usable).sum()),
+                "aggregation": "max over the chunk's per-event scores",
+                "top_events": top,
+            }
+
     has_features = not events.empty and all(f in events.columns for f in LANL_FEATURES)
 
     if has_features and _det.available():
         feat_mat = events[LANL_FEATURES].fillna(0).values.astype(float)
+        finite = np.isfinite(feat_mat).all(axis=1)
+        if not finite.any():
+            score, terms = _heuristic_score(stats, priority)
+            return score, "heuristic", {"method": "heuristic",
+                                        "why": "no fully-scorable events in chunk",
+                                        "terms": terms}
         ref = _det.anchors()
         if ref:
             scores = _det.scores_0_100(feat_mat, ref)
+            calibration = "shipped anchors"
         else:
             raw = _det.raw_scores(feat_mat)
-            # No calibration anchors: normalize linearly to 0-100
             r_min, r_max = float(raw.min()), float(raw.max())
             scores = ((raw - r_min) / max(r_max - r_min, 1e-9)) * 100
+            # Named, because a within-chunk rescale is a RANKING and pins the
+            # top event of every chunk at 100 whatever it contains.
+            calibration = "within-chunk rescale (no anchors available)"
+        scores = np.where(finite, scores, 0.0)
         score = int(float(scores.max()))
-        method = "autoencoder"
-    else:
-        score = _heuristic_score(stats, priority)
-        method = "heuristic"
+        order = np.argsort(scores)[::-1][:3]
+        top = []
+        for i in order:
+            if not finite[i]:
+                continue
+            row = events.iloc[int(i)]
+            top.append({
+                "index": int(events.index[int(i)]),
+                "score": int(round(float(scores[int(i)]))),
+                "user": str(row.get("user", "")),
+                "source_host": str(row.get("source_host", "")),
+                "destination_host": str(row.get("destination_host", "")),
+                "features": {f: float(row.get(f, 0) or 0) for f in LANL_FEATURES},
+            })
+        return score, "autoencoder", {
+            "method": "autoencoder",
+            "detector": _det.which() if hasattr(_det, "which") else "autoencoder",
+            "calibration": calibration,
+            "events_scored": int(finite.sum()),
+            "events_unscorable": int((~finite).sum()),
+            "aggregation": "max over the chunk's per-event scores",
+            "top_events": top,
+        }
 
-    return score, method
+    score, terms = _heuristic_score(stats, priority)
+    return score, "heuristic", {
+        "method": "heuristic",
+        # Stated in full, because this is arithmetic over aggregates and must
+        # never be reported as, or mistaken for, a learned detection.
+        "why": ("the engineered per-event features were not available for this "
+                "chunk, so no model scored it"),
+        "not_a_model": True,
+        "terms": terms,
+    }
 
 
 def run(investigation_result: AgentResult) -> AgentResult:
@@ -128,12 +218,12 @@ def run(investigation_result: AgentResult) -> AgentResult:
         stats = record.get("stats", {})
         chunk_ref = record.get("_chunk_ref")
 
-        # Only run full model on non-routine chunks (efficiency)
-        if priority in ("urgent", "elevated"):
-            score, method = _score_chunk(chunk_ref, stats, priority)
-        else:
-            score = _heuristic_score(stats, "routine")
-            method = "heuristic"
+        # Every chunk goes to the model when the model can score it. The
+        # "routine chunks skip the model for efficiency" rule meant the lane's
+        # quietest chunks were judged by a different method than its loud ones,
+        # so a routine chunk's score and an urgent chunk's score were not
+        # comparable -- and they are ranked against each other downstream.
+        score, method, contributors = _score_chunk(chunk_ref, stats, priority)
 
         threshold = THRESHOLD_BY_PRIORITY.get(priority, BASE_THRESHOLD)
         flagged = score >= threshold
@@ -150,6 +240,9 @@ def run(investigation_result: AgentResult) -> AgentResult:
             "threshold": threshold,
             "flagged": flagged,
             "score_method": method,
+            # What the chunk score is made of. A chunk finding that cannot be
+            # traced to the events under it is an assertion, not evidence.
+            "score_evidence": contributors,
             "context": record.get("context", ""),
             "point_a_text": record.get("point_a_text", ""),
             "stats": stats,

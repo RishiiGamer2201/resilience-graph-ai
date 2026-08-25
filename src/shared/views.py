@@ -18,6 +18,7 @@ from pathlib import Path
 from src.engine2.attribution import load_artifacts, rank_actors
 from src.shared.attack_mapper import explanation
 from src.shared.metrics_store import load as load_metrics
+from src.shared.severity import severity_from_score
 from src.shared.timeutil import fmt_ist
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -150,8 +151,7 @@ def attackers_view(full: dict) -> list[dict]:
                     "critical_reached": sorted(a["hosts"] & crit),
                     "pivots": sorted(a["pivots"]),
                     "hosts": sorted(a["hosts"])[:50],
-                    "severity": ("critical" if a["max_score"] >= 90 else "high" if a["max_score"] >= 70
-                                 else "medium" if a["max_score"] >= 45 else "low")})
+                    "severity": severity_from_score(a["max_score"])})
     out.sort(key=lambda a: (-a["alerts"], -a["max_score"]))
     return out
 
