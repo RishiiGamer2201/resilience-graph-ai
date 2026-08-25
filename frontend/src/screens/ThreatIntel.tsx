@@ -207,7 +207,8 @@ export default function ThreatIntel() {
   }
 
   const mapping = data.mapping ?? []
-  const attribution = data.attribution ?? []
+  const attribution = data.ranked_similar_profiles ?? data.attribution ?? []
+  const assessment = data.attribution_assessment
   const observed = mapping.map((m) => m.technique_id)
 
   return (
@@ -270,12 +271,27 @@ export default function ThreatIntel() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Actor profile matches</CardTitle>
+            <CardTitle>Similar ATT&amp;CK group profiles</CardTitle>
             <CardMeta>{attribution.length} ranked candidates</CardMeta>
           </CardHeader>
-          <CardBody>
+          <CardBody className="space-y-3">
+            {assessment ? (
+              <div className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2">
+                <div className="text-sm font-medium text-text">
+                  {assessment.status === 'attributed' ? 'Attribution gate passed' : 'No actor attributed'}
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-dim">
+                  {assessment.abstention_reason ?? assessment.attributed_actor?.justification}
+                </p>
+                <div className="mt-2 font-mono text-xs text-faint">
+                  evidence {assessment.evidence_count} · exact matches {assessment.exact_match_count}
+                  {' · '}score {assessment.score == null ? 'not measured' : assessment.score.toFixed(3)}
+                  {' · '}top-two margin {assessment.margin == null ? 'not measured' : assessment.margin.toFixed(3)}
+                </div>
+              </div>
+            ) : null}
             <SectionLabel className="mb-2">
-              Ranked candidates - not an identification
+              Similar profiles - not an identification
             </SectionLabel>
             {attribution.length ? (
               attribution.map((a, i) => <ActorRow key={a.actor} match={a} rank={i + 1} />)

@@ -106,9 +106,13 @@ top-3 is
 on the tactic-sorted profile set. The sequence-bootstrap improvement over the
 strongest temporal baseline includes zero, so next-move forecasting is disabled.
 
-Attribution: transparent weighted retrieval over 172 MITRE group profiles
+Attribution: transparent weighted retrieval over 175 MITRE group profiles
 (coverage 0.55, Jaccard 0.20, semantic similarity 0.25), with a printed
-justification. Not a trained classifier, and we say so. Technique embeddings
+justification. The runtime returns **unattributed** because there is no
+independently labelled incident-attribution benchmark from which to calibrate a
+score or top-two-margin threshold. Names are shown only as similar public
+profiles; zero exact overlap and one-technique evidence always abstain. It is
+not a trained classifier. Technique embeddings
 separate same-tactic pairs at cosine 0.412 versus
 0.327 for random pairs.
 

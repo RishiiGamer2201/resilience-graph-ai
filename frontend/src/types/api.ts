@@ -1164,6 +1164,8 @@ export interface ActorMatch {
   actor: string
   score: number
   coverage: number
+  observed_count?: number
+  exact_match_count?: number
   matched: string[]
   justification: string
   rank_explanation?: string
@@ -1180,9 +1182,52 @@ export interface ActorMatch {
   known_techniques?: Array<{ technique_id: string; name: string }>
 }
 
+export interface AttributionAlternative {
+  rank: number
+  actor: string
+  score: number
+  exact_match_count: number
+  observed_matches: string[]
+}
+
+export interface AttributionAssessment {
+  status: 'attributed' | 'unattributed'
+  attributed_actor: {
+    actor: string
+    score: number
+    exact_match_count: number
+    justification: string
+  } | null
+  evidence_count: number
+  exact_match_count: number
+  score: number | null
+  margin: number | null
+  alternatives: AttributionAlternative[]
+  abstention_reason: string | null
+  negative_evidence: {
+    unmatched_observed_techniques: string[]
+    zero_exact_overlap: boolean
+    single_technique_only: boolean
+    independent_calibration_missing: boolean
+  }
+  gate: {
+    calibrated: boolean
+    calibration_source: string | null
+    independent_incident_count: number
+    safety_floor: {
+      minimum_observed_techniques: number
+      minimum_exact_matches: number
+    }
+    calibrated_thresholds: Record<string, number> | null
+  }
+}
+
 export interface ThreatIntelView {
   mapping: TechniqueMapping[]
-  attribution: ActorMatch[]
+  ranked_similar_profiles: ActorMatch[]
+  /** Legacy cache field; new payloads use ranked_similar_profiles. */
+  attribution?: ActorMatch[]
+  attribution_assessment?: AttributionAssessment
   note?: string
 }
 
@@ -1269,7 +1314,13 @@ export interface IncidentReportData {
   attack_chain: { tactic: string; count: number }[]
   techniques: ReportTechnique[]
   attack_path: string[]
-  attributed_actor: { actor: string; justification: string }
+  attributed_actor: {
+    actor: string
+    score: number
+    exact_match_count: number
+    justification: string
+  } | null
+  attribution_assessment?: AttributionAssessment
   predicted_next: ReportTechnique[]
   technique_association_basis?: {
     mode: 'association-only'

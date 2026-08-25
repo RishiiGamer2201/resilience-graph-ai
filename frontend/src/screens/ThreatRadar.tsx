@@ -738,7 +738,9 @@ export default function ThreatRadar() {
       {header}
       <Radar
         techniqueIds={incidentData?.technique_ids ?? []}
-        actors={(intelData?.attribution ?? []).slice(0, 3).map((a) => a.actor)}
+        actors={intelData?.attribution_assessment?.attributed_actor
+          ? [intelData.attribution_assessment.attributed_actor.actor]
+          : []}
         edges={graphData?.edges ?? []}
         incidentId={incidentData?.incident_id}
         contextNote={

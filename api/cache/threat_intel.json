@@ -21,11 +21,13 @@
       "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC."
     }
   ],
-  "attribution": [
+  "ranked_similar_profiles": [
     {
       "actor": "Ember Bear",
       "score": 0.625,
       "coverage": 0.75,
+      "observed_count": 4,
+      "exact_match_count": 3,
       "matched": [
         "T1021",
         "T1110",
@@ -74,6 +76,8 @@
       "actor": "APT28",
       "score": 0.615,
       "coverage": 0.75,
+      "observed_count": 4,
+      "exact_match_count": 3,
       "matched": [
         "T1078",
         "T1110",
@@ -122,6 +126,8 @@
       "actor": "Wizard Spider",
       "score": 0.613,
       "coverage": 0.75,
+      "observed_count": 4,
+      "exact_match_count": 3,
       "matched": [
         "T1021",
         "T1078",
@@ -170,6 +176,8 @@
       "actor": "APT41",
       "score": 0.611,
       "coverage": 0.75,
+      "observed_count": 4,
+      "exact_match_count": 3,
       "matched": [
         "T1078",
         "T1110",
@@ -218,6 +226,8 @@
       "actor": "FIN5",
       "score": 0.499,
       "coverage": 0.5,
+      "observed_count": 4,
+      "exact_match_count": 2,
       "matched": [
         "T1078",
         "T1110"
@@ -262,37 +272,67 @@
       ]
     }
   ],
-  "note": "Attribution is transparent profile retrieval over public ATT&CK group usage -- not a trained classifier.",
-  "agent_mapping": [
-    {
-      "technique_id": "T1021",
-      "name": "Remote Services",
-      "tactic": "Lateral Movement",
-      "confidence": 0.275,
-      "method": "rule_based",
-      "explanation": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC."
+  "attribution_assessment": {
+    "status": "unattributed",
+    "attributed_actor": null,
+    "evidence_count": 4,
+    "exact_match_count": 3,
+    "score": 0.624555,
+    "margin": 0.009114,
+    "alternatives": [
+      {
+        "rank": 1,
+        "actor": "Ember Bear",
+        "score": 0.624555,
+        "exact_match_count": 3,
+        "observed_matches": [
+          "T1021",
+          "T1110",
+          "T1550.002"
+        ]
+      },
+      {
+        "rank": 2,
+        "actor": "APT28",
+        "score": 0.615441,
+        "exact_match_count": 3,
+        "observed_matches": [
+          "T1078",
+          "T1110",
+          "T1550.002"
+        ]
+      },
+      {
+        "rank": 3,
+        "actor": "Wizard Spider",
+        "score": 0.613345,
+        "exact_match_count": 3,
+        "observed_matches": [
+          "T1021",
+          "T1078",
+          "T1550.002"
+        ]
+      }
+    ],
+    "abstention_reason": "Actor attribution is disabled because score and margin thresholds have not been calibrated on independently labelled incidents. The names below are similar public ATT&CK profiles only.",
+    "negative_evidence": {
+      "unmatched_observed_techniques": [
+        "T1078"
+      ],
+      "zero_exact_overlap": false,
+      "single_technique_only": false,
+      "independent_calibration_missing": true
     },
-    {
-      "technique_id": "T1078",
-      "name": "Valid Accounts",
-      "tactic": "Initial Access",
-      "confidence": 0.108,
-      "method": "rule_based",
-      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion."
-    },
-    {
-      "technique_id": "T1550.002",
-      "name": "Use Alternate Authentication Material: Pass the Hash",
-      "tactic": "Lateral Movement",
-      "confidence": 0.282,
-      "method": "rule_based",
-      "explanation": "Adversaries may \u201cpass the hash\u201d using stolen password hashes to move laterally within an environment, bypassing normal system access controls."
+    "gate": {
+      "calibrated": false,
+      "calibration_source": null,
+      "independent_incident_count": 0,
+      "safety_floor": {
+        "minimum_observed_techniques": 2,
+        "minimum_exact_matches": 2
+      },
+      "calibrated_thresholds": null
     }
-  ],
-  "agent_validated_technique_ids": [
-    "T1021",
-    "T1078",
-    "T1550.002"
-  ],
-  "agent_note": "A second opinion: these ATT&CK techniques are emitted by the Intelligence agent and validated by the orchestrator's schema/evidence gates. The authoritative mapping above is unchanged."
+  },
+  "note": "These are similar public ATT&CK group profiles, not an identification. The attribution decision abstains until independently calibrated incident thresholds exist."
 }

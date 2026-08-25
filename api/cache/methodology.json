@@ -35,7 +35,7 @@
     "CERT-In manual sequences now analyst-verified (4/4); real report-ordered timelines score top-3 11.1% vs 38.2% on tactic-sorted profiles; uncertainty keeps next-move claims disabled.",
     "Mobile ATT&CK added so India's mobile-heavy threats (banking trojans) map to real technique IDs.",
     "LANL is authentication-only, so incidents honestly map to just pass-the-hash / brute-force / remote-services \u2014 we never invent techniques the data can't evidence.",
-    "Crown jewels are a stated heuristic (hosts the most accounts depend on), not a dataset label; attribution is transparent profile retrieval, never headlined as a trained classifier.",
+    "Crown jewels are a stated heuristic (hosts the most accounts depend on), not a dataset label; actor names are similar public ATT&CK profiles, and attribution abstains until independently calibrated thresholds exist.",
     "Every screen renders live analysis output \u2014 the sample view is a real analysis of a shipped red-team log."
   ]
 }

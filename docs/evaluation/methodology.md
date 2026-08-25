@@ -158,6 +158,6 @@ CISA KEV catalogue.
 | `reports/unsw_evaluation.md` | UNSW-NB15 |
 | `reports/prediction_eval.md` | next-technique prediction and baselines |
 | `reports/model_experiments.md` | every variant tried, including the losers |
-| `reports/attribution_eval.md` | actor attribution |
+| `reports/attribution_eval.md` | actor-profile similarity retrieval and abstention gate |
 | `reports/evidence_index.md` | corpus composition and source status |
 | `reports/scaling_measurements.json` | pipeline timing at nine input sizes |
