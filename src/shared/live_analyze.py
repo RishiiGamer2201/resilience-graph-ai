@@ -30,6 +30,7 @@ from src.shared.soar import recommend
 from src.shared.timeutil import fmt_ist
 from src.shared import views
 from src.shared import detector
+from src.shared.severity import policy as severity_policy
 
 ROOT = Path(__file__).resolve().parents[2]
 LANL_MODEL = ROOT / "models" / "iforest_lanl.joblib"
@@ -436,6 +437,10 @@ def analyze_events(df: pd.DataFrame, critical_assets: set[str] | None = None,
             # with any other run. Travels with every bundle so a screen can never
             # present a log-relative score as if it were the shipped scale.
             "calibration": calibration,
+            # The bands that turned these scores into words. Every severity in
+            # this bundle was produced by this policy, and a cached bundle from
+            # an older one is identifiable rather than silently different.
+            "severity_policy": severity_policy(),
             # Which feature mode produced these scores: file-local (the default,
             # and what every published metric was measured on) or history-backed.
             "baseline": base_st,

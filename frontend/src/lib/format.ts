@@ -7,11 +7,19 @@
  */
 import type { IncidentStep, Severity } from '@/types/api'
 
-/** Backend severity bands for a 0-100 anomaly score. */
+/** Backend severity bands for a 0-100 anomaly score.
+ *
+ *  Mirrors `src/shared/severity.py`, which is the only place these move. They
+ *  used to read 70/45 here and in AttackGraph2D while the incident correlator
+ *  used 75/50, so one score carried two words depending on the screen. `medium`
+ *  starts at the detector's calibrated 1% false-positive point: below it the
+ *  backend raises no alert, so the UI must not imply a severity. */
+export const SEVERITY_BANDS = { critical: 90, high: 75, medium: 50 } as const
+
 export function severityFromScore(score: number): Severity {
-  if (score >= 90) return 'critical'
-  if (score >= 70) return 'high'
-  if (score >= 45) return 'medium'
+  if (score >= SEVERITY_BANDS.critical) return 'critical'
+  if (score >= SEVERITY_BANDS.high) return 'high'
+  if (score >= SEVERITY_BANDS.medium) return 'medium'
   return 'low'
 }
 

@@ -26,16 +26,18 @@ import networkx as nx
 import pandas as pd
 
 from src.shared.attack_mapper import infer_lanl_event_type, map_event
+from src.shared.severity import severity_from_score
+from src.shared.thresholds import ALERT_SCORE
 
 SESSION_GAP = 3600          # seconds; a >1h silence starts a new session
-ALERT_THRESHOLD = 50        # anomaly_score >= this is an "alert"
+# Re-exported from src.shared.thresholds so this and attack_mapper.ALERT_SCORE
+# cannot drift apart -- they were two literals held together by a comment.
+ALERT_THRESHOLD = ALERT_SCORE   # anomaly_score >= this is an "alert"
 
 
 def _severity(alerts: list[dict]) -> tuple[str, int]:
     score = max((a["anomaly_score"] for a in alerts), default=0)
-    level = ("critical" if score >= 90 else "high" if score >= 75
-             else "medium" if score >= 50 else "low")
-    return level, int(score)
+    return severity_from_score(score), int(score)
 
 
 def _clusters(steps: list[dict]) -> list[list[dict]]:

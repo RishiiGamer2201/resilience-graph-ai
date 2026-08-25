@@ -1455,7 +1455,7 @@
     "last_seen": 2304353,
     "hosts_reached": 4,
     "critical_reached": [],
-    "severity": "high"
+    "severity": "medium"
   },
   {
     "user": "U212@DOM1",

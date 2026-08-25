@@ -80,9 +80,8 @@
     "Initial Access",
     "Initial Access",
     "Initial Access",
-    "Credential Access",
-    "Initial Access",
     "Initial Access",
+    "Credential Access",
     "Initial Access",
     "Initial Access",
     "Initial Access",
@@ -101,6 +100,7 @@
     "Initial Access",
     "Initial Access",
     "Initial Access",
+    "Initial Access",
     "Lateral Movement",
     "Credential Access",
     "Initial Access",
@@ -114,8 +114,8 @@
     "Initial Access",
     "Initial Access",
     "Initial Access",
-    "Lateral Movement",
     "Credential Access",
+    "Lateral Movement",
     "Initial Access",
     "Lateral Movement",
     "Initial Access",
@@ -1068,8 +1068,8 @@
     "Lateral Movement",
     "Credential Access",
     "Lateral Movement",
-    "Credential Access",
     "Lateral Movement",
+    "Credential Access",
     "Lateral Movement",
     "Lateral Movement",
     "Lateral Movement",
@@ -1248,9 +1248,9 @@
     "Credential Access",
     "Initial Access",
     "Lateral Movement",
+    "Initial Access",
     "Credential Access",
-    "Lateral Movement",
-    "Initial Access"
+    "Lateral Movement"
   ],
   "technique_ids": [
     "T1550.002",
@@ -2410,19 +2410,6 @@
     },
     {
       "timestamp": 553869,
-      "user": "U748@DOM1",
-      "source_host": "C17693",
-      "destination_host": "C2519",
-      "anomaly_score": 56,
-      "event_type": "failed_login_burst",
-      "tactic": "Credential Access",
-      "technique": "Brute Force",
-      "technique_id": "T1110",
-      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
-      "is_alert": true
-    },
-    {
-      "timestamp": 553869,
       "user": "U1723@DOM1",
       "source_host": "C17693",
       "destination_host": "C2519",
@@ -2432,6 +2419,19 @@
       "technique": "Valid Accounts",
       "technique_id": "T1078",
       "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "is_alert": true
+    },
+    {
+      "timestamp": 553869,
+      "user": "U748@DOM1",
+      "source_host": "C17693",
+      "destination_host": "C2519",
+      "anomaly_score": 56,
+      "event_type": "failed_login_burst",
+      "tactic": "Credential Access",
+      "technique": "Brute Force",
+      "technique_id": "T1110",
+      "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
       "is_alert": true
     },
     {
@@ -2475,19 +2475,6 @@
     },
     {
       "timestamp": 554383,
-      "user": "U1723@DOM1",
-      "source_host": "C17693",
-      "destination_host": "C2519",
-      "anomaly_score": 57,
-      "event_type": "unusual_successful_login",
-      "tactic": "Initial Access",
-      "technique": "Valid Accounts",
-      "technique_id": "T1078",
-      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
-      "is_alert": true
-    },
-    {
-      "timestamp": 554383,
       "user": "U748@DOM1",
       "source_host": "C17693",
       "destination_host": "C2519",
@@ -2497,6 +2484,19 @@
       "technique": "Brute Force",
       "technique_id": "T1110",
       "explanation": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach.",
+      "is_alert": true
+    },
+    {
+      "timestamp": 554383,
+      "user": "U1723@DOM1",
+      "source_host": "C17693",
+      "destination_host": "C2519",
+      "anomaly_score": 57,
+      "event_type": "unusual_successful_login",
+      "tactic": "Initial Access",
+      "technique": "Valid Accounts",
+      "technique_id": "T1078",
+      "explanation": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
       "is_alert": true
     },
     {
@@ -2514,5 +2514,1620 @@
     }
   ],
   "steps_shown": 80,
-  "steps_total": 1243
+  "steps_total": 1243,
+  "agent_ranked_chains": [
+    {
+      "entity": "U66@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 49,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 76,
+      "n_chunks": 49,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "high_anomaly_score:76",
+        "multi_chunk_entity:49_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 103,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.7499,
+      "risk_band": "high",
+      "rank": 1,
+      "id": "chain-1",
+      "title": "U66@DOM1",
+      "severity": "high",
+      "score": 0.7499,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U66@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U737@DOM1",
+      "technique_ids": [
+        "T1021",
+        "T1078",
+        "T1550.002"
+      ],
+      "n_technique_events": 103,
+      "tactic_chain": [
+        "Lateral Movement",
+        "Initial Access"
+      ],
+      "max_anomaly_score": 76,
+      "n_chunks": 103,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1021",
+        "high_anomaly_score:76",
+        "multi_chunk_entity:103_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 30,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT18",
+        "APT28",
+        "APT29",
+        "APT32"
+      ],
+      "risk_score": 0.6904,
+      "risk_band": "high",
+      "rank": 2,
+      "id": "chain-2",
+      "title": "U737@DOM1",
+      "severity": "high",
+      "score": 0.6904,
+      "techniques": [
+        "T1021",
+        "T1078",
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U737@DOM1 with 3 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1600@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 79,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "high_anomaly_score:79",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 8,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.683,
+      "risk_band": "high",
+      "rank": 3,
+      "id": "chain-3",
+      "title": "U1600@DOM1",
+      "severity": "high",
+      "score": 0.683,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U1600@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U7507@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 6,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 76,
+      "n_chunks": 6,
+      "confirmation": "confirmed",
+      "confidence": 0.75,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "high_anomaly_score:76",
+        "multi_chunk_entity:6_chunks"
+      ],
+      "n_signals": 3,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 11,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.675,
+      "risk_band": "high",
+      "rank": 4,
+      "id": "chain-4",
+      "title": "U7507@DOM1",
+      "severity": "high",
+      "score": 0.675,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U7507@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U314@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 73,
+      "n_chunks": 3,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:3_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6588,
+      "risk_band": "high",
+      "rank": 5,
+      "id": "chain-5",
+      "title": "U314@DOM1",
+      "severity": "high",
+      "score": 0.6588,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U314@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U293@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 6,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 69,
+      "n_chunks": 6,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:6_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 20,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6578,
+      "risk_band": "high",
+      "rank": 6,
+      "id": "chain-6",
+      "title": "U293@DOM1",
+      "severity": "high",
+      "score": 0.6578,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U293@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U3486@DOM1",
+      "technique_ids": [
+        "T1021",
+        "T1078"
+      ],
+      "n_technique_events": 47,
+      "tactic_chain": [
+        "Lateral Movement",
+        "Initial Access"
+      ],
+      "max_anomaly_score": 68,
+      "n_chunks": 47,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1021",
+        "multi_chunk_entity:47_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 22,
+      "actor_match": true,
+      "matched_actors": [
+        "APT18",
+        "APT28",
+        "APT29",
+        "APT33",
+        "APT39"
+      ],
+      "risk_score": 0.6559,
+      "risk_band": "high",
+      "rank": 7,
+      "id": "chain-7",
+      "title": "U3486@DOM1",
+      "severity": "high",
+      "score": 0.6559,
+      "techniques": [
+        "T1021",
+        "T1078"
+      ],
+      "summary": "confirmed chain on U3486@DOM1 with 2 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U4448@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 3,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 69,
+      "n_chunks": 4,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:4_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 9,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6488,
+      "risk_band": "high",
+      "rank": 8,
+      "id": "chain-8",
+      "title": "U4448@DOM1",
+      "severity": "high",
+      "score": 0.6488,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U4448@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U5087@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 7,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 69,
+      "n_chunks": 7,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:7_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 8,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.648,
+      "risk_band": "high",
+      "rank": 9,
+      "id": "chain-9",
+      "title": "U5087@DOM1",
+      "severity": "high",
+      "score": 0.648,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U5087@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U114@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 69,
+      "n_chunks": 3,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:3_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 7,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6472,
+      "risk_band": "high",
+      "rank": 10,
+      "id": "chain-10",
+      "title": "U114@DOM1",
+      "severity": "high",
+      "score": 0.6472,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U114@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U415@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 66,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 6,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6359,
+      "risk_band": "high",
+      "rank": 11,
+      "id": "chain-11",
+      "title": "U415@DOM1",
+      "severity": "high",
+      "score": 0.6359,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U415@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U3005@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 4,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 63,
+      "n_chunks": 5,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:5_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 17,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6343,
+      "risk_band": "high",
+      "rank": 12,
+      "id": "chain-12",
+      "title": "U3005@DOM1",
+      "severity": "high",
+      "score": 0.6343,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U3005@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U8946@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 63,
+      "n_chunks": 3,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:3_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 6,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6254,
+      "risk_band": "high",
+      "rank": 13,
+      "id": "chain-13",
+      "title": "U8946@DOM1",
+      "severity": "high",
+      "score": 0.6254,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U8946@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U3635@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 63,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6238,
+      "risk_band": "high",
+      "rank": 14,
+      "id": "chain-14",
+      "title": "U3635@DOM1",
+      "severity": "high",
+      "score": 0.6238,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U3635@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U9407@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 63,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6238,
+      "risk_band": "high",
+      "rank": 15,
+      "id": "chain-15",
+      "title": "U9407@DOM1",
+      "severity": "high",
+      "score": 0.6238,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U9407@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1048@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 2,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 62,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 6,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6219,
+      "risk_band": "high",
+      "rank": 16,
+      "id": "chain-16",
+      "title": "U1048@DOM1",
+      "severity": "high",
+      "score": 0.6219,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U1048@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1723@DOM1",
+      "technique_ids": [
+        "T1078",
+        "T1550.002"
+      ],
+      "n_technique_events": 4,
+      "tactic_chain": [
+        "Initial Access",
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 57,
+      "n_chunks": 6,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1078",
+        "multi_chunk_entity:6_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 9,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT18",
+        "APT28",
+        "APT29",
+        "APT32"
+      ],
+      "risk_score": 0.6068,
+      "risk_band": "high",
+      "rank": 17,
+      "id": "chain-17",
+      "title": "U1723@DOM1",
+      "severity": "high",
+      "score": 0.6068,
+      "techniques": [
+        "T1078",
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U1723@DOM1 with 2 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U218@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 4,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 56,
+      "n_chunks": 4,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:4_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 12,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.6058,
+      "risk_band": "high",
+      "rank": 18,
+      "id": "chain-18",
+      "title": "U218@DOM1",
+      "severity": "high",
+      "score": 0.6058,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U218@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U9263@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 56,
+      "n_chunks": 4,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:4_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5993,
+      "risk_band": "high",
+      "rank": 19,
+      "id": "chain-19",
+      "title": "U9263@DOM1",
+      "severity": "high",
+      "score": 0.5993,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U9263@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1653@DOM1",
+      "technique_ids": [
+        "T1550.002",
+        "T1078"
+      ],
+      "n_technique_events": 5,
+      "tactic_chain": [
+        "Lateral Movement",
+        "Initial Access"
+      ],
+      "max_anomaly_score": 46,
+      "n_chunks": 5,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:5_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 26,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT18",
+        "APT28",
+        "APT29",
+        "APT32"
+      ],
+      "risk_score": 0.5822,
+      "risk_band": "high",
+      "rank": 20,
+      "id": "chain-20",
+      "title": "U1653@DOM1",
+      "severity": "high",
+      "score": 0.5822,
+      "techniques": [
+        "T1550.002",
+        "T1078"
+      ],
+      "summary": "confirmed chain on U1653@DOM1 with 2 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1480@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 3,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 49,
+      "n_chunks": 3,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:3_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 11,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5805,
+      "risk_band": "high",
+      "rank": 21,
+      "id": "chain-21",
+      "title": "U1480@DOM1",
+      "severity": "high",
+      "score": 0.5805,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U1480@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U2837@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 49,
+      "n_chunks": 2,
+      "confirmation": "confirmed",
+      "confidence": 0.5,
+      "corroborating_signals": [
+        "evidence_index:T1550.002",
+        "multi_chunk_entity:2_chunks"
+      ],
+      "n_signals": 2,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 7,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5772,
+      "risk_band": "high",
+      "rank": 22,
+      "id": "chain-22",
+      "title": "U2837@DOM1",
+      "severity": "high",
+      "score": 0.5772,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "confirmed chain on U2837@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U9763@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 72,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 6,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5569,
+      "risk_band": "high",
+      "rank": 23,
+      "id": "chain-23",
+      "title": "U9763@DOM1",
+      "severity": "high",
+      "score": 0.5569,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U9763@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U4112@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 70,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 6,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5499,
+      "risk_band": "medium",
+      "rank": 24,
+      "id": "chain-24",
+      "title": "U4112@DOM1",
+      "severity": "medium",
+      "score": 0.5499,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U4112@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U748@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 66,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 3,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5334,
+      "risk_band": "medium",
+      "rank": 25,
+      "id": "chain-25",
+      "title": "U748@DOM1",
+      "severity": "medium",
+      "score": 0.5334,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U748@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1506@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 59,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 6,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.5114,
+      "risk_band": "medium",
+      "rank": 26,
+      "id": "chain-26",
+      "title": "U1506@DOM1",
+      "severity": "medium",
+      "score": 0.5114,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U1506@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U162@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 55,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 9,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4998,
+      "risk_band": "medium",
+      "rank": 27,
+      "id": "chain-27",
+      "title": "U162@DOM1",
+      "severity": "medium",
+      "score": 0.4998,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U162@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1145@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 52,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 8,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4885,
+      "risk_band": "medium",
+      "rank": 28,
+      "id": "chain-28",
+      "title": "U1145@DOM1",
+      "severity": "medium",
+      "score": 0.4885,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U1145@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1450@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 46,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 3,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4634,
+      "risk_band": "medium",
+      "rank": 29,
+      "id": "chain-29",
+      "title": "U1450@DOM1",
+      "severity": "medium",
+      "score": 0.4634,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U1450@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U1164@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 46,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 3,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4634,
+      "risk_band": "medium",
+      "rank": 30,
+      "id": "chain-30",
+      "title": "U1164@DOM1",
+      "severity": "medium",
+      "score": 0.4634,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U1164@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U2231@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 46,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 3,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4634,
+      "risk_band": "medium",
+      "rank": 31,
+      "id": "chain-31",
+      "title": "U2231@DOM1",
+      "severity": "medium",
+      "score": 0.4634,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U2231@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U9947@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 42,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4503,
+      "risk_band": "medium",
+      "rank": 32,
+      "id": "chain-32",
+      "title": "U9947@DOM1",
+      "severity": "medium",
+      "score": 0.4503,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U9947@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U995@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 42,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 4,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4503,
+      "risk_band": "medium",
+      "rank": 33,
+      "id": "chain-33",
+      "title": "U995@DOM1",
+      "severity": "medium",
+      "score": 0.4503,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U995@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U3549@DOM1",
+      "technique_ids": [
+        "T1550.002"
+      ],
+      "n_technique_events": 1,
+      "tactic_chain": [
+        "Lateral Movement"
+      ],
+      "max_anomaly_score": 36,
+      "n_chunks": 1,
+      "confirmation": "partially_confirmed",
+      "confidence": 0.25,
+      "corroborating_signals": [
+        "evidence_index:T1550.002"
+      ],
+      "n_signals": 1,
+      "n_signals_available": 4,
+      "signals_unavailable": [
+        "rag_match"
+      ],
+      "blast_radius": 3,
+      "actor_match": true,
+      "matched_actors": [
+        "APT1",
+        "APT28",
+        "APT32",
+        "APT41",
+        "Aquatic Panda"
+      ],
+      "risk_score": 0.4284,
+      "risk_band": "medium",
+      "rank": 34,
+      "id": "chain-34",
+      "title": "U3549@DOM1",
+      "severity": "medium",
+      "score": 0.4284,
+      "techniques": [
+        "T1550.002"
+      ],
+      "summary": "partially_confirmed chain on U3549@DOM1 with 1 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U825@DOM1",
+      "technique_ids": [],
+      "n_technique_events": 0,
+      "tactic_chain": [],
+      "max_anomaly_score": 63,
+      "n_chunks": 1,
+      "confirmation": "unconfirmed",
+      "confidence": 0.0,
+      "corroborating_signals": [],
+      "n_signals": 0,
+      "n_signals_available": 3,
+      "signals_unavailable": [
+        "evidence_index",
+        "rag_match"
+      ],
+      "blast_radius": 1,
+      "actor_match": false,
+      "matched_actors": [],
+      "risk_score": 0.2613,
+      "risk_band": "low",
+      "rank": 35,
+      "id": "chain-35",
+      "title": "U825@DOM1",
+      "severity": "low",
+      "score": 0.2613,
+      "techniques": [],
+      "summary": "unconfirmed chain on U825@DOM1 with 0 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U737@C10",
+      "technique_ids": [],
+      "n_technique_events": 0,
+      "tactic_chain": [],
+      "max_anomaly_score": 49,
+      "n_chunks": 1,
+      "confirmation": "unconfirmed",
+      "confidence": 0.0,
+      "corroborating_signals": [],
+      "n_signals": 0,
+      "n_signals_available": 3,
+      "signals_unavailable": [
+        "evidence_index",
+        "rag_match"
+      ],
+      "blast_radius": 1,
+      "actor_match": false,
+      "matched_actors": [],
+      "risk_score": 0.2123,
+      "risk_band": "low",
+      "rank": 36,
+      "id": "chain-36",
+      "title": "U737@C10",
+      "severity": "low",
+      "score": 0.2123,
+      "techniques": [],
+      "summary": "unconfirmed chain on U737@C10 with 0 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U207@DOM1",
+      "technique_ids": [],
+      "n_technique_events": 0,
+      "tactic_chain": [],
+      "max_anomaly_score": 43,
+      "n_chunks": 1,
+      "confirmation": "unconfirmed",
+      "confidence": 0.0,
+      "corroborating_signals": [],
+      "n_signals": 0,
+      "n_signals_available": 3,
+      "signals_unavailable": [
+        "evidence_index",
+        "rag_match"
+      ],
+      "blast_radius": 1,
+      "actor_match": false,
+      "matched_actors": [],
+      "risk_score": 0.1913,
+      "risk_band": "low",
+      "rank": 37,
+      "id": "chain-37",
+      "title": "U207@DOM1",
+      "severity": "low",
+      "score": 0.1913,
+      "techniques": [],
+      "summary": "unconfirmed chain on U207@DOM1 with 0 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U12@DOM1",
+      "technique_ids": [],
+      "n_technique_events": 0,
+      "tactic_chain": [],
+      "max_anomaly_score": 43,
+      "n_chunks": 1,
+      "confirmation": "unconfirmed",
+      "confidence": 0.0,
+      "corroborating_signals": [],
+      "n_signals": 0,
+      "n_signals_available": 3,
+      "signals_unavailable": [
+        "evidence_index",
+        "rag_match"
+      ],
+      "blast_radius": 1,
+      "actor_match": false,
+      "matched_actors": [],
+      "risk_score": 0.1913,
+      "risk_band": "low",
+      "rank": 38,
+      "id": "chain-38",
+      "title": "U12@DOM1",
+      "severity": "low",
+      "score": 0.1913,
+      "techniques": [],
+      "summary": "unconfirmed chain on U12@DOM1 with 0 ATT&CK technique(s)"
+    },
+    {
+      "entity": "U8840@DOM1",
+      "technique_ids": [],
+      "n_technique_events": 0,
+      "tactic_chain": [],
+      "max_anomaly_score": 43,
+      "n_chunks": 1,
+      "confirmation": "unconfirmed",
+      "confidence": 0.0,
+      "corroborating_signals": [],
+      "n_signals": 0,
+      "n_signals_available": 3,
+      "signals_unavailable": [
+        "evidence_index",
+        "rag_match"
+      ],
+      "blast_radius": 1,
+      "actor_match": false,
+      "matched_actors": [],
+      "risk_score": 0.1913,
+      "risk_band": "low",
+      "rank": 39,
+      "id": "chain-39",
+      "title": "U8840@DOM1",
+      "severity": "low",
+      "score": 0.1913,
+      "techniques": [],
+      "summary": "unconfirmed chain on U8840@DOM1 with 0 ATT&CK technique(s)"
+    }
+  ]
 }
