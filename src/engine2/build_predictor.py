@@ -1,17 +1,17 @@
 """
-Milestone 3 · Task E2.4 — Next-technique predictor (Engine 2 centerpiece).
+Milestone 3 · Task E2.4 — ATT&CK technique-association ranker.
 
-Given a partial ATT&CK technique sequence, predict the attacker's next technique.
-This is the Innovation claim — so it is evaluated HONESTLY against three baselines,
-and we report whichever wins.
+Given observed ATT&CK techniques, rank techniques associated with them in ATT&CK
+group/campaign profiles. Most rows are sorted by a tactic heuristic, not observed
+chronology, so this build fails closed on next-move claims unless an independent
+report-ordered benchmark demonstrates an improvement over temporal baselines.
 
 ⚠️ Anti-circularity (see decision_memo / final_pipeline E2.4):
   Sequences are ordered by kill-chain tactic order (a heuristic). A model could
-  "predict the next technique" by just re-learning that ordering. So we include a
-  **kill-chain-order baseline** — the neural model must beat IT (not just the
-  trivial most-frequent baseline) to prove it learned real technique-level
-  transitions rather than the ordering we imposed. If a simple Markov model wins,
-  we present Markov (honest > fancy).
+  score a held-out profile position by just re-learning that ordering. So we include a
+  **kill-chain-order baseline** measures how much of the profile-position task can
+  be recovered from the imposed ordering. Beating it does not turn a profile into
+  an observed timeline.
 
 Baselines:
   most_frequent  — always predict globally most-common techniques (context-free)
@@ -134,6 +134,85 @@ def eval_ranker(predict, test, vocab_set):
     return {k: hits[k] / n for k in KS}, n, oov
 
 
+def chronological_gate(model_predict, baselines: dict, timelines, vocab_set,
+                       *, reps: int = 2000) -> dict:
+    """Gate chronological claims with a sequence-level paired bootstrap.
+
+    The benchmark is independent of training, but only four source-provenanced
+    CERT-In timelines currently exist. Resampling whole timelines keeps within-
+    incident positions together and exposes the uncertainty that point-level
+    accuracy hides.
+    """
+    def counts(predict, seq):
+        hits = n = oov = 0
+        for last, prefix, nxt in positions([seq]):
+            n += 1
+            if nxt not in vocab_set:
+                oov += 1
+                continue
+            ranked = [t for t in predict(last, prefix) if t in vocab_set]
+            hits += int(nxt in ranked[:3])
+        return hits, n, oov
+
+    model_rows = [counts(model_predict, seq) for seq in timelines]
+    baseline_rows = {
+        name: [counts(predict, seq) for seq in timelines]
+        for name, predict in baselines.items()
+    }
+    total_n = sum(row[1] for row in model_rows)
+    model_top3 = sum(row[0] for row in model_rows) / max(total_n, 1)
+    baseline_top3 = {
+        name: sum(row[0] for row in rows) / max(total_n, 1)
+        for name, rows in baseline_rows.items()
+    }
+    strongest = max(baseline_top3, key=baseline_top3.get) if baseline_top3 else "none"
+    strongest_rows = baseline_rows.get(strongest, [])
+
+    diffs = []
+    if timelines and strongest_rows:
+        rng = np.random.default_rng(SEED)
+        for _ in range(reps):
+            sample = rng.integers(0, len(timelines), size=len(timelines))
+            n = sum(model_rows[i][1] for i in sample) or 1
+            model_hits = sum(model_rows[i][0] for i in sample)
+            baseline_hits = sum(strongest_rows[i][0] for i in sample)
+            diffs.append((model_hits - baseline_hits) / n)
+    ci = (np.percentile(diffs, [2.5, 97.5]).tolist() if diffs else [0.0, 0.0])
+    gain = model_top3 - baseline_top3.get(strongest, 0.0)
+    enabled = bool(timelines and gain > 0 and ci[0] > 0)
+    reason = (
+        "Independent chronological validation beats the strongest temporal baseline "
+        "with a positive sequence-bootstrap lower bound."
+        if enabled else
+        "Chronological next-move prediction is disabled: the source-provenanced "
+        "timeline benchmark does not yet show a statistically reliable improvement "
+        "over the strongest baseline."
+    )
+    return {
+        "enabled": enabled,
+        "mode": "chronological-next-move" if enabled else "association-only",
+        "reason": reason,
+        "data_basis": {
+            "kind": "ATT&CK group/campaign technique profiles",
+            "ordering": "heuristic MITRE ATT&CK tactic order",
+            "observed_timeline": False,
+        },
+        "benchmark": {
+            "kind": "source-provenanced report-ordered CERT-In timelines",
+            "independent_of_training": True,
+            "sequences": len(timelines),
+            "prediction_points": total_n,
+            "oov": sum(row[2] for row in model_rows),
+            "model_top3": round(model_top3, 4),
+            "baselines_top3": {k: round(v, 4) for k, v in baseline_top3.items()},
+            "strongest_baseline": strongest,
+            "gain_over_strongest": round(gain, 4),
+            "gain_sequence_bootstrap_95": [round(float(x), 4) for x in ci],
+            "bootstrap_repetitions": reps,
+        },
+    }
+
+
 # --------------------------------------------------------------------------- #
 # Neural (LSTM over frozen embeddings)                                         #
 # --------------------------------------------------------------------------- #
@@ -238,6 +317,8 @@ def baseline_markov_interp(train, val, vocab):
                 t2[(s[i - 2], s[i - 1])][s[i]] += 1
 
     def make(l2, l1, l0):
+        from src.shared.predictor import renormalize_component_weights
+
         def predict(last, prefix):
             a = prefix[-2] if len(prefix) >= 2 else None
             b = prefix[-1] if prefix else last
@@ -245,13 +326,19 @@ def baseline_markov_interp(train, val, vocab):
             d1 = t1.get(b)
             n2 = sum(d2.values()) if d2 else 1
             n1 = sum(d1.values()) if d1 else 1
+            w2, w1, w0 = renormalize_component_weights(
+                (l2, l1, l0),
+                has_order2=bool(d2),
+                has_order1=bool(d1),
+                has_unigram=bool(uni),
+            )
             scored = []
             for c in vocab:
-                p = l0 * (uni.get(c, 0) / n_uni)
+                p = w0 * (uni.get(c, 0) / n_uni)
                 if d1:
-                    p += l1 * (d1.get(c, 0) / n1)
+                    p += w1 * (d1.get(c, 0) / n1)
                 if d2:
-                    p += l2 * (d2.get(c, 0) / n2)
+                    p += w2 * (d2.get(c, 0) / n2)
                 if p > 0:
                     scored.append((p, c))
             scored.sort(reverse=True)
@@ -270,11 +357,12 @@ def baseline_markov_interp(train, val, vocab):
     return make(*best_w), best_w, (t2, t1, uni)
 
 
-def save_markov(train, path, lambdas=(0.2, 0.3, 0.5), tables=None):
-    """Persist the interpolated transition model — the shipped predictor.
+def save_markov(train, path, lambdas=(0.2, 0.3, 0.5), tables=None,
+                *, temporal_validation: dict | None = None):
+    """Persist the interpolated profile-association model.
 
-    Stores [technique, count] pairs so consumers report a real probability, not
-    just a ranked list. Read by src/shared/predictor.py at runtime.
+    Stores [technique, count] pairs plus the fail-closed temporal claim gate.
+    Read by src/shared/predictor.py at runtime.
     """
     if tables is None:
         t2, t1 = defaultdict(Counter), defaultdict(Counter)
@@ -287,11 +375,18 @@ def save_markov(train, path, lambdas=(0.2, 0.3, 0.5), tables=None):
     else:
         t2, t1, uni = tables
     payload = {
-        "version": 2,
+        "version": 4,
         "order2": {k: [[t, int(n)] for t, n in c.most_common()] for k, c in t2.items()},
         "order1": {k: [[t, int(n)] for t, n in c.most_common()] for k, c in t1.items()},
         "unigram": [[t, int(n)] for t, n in uni.most_common()],
         "lambdas": list(lambdas),
+        "task": "attack-technique-association-ranking",
+        "component_weight_policy": "renormalize-across-available-components",
+        "temporal_validation": temporal_validation or {
+            "enabled": False,
+            "mode": "association-only",
+            "reason": "No independent chronological validation was supplied at build time.",
+        },
     }
     with path.open("wb") as f:
         pickle.dump(payload, f)
@@ -314,17 +409,25 @@ def main() -> None:
           f"(manual {len(manual)}) sequences · vocab {len(vocab)}")
 
     results = {}
+    frequency_predict = baseline_most_frequent(train, vocab)
+    killchain_predict = baseline_killchain(train, vocab, lk)
     markov_predict = baseline_markov(train, vocab)
     interp_predict, interp_w, interp_tables = baseline_markov_interp(train, val, vocab)
-    results["most_frequent"], n_test, oov = eval_ranker(baseline_most_frequent(train, vocab), test, vocab_set)
+    results["most_frequent"], n_test, oov = eval_ranker(frequency_predict, test, vocab_set)
     results["markov"], _, _ = eval_ranker(markov_predict, test, vocab_set)
     results["markov_interp"], _, _ = eval_ranker(interp_predict, test, vocab_set)
-    results["killchain"], _, _ = eval_ranker(baseline_killchain(train, vocab, lk), test, vocab_set)
+    results["killchain"], _, _ = eval_ranker(killchain_predict, test, vocab_set)
 
     # non-circular headline: the SHIPPED model on the manual CERT-In sequences
     manual_res = manual_n = manual_oov = None
     if manual:
         manual_res, manual_n, manual_oov = eval_ranker(interp_predict, manual, vocab_set)
+    temporal_validation = chronological_gate(
+        interp_predict,
+        {"most_frequent": frequency_predict, "killchain_order": killchain_predict},
+        manual,
+        vocab_set,
+    )
 
     print("Training LSTM ...")
     net, emb_of, dim = train_lstm(train, val, emb, vocab, idx)
@@ -333,7 +436,8 @@ def main() -> None:
     import torch
     torch.save({"state": net.state_dict(), "vocab": vocab, "dim": dim}, MODEL_OUT)
     save_markov(train, ROOT / "models" / "next_technique_markov.pkl",
-                lambdas=interp_w, tables=interp_tables)
+                lambdas=interp_w, tables=interp_tables,
+                temporal_validation=temporal_validation)
 
     # honest model selection: best method by top-3 accuracy
     best = max(results, key=lambda m: results[m][3])
@@ -353,8 +457,11 @@ def main() -> None:
             "shipped": "markov_interp",
             "shipped_top3": round(results["markov_interp"][3], 3),
             "lambdas": list(interp_w),
-            "note": f"Interpolated Markov shipped; {mk_vs_kc:.1f}x the kill-chain "
-                    f"baseline = anti-circularity",
+            "component_weight_policy": "renormalize-across-available-components",
+            "task": "ATT&CK technique-association ranking",
+            "temporal_validation": temporal_validation,
+            "note": f"Interpolated Markov association ranker; {mk_vs_kc:.1f}x the "
+                    f"kill-chain baseline on tactic-sorted profiles does not validate chronology",
         })
         if manual_res is not None:
             _update("engine2", "manual_cert_in_top3", round(manual_res[3], 3))
@@ -362,9 +469,9 @@ def main() -> None:
         print(f"  [metrics_store skipped: {e}]")
 
     lines = [
-        "# Engine 2.4 — Next-Technique Predictor (honest eval)",
+        "# Engine 2.4 — ATT&CK Technique-Association Ranker",
         "",
-        f"Predict the next ATT&CK technique from a partial sequence. Test = "
+        f"Rank a held-out profile technique from a partial tactic-sorted profile. Test = "
         f"{n_test} prediction points across {len(test)} held-out sequences "
         f"(vocab {len(vocab)}, OOV next-techniques counted as misses: {oov}).",
         "",
@@ -383,37 +490,45 @@ def main() -> None:
     lines += [
         "",
         "## Interpretation (data-driven)",
-        f"- **Shipped predictor: {label[best]}** — best top-3 ({results[best][3]*100:.1f}%) "
+        "- **Interpolation mass is preserved:** for each prefix, stored lambdas are "
+        "renormalized across the unigram, first-order and second-order components "
+        "that have data. The complete candidate distribution therefore sums to 1. "
+        "Its values are normalized model weights, not observed frequencies, calibrated "
+        "confidence, or future probabilities.",
+        f"- **Shipped association ranker: {label[best]}** — best profile-position top-3 ({results[best][3]*100:.1f}%) "
         + ("and the most explainable choice. On only "
            f"{len(train)} training sequences a first-order Markov transition model "
            "beats the LSTM — so we ship Markov (honest > fancy)."
            if best == "markov" else
            "on this data."),
-        f"- ✅ **Anti-circularity proof:** shipped predictor top-3 ({results['markov_interp'][3]*100:.1f}%) is "
+        f"- **Profile-position comparison:** shipped ranker top-3 ({results['markov_interp'][3]*100:.1f}%) is "
         f"**{mk_vs_kc:.1f}× the kill-chain-order baseline** ({results['killchain'][3]*100:.1f}%). "
-        f"Since sequences are tactic-ordered, a model that only re-learned that ordering "
-        f"would score like the kill-chain baseline. Beating it {mk_vs_kc:.1f}× means we are "
-        f"predicting **real technique-to-technique transitions**, not the imposed order.",
+        f"The rows are ATT&CK group/campaign profiles sorted by a tactic heuristic, not "
+        f"observed timelines. Beating this baseline supports **association ranking only**; "
+        f"it does not establish real chronological transitions.",
         f"- **Neural is not justified here (honest negative result):** the LSTM "
         f"({results['lstm'][3]*100:.1f}% top-3) is {lstm_vs_mk:.2f}× Markov — it beats the "
         f"naive baselines but not the transition model at this data scale. Kept as a "
         f"documented comparison, not the deliverable.",
         f"- Top-1 is a hard bar with a {len(vocab)}-way vocabulary and {len(train)} "
-        f"training sequences; **top-3/top-5 are the honest headline** — they match how an "
-        f"analyst uses a ranked list of 'likely next moves'.",
+        f"training profiles; **top-3/top-5 describe held-out profile positions**, not the "
+        f"probability of an attacker making a next move.",
         "",
     ]
     if manual_res is not None:
         lines += [
-            "## ⭐ Non-circular headline — manual CERT-In / India sequences (report-ordered)",
+            "## Independent chronological gate — CERT-In / India timelines",
             f"- Shipped Markov model on **{len(manual)} hand-curated** report-ordered "
             f"sequences ({manual_n} prediction points, {manual_oov} OOV): "
             f"**top-1 {manual_res[1]*100:.1f}% · top-3 {manual_res[3]*100:.1f}% · "
             f"top-5 {manual_res[5]*100:.1f}%**.",
-            "- These are ordered by the REAL reported attack timeline (not the kill-chain "
-            "heuristic), so this is the honest, non-circular evaluation. "
-            "⚠️ Verify each sequence's mappings (`data/manual/cert_in_sequences.json`) "
-            "before quoting this in the pitch.",
+            f"- Strongest baseline: **{temporal_validation['benchmark']['strongest_baseline']}**; "
+            f"gain: **{temporal_validation['benchmark']['gain_over_strongest']*100:.1f} points**; "
+            f"sequence-bootstrap 95% interval: "
+            f"**[{temporal_validation['benchmark']['gain_sequence_bootstrap_95'][0]*100:.1f}, "
+            f"{temporal_validation['benchmark']['gain_sequence_bootstrap_95'][1]*100:.1f}] points**.",
+            f"- **Chronological next-move output enabled: {str(temporal_validation['enabled']).lower()}.** "
+            f"{temporal_validation['reason']}",
             "",
         ]
     lines += [
@@ -427,8 +542,11 @@ def main() -> None:
     for m in ["most_frequent", "markov", "markov_interp", "killchain", "lstm"]:
         r = results[m]
         print(f"{label[m]:<26}{r[1]*100:>7.1f}%{r[3]*100:>7.1f}%{r[5]*100:>7.1f}%")
-    print(f"\nShipped: {label[best]} (top-3 {results[best][3]*100:.1f}%). "
-          f"Anti-circularity: Markov {mk_vs_kc:.1f}x kill-chain; LSTM {lstm_vs_mk:.2f}x Markov.")
+    print(f"\nShipped association ranker: {label[best]} "
+          f"(profile-position top-3 {results[best][3]*100:.1f}%). "
+          f"Profile comparison: Markov {mk_vs_kc:.1f}x kill-chain; "
+          f"LSTM {lstm_vs_mk:.2f}x Markov. "
+          f"Chronological output enabled={temporal_validation['enabled']}.")
     print(f"-> {REPORT.relative_to(ROOT)}")
 
 

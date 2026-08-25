@@ -580,8 +580,8 @@ export interface Prediction {
   rank: number
   technique_id: string
   name: string
-  /** The interpolated Markov transition probability the endpoint returns.
-   *  POST /api/predict-next calls this field `score`. */
+  /** Normalized model weight from tactic-sorted ATT&CK profiles. It is not an
+   * observed frequency, calibrated confidence, or chronological probability. */
   score?: number
   probability?: number
   source?: string
@@ -592,6 +592,8 @@ export interface Prediction {
 export interface PredictNextResult {
   given: string[]
   predictions: Prediction[]
+  mode?: 'association-only' | 'chronological-next-move'
+  temporal_prediction?: Record<string, unknown>
   source: string
   provider: string
   model: string
@@ -838,13 +840,26 @@ export interface ProgressionPath {
   reaches_impact: boolean
 }
 
+export interface ForecastAssociation {
+  technique_id: string
+  name: string
+  stage: string
+  score: number
+  score_kind?: 'normalized_model_weight'
+  source: string
+}
+
 /** Probability and horizon confidence are two separate series, on purpose.
  *  Multiplying them made the cumulative curve fall, which is nonsense. */
 export interface ProgressionForecast {
   available: boolean
+  mode?: 'association-only' | 'chronological-next-move'
   reason?: string
   k_steps: number
   observed_chain?: string[]
+  data_basis?: { kind?: string; ordering?: string; observed_timeline?: boolean }
+  benchmark?: Record<string, unknown>
+  associations?: ForecastAssociation[]
   steps?: ProgressionStep[]
   infiltration_probability?: number[]
   horizon_confidence?: number[]
@@ -1256,6 +1271,12 @@ export interface IncidentReportData {
   attack_path: string[]
   attributed_actor: { actor: string; justification: string }
   predicted_next: ReportTechnique[]
+  technique_association_basis?: {
+    mode: 'association-only'
+    data_basis?: Record<string, unknown>
+    temporal_prediction_enabled: boolean
+    reason?: string
+  }
   response_actions: ReportAction[]
   mitigations: string[]
   mttd: {

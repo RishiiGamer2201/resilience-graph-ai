@@ -7,15 +7,27 @@ from __future__ import annotations
 
 import pytest
 
+from src.shared import predictor
 from src.shared.rollout import (MAX_HORIZON, RELIABLE_CONFIDENCE, STEP_DECAY,
                                 simulate_progression)
 
 CHAIN = ["T1078", "T1021"]
 GRAPH = {"critical_assets_at_risk": ["DB"],
          "paths_to_critical": {"DB": ["PC", "JUMP", "DB"]}}
+ARTIFACT_TEMPORAL_STATUS = predictor.temporal_prediction_status()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(autouse=True)
+def validated_temporal_model(monkeypatch):
+    """Keep testing rollout arithmetic behind an explicitly open gate."""
+    monkeypatch.setattr(
+        predictor,
+        "temporal_prediction_status",
+        lambda: {"enabled": True, "mode": "chronological-next-move"},
+    )
+
+
+@pytest.fixture()
 def sim():
     return simulate_progression(CHAIN, GRAPH, k_steps=6, crown_jewels=["DB", "DC"])
 
@@ -57,7 +69,7 @@ def test_confidence_follows_the_declared_decay(sim):
 # -- are what the cheap tests below refit STEP_DECAY from.
 # `test_the_whole_measurement_reproduces_from_the_corpus` re-derives these counts
 # from the corpus itself, so they cannot quietly rot into magic numbers.
-MEASURED_HITS = [245, 163, 122, 78, 82, 64, 54, 53]
+MEASURED_HITS = [245, 163, 122, 78, 82, 65, 55, 54]
 MEASURED_PREFIXES = 544
 MEASURED_SEQUENCES = 29
 REGRESSION_POINTS = 8          # one accuracy per horizon; NOT the prefix count
@@ -103,9 +115,9 @@ def test_the_decay_constant_is_what_the_fit_recomputes():
 
     assert round(d, 2) == STEP_DECAY, (
         f"code ships STEP_DECAY = {STEP_DECAY}, the fit recomputes {d:.4f}")
-    assert abs(d - 0.7726) < 5e-5, d
-    assert abs(r2 - 0.739) < 5e-4, r2
-    assert abs(r2_anchored - 0.870) < 5e-4, r2_anchored
+    assert abs(d - 0.7744) < 5e-5, d
+    assert abs(r2 - 0.719) < 5e-4, r2
+    assert abs(r2_anchored - 0.862) < 5e-4, r2_anchored
 
 
 def test_the_reported_r2_is_the_one_that_explains_the_decay():
@@ -115,7 +127,7 @@ def test_the_reported_r2_is_the_one_that_explains_the_decay():
     `(0, log(acc[0]/acc[0])) = (0, 0.0)`. That point is the definition of the
     ratio, not an observation: it sits exactly on the line so it adds nothing to
     ss_res, while adding its full squared deviation to ss_tot. Counting it took
-    R^2 from 0.739 to 0.870 without the curve explaining anything more.
+    R^2 from 0.719 to 0.862 without the curve explaining anything more.
     """
     fit_decay = _eval_script().fit_decay
     acc = _measured_accuracy()
@@ -201,7 +213,7 @@ def test_the_reliable_horizon_margin_is_disclosed_next_to_the_claim():
 
 
 def test_the_alternative_fit_is_disclosed():
-    """A linear-space fit on the same ratios fits them better and gives 0.7407.
+    """A linear-space fit on the same ratios fits them better and gives 0.7420.
 
     Not mentioning it would make log space look like the only option rather than
     a choice -- and the choice moves d by more than the bootstrap's resolution.
@@ -211,7 +223,7 @@ def test_the_alternative_fit_is_disclosed():
     d = ev.fit_decay(acc)[0]
     d_lin, r2_lin, r2_lin_of_d_log = ev.fit_decay_linear(acc, d)
 
-    assert abs(d_lin - 0.7407) < 5e-4, d_lin
+    assert abs(d_lin - 0.7420) < 5e-4, d_lin
     assert r2_lin > r2_lin_of_d_log, "linear space was supposed to fit better"
 
     text = _report_text()
@@ -229,8 +241,8 @@ def test_the_shipped_method_string_labels_its_sample_sizes(sim):
     assert "544 held-out prefixes from 29" in decay, (
         "the payload must say what the 544 are and how many clusters they form")
     assert "8 points in the regression" in decay or "points in the regression" in decay
-    assert "0.739" in decay, "the payload still quotes an R^2 it did not earn"
-    assert "R^2 0.870" not in decay
+    assert "0.719" in decay, "the payload still quotes an R^2 it did not earn"
+    assert "R^2 0.862" not in decay
 
 
 def test_the_whole_measurement_reproduces_from_the_corpus():
@@ -249,7 +261,7 @@ def test_the_whole_measurement_reproduces_from_the_corpus():
     assert R["n_points"] == REGRESSION_POINTS
     assert [round(a * MEASURED_PREFIXES / 100) for a in R["acc"]] == MEASURED_HITS
     assert round(R["d"], 2) == STEP_DECAY
-    assert abs(R["r2"] - 0.739) < 5e-4
+    assert abs(R["r2"] - 0.719) < 5e-4
     assert R["horizon"] == 5
 
 
@@ -336,13 +348,15 @@ def test_the_method_is_declared(sim):
     assert "Markov" in m["model"]
     assert "beam" in m["search"]
     assert m["deterministic"] is True
-    assert "not a simulation of an attacker's intent" in sim["honesty"]
+    assert "not detections or a simulation of attacker intent" in sim["honesty"]
 
 
 # --------------------------------------------------------------------------- #
 # wired into the investigation                                                 #
 # --------------------------------------------------------------------------- #
-def test_the_investigation_carries_a_forecast():
+def test_the_investigation_disables_unvalidated_chronology(monkeypatch):
+    monkeypatch.setattr(predictor, "temporal_prediction_status",
+                        lambda: ARTIFACT_TEMPORAL_STATUS)
     from fastapi.testclient import TestClient
 
     from api.main import app
@@ -351,9 +365,26 @@ def test_the_investigation_carries_a_forecast():
                              headers={"X-Role": "analyst"})
     assert r.status_code == 200
     f = r.json()["impact"]["progression_forecast"]
-    assert f["available"] is True
-    assert f["steps"] and f["headline"]
-    assert f["infiltration_probability"] == sorted(f["infiltration_probability"])
+    assert f["available"] is False
+    assert f["mode"] == "association-only"
+    assert f["associations"]
+    assert "timeline benchmark" in f["reason"]
+    assert "steps" not in f
+
+
+def test_current_artifact_fails_closed_on_temporal_claims(monkeypatch):
+    assert ARTIFACT_TEMPORAL_STATUS["enabled"] is False
+    assert ARTIFACT_TEMPORAL_STATUS["data_basis"]["observed_timeline"] is False
+    assert ARTIFACT_TEMPORAL_STATUS["benchmark"]["sequences"] == 4
+    lo, hi = ARTIFACT_TEMPORAL_STATUS["benchmark"]["gain_sequence_bootstrap_95"]
+    assert lo <= 0 <= hi
+    monkeypatch.setattr(predictor, "temporal_prediction_status",
+                        lambda: ARTIFACT_TEMPORAL_STATUS)
+    out = simulate_progression(CHAIN, GRAPH, k_steps=4)
+    assert out["available"] is False
+    assert out["mode"] == "association-only"
+    assert out["associations"]
+    assert "steps" not in out
 
 
 def test_a_saturated_headline_says_so_instead_of_quoting_a_precise_figure():

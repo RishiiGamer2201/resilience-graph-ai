@@ -3,7 +3,7 @@ M5.1 — nextATT&CKs · SOC Command Center API (FastAPI).
 
 Serves the pre-computed cache (fast, reliable) plus two genuinely LIVE endpoints:
   POST /api/score-event    — behavioral features → live anomaly score + severity
-  POST /api/predict-next   — partial ATT&CK chain → live next-technique prediction
+  POST /api/predict-next   — legacy path: ATT&CK observations → association ranking
 
 Cached GETs are just JSON files built by `scripts/build_cache.py`.
 
@@ -410,7 +410,7 @@ def score_event(f: EventFeatures, p: dict = Depends(analyze_principal)):
             "detector": "autoencoder" if detector.available() else "isolation-forest"}
 
 
-# --- LIVE endpoint 2: predict next technique ---
+# --- LIVE endpoint 2: explain associated techniques (legacy route name) ---
 class Chain(BaseModel):
     technique_ids: list[str] = Field(min_length=1)
     k: int = Field(default=3, ge=3, le=3)
@@ -418,12 +418,12 @@ class Chain(BaseModel):
 
 @app.post("/api/predict-next")
 def predict_next(c: Chain, p: dict = Depends(analyze_principal)):
-    """Generate three grounded next-technique predictions with the configured LLM."""
+    """Explain three profile-associated techniques with the configured LLM."""
     _require(p, "analyze")
     from src.shared import llm
     from src.shared.llm_prediction import generate
     if llm.chosen_provider() is None:
-        raise HTTPException(503, "Next-attack prediction requires an enabled LLM provider. Set a provider key and NEXTATTACK_LLM_PROVIDER, then try again.")
+        raise HTTPException(503, "Technique-association explanation requires an enabled LLM provider. Set a provider key and NEXTATTACK_LLM_PROVIDER, then try again.")
     try:
         return generate(list(c.technique_ids), c.k)
     except RuntimeError as exc:
@@ -944,7 +944,7 @@ def agents_analyze(req: AgentAnalysisRequest, p: dict = Depends(analyze_principa
       - per-agent execution traces
       - ranked attack chains
       - Point-A chunk summaries + Point-B incident narrative
-      - next-move predictions
+      - ATT&CK profile-association investigation leads
       - all evidence references
 
     Plain `def` on purpose -- see the note on /api/analyze; FastAPI already runs

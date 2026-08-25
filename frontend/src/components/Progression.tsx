@@ -1,5 +1,5 @@
 /**
- * Forward simulation: where the attack goes next, and how much to trust it.
+ * Temporal forecast when validated; otherwise an explicit association-only view.
  *
  * Two curves, deliberately NOT multiplied together. The bar height is
  * P(the trajectory has reached an impact-stage technique by step k) - monotone,
@@ -13,7 +13,7 @@
 import { ArrowRight, TrendingUp } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
-import { EmptyState, NotMeasured, SectionLabel } from '@/components/primitives'
+import { NotMeasured, SectionLabel } from '@/components/primitives'
 import { Disclosure, FinePrint } from '@/components/Disclosure'
 import { DURATION, EASE, STAGGER, STAGGER_MAX } from '@/lib/motion'
 import type { ProgressionForecast } from '@/types/api'
@@ -37,17 +37,41 @@ export default function Progression({
   if (!forecast) return null
 
   if (!forecast.available) {
+    const associations = forecast.associations ?? []
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Attack progression forecast</CardTitle>
-          <CardMeta>not available</CardMeta>
+          <CardTitle>ATT&amp;CK technique associations</CardTitle>
+          <CardMeta>association only · not a forecast</CardMeta>
         </CardHeader>
-        <EmptyState
-          icon={TrendingUp}
-          title="No forecast was produced"
-          detail={forecast.reason ?? 'The backend gave no reason.'}
-        />
+        <CardBody className="space-y-3">
+          <div className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-dim">
+            <div className="font-medium text-text">Chronological next-move forecast is disabled</div>
+            <p className="mt-1 leading-relaxed">
+              {forecast.reason ?? 'The independent timeline benchmark has not passed.'}
+            </p>
+          </div>
+          {associations.length ? (
+            <div>
+              <SectionLabel>Techniques to investigate</SectionLabel>
+              <ul className="mt-2 space-y-1 text-sm text-dim">
+                {associations.map((item) => (
+                  <li key={item.technique_id} className="flex items-baseline justify-between gap-3">
+                    <span>{techniqueName(item.technique_id, item.name)}</span>
+                    <span className="font-mono text-xs text-faint">model weight {Math.round(item.score * 100)}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <FinePrint>
+            Data basis: {forecast.data_basis?.kind ?? 'ATT&CK profiles'}; ordering:{' '}
+            {forecast.data_basis?.ordering ?? 'heuristic tactic order'}. These rows are not
+            observed attack timelines. Model weights are normalized over the full candidate
+            distribution; they are not observed frequencies, calibrated confidence, or future
+            probabilities.
+          </FinePrint>
+        </CardBody>
       </Card>
     )
   }

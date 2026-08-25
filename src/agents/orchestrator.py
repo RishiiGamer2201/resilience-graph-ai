@@ -113,22 +113,22 @@ def _consistency_gate(
     *,
     notes: list,
 ) -> None:
-    """Gate 4: Check that Prediction's next moves are plausible Markov transitions."""
+    """Gate 4: Check that association candidates come from the shipped ranker."""
     try:
-        from src.shared.predictor import rank_next
+        from src.shared.predictor import rank_associations
         mapped = intelligence_result.output.get("mapped", [])
         tids = [m["technique_id"] for m in mapped if m.get("technique_id")]
         if not tids:
             return
-        valid_next, _ = rank_next(tids, k=10)
+        valid_next, _ = rank_associations(tids, k=10)
         valid_set = {t for t, _ in valid_next}
         predictions = prediction_result.output.get("predictions", [])
         for pred in predictions:
             ptid = pred.get("technique_id", "")
             if ptid and ptid not in valid_set:
                 notes.append(
-                    f"[orchestrator] Prediction {ptid!r} is not a plausible "
-                    f"Markov transition from observed chain — flagged low-confidence."
+                    f"[orchestrator] Candidate {ptid!r} is not a ranked ATT&CK "
+                    f"profile association — flagged low-confidence."
                 )
                 pred["confidence_flag"] = "markov_inconsistent"
     except Exception as e:
@@ -450,11 +450,11 @@ def iter_pipeline(
             "stage_num": 10,
             "total_stages": 10,
             "agent": "prediction",
-            "name": "Agent 9: Next-Move Markov Predictor Agent",
+            "name": "Agent 9: ATT&CK Association Ranker",
             "status": pred_result.status.value,
             "ms": round(pred_result.ms, 1),
             "confidence": pred_result.confidence,
-            "summary": f"Calculated Markov transition matrix; forecasted {len(predictions)} next tactical adversary movements.",
+            "summary": f"Ranked {len(predictions)} technique associations from tactic-sorted ATT&CK profiles; no chronology claimed.",
         },
     )
 

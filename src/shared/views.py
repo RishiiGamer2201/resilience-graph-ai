@@ -62,7 +62,8 @@ def _scorecard() -> list[dict]:
         ("LANL lateral movement", "ROC-AUC", lanl.get("roc_auc"), "real red-team"),
         ("CICIDS anomaly (autoencoder)", "PR-AUC", cic.get("autoencoder_prauc"), "real"),
         ("UNSW-NB15", "ROC-AUC", unsw.get("roc_auc"), "2nd benchmark"),
-        ("Next-technique (interpolated Markov)", "top-3", pred.get("shipped_top3"), "honest"),
+        ("Technique association (interpolated Markov)", "profile top-3",
+         pred.get("shipped_top3"), "tactic-sorted profiles"),
     ]
     return [{"name": n, "metric": mt, "value": v, "kind": k}
             for n, mt, v, k in cards if v is not None]
@@ -368,7 +369,7 @@ def threat_intel_view(full: dict) -> dict:
 
 
 def report_view(full: dict) -> dict:
-    """Audit-ready incident report assembled from the spine + attribution + prediction."""
+    """Audit-ready incident report assembled from the spine + attribution + associations."""
     inc, g, soar = full["incident"], full["graph"], full["soar"]
     names = _names()
 
@@ -376,6 +377,7 @@ def report_view(full: dict) -> dict:
     top = rank_actors(inc["technique_ids"], profiles, emb)[0] if inc["technique_ids"] else None
     from src.shared import predictor
     nxt = predictor.top_ids(inc["technique_ids"], 3) if inc["technique_ids"] else []
+    temporal_status = predictor.temporal_prediction_status()
 
     crit = ", ".join(g["critical_assets_at_risk"]) or "--"
     tac = Counter(inc["attack_chain"])
@@ -417,6 +419,12 @@ def report_view(full: dict) -> dict:
         "attributed_actor": ({"actor": top["actor"], "justification": top["justification"]}
                              if top else {"actor": "--", "justification": "no techniques observed"}),
         "predicted_next": [{"technique_id": t, "name": names.get(t, t)} for t in nxt],
+        "technique_association_basis": {
+            "mode": "association-only",
+            "data_basis": temporal_status.get("data_basis"),
+            "temporal_prediction_enabled": temporal_status.get("enabled", False),
+            "reason": temporal_status.get("reason"),
+        },
         "response_actions": soar["actions"],
         "mitigations": soar.get("mitre_mitigations", []),
         "mttd": {"traditional_days": mttd["traditional_days"], "ours_minutes": mttd["ours_minutes"],

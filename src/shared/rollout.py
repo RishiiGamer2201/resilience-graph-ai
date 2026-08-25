@@ -1,13 +1,10 @@
-"""Forward simulation: roll the attack forward K steps and say where it goes.
+"""Forward simulation behind an independent temporal-validation gate.
 
-Everything before this module answers "what happened?". This one answers "what
-happens next, and how sure are we as the horizon grows?" -- by rolling the
-learned transition model forward instead of predicting a single next step.
-
-The transition model already exists and is already measured: the interpolated
-Markov in `src/shared/predictor.py` estimates P(next | previous, last) over real
-ATT&CK sequences, at 38.1% top-3 against a 7.1% kill-chain baseline
-(`reports/prediction_eval.md`). This module does the part that was missing --
+The interpolated Markov in `src/shared/predictor.py` is trained primarily on
+ATT&CK profiles sorted by a tactic heuristic. It can rank associations, but it
+must not be rolled forward as chronology until an independent report-ordered
+benchmark beats temporal baselines. This module enforces that artifact gate and,
+only when it passes, performs
 beam search over that distribution to produce a trajectory rather than a guess:
 
   * a per-step distribution over predicted techniques,
@@ -22,8 +19,8 @@ beam search over that distribution to produce a trajectory rather than a guess:
     was run. The fit is small (8 points, 1 parameter, from 544 prefixes in 29
     sequences) and the report states what it does and does not support.
 
-Deterministic: same chain, same graph, same output. No sampling, no model
-opinion -- the probabilities are the Markov's own transition estimates.
+Deterministic: same chain, same graph, same output. When the gate is closed, the
+result contains association leads and explicitly contains no future trajectory.
 
     from src.shared.rollout import simulate_progression
     sim = simulate_progression(["T1078", "T1021"], graph_view, k_steps=5)
@@ -60,7 +57,7 @@ MAX_HORIZON = 8
 #   step:  1      2      3      4      5      6      7      8
 #   top-3: 45.0%  30.0%  22.4%  14.3%  15.1%  11.8%   9.9%   9.7%
 #
-# Fitting acc(h)/acc(1) = d^(h-1) gives d = 0.7726, shipped rounded to 0.77.
+# Fitting acc(h)/acc(1) = d^(h-1) gives d = 0.7744, shipped rounded to 0.77.
 #
 # Three different n's, none of them interchangeable -- the report used to print
 # the middle one wherever a regression's n belongs, which overstated the fit 68x:
@@ -72,9 +69,9 @@ MAX_HORIZON = 8
 #   * 29  test sequences those 544 prefixes come from. Consecutive prefixes of one
 #     sequence share 7 of their 8 targets and the top 5 sequences supply 57% of
 #     the prefixes, so ~29 is far closer to the effective sample size than 544.
-#     Resampling SEQUENCES puts the 95% interval on d at [0.720, 0.804].
+#     Resampling SEQUENCES puts the 95% interval on d at [0.723, 0.805].
 #
-# R^2 = 0.739 on the 7 decaying points. (0.870 if the r(1)=1 anchor is counted,
+# R^2 = 0.719 on the 7 decaying points. (0.862 if the r(1)=1 anchor is counted,
 # which is what was reported before -- that point is (0, log(acc[0]/acc[0])) = 0
 # by construction, so it cannot move the slope but does inflate ss_tot. It stays
 # in the fit as a real constraint; it stays out of the quoted R^2.)
@@ -82,7 +79,7 @@ MAX_HORIZON = 8
 # Honest limits, in full in the report, and the last one is serious:
 #   * A single geometric constant cannot express the real shape -- steep from step
 #     1 to 2, then flattening -- so it under-states the early drop.
-#   * Log space is a CHOICE. A linear-space fit on the same ratios gives d = 0.7407
+#   * Log space is a CHOICE. A linear-space fit on the same ratios gives d = 0.7420
 #     and fits those ratios better (R^2 0.942 vs 0.914 on that scale). Log space is
 #     kept because the constant is used multiplicatively, so relative error is what
 #     matters -- but the fit space, not the data, is what decides the 2nd decimal.
@@ -115,7 +112,7 @@ STEP_DECAY = 0.77
 #
 # Any d in [0.765, 0.780] is within 5% of the fit's minimum SSE, and that band
 # straddles 0.769161. Of 2000 sequence-level bootstrap replicates, 52.5% give
-# step 5 and 46.2% give step 4 -- as does the linear-space fit (d = 0.7407), and
+# step 5 and 43.9% give step 4 -- as does the linear-space fit (d = 0.7420), and
 # as would rounding one 2dp tick down to 0.76. The fit cannot resolve the side.
 #
 # So: the horizon moved somewhere NORTH OF 3. "3 to 5" is the point estimate, not
@@ -192,10 +189,9 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
                          crown_jewels: list[str] | None = None) -> dict:
     """Roll the attack forward `k_steps` and describe the trajectory.
 
-    `technique_ids` is the chain observed so far. `graph` is the incident's
-    attack graph, used to say which crown jewels a predicted progression would
-    actually put in reach -- a technique the attacker cannot route to is a
-    different risk from one they can.
+    `technique_ids` is the observed incident chain. `graph` is the incident's
+    attack graph. When chronological validation has not passed, this returns an
+    association-only result and does not manufacture a trajectory.
     """
     from src.shared import predictor
 
@@ -206,6 +202,27 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
             "available": False,
             "reason": "no observed techniques yet, so there is nothing to roll forward",
             "k_steps": k_steps,
+        }
+
+    temporal = predictor.temporal_prediction_status()
+    if not temporal.get("enabled"):
+        ranked, source = predictor.rank_associations(observed, BRANCH_FACTOR)
+        return {
+            "available": False,
+            "mode": "association-only",
+            "reason": temporal.get("reason"),
+            "k_steps": k_steps,
+            "observed_chain": observed,
+            "data_basis": temporal.get("data_basis"),
+            "benchmark": temporal.get("benchmark"),
+            "associations": [{
+                "technique_id": tid,
+                "name": _name_of(tid),
+                "stage": _stage_of(tid),
+                "score": round(score, 4),
+                "score_kind": "normalized_model_weight",
+                "source": source,
+            } for tid, score in ranked],
         }
 
     # beam of (path_suffix, cumulative_probability)
@@ -291,7 +308,7 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
         "most_likely_paths": paths,
         "reachable_crown_jewels": exposure,
         "method": {
-            "model": "interpolated Markov over 205 real ATT&CK sequences",
+            "model": "interpolated Markov profile-association model",
             "search": f"beam search, width {BEAM_WIDTH}, branch {BRANCH_FACTOR}",
             "decay": (f"horizon confidence {STEP_DECAY}^(step-1): a model measured at "
                       f"38.1% top-3 for one step is not 38.1% accurate {k_steps} "
@@ -302,19 +319,18 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
                       f"accuracies were averaged over 544 held-out prefixes from 29 "
                       f"test sequences, which overlap heavily, so ~29 is nearer the "
                       f"effective sample size and a sequence-level bootstrap puts d in "
-                      f"[0.720, 0.804]. R^2 0.739 on the decaying points (0.870 if the "
+                      f"[0.723, 0.805]. R^2 0.719 on the decaying points (0.862 if the "
                       f"r(1)=1 anchor is counted, which explains nothing). A "
-                      f"linear-space fit of the same ratios gives 0.7407. "
+                      f"linear-space fit of the same ratios gives 0.7420. "
                       f"(reports/rollout_decay.md, reproduce with "
                       f"scripts/eval_rollout_decay.py)"),
             "deterministic": True,
         },
         "honesty": (
-            "These are the transition model's own probabilities rolled forward, not "
-            "a simulation of an attacker's intent. Step 1 rests on a measured 38.1% "
-            "top-3 accuracy; every step after that compounds the same uncertainty, "
-            "which is why horizon confidence decays and the later steps are shown "
-            "faded rather than quoted as forecasts."),
+            "Chronological output is shown only because the artifact's independent "
+            "report-ordered benchmark passed its temporal-baseline gate. These remain "
+            "model estimates, not detections or a simulation of attacker intent; later "
+            "steps compound uncertainty and are faded rather than asserted."),
     }
 
 
@@ -391,12 +407,22 @@ def _exposure_if_progressed(graph: dict | None,
 
 
 def demo() -> None:
-    """Self-check: a rollout produces a decaying, deterministic trajectory."""
+    """Self-check the closed gate, or trajectory arithmetic after it opens."""
     graph = {"critical_assets_at_risk": ["DB"],
              "paths_to_critical": {"DB": ["PC", "JUMP", "DB"]}}
     sim = simulate_progression(["T1078", "T1021"], graph, k_steps=5,
                                crown_jewels=["DB", "DC"])
-    assert sim["available"], sim
+    if not sim["available"]:
+        assert sim["mode"] == "association-only", sim
+        assert sim["associations"] and "steps" not in sim, sim
+        assert sim["data_basis"]["observed_timeline"] is False, sim
+        again = simulate_progression(["T1078", "T1021"], graph, k_steps=5,
+                                     crown_jewels=["DB", "DC"])
+        assert again == sim, "association result is not deterministic"
+        print(f"rollout gated: {len(sim['associations'])} profile associations; "
+              f"chronological output disabled ({sim['reason']})")
+        return
+
     assert len(sim["steps"]) == 5, len(sim["steps"])
 
     # horizon confidence must strictly decay

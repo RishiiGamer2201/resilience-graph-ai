@@ -1,16 +1,15 @@
 """
 Milestone 3 · Task E2.2 — Build the attack-sequence dataset (Engine 2).
 
-Turns the ATT&CK lookups (from task 0.3) into ordered technique sequences used to
-train the next-technique predictor. Uses ALL groups + campaigns with >= MIN_LEN
+Turns the ATT&CK lookups (from task 0.3) into tactic-sorted technique profiles used to
+train the association ranker. Uses ALL groups + campaigns with >= MIN_LEN
 techniques — ~196 sequences, not the 15-25 the first draft assumed.
 
 ⚠️ Honesty / anti-circularity notes (see research/claude/final_pipeline.md E2.4):
   * Sequences here are ordered by ATT&CK kill-chain tactic order (a heuristic).
-    A model trained to predict "next technique" on these can trivially re-learn
-    that ordering. So downstream we must (a) predict the SPECIFIC technique the
-    tactic-order rule cannot determine, and (b) always report lift over a
-    kill-chain-order baseline and a most-frequent baseline. This script just
+    A model evaluated on a held-out "next position" can trivially re-learn that
+    ordering. Downstream may use these rows for association ranking, but must gate
+    chronological claims on independent report-ordered timelines. This script
     records the ordering honestly and flags is_manual so the split is auditable.
 
 Output schema (data/processed/engine2/sequences.json), list of:

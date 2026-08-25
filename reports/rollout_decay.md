@@ -1,13 +1,20 @@
-# Rollout horizon decay -- measured, not assumed
+# Profile-association rollout diagnostic -- not a chronological forecast
+
+> **Runtime status: disabled.** These measurements roll forward ATT&CK profiles
+> sorted by a tactic heuristic, not observed attacker timelines. They describe
+> how quickly that profile-position ranking degrades; they do not validate what
+> an attacker will do next. `src/shared/predictor.py` keeps chronological output
+> disabled until an independent timeline benchmark beats temporal baselines.
 
 `src/shared/rollout.py` renders a horizon confidence of `STEP_DECAY ** (step-1)`
-on every forecast. This is the measurement behind that constant.
+only after the temporal gate passes. This is the historical diagnostic behind
+that otherwise-dormant constant.
 
-**Result: fitted `0.7726`, shipped as `STEP_DECAY = 0.77`** (was `0.62`,
+**Result: fitted `0.7744`, shipped as `STEP_DECAY = 0.77`** (was `0.62`,
 which had no experiment behind it). The fit is a regression with **8 data points and
 1 free parameter** -- one top-3 accuracy per horizon -- and those 8 accuracies were
 each averaged over **544 held-out prefixes drawn from 29 test sequences**.
-R² = **0.739** on the decaying points of the log-ratio fit.
+R² = **0.719** on the decaying points of the log-ratio fit.
 
 Those are three different numbers and they are not interchangeable:
 
@@ -25,7 +32,7 @@ regression's n by a factor of 68. `fit_decay()` takes one argument, a list of
 
 Shipped rounded to 2dp on purpose: `src/shared/rollout.py` renders this number to
 the user, and the sequence-level bootstrap below puts the 95% interval at
-[0.720, 0.804] -- a spread of 0.08. The extra digits would be precision the
+[0.723, 0.805] -- a spread of 0.08. The extra digits would be precision the
 experiment did not earn. **Read "The reliable horizon is a coin flip" below
 before quoting anything downstream of this constant**, because the rounding to
 0.77 is what keeps the reliable horizon at step 5, by 0.00084.
@@ -67,8 +74,8 @@ one-step evaluation and refuses to continue unless it lands on
 | top-3 | 38.2% | 38.6% |
 | top-5 | 44.5% | 44.5% |
 
-top-3 differs by 0.4pp -- three prediction points out of 777. `predictor.rank_next`
-breaks probability ties by technique id; `build_predictor`'s ranker leaves tied
+top-3 differs by 0.4pp -- three prediction points out of 777. Runtime association
+ranking breaks model-weight ties by technique id; `build_predictor`'s ranker leaves tied
 techniques in dict order. Same corpus, same model, different coin-flip on ties.
 
 This split verification is genuinely non-circular and it is the part of this
@@ -77,16 +84,16 @@ before it, and the script exits rather than reporting a decay figure if it misse
 
 ## Measured decay
 
-| step | top-3 accuracy | observed ratio to step 1 | fitted `0.7726^(h-1)` | residual | OOV at this offset |
+| step | top-3 accuracy | observed ratio to step 1 | fitted `0.7744^(h-1)` | residual | OOV at this offset |
 |---|---|---|---|---|---|
 | 1 | 45.0% | 1.000 | 1.000 | +0.000 | 25 |
-| 2 | 30.0% | 0.665 | 0.773 | -0.107 | 26 |
-| 3 | 22.4% | 0.498 | 0.597 | -0.099 | 27 |
-| 4 | 14.3% | 0.318 | 0.461 | -0.143 | 26 |
-| 5 | 15.1% | 0.335 | 0.356 | -0.022 | 26 |
-| 6 | 11.8% | 0.261 | 0.275 | -0.014 | 26 |
-| 7 | 9.9% | 0.220 | 0.213 | +0.008 | 28 |
-| 8 | 9.7% | 0.216 | 0.164 | +0.052 | 28 |
+| 2 | 30.0% | 0.665 | 0.774 | -0.109 | 26 |
+| 3 | 22.4% | 0.498 | 0.600 | -0.102 | 27 |
+| 4 | 14.3% | 0.318 | 0.464 | -0.146 | 26 |
+| 5 | 15.1% | 0.335 | 0.360 | -0.025 | 26 |
+| 6 | 11.9% | 0.265 | 0.278 | -0.013 | 26 |
+| 7 | 10.1% | 0.224 | 0.216 | +0.009 | 28 |
+| 8 | 9.9% | 0.220 | 0.167 | +0.053 | 28 |
 
 Fit: least squares for `acc(h)/acc(1) = d^(h-1)` on the log scale, anchored at
 `r(1) = 1` so it matches how the constant is used (`STEP_DECAY ** (step-1)` is
@@ -94,7 +101,7 @@ exactly 1.0 at step 1). **These 8 rows are the entire regression.**
 
 ## Fit quality -- read this before quoting the number
 
-### R² = 0.739, not 0.870
+### R² = 0.719, not 0.862
 
 The anchored fit passes through `(h=0, log(acc[0]/acc[0])) = (0, 0.0)` by
 construction. That point is a tautology: it is the definition of the ratio, not
@@ -106,8 +113,8 @@ the mean of the y values, so it adds nothing to `ss_res` and about 1.07 to
 
 | R² on the log-ratio scale | value |
 |---|---|
-| counting the `r(1) = 1` anchor (previously reported) | 0.870 |
-| **on the 7 decaying points only (reported now)** | **0.739** |
+| counting the `r(1) = 1` anchor (previously reported) | 0.862 |
+| **on the 7 decaying points only (reported now)** | **0.719** |
 
 The anchor stays *in the fit* -- it is a real constraint, the curve genuinely
 must pass through 1.0 at step 1 -- but it is out of the reported R², because the
@@ -120,8 +127,8 @@ The same 8 ratios, least-squares in linear space rather than log space:
 
 | fit | d | R² on the linear ratio scale |
 |---|---|---|
-| **log space (shipped)** | **0.7726** | 0.914 |
-| linear space | 0.7407 | **0.942** |
+| **log space (shipped)** | **0.7744** | 0.909 |
+| linear space | 0.7420 | **0.938** |
 
 On the ratio scale the data are actually measured on, the linear fit is the
 better one. Log space was kept anyway, and the reason is not that it fits better:
@@ -137,7 +144,7 @@ better one. Log space was kept anyway, and the reason is not that it fits better
 That is a defensible choice, not an obviously correct one, and it is worth
 knowing that **the choice of fit space, not the data, is what decides d here** --
 by more than the sequence bootstrap's own resolution. It also changes the
-downstream story: at d = 0.7407 the reliable horizon is step 4, not step 5. See below.
+downstream story: at d = 0.7420 the reliable horizon is step 4, not step 5. See below.
 
 ### The 544 prefixes are not 544 independent observations
 
@@ -158,9 +165,9 @@ So the interval below is computed by resampling **sequences**, not prefixes:
 
 | estimate | d |
 |---|---|
-| point estimate | 0.7726 |
-| sequence bootstrap, 95% (2000 replicates, seed 42) | **[0.720, 0.804]** |
-| leave-one-sequence-out, full spread | [0.756, 0.779] |
+| point estimate | 0.7744 |
+| sequence bootstrap, 95% (2000 replicates, seed 42) | **[0.723, 0.805]** |
+| leave-one-sequence-out, full spread | [0.758, 0.779] |
 
 The bootstrap interval is wide -- **0.08 wide, on a quantity whose entire useful
 range is about 0.6 to 0.9** -- but it is not so noisy as to be useless: it rules
@@ -188,23 +195,23 @@ can measure it:
 | perturbation | d | reliable horizon |
 |---|---|---|
 | shipped | 0.77 | 5 |
-| raw fitted | 0.7726 | 5 |
-| bootstrap 2.5% | 0.720 | 4 |
-| bootstrap 97.5% | 0.804 | 5 |
-| linear-space fit | 0.7407 | 4 |
+| raw fitted | 0.7744 | 5 |
+| bootstrap 2.5% | 0.723 | 4 |
+| bootstrap 97.5% | 0.805 | 5 |
+| linear-space fit | 0.7420 | 4 |
 | one 2dp tick down | 0.76 | 4 |
 
 Across the 2000 sequence-bootstrap replicates the reliable horizon lands:
 
 | reliable horizon | replicates | share |
 |---|---|---|
-| step 3 | 15 | 0.8% |
-| step 4 | 924 | 46.2% |
-| step 5 | 1050 | 52.5% |
-| step 6 | 11 | 0.6% |
+| step 3 | 12 | 0.6% |
+| step 4 | 862 | 43.1% |
+| step 5 | 1113 | 55.6% |
+| step 6 | 13 | 0.7% |
 
-**Step 5 wins 52.5% of the time and step 4 wins 46.2%.** That is a coin flip. And any d in
-[0.765, 0.780] is within 5% of the minimum SSE -- that band is the fit's own
+**Step 5 wins 55.6% of the time and step 4 wins 43.1%.** That is a coin flip. And any d in
+[0.767, 0.782] is within 5% of the minimum SSE -- that band is the fit's own
 resolution, and it **straddles** the flip point 0.7692 rather than sitting on one
 side of it. The flip is inside the interval the fit cannot resolve.
 

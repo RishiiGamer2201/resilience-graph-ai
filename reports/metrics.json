@@ -81,7 +81,38 @@
         0.3,
         0.5
       ],
-      "note": "Interpolated Markov shipped; 5.4x the kill-chain baseline = anti-circularity"
+      "component_weight_policy": "renormalize-across-available-components",
+      "task": "ATT&CK technique-association ranking",
+      "temporal_validation": {
+        "enabled": false,
+        "mode": "association-only",
+        "reason": "Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline.",
+        "data_basis": {
+          "kind": "ATT&CK group/campaign technique profiles",
+          "ordering": "heuristic MITRE ATT&CK tactic order",
+          "observed_timeline": false
+        },
+        "benchmark": {
+          "kind": "source-provenanced report-ordered CERT-In timelines",
+          "independent_of_training": true,
+          "sequences": 4,
+          "prediction_points": 27,
+          "oov": 6,
+          "model_top3": 0.1111,
+          "baselines_top3": {
+            "most_frequent": 0.0741,
+            "killchain_order": 0.0
+          },
+          "strongest_baseline": "most_frequent",
+          "gain_over_strongest": 0.037,
+          "gain_sequence_bootstrap_95": [
+            -0.2222,
+            0.25
+          ],
+          "bootstrap_repetitions": 2000
+        }
+      },
+      "note": "Interpolated Markov association ranker; 5.4x the kill-chain baseline on tactic-sorted profiles does not validate chronology"
     },
     "manual_cert_in_top3": 0.111,
     "embeddings": {

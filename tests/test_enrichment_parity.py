@@ -121,11 +121,13 @@ def test_analyze_and_investigate_agree_on_the_claims(via_analyze, via_investigat
     assert a == i, (a, i)
 
 
-def test_analyze_and_investigate_agree_on_the_forecast(via_analyze, via_investigate):
+def test_analyze_and_investigate_agree_on_the_association_gate(via_analyze, via_investigate):
     a = via_analyze["analysis"]["progression_forecast"]
     i = via_investigate["impact"]["progression_forecast"]
-    assert a["infiltration_probability"] == i["infiltration_probability"]
-    assert a["reliable_horizon"] == i["reliable_horizon"]
+    assert a["available"] is i["available"] is False
+    assert a["mode"] == i["mode"] == "association-only"
+    assert a["associations"] == i["associations"]
+    assert a["reason"] == i["reason"]
 
 
 def test_analyze_and_investigate_agree_on_severity(via_analyze, via_investigate):
@@ -151,10 +153,13 @@ def test_the_assessment_keeps_the_four_numbers_apart(via_analyze):
         assert a[dim]["question"], dim
 
 
-def test_the_forecast_is_monotone_everywhere(via_analyze, via_upload, via_stream):
+def test_unvalidated_forecast_is_suppressed_everywhere(via_analyze, via_upload, via_stream):
     for b in (via_analyze, via_upload, via_stream):
-        cum = b["analysis"]["progression_forecast"]["infiltration_probability"]
-        assert cum == sorted(cum), cum
+        result = b["analysis"]["progression_forecast"]
+        assert result["available"] is False
+        assert result["mode"] == "association-only"
+        assert result["associations"]
+        assert "infiltration_probability" not in result
 
 
 def test_enrichment_does_not_overwrite_the_authoritative_bundle(via_analyze):
@@ -173,4 +178,6 @@ def test_enrichment_survives_a_failing_agent_lane(monkeypatch, client):
     a = r.json()["analysis"]
     # deterministic half still lands; only the cross-check goes away
     assert a["claims"] and a["assessment"]
-    assert a["progression_forecast"]["available"] is True
+    assert a["progression_forecast"]["available"] is False
+    assert a["progression_forecast"]["mode"] == "association-only"
+    assert a["progression_forecast"]["associations"]

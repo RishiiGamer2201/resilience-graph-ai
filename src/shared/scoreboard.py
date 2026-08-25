@@ -124,31 +124,30 @@ def scoreboard() -> dict:
               report="reports/unsw_evaluation.md"),
 
         # ---- attribution and prediction ----------------------------------
-        _card("next_technique_top3", "Attribution & prediction",
-              "Next-technique top-3 accuracy",
-              definition=("Is the attacker's actual next ATT&CK technique in our top 3, "
-                          "given the sequence so far."),
-              dataset="205 real attack sequences from ATT&CK group/campaign data",
-              sample="780 held-out prediction points, split at sequence level",
+        _card("next_technique_top3", "Attribution & association ranking",
+              "Held-out ATT&CK profile-position top-3",
+              definition=("Is a held-out tactic-sorted profile technique in the top 3 "
+                          "associations? This is not chronological next-move accuracy."),
+              dataset="ATT&CK group/campaign profiles sorted by tactic heuristic",
+              sample="777 held-out profile positions, split at profile level",
               value=_pct(pred.get("shipped_top3")), unit="%",
               baseline={"name": "kill-chain-order baseline",
                         "value": _pct(pred.get("killchain_top3"))},
               report="reports/prediction_eval.md",
-              note=("The kill-chain baseline exists to catch circularity: our sequences "
-                    "are tactic-ordered, so a model could cheat by re-learning that order. "
-                    "Beating it means real technique-to-technique transitions. An LSTM over "
+              note=("The kill-chain baseline measures the imposed ordering in these "
+                    "profiles. Beating it supports association ranking, not real chronology. An LSTM over "
                     f"MiniLM embeddings scored {_pct(pred.get('lstm_top3'))}% and lost.")),
-        _card("cert_in_top3", "Attribution & prediction",
-              "Top-3 on analyst-verified CERT-In orderings",
+        _card("cert_in_top3", "Attribution & association ranking",
+              "Chronological validation gate on CERT-In timelines",
               definition=("The same model on 4 CERT-In advisory sequences ordered by the "
-                          "real reported timeline rather than our heuristic — the harder, "
-                          "non-circular test."),
+                          "reported timeline rather than our heuristic. The temporal claim "
+                          "gate also requires a positive sequence-bootstrap lower bound."),
               dataset="CERT-In advisories, analyst-verified", sample="4 sequences",
               value=_pct(e2.get("manual_cert_in_top3")), unit="%",
               baseline={"name": "auto-ordered set", "value": _pct(pred.get("shipped_top3"))},
               report="reports/prediction_eval.md",
-              note="Published because it is worse. Real orderings are harder than "
-                   "heuristic ones, and hiding that would be the dishonest choice.",
+              note="The current four-timeline benchmark is too uncertain to enable "
+                   "chronological next-move claims.",
               provenance="VERIFIED"),
         _card("attack_mapping_coverage", "Attribution & prediction",
               "ATT&CK mapping coverage",

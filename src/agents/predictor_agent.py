@@ -1,8 +1,8 @@
 """
-src/agents/predictor_agent.py — Agent 9: Prediction (Next-Move Anticipation)
+src/agents/predictor_agent.py — Agent 9: ATT&CK Association Ranking
 
-Sarthak's doc: "predicts the attacker's likely next 2-3 moves (this is our
-existing Engine 2 — Markov-based predictor, since it beat the LSTM)."
+The shipped Engine 2 model ranks co-occurring techniques from tactic-sorted
+ATT&CK profiles. It does not claim that the ranked techniques happen next.
 
 This is a thin wrapper around src/shared/predictor.py. The only new logic is:
   - extract the technique sequence from the Reasoner's output
@@ -10,7 +10,7 @@ This is a thin wrapper around src/shared/predictor.py. The only new logic is:
   - return results in AgentResult format for the Orchestrator to validate
 
 Input:  AgentResult from Reasoner (technique_chain field)
-Output: AgentResult with ranked list of next likely techniques + probabilities.
+Output: AgentResult with ranked investigation leads + normalized model weights.
 
 Usage:
     from src.agents.predictor_agent import run
@@ -21,14 +21,18 @@ from __future__ import annotations
 import time
 
 from src.agents import AgentResult, AgentStatus
-from src.shared.predictor import generate_prediction_narrative, rank_next
+from src.shared.predictor import (
+    generate_prediction_narrative,
+    rank_associations,
+    temporal_prediction_status,
+)
 
 
 def run(reasoner_result: AgentResult) -> AgentResult:
-    """Predict the attacker's likely next 2-3 ATT&CK techniques.
+    """Rank 2-3 ATT&CK techniques associated with the observed set.
 
     Returns AgentResult with:
-        output["predictions"]: list of {technique_id, probability, rank}
+        output["predictions"]: legacy field containing {technique_id, association_score, rank}
         output["projection_narrative"]: plain-English multi-sentence projection
         output["technique_chain_used"]: the observed sequence used as input
     """
@@ -41,12 +45,12 @@ def run(reasoner_result: AgentResult) -> AgentResult:
             agent="prediction",
             status=AgentStatus.DEGRADED,
             confidence=0.0,
-            notes=["No technique chain from Reasoner; cannot predict next moves."],
+            notes=["No technique chain from Reasoner; cannot rank associations."],
             ms=(time.perf_counter() - t0) * 1000,
         )
 
     try:
-        raw_predictions, source = rank_next(technique_chain, k=3)
+        raw_predictions, source = rank_associations(technique_chain, k=3)
     except Exception as e:
         return AgentResult(
             agent="prediction",
@@ -62,7 +66,7 @@ def run(reasoner_result: AgentResult) -> AgentResult:
             status=AgentStatus.DEGRADED,
             confidence=0.0,
             output={"technique_chain_used": technique_chain, "predictions": [], "projection_narrative": ""},
-            notes=["Predictor returned no predictions for this sequence."],
+            notes=["Association ranker returned no candidates for this technique set."],
             ms=(time.perf_counter() - t0) * 1000,
         )
 
@@ -78,27 +82,30 @@ def run(reasoner_result: AgentResult) -> AgentResult:
             "rank": rank,
             "technique_id": str(tid),
             "name": names.get(str(tid), str(tid)),
-            "probability": round(float(prob), 4),
+            "association_score": round(float(prob), 4),
+            "association_score_kind": "normalized_model_weight",
             "source": source,
         })
 
     projection_narrative = generate_prediction_narrative(predictions, technique_chain)
-    top_conf = predictions[0]["probability"] if predictions else 0.0
-
     return AgentResult(
         agent="prediction",
         status=AgentStatus.OK if predictions else AgentStatus.DEGRADED,
-        confidence=round(top_conf, 3),
+        # A normalized profile-association weight is not calibrated confidence.
+        confidence=0.0,
         output={
             "technique_chain_used": technique_chain,
             "predictions": predictions,
             "projection_narrative": projection_narrative,
             "n_predictions": len(predictions),
+            "mode": "association-only",
+            "temporal_prediction": temporal_prediction_status(),
         },
         evidence_refs=[p["technique_id"] for p in predictions],
         notes=[
-            f"Predicted next {len(predictions)} move(s) from chain of {len(technique_chain)} techniques.",
-            f"Top prediction: {predictions[0]['technique_id']} @ {predictions[0]['probability']:.1%}" if predictions else "",
+            f"Ranked {len(predictions)} associated technique(s) from {len(technique_chain)} observations.",
+            f"Top association: {predictions[0]['technique_id']} @ normalized model weight {predictions[0]['association_score']:.1%}" if predictions else "",
+            "Model weight is not an observed frequency, future probability, or calibrated confidence.",
         ],
         ms=(time.perf_counter() - t0) * 1000,
     )

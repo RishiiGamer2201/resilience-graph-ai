@@ -46,20 +46,23 @@ def test_the_narrative_names_every_predicted_technique():
     assert len(n) > 50
 
 
-def test_the_narrative_says_these_are_predictions_not_observations():
+def test_the_narrative_says_these_are_associations_not_observations():
     """Read quickly, a ranked list of techniques looks like a list of findings."""
     n = generate_prediction_narrative(
         [{"technique_id": "T1486", "name": "Data Encrypted for Impact", "probability": 0.4}],
         ["T1078"])
     low = n.lower()
+    assert "profile associations" in low
     assert "not detections" in low or "not been observed" in low, n
+    assert "chronological forecast" in low
 
 
-def test_the_narrative_states_its_own_accuracy():
-    """38.1% top-3. Offering a prediction without it invites over-reading."""
+def test_the_narrative_states_its_data_basis_instead_of_forecast_accuracy():
     n = generate_prediction_narrative(
         [{"technique_id": "T1486", "name": "Data Encrypted for Impact", "probability": 0.4}], [])
-    assert "38.1%" in n, n
+    assert "tactic heuristic" in n, n
+    assert "real ATT&CK campaigns" not in n
+    assert "the next moves are" not in n
 
 
 def test_the_narrative_promises_nothing():
@@ -73,7 +76,7 @@ def test_the_narrative_promises_nothing():
 
 def test_no_predictions_says_so_rather_than_inventing_one():
     n = generate_prediction_narrative([], ["T1078"])
-    assert "no next move" in n.lower(), n
+    assert "no associated technique" in n.lower(), n
 
 
 # --------------------------------------------------------------------------- #

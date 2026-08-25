@@ -206,7 +206,11 @@ def demo() -> None:
         assert key in a, key
     assert a["claims"], "no claims built"
     assert a["assessment"]["impact"]["value"] is not None
-    assert a["progression_forecast"]["available"] is True
+    progression = a["progression_forecast"]
+    assert progression["available"] is False
+    assert progression["mode"] == "association-only"
+    assert progression["associations"]
+    assert "steps" not in progression
     assert bundle["meta"]["agent_pipeline"]["status"] in ("ok", "partial", "failed")
 
     # no dataframe -> no agent lane, but everything deterministic still lands
@@ -217,8 +221,8 @@ def demo() -> None:
 
     print(f"enrich ok: {len(a['claims'])} claims · "
           f"{a['assessment']['summary'][:60]}… · "
-          f"forecast {a['progression_forecast']['headline_probability']}% @ step "
-          f"{a['progression_forecast']['reliable_horizon']} · "
+          f"{len(progression['associations'])} profile associations "
+          f"(chronological forecast gated) · "
           f"crosscheck {a['crosscheck']['verdict'] if a['crosscheck'] else 'n/a'}")
 
 
