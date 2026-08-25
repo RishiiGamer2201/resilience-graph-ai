@@ -163,6 +163,14 @@ def test_a_crown_jewel_action_is_gated(result):
     assert all(p["policy"]["reasons"] for p in gated)
 
 
+def test_a_host_playbook_does_not_borrow_another_hosts_twin_impact(result):
+    simulated_host = result["impact"]["counterfactual"]["candidate"]["isolate_host"]
+    for proposal in result["action"]["proposals"]:
+        if proposal["kind"] == "host_containment" and proposal["target"] != simulated_host:
+            assert proposal["blast_radius_affected"] == 0
+            assert proposal["hosts_taken_offline"] == 1
+
+
 def test_the_rfi_asks_for_the_things_a_model_cannot_know(result):
     rfi = result["action"]["rfi"]
     fields = {q["field"] for q in rfi["questions"]}

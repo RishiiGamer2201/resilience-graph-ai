@@ -229,7 +229,11 @@ def test_ready_baseline_restores_operational_analysis(tmp_path, monkeypatch):
     assert bundle["meta"]["baseline"]["allow_operational_alerts"] is True
     assert bundle["meta"]["operational"] is True
     assert bundle["incident"]["severity"] != "learning"
-    assert bundle["soar"]["actions"], "ready baselines must restore the normal SOAR path"
+    # Baseline readiness restores the operational path, but a clean window with
+    # zero alerts must not create the old unconditional "open a ticket" action.
+    assert bundle["incident"]["alert_count"] == 0
+    assert bundle["soar"]["actions"] == []
+    assert bundle["soar"]["skipped_actions"] == []
 
 
 @pytest.fixture(scope="module")

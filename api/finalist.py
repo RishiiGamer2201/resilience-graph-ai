@@ -372,20 +372,23 @@ def investigate(req: InvestigateRequest, p: dict = Depends(principal)):
     issued = []
     try:
         for action in result["action"].get("proposals") or []:
+            action_evidence = [action["triggering_evidence"], *evidence]
+            action_techniques = [action["technique_id"]]
+            action_assets = ([action["target"]] if action.get("target") else [])
             server_proposal = proposal_mod.store().issue(
                 incident_id=inc["incident_id"],
                 action=action,
                 input_digest=input_digest,
-                evidence=evidence,
-                technique_ids=inc["technique_ids"],
-                affected_assets=graph["critical_assets_at_risk"],
+                evidence=action_evidence,
+                technique_ids=action_techniques,
+                affected_assets=action_assets,
             )
             issued.append(server_proposal)
             c.append(
                 "action.proposed", **_audit_identity(p),
                 incident_id=inc["incident_id"], action=server_proposal,
-                evidence=evidence, technique_ids=inc["technique_ids"],
-                affected_assets=graph["critical_assets_at_risk"],
+                evidence=action_evidence, technique_ids=action_techniques,
+                affected_assets=action_assets,
                 reason="server-issued simulated response proposal",
                 details={
                     "proposal_id": server_proposal["proposal_id"],

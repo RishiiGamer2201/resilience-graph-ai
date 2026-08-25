@@ -13,7 +13,7 @@
  * screen. See DESIGN.md section 5.
  */
 import * as React from 'react'
-import { Ban, Lock, Mail, ShieldCheck, ShieldQuestion } from 'lucide-react'
+import { Ban, CircleSlash2, Lock, Mail, ShieldCheck, ShieldQuestion } from 'lucide-react'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +22,7 @@ import { approveAction } from '@/lib/api'
 import type {
   ActionOutput,
   ActionProposal,
+  ActionRecommendation,
   ApiError,
   ApprovalResult,
   Rfi,
@@ -33,6 +34,39 @@ interface Decided {
 interface Refused {
   message: string
   status?: number
+}
+
+function RecommendationDetails({ recommendation }: { recommendation: ActionRecommendation }) {
+  const evidence = recommendation.triggering_evidence
+  return (
+    <Disclosure label="Why this action, and how to undo it" labelOpen="Hide action details">
+      <dl className="grid gap-2 text-xs sm:grid-cols-2">
+        <div>
+          <dt className="font-medium text-text">Triggered by</dt>
+          <dd className="text-dim">
+            {evidence.technique} ({evidence.technique_id}) on {recommendation.target ?? 'no target'};
+            event score {evidence.anomaly_score}/100.
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium text-text">Expected disruption</dt>
+          <dd className="text-dim">{recommendation.operational_cost}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-text">Before starting</dt>
+          <dd className="text-dim">{recommendation.prerequisites.join(' · ')}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-text">How to undo it</dt>
+          <dd className="text-dim">{recommendation.rollback}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="font-medium text-text">How to confirm it worked</dt>
+          <dd className="text-dim">{recommendation.verification}</dd>
+        </div>
+      </dl>
+    </Disclosure>
+  )
 }
 
 function Proposal({
@@ -102,6 +136,10 @@ function Proposal({
           ))}
         </ul>
       ) : null}
+
+      <div className="mt-2">
+        <RecommendationDetails recommendation={proposal} />
+      </div>
 
       {decided ? (
         <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-md border border-ok/40 bg-ok/5 px-2.5 py-1.5 text-xs text-dim">
@@ -194,6 +232,7 @@ export default function ActionPanel({
   if (!action) return null
   // The action node can degrade. Never assume its lists exist.
   const proposals = action.proposals ?? []
+  const unavailable = action.unavailable_actions ?? []
   const gated = proposals.filter((p) => p.policy?.requires_approval).length
 
   return (
@@ -229,6 +268,32 @@ export default function ActionPanel({
             onDecided={onDecided}
           />
         ))}
+
+        {unavailable.length ? (
+          <Disclosure
+            label={`${unavailable.length} technique-specific action${unavailable.length === 1 ? '' : 's'} need more architecture information`}
+            labelOpen="Hide unavailable actions"
+          >
+            <div className="space-y-2">
+              {unavailable.map((item) => (
+                <div
+                  key={`${item.technique_id}-${item.target ?? 'unknown'}`}
+                  className="rounded-md border border-border bg-surface-2 p-3 text-xs"
+                >
+                  <div className="flex items-start gap-2">
+                    <CircleSlash2 className="mt-0.5 size-3.5 shrink-0 text-faint" aria-hidden />
+                    <div>
+                      <div className="font-medium text-text">
+                        {item.technique} ({item.technique_id}) - {item.applicability.replace('_', ' ')}
+                      </div>
+                      <p className="mt-0.5 text-dim">{item.applicability_reason}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Disclosure>
+        ) : null}
 
         {action.mitre_mitigations?.length ? (
           <div className="text-xs text-dim">
