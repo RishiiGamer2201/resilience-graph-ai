@@ -92,10 +92,17 @@ _CYBER_TERMS = (
     "firewall", "endpoint", "soc", "siem", "edr", "xdr", "zero trust",
     "authentication", "authorization", "password", "mfa", "encryption", "data breach",
     "exfiltration", "lateral movement", "mitre", "att&ck", "technique", "tactic",
-    "anomaly", "blast radius", "containment", "isolate", "patch", "advisory", "cert-in",
+    "anomaly", "blast radius", "containment", "isolat", "patch", "advisory", "cert-in",
     "cisa", "forensic", "ioc", "indicator of compromise", "false positive", "risk score",
-    "crown jewel", "crown-jewel", "pivot", "botnet", "ddos",
+    "crown jewel", "crown-jewel", "pivot", "botnet", "ddos", "expos",
 )
+# "isolat" (not "isolate") and "expos" (not "exposed") are deliberate stems, not
+# typos: a plain `in` substring check means the full word "isolate" never
+# matched "isolation" or "isolating", and "exposed"/"exposure" wasn't covered
+# at all. Two of this screen's own three suggested example questions -- "what
+# is exposed" and "what isolation costs" -- failed the gate they were written
+# to pass, in the live app, with real incident facts loaded. A stem matches
+# every inflection instead of enumerating each one by hand.
 
 
 def _is_greeting(message: str) -> bool:
