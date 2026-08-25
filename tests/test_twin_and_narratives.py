@@ -238,3 +238,30 @@ def test_isolation_inflections_all_match_the_stem():
 
     for word in ("isolate", "isolated", "isolating", "isolation"):
         assert _in_scope(f"what does {word} mean here", assistant_mode="incident")
+
+
+def test_the_gate_answers_vague_analyst_questions():
+    """The gate was an allowlist of about forty security terms, so a real
+    question phrased without one was refused. An analyst asking "is this bad"
+    or "what now" is on topic by any reasonable reading; being stonewalled by
+    a vocabulary check is the worse failure for a security tool."""
+    from src.shared.chat_advisor import _in_scope
+
+    facts = {"entry_host": "WARD-PC-013",
+             "critical_assets_at_risk": ["DC-AIIMS-01"]}
+    for vague in ("is this bad", "what now", "walk me through it",
+                  "how confident are you", "what should I check first",
+                  "what does this page mean"):
+        assert _in_scope(vague, assistant_mode="incident", facts=facts), vague
+
+
+def test_a_security_word_inside_a_title_is_still_off_topic():
+    """"attack" is the most load-bearing word in the vocabulary, so a title
+    containing it would otherwise sail past the signal check."""
+    from src.shared.chat_advisor import _in_scope
+
+    assert not _in_scope("Summarize Attack on Titan", assistant_mode="general")
+    assert not _in_scope("what is a panic attack", assistant_mode="general")
+    # ...without costing the genuine security phrasing that shares the word.
+    assert _in_scope("explain the attack path", assistant_mode="general")
+    assert _in_scope("which host did the attacker reach", assistant_mode="general")

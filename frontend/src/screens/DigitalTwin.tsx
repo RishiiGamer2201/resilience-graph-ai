@@ -33,6 +33,7 @@ import {
 } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalysis } from '@/providers/analysis'
+import AdvisorMarkdown from '@/components/AdvisorMarkdown'
 import { PageHeader } from '@/components/Layout'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -485,10 +486,13 @@ export default function DigitalTwin() {
                   className={
                     m.role === 'user'
                       ? 'max-w-[92%] whitespace-pre-wrap rounded-lg border border-accent/30 bg-accent-soft px-3 py-2 text-sm text-text'
-                      : 'max-w-[92%] whitespace-pre-wrap rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text'
+                      : 'max-w-[92%] rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text'
                   }
                 >
-                  {m.content}
+                  {/* The advisor writes markdown whether or not it is asked to,
+                      and pre-wrap put literal asterisks on screen. A user's own
+                      message is never markdown, so it stays verbatim. */}
+                  {m.role === 'user' ? m.content : <AdvisorMarkdown text={m.content} />}
                 </div>
 
                 {m.role === 'assistant' ? (

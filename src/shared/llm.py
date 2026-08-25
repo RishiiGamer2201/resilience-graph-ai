@@ -10,13 +10,21 @@ that constraint does not move because a provider was added.
     GEMINI_API_KEY=...            GEMINI_MODEL=gemini-1.5-flash
 
 **A key on its own does nothing.** You must also set NEXTATTACK_LLM_PROVIDER.
-`auto` then uses whichever key is present, preferring OpenAI when both are,
-and falls through to the next one that has a key if the first fails.
+`auto` then tries providers in preference order and falls through to the next
+one that has a key if the current one fails:
 
-OpenAI is the default and the provider the agent lane is tuned against: it and
-groq constrain the decoder with a real json_schema, so a schema is enforced
-rather than requested. Gemini has no decoder-level schema here, which makes it
-the last resort for structured work, not the first.
+    openai  ->  groq  ->  gemini
+
+OpenAI is primary and the provider the agent lane is tuned against. Groq is the
+fallback because, like OpenAI, it constrains the decoder with a real
+json_schema, so a schema is enforced rather than requested -- a fallback that
+cannot honour the schema is not a fallback for structured work. Gemini has no
+decoder-level schema here, which is why it is last.
+
+That order used to read openai -> gemini -> groq, which contradicted the
+paragraph above it: the module argued Gemini was "the last resort for
+structured work, not the first" and then listed it second. Now the code and
+the reasoning agree.
 
 The default is off because a present key is not consent. Writing this module
 found an OPENAI_API_KEY already exported in the development shell for unrelated
@@ -159,13 +167,17 @@ def available() -> list[str]:
     Reports what COULD be used, which is not the same as what will be: see
     chosen_provider(). A key alone never enables a provider.
     """
+    # Order is the `auto` fallback chain: openai, then groq, then gemini.
+    # Groq sits second because it enforces json_schema at the decoder the way
+    # OpenAI does; gemini cannot, so falling back to it for structured work
+    # would silently downgrade the guarantee the agent lane depends on.
     out = []
     if _key("OPENAI_API_KEY"):
         out.append("openai")
-    if _key("GEMINI_API_KEY"):
-        out.append("gemini")
     if _key("GROQ_API_KEY"):
         out.append("groq")
+    if _key("GEMINI_API_KEY"):
+        out.append("gemini")
     return out
 
 
@@ -439,8 +451,13 @@ def complete(system: str, prompt: str, *, provider: str | None = None,
 def demo() -> None:
     """Runs offline. Asserts the guarantees, not the wording of any reply."""
     # 1. No key means no call and no crash.
+    # Every provider key, not just two. This popped OPENAI and GEMINI and left
+    # GROQ_API_KEY in place, so the self-check failed on its own first assertion
+    # for anyone whose .env actually configured groq -- the check was only
+    # hermetic on a machine that had never set the provider it was testing.
     saved = {k: os.environ.pop(k, None)
-             for k in ("OPENAI_API_KEY", "GEMINI_API_KEY", "NEXTATTACK_LLM_PROVIDER")}
+             for k in [f"{p.upper()}_API_KEY" for p in PROVIDERS]
+             + ["NEXTATTACK_LLM_PROVIDER"]}
     try:
         assert available() == [] and chosen_provider() is None
         r = complete("sys", "prompt")
@@ -454,6 +471,19 @@ def demo() -> None:
         os.environ["GEMINI_API_KEY"] = "g-test"
         assert available() == ["openai", "gemini"], available()
         assert chosen_provider() is None, "a present key must not enable a provider"
+
+        # 2b. The auto fallback chain is openai -> groq -> gemini. Groq is the
+        #     fallback, not gemini, because it enforces json_schema at the
+        #     decoder the way openai does.
+        os.environ["GROQ_API_KEY"] = "gq-test"
+        assert available() == ["openai", "groq", "gemini"], available()
+        os.environ["NEXTATTACK_LLM_PROVIDER"] = "auto"
+        assert _candidates(None) == ["openai", "groq", "gemini"], _candidates(None)
+        os.environ.pop("OPENAI_API_KEY")
+        assert _candidates(None) == ["groq", "gemini"], "groq takes over when openai has no key"
+        os.environ["OPENAI_API_KEY"] = "sk-test"
+        os.environ.pop("GROQ_API_KEY")
+        os.environ.pop("NEXTATTACK_LLM_PROVIDER")
 
         # 3. Selection is explicit.
         os.environ["NEXTATTACK_LLM_PROVIDER"] = "auto"
