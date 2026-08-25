@@ -3,7 +3,7 @@
 **ET AI Hackathon 2026 · PS7 — AI-Driven Cyber Resilience for Critical National Infrastructure**
 
 > Detect low-and-slow attacks in real infrastructure logs, connect weak signals into an
-> explainable MITRE ATT&CK attack chain, predict the attacker's next moves, name the likely
+> explainable MITRE ATT&CK attack chain, rank associated techniques to investigate, name the likely
 > actor, cross-reference live external threat intel, and recommend gated containment.
 > On the shipped synthetic scenarios the first correlated alert lands 2 hours into
 > the log; the "weeks" it is compared against is a cited Mandiant dwell median,
@@ -112,7 +112,7 @@ flowchart TB
     S["normalize -> correlate into incidents -><br/>ATT&CK map -> attack-path graph -> gated SOAR"]
   end
   E1 -- "anomaly scores" --> SPINE
-  E2 -- "next technique + actor" --> SPINE
+  E2 -- "technique associations + actor" --> SPINE
 
   subgraph RADAR["THREAT RADAR — osint.py"]
     FEEDS["free CTI feeds, India-first → ATT&CK map → relevance"]
@@ -164,7 +164,7 @@ Full detail (folder tree, request topology, tech-stack table): **[architecture.m
 | Engine | Scores | What it does |
 |---|---|---|
 | **Engine 1 — Real Detection** | Technical Excellence | Unsupervised anomaly / lateral-movement detection on **real data** (CIC-IDS2017, LANL, UNSW-NB15), scored against LANL's red-team ground truth (ROC-AUC **0.992**, TPR **87.7%** at 1% FPR) |
-| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (interpolated Markov, top-3 **38.1%**, **5.4×** the kill-chain baseline) and ranks the likely actor by transparent profile retrieval |
+| **Engine 2 — Association + Attribution** | Innovation | Ranks ATT&CK techniques associated in tactic-sorted group/campaign profiles. Chronological next-move output is disabled until an independent timeline benchmark beats temporal baselines; actor ranking uses transparent profile retrieval. |
 
 Both feed a **shared spine** that runs live per request: normalize → correlate alerts into
 incidents → ATT&CK map → attack-path graph (choke points, blast radius across all pivots) →

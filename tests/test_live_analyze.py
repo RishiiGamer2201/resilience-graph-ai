@@ -71,7 +71,9 @@ def test_attribution_and_report(bundle):
     assert bundle["threat_intel"]["attribution"], "expected ranked actors"
     r = bundle["report"]
     assert r["attributed_actor"]["actor"] != "—"
-    assert r["predicted_next"], "expected next-technique predictions"
+    assert r["predicted_next"], "expected ATT&CK profile associations"
+    assert r["technique_association_basis"]["mode"] == "association-only"
+    assert r["technique_association_basis"]["temporal_prediction_enabled"] is False
 
 
 def test_mttd_computed_from_timestamps(bundle):

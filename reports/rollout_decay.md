@@ -1,7 +1,14 @@
-# Rollout horizon decay -- measured, not assumed
+# Profile-association rollout diagnostic -- not a chronological forecast
+
+> **Runtime status: disabled.** These measurements roll forward ATT&CK profiles
+> sorted by a tactic heuristic, not observed attacker timelines. They describe
+> how quickly that profile-position ranking degrades; they do not validate what
+> an attacker will do next. `src/shared/predictor.py` keeps chronological output
+> disabled until an independent timeline benchmark beats temporal baselines.
 
 `src/shared/rollout.py` renders a horizon confidence of `STEP_DECAY ** (step-1)`
-on every forecast. This is the measurement behind that constant.
+only after the temporal gate passes. This is the historical diagnostic behind
+that otherwise-dormant constant.
 
 **Result: fitted `0.7726`, shipped as `STEP_DECAY = 0.77`** (was `0.62`,
 which had no experiment behind it). The fit is a regression with **8 data points and

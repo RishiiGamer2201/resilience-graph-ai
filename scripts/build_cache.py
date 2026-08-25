@@ -96,16 +96,16 @@ def methodology() -> dict:
              "feeds": "mapping, sequences, attribution, Threat Radar"},
             {"name": "UNSW-NB15", "rows": "175k/82k split", "feeds": "second benchmark"},
             {"name": "CERT-In advisories", "rows": f"{n_verified}/{n_manual} verified India sequences",
-             "feeds": "non-circular predictor test · India scenarios"},
+             "feeds": "independent chronological claim gate · India scenarios"},
         ],
         "honesty_notes": [
             "Engine 1 trains benign-only (unsupervised) — we never report accuracy, only PR-AUC / TPR@FPR.",
             "Naive volumetric rule is worse than random (stealthy attacks have low packet rate).",
             "LANL NTLM signal ablated: behavioral-only still ROC 0.906 — not a protocol crutch.",
-            "Next-technique: interpolated Markov beats the LSTM and biLSTM at this data scale, so we ship it (honest > fancy).",
-            "Anti-circularity: interpolated Markov beats the kill-chain-order baseline 5.4x → real transitions.",
+            "Technique association: interpolated Markov beats the LSTM and biLSTM on held-out tactic-sorted profile positions.",
+            "Beating the kill-chain-order baseline supports profile association ranking, not real chronological transitions.",
             f"CERT-In manual sequences now analyst-verified ({n_verified}/{n_manual}); real report-ordered "
-            "timelines score top-3 10% vs 37% on kill-chain-ordered auto sets — real orderings are harder.",
+            "timelines score top-3 11.1% vs 38.2% on tactic-sorted profiles; uncertainty keeps next-move claims disabled.",
             "Mobile ATT&CK added so India's mobile-heavy threats (banking trojans) map to real technique IDs.",
             "LANL is authentication-only, so incidents honestly map to just pass-the-hash / brute-force / "
             "remote-services — we never invent techniques the data can't evidence.",

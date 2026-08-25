@@ -7,15 +7,27 @@ from __future__ import annotations
 
 import pytest
 
+from src.shared import predictor
 from src.shared.rollout import (MAX_HORIZON, RELIABLE_CONFIDENCE, STEP_DECAY,
                                 simulate_progression)
 
 CHAIN = ["T1078", "T1021"]
 GRAPH = {"critical_assets_at_risk": ["DB"],
          "paths_to_critical": {"DB": ["PC", "JUMP", "DB"]}}
+ARTIFACT_TEMPORAL_STATUS = predictor.temporal_prediction_status()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(autouse=True)
+def validated_temporal_model(monkeypatch):
+    """Keep testing rollout arithmetic behind an explicitly open gate."""
+    monkeypatch.setattr(
+        predictor,
+        "temporal_prediction_status",
+        lambda: {"enabled": True, "mode": "chronological-next-move"},
+    )
+
+
+@pytest.fixture()
 def sim():
     return simulate_progression(CHAIN, GRAPH, k_steps=6, crown_jewels=["DB", "DC"])
 
@@ -336,13 +348,15 @@ def test_the_method_is_declared(sim):
     assert "Markov" in m["model"]
     assert "beam" in m["search"]
     assert m["deterministic"] is True
-    assert "not a simulation of an attacker's intent" in sim["honesty"]
+    assert "not detections or a simulation of attacker intent" in sim["honesty"]
 
 
 # --------------------------------------------------------------------------- #
 # wired into the investigation                                                 #
 # --------------------------------------------------------------------------- #
-def test_the_investigation_carries_a_forecast():
+def test_the_investigation_disables_unvalidated_chronology(monkeypatch):
+    monkeypatch.setattr(predictor, "temporal_prediction_status",
+                        lambda: ARTIFACT_TEMPORAL_STATUS)
     from fastapi.testclient import TestClient
 
     from api.main import app
@@ -351,9 +365,26 @@ def test_the_investigation_carries_a_forecast():
                              headers={"X-Role": "analyst"})
     assert r.status_code == 200
     f = r.json()["impact"]["progression_forecast"]
-    assert f["available"] is True
-    assert f["steps"] and f["headline"]
-    assert f["infiltration_probability"] == sorted(f["infiltration_probability"])
+    assert f["available"] is False
+    assert f["mode"] == "association-only"
+    assert f["associations"]
+    assert "timeline benchmark" in f["reason"]
+    assert "steps" not in f
+
+
+def test_current_artifact_fails_closed_on_temporal_claims(monkeypatch):
+    assert ARTIFACT_TEMPORAL_STATUS["enabled"] is False
+    assert ARTIFACT_TEMPORAL_STATUS["data_basis"]["observed_timeline"] is False
+    assert ARTIFACT_TEMPORAL_STATUS["benchmark"]["sequences"] == 4
+    lo, hi = ARTIFACT_TEMPORAL_STATUS["benchmark"]["gain_sequence_bootstrap_95"]
+    assert lo <= 0 <= hi
+    monkeypatch.setattr(predictor, "temporal_prediction_status",
+                        lambda: ARTIFACT_TEMPORAL_STATUS)
+    out = simulate_progression(CHAIN, GRAPH, k_steps=4)
+    assert out["available"] is False
+    assert out["mode"] == "association-only"
+    assert out["associations"]
+    assert "steps" not in out
 
 
 def test_a_saturated_headline_says_so_instead_of_quoting_a_precise_figure():

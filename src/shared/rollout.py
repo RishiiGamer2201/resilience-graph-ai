@@ -1,13 +1,10 @@
-"""Forward simulation: roll the attack forward K steps and say where it goes.
+"""Forward simulation behind an independent temporal-validation gate.
 
-Everything before this module answers "what happened?". This one answers "what
-happens next, and how sure are we as the horizon grows?" -- by rolling the
-learned transition model forward instead of predicting a single next step.
-
-The transition model already exists and is already measured: the interpolated
-Markov in `src/shared/predictor.py` estimates P(next | previous, last) over real
-ATT&CK sequences, at 38.1% top-3 against a 7.1% kill-chain baseline
-(`reports/prediction_eval.md`). This module does the part that was missing --
+The interpolated Markov in `src/shared/predictor.py` is trained primarily on
+ATT&CK profiles sorted by a tactic heuristic. It can rank associations, but it
+must not be rolled forward as chronology until an independent report-ordered
+benchmark beats temporal baselines. This module enforces that artifact gate and,
+only when it passes, performs
 beam search over that distribution to produce a trajectory rather than a guess:
 
   * a per-step distribution over predicted techniques,
@@ -22,8 +19,8 @@ beam search over that distribution to produce a trajectory rather than a guess:
     was run. The fit is small (8 points, 1 parameter, from 544 prefixes in 29
     sequences) and the report states what it does and does not support.
 
-Deterministic: same chain, same graph, same output. No sampling, no model
-opinion -- the probabilities are the Markov's own transition estimates.
+Deterministic: same chain, same graph, same output. When the gate is closed, the
+result contains association leads and explicitly contains no future trajectory.
 
     from src.shared.rollout import simulate_progression
     sim = simulate_progression(["T1078", "T1021"], graph_view, k_steps=5)
@@ -192,10 +189,9 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
                          crown_jewels: list[str] | None = None) -> dict:
     """Roll the attack forward `k_steps` and describe the trajectory.
 
-    `technique_ids` is the chain observed so far. `graph` is the incident's
-    attack graph, used to say which crown jewels a predicted progression would
-    actually put in reach -- a technique the attacker cannot route to is a
-    different risk from one they can.
+    `technique_ids` is the observed incident chain. `graph` is the incident's
+    attack graph. When chronological validation has not passed, this returns an
+    association-only result and does not manufacture a trajectory.
     """
     from src.shared import predictor
 
@@ -206,6 +202,26 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
             "available": False,
             "reason": "no observed techniques yet, so there is nothing to roll forward",
             "k_steps": k_steps,
+        }
+
+    temporal = predictor.temporal_prediction_status()
+    if not temporal.get("enabled"):
+        ranked, source = predictor.rank_associations(observed, BRANCH_FACTOR)
+        return {
+            "available": False,
+            "mode": "association-only",
+            "reason": temporal.get("reason"),
+            "k_steps": k_steps,
+            "observed_chain": observed,
+            "data_basis": temporal.get("data_basis"),
+            "benchmark": temporal.get("benchmark"),
+            "associations": [{
+                "technique_id": tid,
+                "name": _name_of(tid),
+                "stage": _stage_of(tid),
+                "score": round(score, 4),
+                "source": source,
+            } for tid, score in ranked],
         }
 
     # beam of (path_suffix, cumulative_probability)
@@ -291,7 +307,7 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
         "most_likely_paths": paths,
         "reachable_crown_jewels": exposure,
         "method": {
-            "model": "interpolated Markov over 205 real ATT&CK sequences",
+            "model": "interpolated Markov profile-association model",
             "search": f"beam search, width {BEAM_WIDTH}, branch {BRANCH_FACTOR}",
             "decay": (f"horizon confidence {STEP_DECAY}^(step-1): a model measured at "
                       f"38.1% top-3 for one step is not 38.1% accurate {k_steps} "
@@ -310,11 +326,10 @@ def simulate_progression(technique_ids: list[str], graph: dict | None = None,
             "deterministic": True,
         },
         "honesty": (
-            "These are the transition model's own probabilities rolled forward, not "
-            "a simulation of an attacker's intent. Step 1 rests on a measured 38.1% "
-            "top-3 accuracy; every step after that compounds the same uncertainty, "
-            "which is why horizon confidence decays and the later steps are shown "
-            "faded rather than quoted as forecasts."),
+            "Chronological output is shown only because the artifact's independent "
+            "report-ordered benchmark passed its temporal-baseline gate. These remain "
+            "model estimates, not detections or a simulation of attacker intent; later "
+            "steps compound uncertainty and are faded rather than asserted."),
     }
 
 
@@ -391,12 +406,22 @@ def _exposure_if_progressed(graph: dict | None,
 
 
 def demo() -> None:
-    """Self-check: a rollout produces a decaying, deterministic trajectory."""
+    """Self-check the closed gate, or trajectory arithmetic after it opens."""
     graph = {"critical_assets_at_risk": ["DB"],
              "paths_to_critical": {"DB": ["PC", "JUMP", "DB"]}}
     sim = simulate_progression(["T1078", "T1021"], graph, k_steps=5,
                                crown_jewels=["DB", "DC"])
-    assert sim["available"], sim
+    if not sim["available"]:
+        assert sim["mode"] == "association-only", sim
+        assert sim["associations"] and "steps" not in sim, sim
+        assert sim["data_basis"]["observed_timeline"] is False, sim
+        again = simulate_progression(["T1078", "T1021"], graph, k_steps=5,
+                                     crown_jewels=["DB", "DC"])
+        assert again == sim, "association result is not deterministic"
+        print(f"rollout gated: {len(sim['associations'])} profile associations; "
+              f"chronological output disabled ({sim['reason']})")
+        return
+
     assert len(sim["steps"]) == 5, len(sim["steps"])
 
     # horizon confidence must strictly decay

@@ -261,8 +261,8 @@ export default function ThreatIntel() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Predict next technique</CardTitle>
-              <CardMeta>POST /predict-next</CardMeta>
+              <CardTitle>Explain associated techniques</CardTitle>
+              <CardMeta>association ranking · legacy POST /predict-next route</CardMeta>
             </CardHeader>
             <PredictNextWidget given={observed} />
           </Card>

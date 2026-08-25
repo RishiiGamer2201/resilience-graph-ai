@@ -2,7 +2,7 @@
 src/agents/kb_connector.py — Agent 5: Knowledge Base Connection (Edge Building)
 
 Sarthak's doc: "this is where edges actually get built — cross-references your
-knowledge base (ATT&CK relationships, technique-to-technique transitions, past
+knowledge base (ATT&CK relationships, tactic adjacency, past
 incidents, group profiles) to decide which nodes should connect and why (same
 session, lateral reachability, privilege chain, known technique sequence)."
 
@@ -16,7 +16,7 @@ Edge types:
   "auth"        — user authenticated to host
   "movement"    — host→host lateral move
   "used"        — entity used ATT&CK technique
-  "follows"     — ATT&CK technique transition (from KB)
+  "tactic_adjacent" — techniques in the next tactic bucket (heuristic, not time)
   "mitigated_by"— technique→mitigation edge
 
 Usage:
@@ -52,10 +52,11 @@ def _get_mitigations(tid: str) -> list[str]:
     return attack.get("mitigations_by_technique", {}).get(tid, [])
 
 
-def _get_technique_transitions(tid: str) -> list[str]:
-    """Returns technique IDs that commonly follow `tid` based on the ATT&CK chain."""
+def _get_tactic_adjacent_techniques(tid: str) -> list[str]:
+    """Return techniques in the next tactic bucket, without implying chronology."""
     attack = _get_attack()
-    # Use the pre-built tactic ordering to infer plausible next techniques
+    # This is taxonomy adjacency only. ATT&CK tactic order is not an observed
+    # incident timeline and cannot establish what an attacker does next.
     tactic_order = attack.get("tactic_order", [])
     tech_to_tactic = attack.get("tech_to_tactic", {})
     my_tactic = tech_to_tactic.get(tid, "")
@@ -69,7 +70,7 @@ def _get_technique_transitions(tid: str) -> list[str]:
     techs_in_next = [
         t for t, tac in tech_to_tactic.items() if tac == next_tactic
     ]
-    return techs_in_next[:3]  # limit to 3 likely followers
+    return techs_in_next[:3]
 
 
 def run(graph_observer_result: AgentResult) -> AgentResult:
@@ -133,12 +134,14 @@ def run(graph_observer_result: AgentResult) -> AgentResult:
             evidence_refs.append(tid)
             edges_added.append({"from": entity, "to": tid, "relation": "used"})
 
-        # Edge: technique --[follows]--> likely next techniques (from KB)
+        # Edge: technique --[tactic_adjacent]--> next taxonomy bucket.
         if tid:
-            for next_tid in _get_technique_transitions(tid):
+            for next_tid in _get_tactic_adjacent_techniques(tid):
                 if G.has_node(next_tid):
-                    G.add_edge(tid, next_tid, relation="follows", source="att&ck_kb")
-                    edges_added.append({"from": tid, "to": next_tid, "relation": "follows"})
+                    G.add_edge(tid, next_tid, relation="tactic_adjacent",
+                               source="att&ck_tactic_order_heuristic")
+                    edges_added.append({"from": tid, "to": next_tid,
+                                        "relation": "tactic_adjacent"})
 
         # Edge: technique --[mitigated_by]--> mitigation IDs
         if tid:

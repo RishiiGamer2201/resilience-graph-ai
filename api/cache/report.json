@@ -1750,5 +1750,15 @@
       "source": "markov-interpolated-order1",
       "confidence_flag": "markov_inconsistent"
     }
-  ]
+  ],
+  "technique_association_basis": {
+    "mode": "association-only",
+    "data_basis": {
+      "kind": "ATT&CK group/campaign technique profiles",
+      "ordering": "heuristic MITRE ATT&CK tactic order",
+      "observed_timeline": false
+    },
+    "temporal_prediction_enabled": false,
+    "reason": "Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline."
+  }
 }

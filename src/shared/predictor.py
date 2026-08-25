@@ -1,4 +1,4 @@
-"""Runtime next-technique predictor — the shipped Engine 2 transition model.
+"""Runtime ATT&CK technique-association ranker.
 
 Shipped model: **interpolated Markov**. It blends three estimates of
 P(next | history) with weights tuned on the validation split:
@@ -8,12 +8,15 @@ P(next | history) with weights tuned on the validation split:
 Deleted interpolation matters here because the training set is small (140
 sequences). A pure second-order model is sharper when it has seen the exact
 bigram and useless when it has not; interpolation keeps the higher-order signal
-without collapsing to zero on unseen context. Measured on 780 held-out
-prediction points it beats the previous first-order model, and a paired
+without collapsing to zero on unseen context. Most training rows are ATT&CK
+group/campaign technique profiles sorted by a tactic heuristic, not observed
+timelines. The scores are therefore association scores, not next-move
+probabilities. Measured on held-out profile positions it beats the previous first-order model, and a paired
 bootstrap keeps it ahead in 96% of resamples (`reports/model_experiments.md`).
 
 Artifact: `models/next_technique_markov.pkl`.
-  v2 (current) {"version": 2, "order2": {(a,b): [[t,n],..]}, "order1": {...},
+  v3 (current) v2 fields plus data-basis and temporal-validation metadata.
+  v2           {"version": 2, "order2": {(a,b): [[t,n],..]}, "order1": {...},
                 "unigram": [[t,n],..], "lambdas": [l2, l1, l0]}
   v1 (legacy)  {last: [[t, n], ...]}  -- read as order1-only so an old artifact
                still serves predictions instead of crashing.
@@ -30,12 +33,27 @@ MARKOV_PATH = ROOT / "models" / "next_technique_markov.pkl"
 
 _state: dict = {}
 
+SAFE_TEMPORAL_DEFAULT = {
+    "enabled": False,
+    "mode": "association-only",
+    "reason": (
+        "Chronological next-move prediction is disabled: the shipped model was "
+        "trained on tactic-ordered ATT&CK profiles and has no qualifying "
+        "independent temporal benchmark."
+    ),
+    "data_basis": {
+        "kind": "ATT&CK group/campaign technique profiles",
+        "ordering": "heuristic MITRE ATT&CK tactic order",
+        "observed_timeline": False,
+    },
+}
+
 
 def _load() -> dict:
     if "m" not in _state:
         with MARKOV_PATH.open("rb") as f:
             raw = pickle.load(f)
-        if isinstance(raw, dict) and raw.get("version") == 2:
+        if isinstance(raw, dict) and raw.get("version") in {2, 3}:
             m = raw
         else:                                    # legacy first-order table
             from collections import Counter
@@ -52,17 +70,33 @@ def _load() -> dict:
     return _state["m"]
 
 
+def temporal_prediction_status() -> dict:
+    """Return the artifact's fail-closed chronological-prediction gate.
+
+    Old artifacts carry no validation metadata and therefore cannot silently
+    regain next-move language. A future artifact must explicitly record a
+    qualifying independent chronological benchmark before this becomes true.
+    """
+    status = _load().get("temporal_validation")
+    if not isinstance(status, dict) or status.get("enabled") is not True:
+        merged = {**SAFE_TEMPORAL_DEFAULT, **(status or {})}
+        merged["enabled"] = False
+        merged["mode"] = "association-only"
+        return merged
+    return status
+
+
 def _dist(pairs) -> tuple[dict, int]:
     d = {t: n for t, n in (pairs or [])}
     return d, (sum(d.values()) or 1)
 
 
-def rank_next(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, float]], str]:
-    """Return [(technique_id, probability), ...] and the source label.
+def rank_associations(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, float]], str]:
+    """Return profile-association scores and the source label.
 
-    Probabilities are real interpolated transition probabilities. When no
-    context has ever been observed the model falls back to global frequency,
-    and those suggestions are reported honestly with their unigram probability.
+    The values are normalized frequencies learned from tactic-sorted profiles.
+    They are useful for ranking ATT&CK techniques to investigate, but they are
+    not probabilities that a technique will happen next.
     """
     m = _load()
     l2, l1, l0 = m["lambdas"]
@@ -85,20 +119,29 @@ def rank_next(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, flo
             scored.append((t, p))
     scored.sort(key=lambda x: (-x[1], x[0]))
 
-    source = ("markov-interpolated-order2" if d2 else
-              "markov-interpolated-order1" if d1 else "frequency-fallback")
+    source = ("profile-association-order2" if d2 else
+              "profile-association-order1" if d1 else "profile-frequency-fallback")
     return scored[: max(1, k)], source
 
 
+def rank_next(technique_ids: list[str], k: int = 5) -> tuple[list[tuple[str, float]], str]:
+    """Compatibility alias for callers that consume a ranked association list.
+
+    The historical name is retained for the API/artifact transition. Callers
+    must not describe the returned values as chronological next-move evidence.
+    """
+    return rank_associations(technique_ids, k)
+
+
 def top_ids(technique_ids: list[str], k: int = 3) -> list[str]:
-    return [t for t, _ in rank_next(technique_ids, k)[0]]
+    return [t for t, _ in rank_associations(technique_ids, k)[0]]
 
 
 def generate_prediction_narrative(
     predictions: list[tuple[str, float] | dict],
     technique_chain: list[str] | None = None,
 ) -> str:
-    """Plain-English projection of the attacker's likely next moves.
+    """Plain-English explanation of associated ATT&CK techniques.
 
     Two things were removed from an earlier version:
 
@@ -111,12 +154,12 @@ def generate_prediction_narrative(
       domain infrastructure" whether or not that had happened. The real ATT&CK
       description is available from the parsed STIX and is used instead.
 
-    The measured accuracy is stated inline, because a prediction offered without
-    it invites the reader to treat 38.1% top-3 as a forecast.
+    The data basis is stated inline so a profile-position score cannot be
+    mistaken for evidence about chronological attacker behaviour.
     """
     if not predictions:
-        return ("No next move is projected: the observed technique sequence does "
-                "not match any transition the model learned.")
+        return ("No associated technique could be ranked: the observed technique "
+                "set does not match a profile association learned by the model.")
 
     try:
         from src.shared.views import _names
@@ -134,7 +177,8 @@ def generate_prediction_narrative(
     for item in predictions[:3]:
         if isinstance(item, dict):
             tid = str(item.get("technique_id", ""))
-            prob = float(item.get("probability", item.get("score", 0.0)) or 0.0)
+            prob = float(item.get("association_score",
+                                  item.get("score", item.get("probability", 0.0))) or 0.0)
             name = item.get("name") or names.get(tid, tid)
         else:
             tid, prob = str(item[0]), float(item[1])
@@ -142,7 +186,7 @@ def generate_prediction_narrative(
         rows.append((tid, name, prob))
 
     if not rows:
-        return "No next move is projected for this sequence."
+        return "No associated technique could be ranked for this profile."
 
     lead = ""
     if technique_chain:
@@ -150,22 +194,21 @@ def generate_prediction_narrative(
         lead = (f"The most recent technique observed is {names.get(last, last)} "
                 f"({last}). ")
 
-    parts = [f"{lead}Ranked by how often each technique followed this sequence in "
-             f"205 real ATT&CK campaigns, the next moves are:"]
+    parts = [f"{lead}Ranked by co-occurrence position in ATT&CK group and campaign "
+             f"profiles sorted with a tactic heuristic, techniques to investigate are:"]
 
     for i, (tid, name, prob) in enumerate(rows, start=1):
-        pct = f" — {prob * 100:.0f}% of the time in the training sequences" if prob > 0 else ""
+        pct = f" — association score {prob * 100:.0f}%" if prob > 0 else ""
         # ATT&CK descriptions are markdown and carry inline links; keep the
         # link text, drop the URL, so the sentence reads as prose everywhere.
         desc = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", explanation(tid))
         desc = f" {desc}" if desc else ""
         parts.append(f"• {i}. {name} ({tid}){pct}.{desc}")
 
-    parts.append("These are transition frequencies, not detections: nothing here "
-                 "has been observed on this network. The predictor gets the right "
-                 "technique in its top three 38.1% of the time, measured against "
-                 "7.1% for a kill-chain-order baseline, so treat a single "
-                 "prediction as a lead to check rather than a forecast.")
+    status = temporal_prediction_status()
+    parts.append("These are profile associations, not detections or a chronological "
+                 "forecast: nothing here has been observed on this network. "
+                 f"{status['reason']} Treat the list only as investigation leads.")
     return " ".join(parts)
 
 

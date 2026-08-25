@@ -332,11 +332,11 @@ export function agentStreamUploadInit(
 export const scoreEvent = (features: ScoreFeatures) =>
   post<ScoreResult>('/score-event', features)
 
-/** Rank the attacker's likely next techniques.
+/** Rank associated ATT&CK techniques to investigate.
  *
  *  Throws when the backend is unreachable. It used to return five hardcoded
  *  techniques flagged `live: false`, which rendered on screen identically to a
- *  real prediction. */
+ *  real model output. Scores are profile associations, not chronology. */
 export const predictNext = (techniqueIds: string[], k = 3) =>
   post<PredictNextResult>('/predict-next', { technique_ids: techniqueIds, k })
 

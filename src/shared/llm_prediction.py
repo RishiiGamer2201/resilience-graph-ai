@@ -1,14 +1,15 @@
-"""Grounded, on-demand LLM next-technique prediction.
+"""Grounded, on-demand LLM technique-association explanation.
 
 The model is allowed to rank only ATT&CK techniques supplied in a bounded
 candidate set and may cite only campaign names present in the bundled ATT&CK
-artifact.  This keeps the requested LLM forecast useful without allowing it to
+artifact. This keeps the association ranking useful without allowing it to
 invent technique IDs or historical incidents.
 """
 from __future__ import annotations
 
 import json
 import pickle
+import re
 from pathlib import Path
 
 from src.shared import llm, predictor
@@ -17,11 +18,16 @@ from src.shared import llm, predictor
 ROOT = Path(__file__).resolve().parents[2]
 LOOKUPS = ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl"
 SYSTEM = (
-    "You are a cybersecurity threat-forecasting analyst. Select exactly three likely "
-    "next MITRE ATT&CK techniques from the supplied candidate list. This is an advisory "
-    "prediction, not an observation. Ground every reason in the observed chain, the "
-    "candidate description, and the supplied historical ATT&CK campaigns. Never invent "
+    "You are a cybersecurity investigation advisor. Select exactly three MITRE ATT&CK "
+    "techniques to investigate from the supplied association candidates. They co-occur "
+    "in tactic-sorted ATT&CK profiles; do not say they happen next or provide a future "
+    "probability. Ground every reason in the observed techniques, candidate description, "
+    "and supplied historical ATT&CK profiles. Never invent "
     "a technique ID, campaign name, fact, or probability. Return only the requested JSON."
+)
+CHRONOLOGICAL_CLAIM = re.compile(
+    r"\b(next|likely next|will|expected to|follows?|continuation|forecast)\b",
+    re.IGNORECASE,
 )
 
 SCHEMA = {
@@ -92,17 +98,17 @@ def _parse(text: str) -> dict:
 
 
 def generate(technique_ids: list[str], k: int = 3) -> dict:
-    """Ask the configured LLM for three grounded predictions."""
+    """Ask the configured LLM to explain three grounded associations."""
     data = _lookups()
     names = data["technique_to_name"]
     descriptions = data["technique_to_desc"]
-    top, transition_source = predictor.rank_next(technique_ids, 20)
+    top, transition_source = predictor.rank_associations(technique_ids, 20)
     raw_candidates = [tid for tid, _ in top if tid not in set(technique_ids)]
     campaigns_data = data.get("campaign_to_techniques", {})
     campaign_techniques = {t for techs in campaigns_data.values() for t in techs}
     candidates = [tid for tid in raw_candidates if tid in campaign_techniques][:15]
     if len(candidates) < 3:
-        raise RuntimeError("fewer than three grounded next-technique candidates are available")
+        raise RuntimeError("fewer than three grounded technique associations are available")
 
     candidate_rows = [
         {"technique_id": tid, "name": names.get(tid, tid),
@@ -122,12 +128,14 @@ def generate(technique_ids: list[str], k: int = 3) -> dict:
         "candidate_techniques": candidate_rows,
         "documented_campaigns": examples,
         "candidate_generation": transition_source,
+        "data_basis": predictor.temporal_prediction_status().get("data_basis"),
         "required_output_schema": SCHEMA,
     }, ensure_ascii=False)
     prompt = llm.render(
         SYSTEM, context=context,
         untrusted=(
-            "For each prediction, explain why it follows this incident's observed chain. "
+            "For each association, explain why it is worth investigating alongside this "
+            "incident's observed techniques. Do not describe chronology or a next move. "
             "Use one or two documented_campaigns that contain that technique. Write each "
             "campaign brief in 2-3 concise sentences using only the supplied technique list."
         ),
@@ -153,6 +161,9 @@ def generate(technique_ids: list[str], k: int = 3) -> dict:
         reason = str(raw.get("reason") or "").strip()
         if not reason:
             raise RuntimeError(f"the language model gave no reason for {tid}")
+        if CHRONOLOGICAL_CLAIM.search(reason):
+            raise RuntimeError(
+                f"the language model used unvalidated chronological language for {tid}")
         prior = []
         for attack in raw.get("previous_attacks") or []:
             name = str(attack.get("name") or "").strip()
@@ -175,7 +186,10 @@ def generate(technique_ids: list[str], k: int = 3) -> dict:
         raise RuntimeError("the language model did not return three valid grounded predictions")
     return {
         "given": technique_ids, "predictions": predictions,
+        "mode": "association-only",
+        "temporal_prediction": predictor.temporal_prediction_status(),
         "source": f"llm:{result.provider}", "provider": result.provider,
         "model": result.model, "authoritative": False,
-        "disclaimer": "LLM forecast grounded to bundled ATT&CK techniques and campaigns; predicted, not observed.",
+        "disclaimer": ("LLM-explained ATT&CK profile associations; not detections, "
+                       "chronological next moves, or future probabilities."),
     }
