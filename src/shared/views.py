@@ -15,7 +15,8 @@ import pickle
 from collections import Counter
 from pathlib import Path
 
-from src.engine2.attribution import load_artifacts, rank_actors
+from src.engine2.attribution import (decide_actor_attribution, load_artifacts,
+                                     rank_actors)
 from src.shared.attack_mapper import explanation
 from src.shared.metrics_store import load as load_metrics
 from src.shared.timeutil import fmt_ist
@@ -320,7 +321,10 @@ def threat_intel_view(full: dict) -> dict:
     inc = full["incident"]
     profiles, emb = load_artifacts()
     names = _names()
-    ranked = rank_actors(inc["technique_ids"], profiles, emb)[:5] if inc["technique_ids"] else []
+    ranked_all = (rank_actors(inc["technique_ids"], profiles, emb)
+                  if inc["technique_ids"] else [])
+    ranked = ranked_all[:5]
+    decision = decide_actor_attribution(ranked_all)
     mapping = [{"technique_id": t, "name": names.get(t, t), "explanation": explanation(t)}
                for t in inc["technique_ids"]]
     from src.shared.actor_history import history_for
@@ -350,6 +354,8 @@ def threat_intel_view(full: dict) -> dict:
         attribution.append({
             "actor": r["actor"], "score": round(r["score"], 3),
             "coverage": round(r["coverage"], 3),
+            "observed_count": r["observed_count"],
+            "exact_match_count": len(r["observed_matches"]),
             "matched": r["observed_matches"], "justification": r["justification"],
             "rank_explanation": rank_explanation,
             "score_factors": {
@@ -362,9 +368,15 @@ def threat_intel_view(full: dict) -> dict:
                 {"technique_id": t, "name": names.get(t, t)} for t in past_ids[:6]
             ],
         })
-    return {"mapping": mapping, "attribution": attribution,
-            "note": "Attribution is transparent profile retrieval over public ATT&CK "
-                    "group usage -- not a trained classifier."}
+    return {
+        "mapping": mapping,
+        "ranked_similar_profiles": attribution,
+        "attribution_assessment": decision,
+        "note": (
+            "These are similar public ATT&CK group profiles, not an identification. "
+            "The attribution decision abstains until independently calibrated incident "
+            "thresholds exist."),
+    }
 
 
 def report_view(full: dict) -> dict:
@@ -373,7 +385,9 @@ def report_view(full: dict) -> dict:
     names = _names()
 
     profiles, emb = load_artifacts()
-    top = rank_actors(inc["technique_ids"], profiles, emb)[0] if inc["technique_ids"] else None
+    ranked_actors = (rank_actors(inc["technique_ids"], profiles, emb)
+                     if inc["technique_ids"] else [])
+    attribution_decision = decide_actor_attribution(ranked_actors)
     from src.shared import predictor
     nxt = predictor.top_ids(inc["technique_ids"], 3) if inc["technique_ids"] else []
 
@@ -414,8 +428,8 @@ def report_view(full: dict) -> dict:
         "attack_chain": [{"tactic": t, "count": c} for t, c in tac.most_common()],
         "techniques": [{"technique_id": t, "name": names.get(t, t)} for t in inc["technique_ids"]],
         "attack_path": next(iter(g["paths_to_critical"].values()), []),
-        "attributed_actor": ({"actor": top["actor"], "justification": top["justification"]}
-                             if top else {"actor": "--", "justification": "no techniques observed"}),
+        "attributed_actor": attribution_decision["attributed_actor"],
+        "attribution_assessment": attribution_decision,
         "predicted_next": [{"technique_id": t, "name": names.get(t, t)} for t in nxt],
         "response_actions": soar["actions"],
         "mitigations": soar.get("mitre_mitigations", []),

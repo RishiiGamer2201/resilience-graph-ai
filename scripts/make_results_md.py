@@ -11,6 +11,7 @@ dashes, per the submission style.
 from __future__ import annotations
 
 import json
+import pickle
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,8 @@ M = json.loads((ROOT / "reports" / "metrics.json").read_text(encoding="utf-8"))
 SCALING = json.loads((ROOT / "reports" / "scaling_measurements.json").read_text(encoding="utf-8"))
 G = json.loads((ROOT / "api" / "cache" / "graph.json").read_text(encoding="utf-8"))
 I = json.loads((ROOT / "api" / "cache" / "incident.json").read_text(encoding="utf-8"))
+with (ROOT / "data" / "processed" / "mitre_attack" / "attack_lookups.pkl").open("rb") as handle:
+    N_ACTOR_PROFILES = len(pickle.load(handle)["group_to_techniques"])
 
 L, C, U = M["engine1"]["lanl"], M["engine1"]["cicids"], M["engine1"]["unsw"]
 P, E = M["engine2"]["predictor"], M["engine2"]["embeddings"]
@@ -325,9 +328,13 @@ real reported timeline (not our heuristic), top-3 is
 {pct(M['engine2']['manual_cert_in_top3'])} versus {pct(P['markov_interp_top3'])}
 on the auto-ordered set. Real orderings are harder; we publish both.
 
-Attribution: transparent weighted retrieval over 172 MITRE group profiles
+Attribution: transparent weighted retrieval over {N_ACTOR_PROFILES} MITRE group profiles
 (coverage 0.55, Jaccard 0.20, semantic similarity 0.25), with a printed
-justification. Not a trained classifier, and we say so. Technique embeddings
+justification. The runtime returns **unattributed** because there is no
+independently labelled incident-attribution benchmark from which to calibrate a
+score or top-two-margin threshold. Names are shown only as similar public
+profiles; zero exact overlap and one-technique evidence always abstain. It is
+not a trained classifier. Technique embeddings
 separate same-tactic pairs at cosine {E['same_tactic_cos']} versus
 {E['random_cos']} for random pairs.
 

@@ -78,10 +78,16 @@ def test_signals_panel(result):
     _has(result["signals"]["report"], "predicted_next")
     for p in result["signals"]["report"]["predicted_next"]:
         _has(p, "technique_id", "name")
-    for actor in result["signals"]["threat_intel"]["attribution"]:
+    for actor in result["signals"]["threat_intel"]["ranked_similar_profiles"]:
         _has(actor, "actor", "score", "coverage", "matched", "justification",
              "rank_explanation", "score_factors", "past_activity", "known_techniques")
         _has(actor["past_activity"], "summary", "source", "source_url")
+    assessment = result["signals"]["threat_intel"]["attribution_assessment"]
+    _has(assessment, "status", "attributed_actor", "evidence_count",
+         "exact_match_count", "score", "margin", "alternatives",
+         "abstention_reason", "negative_evidence", "gate")
+    assert assessment["status"] == "unattributed"
+    assert assessment["attributed_actor"] is None
 
 
 # --- Headline.jsx ----------------------------------------------------------

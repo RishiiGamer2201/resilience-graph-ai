@@ -214,7 +214,10 @@ def graph():
 @app.get("/api/threat-intel")
 def threat_intel():
     cached = _cached("threat_intel")
-    if cached.get("attribution") and not cached["attribution"][0].get("rank_explanation"):
+    profiles = cached.get("ranked_similar_profiles") or cached.get("attribution") or []
+    if (profiles and
+            (not profiles[0].get("rank_explanation")
+             or not cached.get("attribution_assessment"))):
         from src.shared.views import threat_intel_view
         return threat_intel_view({"incident": _cached("incident")})
     return cached

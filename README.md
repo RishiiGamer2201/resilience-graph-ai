@@ -164,7 +164,7 @@ Full detail (folder tree, request topology, tech-stack table): **[architecture.m
 | Engine | Scores | What it does |
 |---|---|---|
 | **Engine 1 — Real Detection** | Technical Excellence | Unsupervised anomaly / lateral-movement detection on **real data** (CIC-IDS2017, LANL, UNSW-NB15), scored against LANL's red-team ground truth (ROC-AUC **0.992**, TPR **87.7%** at 1% FPR) |
-| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (interpolated Markov, top-3 **38.1%**, **5.4×** the kill-chain baseline) and ranks the likely actor by transparent profile retrieval |
+| **Engine 2 — Prediction + Attribution** | Innovation | Predicts the attacker's next ATT&CK technique (interpolated Markov, top-3 **38.1%**, **5.4×** the kill-chain baseline) and ranks similar public ATT&CK group profiles while abstaining from actor attribution until independently calibrated thresholds exist |
 
 Both feed a **shared spine** that runs live per request: normalize → correlate alerts into
 incidents → ATT&CK map → attack-path graph (choke points, blast radius across all pivots) →
@@ -271,4 +271,4 @@ cd frontend && npm run build        # frontend must build clean
 Work on feature branches (`git checkout -b m2/anomaly-baseline`), open PRs into `main`.
 
 ---
-*Not affiliated with ET Edge / MITRE / CERT-In. Uses public datasets under their respective licenses. Response actions are simulated and human-gated; attribution is transparent profile retrieval, not a trained classifier.*
+*Not affiliated with ET Edge / MITRE / CERT-In. Uses public datasets under their respective licenses. Response actions are simulated and human-gated; actor names are similar public ATT&CK profiles, while attribution remains disabled without independent calibration.*

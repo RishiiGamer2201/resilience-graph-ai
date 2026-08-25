@@ -49,7 +49,9 @@ function toMarkdown(r: IncidentReportData): string {
     r.attack_path.join(' -> '),
     '',
     '## Attribution',
-    `- ${r.attributed_actor.actor}: ${r.attributed_actor.justification}`,
+    r.attributed_actor
+      ? `- ${r.attributed_actor.actor}: ${r.attributed_actor.justification}`
+      : `- Unattributed: ${r.attribution_assessment?.abstention_reason ?? 'No attribution decision was available.'}`,
     '',
     '## Predicted next moves (predicted, not observed)',
     ...r.predicted_next.map((t) => `- ${techniqueName(t.technique_id, t.name)}`),
@@ -175,9 +177,15 @@ export default function IncidentReport() {
           </div>
 
           <div>
-            <SectionLabel>Attributed actor</SectionLabel>
-            <div className="mt-1 text-sm text-text">{r.attributed_actor.actor}</div>
-            <p className="text-xs text-faint">{r.attributed_actor.justification}</p>
+            <SectionLabel>Actor attribution</SectionLabel>
+            {r.attributed_actor ? (
+              <>
+                <div className="mt-1 text-sm text-text">{r.attributed_actor.actor}</div>
+                <p className="text-xs text-faint">{r.attributed_actor.justification}</p>
+              </>
+            ) : (
+              <NotMeasured why={r.attribution_assessment?.abstention_reason ?? 'No attribution decision was available.'} />
+            )}
           </div>
 
           <div>

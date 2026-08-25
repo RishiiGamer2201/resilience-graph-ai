@@ -110,7 +110,7 @@ def methodology() -> dict:
             "LANL is authentication-only, so incidents honestly map to just pass-the-hash / brute-force / "
             "remote-services — we never invent techniques the data can't evidence.",
             "Crown jewels are a stated heuristic (hosts the most accounts depend on), not a dataset label; "
-            "attribution is transparent profile retrieval, never headlined as a trained classifier.",
+            "actor names are similar public ATT&CK profiles; attribution abstains until independently calibrated thresholds exist.",
             "Every screen renders live analysis output — the sample view is a real analysis of a shipped red-team log.",
         ],
     }

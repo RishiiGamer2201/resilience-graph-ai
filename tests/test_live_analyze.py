@@ -68,9 +68,15 @@ def test_graph_reflects_pivot(bundle):
 
 
 def test_attribution_and_report(bundle):
-    assert bundle["threat_intel"]["attribution"], "expected ranked actors"
+    assert bundle["threat_intel"]["ranked_similar_profiles"], "expected similar profiles"
+    assessment = bundle["threat_intel"]["attribution_assessment"]
+    assert assessment["status"] == "unattributed"
+    assert assessment["attributed_actor"] is None
+    assert assessment["alternatives"], "expected similar-profile alternatives"
+    assert assessment["abstention_reason"]
     r = bundle["report"]
-    assert r["attributed_actor"]["actor"] != "—"
+    assert r["attributed_actor"] is None
+    assert r["attribution_assessment"]["status"] == "unattributed"
     assert r["predicted_next"], "expected next-technique predictions"
 
 

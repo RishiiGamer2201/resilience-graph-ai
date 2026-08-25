@@ -33,6 +33,39 @@ class ActorProfile:
     centroid: np.ndarray
 
 
+@dataclass(frozen=True)
+class AttributionCalibration:
+    """Thresholds measured on independently labelled incident telemetry.
+
+    The repository does not ship such a benchmark yet, so production passes no
+    calibration and the decision gate abstains. This type prevents a profile
+    self-retrieval result from being mistaken for incident calibration later.
+    """
+
+    source: str
+    independent_incidents: int
+    minimum_observed_techniques: int
+    minimum_exact_matches: int
+    minimum_score: float
+    minimum_margin: float
+
+    def __post_init__(self) -> None:
+        if not self.source.strip() or self.independent_incidents <= 0:
+            raise ValueError("attribution calibration needs a source and independent incidents")
+        if self.minimum_observed_techniques < SAFETY_MIN_OBSERVED:
+            raise ValueError("calibration cannot weaken the observed-technique safety floor")
+        if self.minimum_exact_matches < SAFETY_MIN_EXACT_MATCHES:
+            raise ValueError("calibration cannot weaken the exact-match safety floor")
+        if not 0.0 <= self.minimum_score <= 1.0:
+            raise ValueError("minimum_score must be between zero and one")
+        if not 0.0 <= self.minimum_margin <= 1.0:
+            raise ValueError("minimum_margin must be between zero and one")
+
+
+SAFETY_MIN_OBSERVED = 2
+SAFETY_MIN_EXACT_MATCHES = 2
+
+
 def _normalise(vector: np.ndarray) -> np.ndarray:
     norm = float(np.linalg.norm(vector))
     return vector / norm if norm else vector
@@ -97,6 +130,7 @@ def rank_actors(
             {
                 "actor": profile.actor,
                 "score": float(score),
+                "observed_techniques": sorted(observed),
                 "observed_matches": sorted(matched),
                 "observed_count": len(observed),
                 "profile_size": len(profile.techniques),
@@ -124,6 +158,126 @@ def make_justification(result: dict) -> str:
     if result["predicted_count"]:
         text += f" Supporting predicted-technique matches: {len(result['predicted_matches'])}/{result['predicted_count']}."
     return text
+
+
+def decide_actor_attribution(
+    ranked_profiles: list[dict],
+    *,
+    calibration: AttributionCalibration | None = None,
+) -> dict:
+    """Return an explicit attributed/unattributed decision with negative evidence.
+
+    Ranking public ATT&CK profiles and identifying an incident's actor are
+    different tasks. Zero exact overlap and one-technique evidence always
+    abstain. Even stronger overlap remains only a similar profile until score
+    and margin thresholds have been calibrated on independently labelled
+    incidents rather than partial copies of the same ATT&CK profiles.
+    """
+    top = ranked_profiles[0] if ranked_profiles else None
+    second = ranked_profiles[1] if len(ranked_profiles) > 1 else None
+    observed_count = int(top.get("observed_count", 0)) if top else 0
+    exact_matches = len(top.get("observed_matches", [])) if top else 0
+    score = float(top["score"]) if top else None
+    margin = (float(top["score"] - second["score"])
+              if top is not None and second is not None else None)
+    unmatched = (sorted(set(top.get("observed_techniques", []))
+                        - set(top.get("observed_matches", []))) if top else [])
+
+    alternatives = [{
+        "rank": int(row.get("rank", index + 1)),
+        "actor": row["actor"],
+        "score": round(float(row["score"]), 6),
+        "exact_match_count": len(row.get("observed_matches", [])),
+        "observed_matches": list(row.get("observed_matches", [])),
+    } for index, row in enumerate(ranked_profiles[:3])]
+
+    calibrated = bool(
+        calibration is not None
+        and calibration.independent_incidents > 0
+        and calibration.source.strip()
+    )
+    gate = {
+        "calibrated": calibrated,
+        "calibration_source": calibration.source if calibrated else None,
+        "independent_incident_count": (
+            calibration.independent_incidents if calibrated else 0),
+        "safety_floor": {
+            "minimum_observed_techniques": SAFETY_MIN_OBSERVED,
+            "minimum_exact_matches": SAFETY_MIN_EXACT_MATCHES,
+        },
+        "calibrated_thresholds": ({
+            "minimum_observed_techniques": calibration.minimum_observed_techniques,
+            "minimum_exact_matches": calibration.minimum_exact_matches,
+            "minimum_score": calibration.minimum_score,
+            "minimum_margin": calibration.minimum_margin,
+        } if calibrated else None),
+    }
+
+    reason = None
+    if top is None:
+        reason = "No ATT&CK group profile could be compared with the observed techniques."
+    elif exact_matches == 0:
+        reason = (
+            "No observed technique exactly matches the highest-ranked public ATT&CK "
+            "group profile; semantic similarity alone cannot attribute an actor.")
+    elif observed_count < SAFETY_MIN_OBSERVED:
+        reason = (
+            f"Only {observed_count} observed technique is available. A single common "
+            "technique cannot identify a threat actor.")
+    elif exact_matches < SAFETY_MIN_EXACT_MATCHES:
+        reason = (
+            f"Only {exact_matches} observed technique exactly matches the leading "
+            "profile; at least two exact matches are required even before calibration.")
+    elif not calibrated:
+        reason = (
+            "Actor attribution is disabled because score and margin thresholds have "
+            "not been calibrated on independently labelled incidents. The names below "
+            "are similar public ATT&CK profiles only.")
+    else:
+        minimum_observed = max(
+            SAFETY_MIN_OBSERVED, calibration.minimum_observed_techniques)
+        minimum_exact = max(SAFETY_MIN_EXACT_MATCHES, calibration.minimum_exact_matches)
+        if observed_count < minimum_observed:
+            reason = (
+                f"The calibration requires {minimum_observed} observed techniques; "
+                f"this incident has {observed_count}.")
+        elif exact_matches < minimum_exact:
+            reason = (
+                f"The calibration requires {minimum_exact} exact matches; the leading "
+                f"profile has {exact_matches}.")
+        elif score < calibration.minimum_score:
+            reason = (
+                f"The leading score {score:.3f} is below the independently calibrated "
+                f"threshold {calibration.minimum_score:.3f}.")
+        elif margin is None or margin < calibration.minimum_margin:
+            shown_margin = "not available" if margin is None else f"{margin:.3f}"
+            reason = (
+                f"The top-two margin {shown_margin} does not meet the independently "
+                f"calibrated threshold {calibration.minimum_margin:.3f}.")
+
+    attributed = None if reason else {
+        "actor": top["actor"],
+        "score": round(score, 6),
+        "exact_match_count": exact_matches,
+        "justification": top["justification"],
+    }
+    return {
+        "status": "attributed" if attributed else "unattributed",
+        "attributed_actor": attributed,
+        "evidence_count": observed_count,
+        "exact_match_count": exact_matches,
+        "score": round(score, 6) if score is not None else None,
+        "margin": round(margin, 6) if margin is not None else None,
+        "alternatives": alternatives,
+        "abstention_reason": reason,
+        "negative_evidence": {
+            "unmatched_observed_techniques": unmatched,
+            "zero_exact_overlap": exact_matches == 0,
+            "single_technique_only": observed_count < SAFETY_MIN_OBSERVED,
+            "independent_calibration_missing": not calibrated,
+        },
+        "gate": gate,
+    }
 
 
 def evaluate_profiles(
@@ -172,7 +326,7 @@ def main() -> None:
     metrics = evaluate_profiles(profiles, embeddings)
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text("\n".join([
-        "# Engine 2.5 — ATT&CK actor-profile attribution",
+        "# Engine 2.5 — ATT&CK actor-profile similarity and attribution gate",
         "",
         "This is transparent profile retrieval over public ATT&CK group technique usage, not a trained classifier or independent incident-telemetry benchmark.",
         "",
@@ -181,6 +335,16 @@ def main() -> None:
         f"- Top-1 retrieval: **{metrics['top_1']:.1%}**",
         f"- Top-3 retrieval: **{metrics['top_3']:.1%}**",
         f"- Mean reciprocal rank: **{metrics['mrr']:.3f}**",
+        "",
+        "## Runtime attribution decision",
+        "",
+        "- Independently labelled incident-attribution benchmark: **not available (0 incidents)**",
+        "- Calibrated score and top-two-margin thresholds: **not available**",
+        "- Runtime actor attribution: **disabled; returns `unattributed`**",
+        "- Safety floors: zero exact overlap always abstains; one observed/common technique always abstains.",
+        "- Ranked names are exposed only as **similar public ATT&CK profiles**, with the score, exact evidence count, margin, alternatives, negative evidence and abstention reason.",
+        "",
+        "The 100% self-profile retrieval result above cannot calibrate attribution: each test row is a partial copy of the same public profile being retrieved, not an independent incident with a verified actor label.",
         "",
         "Scores combine observed-technique coverage (55%), Jaccard overlap (20%), and embedding semantic similarity (25%). Optional Markov next-technique evidence is capped at 20% of the final score.",
     ]), encoding="utf-8")
