@@ -75,6 +75,10 @@ def test_a_uniform_log_reports_a_collapsed_scale_and_is_capped(n):
                        critical_assets=set(), incident_id="X")
     cal, inc = b["meta"]["calibration"], b["incident"]
     assert cal["scale_collapsed"] is True
+    assert cal["operational"] is False
+    assert inc["alert_count"] == 0
+    assert inc["max_anomaly_score"] == 0
+    assert inc["operational_status"] == "suppressed-collapsed-scale"
     assert inc["severity"] != "critical", (
         f"{n} identical events reported {inc['severity']} off a scale where "
         f"the median and the triage cut coincide")
@@ -102,7 +106,7 @@ def test_the_shipped_scenarios_are_untouched():
 # #4 -- severity must respect the sample confidence already computed           #
 # --------------------------------------------------------------------------- #
 def test_an_insufficient_sample_caps_severity_and_says_why():
-    b = analyze_events(_frame([_row(i, dst="A") for i in range(12)]),
+    b = analyze_events(_frame([_row(i, dst=f"A{i}") for i in range(12)]),
                        critical_assets=set(), incident_id="X")
     inc = b["incident"]
     assert inc["severity_uncapped"] == "critical"

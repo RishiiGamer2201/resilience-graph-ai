@@ -32,11 +32,17 @@ variance, a SYN fan-out across twelve ports must register as a port scan, and a
 repeated TCP sequence number must count as one retransmission. That is a real
 correctness guarantee and it is a different claim from "it detects attacks".
 
-The window vector is deliberately the same shape as the one in
-`src/engine3/netstate.py`: mean and standard deviation per feature over a window
-of consecutive packets. A capture can therefore be fed to the same latent
-state-space model without changing the model, which is the point of having
-built the state space generically.
+The window vector follows the same shape CONVENTION as the one in
+`src/engine3/netstate.py` -- mean and standard deviation per feature over a
+window -- but NOT the same feature set, and the two are not interchangeable.
+
+This paragraph used to end "a capture can therefore be fed to the same latent
+state-space model without changing the model". It cannot, and saying so here
+while `packet_windows` said the opposite left the file arguing with itself.
+These are the 30 features of PACKET_FEATURES, 60 dimensions; the shipped
+artifact was trained on 24 CIC-IDS2017 flow features, 48 dimensions. Using
+these vectors means training an artifact on them. See `packet_windows` and
+`NetStateModel.encode`, which refuses the mismatch by name.
 """
 from __future__ import annotations
 

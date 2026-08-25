@@ -114,8 +114,10 @@ def test_readiness_policy_minimums_are_configurable(tmp_path, monkeypatch):
 def test_disabled_baseline_still_reports_off(monkeypatch):
     monkeypatch.delenv("NEXTATTACK_BASELINE_DB", raising=False)
 
+    events = _events(user="asha@corp", source="LAPTOP-7", day=0, count=20)
+    events["destination_host"] = [f"HOST-{i:02d}" for i in range(len(events))]
     bundle = analyze_events(
-        _events(user="asha@corp", source="LAPTOP-7", day=0, count=20),
+        events,
         incident_id="INC-BASELINE-OFF",
     )
 
