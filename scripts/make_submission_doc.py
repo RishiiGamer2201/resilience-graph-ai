@@ -548,8 +548,8 @@ def build(B):
                                  "trained model.", "Live"],
         ["Next technique prediction", "A ranked next move with a genuine transition probability.",
          "Live"],
-        ["Threat group attribution", "A ranked MITRE group with an auditable written "
-                                     "justification.", "Live, transparent retrieval"],
+        ["Threat group comparison", "Ranked similar MITRE profiles with an auditable "
+                                     "abstention decision.", "Live, attribution gated"],
         ["Threat Radar", "External threat intelligence, India first, mapped to ATT&CK and cross "
                          "referenced against the current incident.", "Live feeds"],
         ["Audit ready report", "A printable incident report suitable for compliance records.",
@@ -853,10 +853,10 @@ def build(B):
                 "demonstrates that part of the higher number was ordering driven. Both figures "
                 "are published.", False, False)])
 
-    B.heading("8.2 Attributing the activity to a known threat group", 2)
-    B.para("Given the observed techniques, which publicly documented threat group does this "
-              "resemble. We score the observed technique set against 172 MITRE group profiles "
-              "using a transparent weighted formula rather than a trained classifier.")
+    B.heading("8.2 Comparing the activity with known threat-group profiles", 2)
+    B.para("Given the observed techniques, which publicly documented threat-group profiles "
+              "look similar. We score the observed technique set against 175 MITRE group "
+              "profiles using a transparent weighted formula rather than a trained classifier.")
     B.code([
         "score = 0.55 * coverage  +  0.20 * jaccard  +  0.25 * semantic_similarity",
         "",
@@ -873,8 +873,10 @@ def build(B):
                 "number is close to trivial by construction, because it retrieves a public "
                 "profile from a piece of itself. We never present it as a headline result. This "
                 "component is transparent retrieval with a printed rationale, not a trained "
-                "classifier, and on an authentication only log carrying three techniques the "
-                "ranked group is context for an analyst, not a conclusion.", False, False)])
+                "classifier. Runtime attribution remains disabled because no independently "
+                "labelled incident set exists to calibrate score and margin thresholds. Zero "
+                "exact overlap and one-technique evidence always abstain; ranked names are "
+                "context for an analyst, not a conclusion.", False, False)])
 
     # ---------------- 9 radar ----------------
     B.heading("9. Threat Radar: external intelligence", 1)
@@ -1027,9 +1029,10 @@ def build(B):
          f"chain ({pct(E2P['markov_top3'])}), against the shipped interpolated model's "
          f"{pct(E2P['markov_interp_top3'])}. At 205 sequences the simple transition models beat "
          "both neural ones. We shipped the winner and published every loss."],
-        ["Attribution method", "Transparent weighted retrieval with a printed rationale",
-         "A trained classifier. With 172 groups and few labelled campaigns it would overfit, and "
-         "it could not explain itself. An analyst must be able to audit an attribution claim."],
+        ["Attribution method", "Profile retrieval plus an explicit abstention gate",
+         "A trained classifier. With 175 groups and few labelled campaigns it would overfit, and "
+         "it could not explain itself. No actor is named until independent incident data can "
+         "calibrate the score and margin thresholds."],
         ["Technique descriptions", "Read verbatim from the official MITRE data files",
          "Generating technique text with a language model. That introduces the possibility of a "
          "confidently invented technique identifier, which in a security tool is a serious "
@@ -1124,7 +1127,7 @@ def build(B):
          pct(M["engine2"]["manual_cert_in_top3"])],
         ["Technique embeddings, same tactic cosine similarity",
          f"{E2E['same_tactic_cos']} against {E2E['random_cos']} for random pairs"],
-        ["MITRE group profiles used for attribution", "172"],
+        ["MITRE group profiles used for attribution", "175"],
     ], widths=[10.5, 6.5], size=9.5)
 
     B.heading("13.3 Operational output on the live campaign", 2)

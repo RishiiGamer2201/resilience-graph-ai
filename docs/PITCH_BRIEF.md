@@ -233,7 +233,7 @@ auto-ordered set. Real orderings are harder. We publish both.
 
 ## Attribution — say this carefully
 
-Transparent weighted retrieval over **172 MITRE group profiles**
+Transparent weighted retrieval over **175 MITRE group profiles**
 (coverage 0.55, Jaccard 0.20, semantic similarity 0.25), with a printed
 justification.
 
@@ -241,6 +241,10 @@ justification.
 ranked *candidates* with the overlap that produced each score. "APT28 uses
 pass-the-hash" is a statement about the technique, never an attribution of this
 incident to APT28.
+
+The runtime decision is **unattributed**: no independently labelled incident set
+exists to calibrate a score or top-two-margin threshold. Zero exact overlap and
+one-technique evidence always abstain; names remain similar profiles only.
 
 ---
 

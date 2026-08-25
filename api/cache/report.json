@@ -42,10 +42,7 @@
     "C18025",
     "C1065"
   ],
-  "attributed_actor": {
-    "actor": "Ember Bear",
-    "justification": "Ember Bear matches 3/4 observed techniques (profile coverage 75%; semantic similarity 0.80)."
-  },
+  "attributed_actor": null,
   "predicted_next": [
     {
       "technique_id": "T1021.001",
@@ -1760,5 +1757,67 @@
     },
     "temporal_prediction_enabled": false,
     "reason": "Chronological next-move prediction is disabled: the source-provenanced timeline benchmark does not yet show a statistically reliable improvement over the strongest baseline."
+  },
+  "attribution_assessment": {
+    "status": "unattributed",
+    "attributed_actor": null,
+    "evidence_count": 4,
+    "exact_match_count": 3,
+    "score": 0.624555,
+    "margin": 0.009114,
+    "alternatives": [
+      {
+        "rank": 1,
+        "actor": "Ember Bear",
+        "score": 0.624555,
+        "exact_match_count": 3,
+        "observed_matches": [
+          "T1021",
+          "T1110",
+          "T1550.002"
+        ]
+      },
+      {
+        "rank": 2,
+        "actor": "APT28",
+        "score": 0.615441,
+        "exact_match_count": 3,
+        "observed_matches": [
+          "T1078",
+          "T1110",
+          "T1550.002"
+        ]
+      },
+      {
+        "rank": 3,
+        "actor": "Wizard Spider",
+        "score": 0.613345,
+        "exact_match_count": 3,
+        "observed_matches": [
+          "T1021",
+          "T1078",
+          "T1550.002"
+        ]
+      }
+    ],
+    "abstention_reason": "Actor attribution is disabled because score and margin thresholds have not been calibrated on independently labelled incidents. The names below are similar public ATT&CK profiles only.",
+    "negative_evidence": {
+      "unmatched_observed_techniques": [
+        "T1078"
+      ],
+      "zero_exact_overlap": false,
+      "single_technique_only": false,
+      "independent_calibration_missing": true
+    },
+    "gate": {
+      "calibrated": false,
+      "calibration_source": null,
+      "independent_incident_count": 0,
+      "safety_floor": {
+        "minimum_observed_techniques": 2,
+        "minimum_exact_matches": 2
+      },
+      "calibrated_thresholds": null
+    }
   }
 }

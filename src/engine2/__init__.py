@@ -1,1 +1,1 @@
-"""Engine 2 — ATT&CK technique-association ranking + attribution."""
+"""Engine 2 — ATT&CK technique-association ranking + gated attribution."""
