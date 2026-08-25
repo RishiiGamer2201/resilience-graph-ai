@@ -20,6 +20,7 @@
  */
 import type {
   AgentReasoning,
+  NetstateModel,
   AnalysisBundle,
   ApiError,
   ApprovalResult,
@@ -221,6 +222,9 @@ export const reasonWithAgents = (body: {
 
 export const getThreatIntel = () => get<ThreatIntelView>('/threat-intel')
 export const getMetrics = () => get<MetricsPayload>('/metrics')
+
+/** Engine 3's shipped artifact, described. Read-only; it takes no input. */
+export const getNetstateModel = () => get<NetstateModel>('/netstate/model')
 export const getMethodology = () => get<MethodologyPayload>('/methodology')
 export const getReport = () => get<IncidentReportData>('/report')
 export const getAttackers = () => get<AttackerList>('/attackers')

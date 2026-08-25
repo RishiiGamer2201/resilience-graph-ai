@@ -870,6 +870,58 @@ def netstate_status():
     }
 
 
+def _cached_metrics() -> dict:
+    """reports/metrics.json, the same file every other screen reads."""
+    from src.shared.metrics_store import load
+    return load()
+
+
+@app.get("/api/netstate/model")
+def netstate_model():
+    """The world model itself, printed.
+
+    Engine 3 has no screen because it feeds no alert, and for a while that meant
+    it had no surface at all. But the model is 13 KB of centroids and a
+    transition matrix, and the reason it was built as a QUANTISED state space
+    rather than a black box is exactly that a state can be described: this
+    endpoint returns all of them, in units of training standard deviations, so a
+    reader can see what the model learned instead of being asked to trust it.
+
+    Read-only, no auth, no input: it describes a shipped artifact, not a log.
+    """
+    from src.engine3 import netstate as ns
+
+    if not ns.MODEL.exists():
+        raise HTTPException(503, "world model artifact is not built; run "
+                                 "python -m scripts.eval_netstate")
+    model = ns.NetStateModel.load()
+    states = [model.describe_state(i, top_k=4) for i in range(model.n_states)]
+    transitions = model.transition_matrix()
+
+    # The evaluation, from the metrics store rather than typed here.
+    try:
+        measured = _cached_metrics().get("engine3", {}) or {}
+    except Exception:                                   # pragma: no cover
+        measured = {}
+
+    return {
+        "ready": True,
+        "n_states": model.n_states,
+        "window": model.window,
+        "state_dim": ns.STATE_DIM,
+        "trained_on": model.trained_on,
+        "feature_names": ns.state_names(),
+        "states": states,
+        "transitions": [[round(float(v), 4) for v in row] for row in transitions],
+        "evaluation": measured,
+        "surface": "API only -- there is no screen for this in the analysis flow",
+        "claim": ("A discrete latent state-space model over traffic windows. Its "
+                  "published numbers are research results on CIC-IDS2017, not a "
+                  "claim about the log you analyse elsewhere in this product, and "
+                  "it does not feed any alert, score or severity."),
+    }
+
+
 @app.post("/api/netstate/analyze")
 def netstate_analyze(req: NetStateRequest, p: dict = Depends(analyze_principal)):
     """Window the supplied flows, encode each to a latent state, forecast ahead.

@@ -1388,3 +1388,32 @@ export interface AgentReasoning {
   workflow_severity?: string
   workflow_techniques?: string[]
 }
+
+
+// ─── Engine 3: the network world model ───────────────────────────────────────
+export interface NetstateFeature {
+  feature: string
+  z_score: number
+  direction: 'high' | 'low' | string
+}
+
+export interface NetstateState {
+  state: number
+  attack_rate: number
+  training_windows: number
+  distinguishing_features: NetstateFeature[]
+}
+
+export interface NetstateModel {
+  ready: boolean
+  n_states: number
+  window: number
+  state_dim: number
+  trained_on: string
+  feature_names: string[]
+  states: NetstateState[]
+  transitions: number[][]
+  evaluation?: { netstate?: Record<string, number> }
+  surface: string
+  claim: string
+}

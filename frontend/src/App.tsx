@@ -19,6 +19,7 @@ const Graph = lazy(() => import('@/screens/Graph'))
 const ThreatIntel = lazy(() => import('@/screens/ThreatIntel'))
 const ThreatRadar = lazy(() => import('@/screens/ThreatRadar'))
 const Metrics = lazy(() => import('@/screens/Metrics'))
+const WorldModel = lazy(() => import('@/screens/WorldModel'))
 const Scoreboard = lazy(() => import('@/screens/Scoreboard'))
 const Methodology = lazy(() => import('@/screens/Methodology'))
 
@@ -53,6 +54,7 @@ export default function App() {
                 <Route path="/graph" element={page(<Graph />)} />
                 <Route path="/threat-intel" element={page(<ThreatIntel />)} />
                 <Route path="/threat-radar" element={page(<ThreatRadar />)} />
+                <Route path="/world-model" element={page(<WorldModel />)} />
                 <Route path="/metrics" element={page(<Metrics />)} />
                 <Route path="/scoreboard" element={page(<Scoreboard />)} />
                 <Route path="/methodology" element={page(<Methodology />)} />
