@@ -589,7 +589,8 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
             "action", status="skipped",
             summary="baseline learning — 0 response proposals · 0 executed",
             output={
-                "proposals": [], "mitre_mitigations": [],
+                "proposals": [], "unavailable_actions": [], "skipped_actions": [],
+                "mitre_mitigations": [],
                 "gating_policy": "suppressed while entity baseline is learning",
                 "rfi": None, "executed": 0,
                 "note": ("NON-OPERATIONAL LEARNING RESULT. No response proposal "
@@ -601,13 +602,23 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
     jewels = set(exposure.get("designated") or [])
 
     proposals = []
+    unavailable = []
     for a in soar["actions"]:
-        kind = ("monitor" if "monitor" in a["action"].lower() else
-                "ticket" if "ticket" in a["action"].lower() else
-                "isolate" if "isolate" in a["action"].lower() else "contain")
-        touches = bool(cf and set(cf["delta"]["crown_jewels_protected"]) & jewels) \
-            if kind == "isolate" else False
-        blast = cf["delta"]["hosts_no_longer_reachable"] if (cf and kind == "isolate") else 0
+        if a.get("applicability") != "applicable":
+            unavailable.append(a)
+            continue
+        kind = a["kind"]
+        target = a.get("target")
+        simulated_host = ((cf or {}).get("candidate") or {}).get("isolate_host")
+        uses_counterfactual = bool(
+            cf and kind == "host_containment" and target == simulated_host
+        )
+        touches = bool(target in jewels or (
+            uses_counterfactual
+            and set(cf["delta"]["crown_jewels_protected"]) & jewels
+        ))
+        blast = (cf["delta"]["hosts_no_longer_reachable"]
+                 if uses_counterfactual else 0)
         proposal = {
             "id": f"ACT-{len(proposals) + 1:02d}",
             "kind": kind,
@@ -616,8 +627,20 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
             "touches_crown_jewel": touches,
             "blast_radius_affected": blast,
             "hosts_taken_offline": (cf["operational_cost"]["hosts_taken_offline"]
-                                    if cf and kind == "isolate" else 0),
+                                    if uses_counterfactual else
+                                    1 if kind == "host_containment" else 0),
             "simulated": True,
+            "technique_id": a["technique_id"],
+            "technique": a["technique"],
+            "target": a["target"],
+            "triggering_evidence": a["triggering_evidence"],
+            "prerequisites": a["prerequisites"],
+            "operational_cost": a["operational_cost"],
+            "rollback": a["rollback"],
+            "verification": a["verification"],
+            "minimum_severity": a["minimum_severity"],
+            "applicability": a["applicability"],
+            "applicability_reason": a["applicability_reason"],
         }
         proposal["policy"] = policy_for(proposal)
         proposals.append(proposal)
@@ -629,6 +652,8 @@ def _n_action(bundle: dict, impact: NodeResult, principal: dict | None) -> NodeR
                  f"human approval · 0 executed"),
         output={
             "proposals": proposals,
+            "unavailable_actions": unavailable,
+            "skipped_actions": soar.get("skipped_actions", []),
             "mitre_mitigations": soar.get("mitre_mitigations", []),
             "gating_policy": soar["gating_policy"],
             "rfi": _rfi(bundle, sorted(jewels), cf),
@@ -742,7 +767,8 @@ def investigate(*, df: pd.DataFrame | None = None, scenario: str | None = None,
                                       "assets_considered": 0,
                                       "inventory_provenance": "UNKNOWN"},
                   **impact.output}
-    action_out = {"proposals": [], "mitre_mitigations": [], "gating_policy": "",
+    action_out = {"proposals": [], "unavailable_actions": [], "skipped_actions": [],
+                  "mitre_mitigations": [], "gating_policy": "",
                   "rfi": None, "executed": 0,
                   "note": "SIMULATION ONLY. Nothing contacts an external system.",
                   **action.output}

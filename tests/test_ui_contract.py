@@ -166,12 +166,16 @@ def test_vulnerability_panel(result):
 # --- ActionPanel.jsx -------------------------------------------------------
 def test_action_proposals(result):
     a = result["action"]
-    _has(a, "proposals", "mitre_mitigations", "gating_policy", "rfi", "executed", "note")
+    _has(a, "proposals", "unavailable_actions", "skipped_actions", "mitre_mitigations",
+         "gating_policy", "rfi", "executed", "note")
     for p in a["proposals"]:
         _has(p, "id", "proposal_id", "proposal_digest", "input_digest",
              "policy_version", "issued_at", "expires_at", "status",
              "kind", "tactic", "action", "touches_crown_jewel",
-             "blast_radius_affected", "hosts_taken_offline", "simulated", "policy")
+             "blast_radius_affected", "hosts_taken_offline", "simulated", "policy",
+             "technique_id", "technique", "target", "triggering_evidence",
+             "prerequisites", "operational_cost", "rollback", "verification",
+             "minimum_severity", "applicability", "applicability_reason")
         _has(p["policy"], "requires_approval", "gate", "required_permission",
              "reasons", "policy_version")
     _has(a["rfi"], "to", "subject", "context", "questions", "generated_by", "note")

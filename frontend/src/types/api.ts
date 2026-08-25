@@ -977,7 +977,36 @@ export interface ActionPolicy {
   [k: string]: unknown
 }
 
-export interface ActionProposal {
+export interface ActionEvidence {
+  technique_id: string
+  technique: string
+  tactic: string
+  event_type: string
+  anomaly_score: number
+  timestamp: number | null
+  user: string | null
+  source_host: string | null
+  destination_host: string | null
+}
+
+export interface ActionRecommendation {
+  kind: string
+  tactic: string
+  technique_id: string
+  technique: string
+  action: string
+  target: string | null
+  triggering_evidence: ActionEvidence
+  prerequisites: string[]
+  operational_cost: string
+  rollback: string
+  verification: string
+  minimum_severity: string
+  applicability: 'applicable' | 'not_configured' | 'not_applicable'
+  applicability_reason: string
+}
+
+export interface ActionProposal extends ActionRecommendation {
   id: string
   /** Opaque identifier issued and consumed by the server. */
   proposal_id: string
@@ -987,9 +1016,6 @@ export interface ActionProposal {
   issued_at: string
   expires_at: string
   status: 'pending' | 'approved' | 'rejected' | 'expired'
-  kind: string
-  tactic: string
-  action: string
   touches_crown_jewel: boolean
   blast_radius_affected: number
   hosts_taken_offline: number
@@ -1015,6 +1041,12 @@ export interface Rfi {
 
 export interface ActionOutput {
   proposals: ActionProposal[]
+  unavailable_actions: ActionRecommendation[]
+  skipped_actions: Array<{
+    technique_id: string
+    reason: string
+    triggering_evidence?: ActionEvidence
+  }>
   mitre_mitigations: string[]
   gating_policy: string
   rfi: Rfi | null
