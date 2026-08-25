@@ -435,7 +435,7 @@ export default function Metrics() {
               <span className="text-dim">Deliberately not wired. </span>
               The compromise figures are a property of CIC-IDS2017 labels. This engine
               raises no alert, score or severity anywhere in the product, because its
-              usefulness as an alert has not been measured — the same rule that keeps
+              usefulness as an alert has not been measured: the same rule that keeps
               bare accuracy off the scoreboard.
             </CardFooter>
           </Card>

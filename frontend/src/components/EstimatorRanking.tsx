@@ -1,8 +1,8 @@
 /**
  * Engine 3's estimators, ranked.
  *
- * Two screens show this comparison — the world model page and the performance
- * page — and they must never disagree about which estimator won. So neither of
+ * Two screens show this comparison, the world model page and the performance
+ * page, and they must never disagree about which estimator won. So neither of
  * them decides: the server ranks the rows and sets `beaten_by_baseline`, this
  * component renders them in the order it was given, and both screens render
  * this component.

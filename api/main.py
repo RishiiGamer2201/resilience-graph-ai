@@ -896,7 +896,7 @@ _NETSTATE_ESTIMATORS = (
     ("persistence_top1", "Persistence baseline", "\u201cthe network stays where it is\u201d", "baseline"),
     ("next_state_top1", "Our offline model", "interpolated, trained on the training days", "ours"),
     ("online_top1", "Our online tracker", "counts transitions as they arrive", "ours"),
-    ("oracle_top1", "Oracle", "counted on the test days \u2014 the ceiling", "ceiling"),
+    ("oracle_top1", "Oracle", "counted on the test days, the ceiling", "ceiling"),
 )
 
 
@@ -942,8 +942,8 @@ def _netstate_comparison(m: dict) -> dict:
     if ceiling and ours_best:
         parts.append(
             f"An oracle counted on the test days themselves reaches "
-            f"{ceiling['value']:.4f}, so an estimator of this class can win here "
-            f"\u2014 the limit is transfer between days, not capacity.")
+            f"{ceiling['value']:.4f}, so an estimator of this class can win here: "
+            f"the limit is transfer between days, not capacity.")
     return {"rows": rows, "summary": " ".join(parts),
             "beaten": [r["key"] for r in beaten],
             "best_baseline": best_baseline["key"] if best_baseline else None}

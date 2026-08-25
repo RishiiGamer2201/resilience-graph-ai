@@ -2,7 +2,7 @@
  * Engine 3, printed.
  *
  * Engine 3 has no place in the analysis flow because it feeds no alert, no
- * score and no severity — and for a while that meant it had no surface at all,
+ * score and no severity, and for a while that meant it had no surface at all,
  * which reads as an unfinished feature rather than a deliberate boundary.
  *
  * The boundary is the point, so this screen shows it: the model is a QUANTISED
@@ -22,7 +22,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { PageHeader } from '@/components/Layout'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
-import { EmptyState, ErrorState, SectionLabel } from '@/components/primitives'
+import { EmptyState, ErrorState, NotMeasured, SectionLabel } from '@/components/primitives'
 import { EstimatorRanking } from '@/components/EstimatorRanking'
 import type { NetstateModel, NetstateState } from '@/types/api'
 
@@ -161,7 +161,7 @@ export default function WorldModel() {
           </div>
           <p className="mt-0.5 text-xs leading-5 text-dim">
             It was evaluated on next-window prediction. We have no measurement of its
-            usefulness as an alert, so it does not produce one — the same rule that keeps
+            usefulness as an alert, so it does not produce one: the same rule that keeps
             bare accuracy off our scoreboard. The numbers below are research results on
             CIC-IDS2017, not a claim about the log analysed elsewhere in this product.
           </p>
@@ -172,7 +172,11 @@ export default function WorldModel() {
         <Card>
           <CardHeader>
             <CardTitle>Where a trivial baseline still beats us</CardTitle>
-            <CardMeta>next-state top-1 · {m?.n_windows_test?.toLocaleString() ?? '—'} test windows</CardMeta>
+            <CardMeta>
+              next-state top-1 ·{' '}
+              {m?.n_windows_test != null ? `${m.n_windows_test.toLocaleString()} test windows`
+                                         : <NotMeasured />}
+            </CardMeta>
           </CardHeader>
           <CardBody>
             <EstimatorRanking comparison={d.comparison} />
@@ -196,10 +200,13 @@ export default function WorldModel() {
                 </div>
                 <div className="text-right">
                   <div className="font-mono text-lg tabular-nums text-text">
-                    {m?.brier_1step?.toFixed(5) ?? '—'}
+                    {m?.brier_1step != null ? m.brier_1step.toFixed(5) : <NotMeasured />}
                   </div>
                   <div className="font-mono text-[11px] tabular-nums text-faint">
-                    baseline {m?.brier_1step_baseline?.toFixed(5) ?? '—'}
+                    baseline{' '}
+                    {m?.brier_1step_baseline != null
+                      ? m.brier_1step_baseline.toFixed(5)
+                      : <NotMeasured />}
                   </div>
                 </div>
               </div>
@@ -209,7 +216,9 @@ export default function WorldModel() {
                   <div className="text-xs text-faint">is the true next state in our top three</div>
                 </div>
                 <div className="font-mono text-lg tabular-nums text-text">
-                  {m?.next_state_top3 ? `${(m.next_state_top3 * 100).toFixed(1)}%` : '—'}
+                  {m?.next_state_top3 != null
+                    ? `${(m.next_state_top3 * 100).toFixed(1)}%`
+                    : <NotMeasured />}
                 </div>
               </div>
               <div>
@@ -217,7 +226,7 @@ export default function WorldModel() {
                 <p className="mt-1.5 text-xs leading-5 text-dim">
                   Window compromise separates at ROC-AUC{' '}
                   <span className="font-mono text-text">
-                    {m?.compromise_roc_auc?.toFixed(4) ?? '—'}
+                    {m?.compromise_roc_auc != null ? m.compromise_roc_auc.toFixed(4) : <NotMeasured />}
                   </span>{' '}
                   on this corpus. We still do not raise an alert from it: that number is a
                   property of CIC-IDS2017 labels, and we have not evaluated what it would cost
@@ -316,7 +325,7 @@ export default function WorldModel() {
           <CardTitle>All {d.n_states} states</CardTitle>
           <CardMeta>
             <Boxes className="mr-1 inline size-3" aria-hidden />
-            quantised on purpose — a state can be printed, a black box cannot
+            quantised on purpose: a state can be printed, a black box cannot
           </CardMeta>
         </CardHeader>
         <CardBody>
