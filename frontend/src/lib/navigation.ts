@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
+  Boxes,
   ChartNoAxesCombined,
   ClipboardCheck,
   Cpu,
@@ -53,6 +54,7 @@ export const navigationGroups: NavigationGroup[] = [
     items: [
       { to: '/scoreboard', label: 'Evaluation results', shortLabel: 'Results', description: 'See which requirements were tested', icon: ClipboardCheck },
       { to: '/metrics', label: 'Model performance', shortLabel: 'Performance', description: 'See how accurate and reliable the models were', icon: ChartNoAxesCombined },
+      { to: '/world-model', label: 'Network world model', shortLabel: 'World model', description: 'See the 24 network states the model learned, and where a baseline beats it', icon: Boxes },
       { to: '/methodology', label: 'Data and limitations', shortLabel: 'Method', description: 'See where results came from and what they cannot prove', icon: Database },
     ],
   },

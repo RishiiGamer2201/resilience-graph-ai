@@ -227,7 +227,22 @@ def threat_intel():
 
 @app.get("/api/metrics")
 def metrics():
-    return _cached("metrics")
+    """The evaluation numbers, plus engine 3's estimators already ranked.
+
+    The ranking is attached here rather than stored in the cache so that this
+    screen and /api/netstate/model rank the estimators with the SAME function.
+    The alternative -- letting the performance screen sort the estimators and
+    decide which of ours a baseline beat -- puts a verdict in the browser, where
+    it survives the next evaluation that moves the numbers underneath it.
+    """
+    payload = _cached("metrics")
+    engine3 = payload.get("engine3") or {}
+    netstate = engine3.get("netstate") or {}
+    if netstate:
+        payload = {**payload,
+                   "engine3": {**engine3,
+                               "comparison": _netstate_comparison(netstate)}}
+    return payload
 
 
 @app.get("/api/methodology")
@@ -867,6 +882,124 @@ def netstate_status():
                   "product, and it does not feed any alert, score or severity."),
         "not_ready_note": None if ready else
             "train it with python -m scripts.eval_netstate",
+    }
+
+
+# Which measured number is whose, and what it is called. The estimators live
+# here rather than in the browser because the classification below is DERIVED
+# from the values, and a screen that decides for itself which of its own models
+# lost is a screen that keeps saying so after the numbers move.
+_NETSTATE_ESTIMATORS = (
+    ("marginal_top1", "Marginal", "ignores the current state entirely", "baseline"),
+    ("second_order_top1", "Second-order", "tried, and it scored worse", "baseline"),
+    ("counted_matrix_top1", "Counted matrix", "raw transition counts, no interpolation", "baseline"),
+    ("persistence_top1", "Persistence baseline", "\u201cthe network stays where it is\u201d", "baseline"),
+    ("next_state_top1", "Our offline model", "interpolated, trained on the training days", "ours"),
+    ("online_top1", "Our online tracker", "counts transitions as they arrive", "ours"),
+    ("oracle_top1", "Oracle", "counted on the test days, the ceiling", "ceiling"),
+)
+
+
+def _netstate_comparison(m: dict) -> dict:
+    """Rank every estimator and work out which of ours a baseline beat.
+
+    Ordering and the `beaten` flag are computed from the measured values, not
+    asserted. Re-run the evaluation and this follows it; if the offline model
+    ever overtakes persistence, the row stops being marked as a loss on its own
+    rather than because someone remembered to edit a screen.
+    """
+    rows = []
+    for key, label, detail, role in _NETSTATE_ESTIMATORS:
+        value = m.get(key)
+        if not isinstance(value, (int, float)):
+            continue
+        rows.append({"key": key, "label": label, "detail": detail,
+                     "role": role, "value": round(float(value), 4)})
+    if not rows:
+        return {"rows": [], "summary": "", "beaten": []}
+
+    rows.sort(key=lambda r: r["value"])
+    best_baseline = max((r for r in rows if r["role"] == "baseline"),
+                        key=lambda r: r["value"], default=None)
+    beaten = []
+    for r in rows:
+        r["beaten_by_baseline"] = bool(
+            r["role"] == "ours" and best_baseline and r["value"] < best_baseline["value"])
+        if r["beaten_by_baseline"]:
+            beaten.append(r)
+
+    ours_best = max((r for r in rows if r["role"] == "ours"),
+                    key=lambda r: r["value"], default=None)
+    ceiling = next((r for r in rows if r["role"] == "ceiling"), None)
+
+    parts = []
+    for r in beaten:
+        parts.append(
+            f"{r['label']} scores {r['value']:.4f} and {best_baseline['label'].lower()} "
+            f"scores {best_baseline['value']:.4f}. It beats us.")
+    if ours_best and best_baseline and ours_best["value"] > best_baseline["value"]:
+        parts.append(f"{ours_best['label']} wins at {ours_best['value']:.4f}.")
+    if ceiling and ours_best:
+        parts.append(
+            f"An oracle counted on the test days themselves reaches "
+            f"{ceiling['value']:.4f}, so an estimator of this class can win here: "
+            f"the limit is transfer between days, not capacity.")
+    return {"rows": rows, "summary": " ".join(parts),
+            "beaten": [r["key"] for r in beaten],
+            "best_baseline": best_baseline["key"] if best_baseline else None}
+
+
+def _cached_metrics() -> dict:
+    """reports/metrics.json, the same file every other screen reads."""
+    from src.shared.metrics_store import load
+    return load()
+
+
+@app.get("/api/netstate/model")
+def netstate_model():
+    """The world model itself, printed.
+
+    Engine 3 has no screen because it feeds no alert, and for a while that meant
+    it had no surface at all. But the model is 13 KB of centroids and a
+    transition matrix, and the reason it was built as a QUANTISED state space
+    rather than a black box is exactly that a state can be described: this
+    endpoint returns all of them, in units of training standard deviations, so a
+    reader can see what the model learned instead of being asked to trust it.
+
+    Read-only, no auth, no input: it describes a shipped artifact, not a log.
+    """
+    from src.engine3 import netstate as ns
+
+    if not ns.MODEL.exists():
+        raise HTTPException(503, "world model artifact is not built; run "
+                                 "python -m scripts.eval_netstate")
+    model = ns.NetStateModel.load()
+    states = [model.describe_state(i, top_k=4) for i in range(model.n_states)]
+    transitions = model.transition_matrix()
+
+    # The evaluation, from the metrics store rather than typed here.
+    try:
+        measured = _cached_metrics().get("engine3", {}) or {}
+    except Exception:                                   # pragma: no cover
+        measured = {}
+    comparison = _netstate_comparison((measured or {}).get("netstate") or {})
+
+    return {
+        "ready": True,
+        "n_states": model.n_states,
+        "window": model.window,
+        "state_dim": ns.STATE_DIM,
+        "trained_on": model.trained_on,
+        "feature_names": ns.state_names(),
+        "states": states,
+        "transitions": [[round(float(v), 4) for v in row] for row in transitions],
+        "evaluation": measured,
+        "comparison": comparison,
+        "surface": "API only -- there is no screen for this in the analysis flow",
+        "claim": ("A discrete latent state-space model over traffic windows. Its "
+                  "published numbers are research results on CIC-IDS2017, not a "
+                  "claim about the log you analyse elsewhere in this product, and "
+                  "it does not feed any alert, score or severity."),
     }
 
 
