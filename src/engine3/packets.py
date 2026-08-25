@@ -32,11 +32,17 @@ variance, a SYN fan-out across twelve ports must register as a port scan, and a
 repeated TCP sequence number must count as one retransmission. That is a real
 correctness guarantee and it is a different claim from "it detects attacks".
 
-The window vector is deliberately the same shape as the one in
-`src/engine3/netstate.py`: mean and standard deviation per feature over a window
-of consecutive packets. A capture can therefore be fed to the same latent
-state-space model without changing the model, which is the point of having
-built the state space generically.
+The window vector follows the same shape CONVENTION as the one in
+`src/engine3/netstate.py` -- mean and standard deviation per feature over a
+window -- but NOT the same feature set, and the two are not interchangeable.
+
+This paragraph used to end "a capture can therefore be fed to the same latent
+state-space model without changing the model". It cannot, and saying so here
+while `packet_windows` said the opposite left the file arguing with itself.
+These are the 30 features of PACKET_FEATURES, 60 dimensions; the shipped
+artifact was trained on 24 CIC-IDS2017 flow features, 48 dimensions. Using
+these vectors means training an artifact on them. See `packet_windows` and
+`NetStateModel.encode`, which refuses the mismatch by name.
 """
 from __future__ import annotations
 
@@ -399,9 +405,19 @@ def packet_windows(packets: list[Packet], *, window: int = WINDOW
                    ) -> tuple[np.ndarray, list[dict]]:
     """Consecutive windows of packets -> (states, per-window feature dicts).
 
-    `states` has the same shape convention as src/engine3/netstate.py: the mean
-    and the standard deviation of each feature across the window, so a capture
-    can be handed to the same latent state-space model unchanged.
+    `states` follows the same shape CONVENTION as src/engine3/netstate.py -- the
+    mean and the standard deviation of each feature across the window -- but not
+    the same feature set, and the two are not interchangeable.
+
+    This used to say a capture "can be handed to the same latent state-space
+    model unchanged". It cannot. These are the 30 features of PACKET_FEATURES,
+    60 dimensions; the shipped artifact (models/netstate_cicids.npz) was trained
+    on the 24 CIC-IDS2017 flow features, 48 dimensions. Nothing converts one
+    into the other: TTL variance and retransmission rate are not recoverable
+    from flow records, and Init_Win_bytes_backward is not recoverable from a
+    packet window. Using these vectors means training an artifact on them --
+    which is what tests do, and why those tests never caught the claim.
+    NetStateModel.encode() now refuses the mismatch by name.
     """
     if len(packets) < window:
         return np.empty((0, STATE_DIM)), []

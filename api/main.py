@@ -902,7 +902,13 @@ def netstate_analyze(req: NetStateRequest, p: dict = Depends(analyze_principal))
                 422, f"need at least {ns.WINDOW} flows to form one window; "
                      f"got {len(df)}")
         model = ns.NetStateModel.load()
-        latent = model.encode(states)
+        try:
+            latent = model.encode(states)
+        except ns.FeatureContractError as e:
+            # 422, not 500: the caller sent windows this artifact cannot answer
+            # for. Retrying sends the same vectors, so the message has to name
+            # both feature sets rather than say "internal error".
+            raise HTTPException(422, str(e))
         # forecast() encodes internally, so it takes the 48-dim window states,
         # not the latent ids. Passing `latent` here broadcast (1,3) against (48,).
         fc = model.forecast(states, horizon=req.horizon)

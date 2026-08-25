@@ -163,6 +163,57 @@ def _run_with_retry(fn, *args, agent_name: str, notes: list, **kwargs) -> AgentR
     return _safe_default_result(agent_name, "unknown failure")
 
 
+def _engineer_for_scoring(events: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """Attach the model's input features to the event frame, or say why not.
+
+    The agent lane received raw events and chunked them directly, so the
+    per-event features the autoencoder consumes existed nowhere on this path.
+    src.shared.live_analyze does exactly this before scoring; doing it here is
+    what lets the two lanes score the same events with the same model instead of
+    one of them approximating with arithmetic.
+
+    Failure is reported and non-fatal: the heuristic remains, and Agent 2 labels
+    which one ran. A lane that cannot score is worse than a lane that scores
+    heuristically and says so.
+    """
+    from src.agents.detection import LANL_FEATURES
+
+    try:
+        from src.engine1.lanl_detect import engineer
+        from src.shared.live_analyze import _prepare, _score
+
+        out = events if all(f in events.columns for f in LANL_FEATURES) \
+            else engineer(_prepare(events.copy()))
+        missing = [f for f in LANL_FEATURES if f not in out.columns]
+        if missing:
+            return events, {"note": ("[orchestrator] feature engineering did not "
+                                     f"produce {missing[:3]}; chunks fall back to "
+                                     "the behavioural heuristic")}
+
+        # Score the WHOLE log once, through the same function the workflow lane
+        # uses. Two reasons it is not done per chunk:
+        #
+        #   * calibration is a property of the log, not of a 5-minute window.
+        #     Scoring each chunk against its own range pins the top event of
+        #     every chunk at 100 -- a ranking presented as a severity.
+        #   * the shipped anchors were measured on LANL, and _score falls back
+        #     to within-log ranking when the input does not resemble it. Without
+        #     that, the India scenarios put every chunk above the threshold:
+        #     36 of 36 flagged, which is the documented OOD failure arriving in
+        #     a second place.
+        #
+        # It also means the two lanes score the same event identically, which is
+        # what makes their disagreement downstream informative.
+        scores, calibration = _score(out)
+        out = out.copy()
+        out["_event_anomaly_score"] = scores
+        return out, {"calibration": calibration}
+    except Exception as e:                        # noqa: BLE001 - reported, not fatal
+        return events, {"note": (f"[orchestrator] could not engineer model "
+                                 f"features ({type(e).__name__}: {e}); chunks "
+                                 f"fall back to the behavioural heuristic"[:200])}
+
+
 def _scoring_method(scored: list[dict]) -> str:
     """Name the method that actually scored these chunks.
 
@@ -223,6 +274,14 @@ def iter_pipeline(
 
     # ── Pre-stage: Chunk + Point A Summarization ─────────────────────────────
     t0 = time.perf_counter()
+    # Engineer the seven LANL features BEFORE chunking, so every chunk's event
+    # slice carries them and Agent 2 can run the model this project publishes
+    # metrics for. Without this the features were never computed anywhere on
+    # this path, `has_features` was False for every chunk in every scenario, and
+    # the "10-agent lane" scored all of them with a hardcoded arithmetic rule.
+    events, feature_state = _engineer_for_scoring(events)
+    if feature_state.get("note"):
+        notes.append(feature_state["note"])
     all_strategy_chunks = chunk_all_strategies(events, entity_col=entity_col)
     primary_chunks = all_strategy_chunks.get("time_window", [])
     if not primary_chunks:
