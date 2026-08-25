@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Bot, ChevronDown, HelpCircle, Loader2, RotateCcw, Send, Sparkles } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
+import AdvisorMarkdown from '@/components/AdvisorMarkdown'
 import { twinChat } from '@/lib/api'
 import { useAnalysis } from '@/providers/analysis'
 
@@ -260,7 +261,7 @@ export default function ContextHelpBot() {
           <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
             {messages.map((message) => (
               <div key={message.id} className={message.from === 'user' ? 'ml-auto max-w-[90%]' : 'max-w-[90%]'}>
-                <div className={`rounded-lg px-3 py-2 text-sm leading-5 ${message.from === 'user' ? 'bg-accent text-accent-fg' : message.error ? 'border border-sev-high/40 bg-sev-high/10 text-text' : 'bg-surface-2 text-dim'}`}>{message.text}</div>
+                <div className={`rounded-lg px-3 py-2 text-sm leading-5 ${message.from === 'user' ? 'bg-accent text-accent-fg' : message.error ? 'border border-sev-high/40 bg-sev-high/10 text-text' : 'bg-surface-2 text-dim'}`}>{message.from === 'user' ? message.text : <AdvisorMarkdown text={message.text} />}</div>
                 {message.model ? <div className="mt-1 px-1 font-mono text-[10px] text-faint">AI model · {message.model}</div> : null}
               </div>
             ))}
