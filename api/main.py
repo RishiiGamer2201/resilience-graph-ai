@@ -227,7 +227,22 @@ def threat_intel():
 
 @app.get("/api/metrics")
 def metrics():
-    return _cached("metrics")
+    """The evaluation numbers, plus engine 3's estimators already ranked.
+
+    The ranking is attached here rather than stored in the cache so that this
+    screen and /api/netstate/model rank the estimators with the SAME function.
+    The alternative -- letting the performance screen sort the estimators and
+    decide which of ours a baseline beat -- puts a verdict in the browser, where
+    it survives the next evaluation that moves the numbers underneath it.
+    """
+    payload = _cached("metrics")
+    engine3 = payload.get("engine3") or {}
+    netstate = engine3.get("netstate") or {}
+    if netstate:
+        payload = {**payload,
+                   "engine3": {**engine3,
+                               "comparison": _netstate_comparison(netstate)}}
+    return payload
 
 
 @app.get("/api/methodology")

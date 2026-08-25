@@ -511,6 +511,11 @@ export interface MetricsPayload {
     embeddings?: EmbeddingMetrics
     manual_cert_in_top3?: number
   }
+  engine3?: {
+    netstate?: NetstateMetrics
+    /** Ranked by the server, so the screen never decides which estimator won. */
+    comparison?: NetstateComparison
+  }
 }
 
 // ─── Methodology (/api/methodology) ──────────────────────────────────────────
@@ -1402,6 +1407,27 @@ export interface NetstateState {
   attack_rate: number
   training_windows: number
   distinguishing_features: NetstateFeature[]
+}
+
+/** engine3.netstate in reports/metrics.json. Every field optional: a number the
+ *  evaluation did not write is absent, not zero. */
+export interface NetstateMetrics {
+  next_state_top1?: number
+  next_state_top3?: number
+  marginal_top1?: number
+  second_order_top1?: number
+  counted_matrix_top1?: number
+  persistence_top1?: number
+  online_top1?: number
+  oracle_top1?: number
+  brier_1step?: number
+  brier_1step_baseline?: number
+  compromise_roc_auc?: number
+  compromise_pr_auc?: number
+  n_states?: number
+  window?: number
+  state_dim?: number
+  n_windows_test?: number
 }
 
 export interface NetstateComparisonRow {

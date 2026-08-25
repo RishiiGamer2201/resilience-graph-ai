@@ -24,6 +24,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { Link } from 'react-router-dom'
 import { getMetrics } from '@/lib/api'
 import { useFetch } from '@/hooks/useFetch'
 import { PageHeader } from '@/components/Layout'
@@ -43,6 +44,7 @@ import {
   SectionLabel,
   StatRow,
 } from '@/components/primitives'
+import { EstimatorRanking } from '@/components/EstimatorRanking'
 import type { MetricsPayload, PredictorMetrics } from '@/types/api'
 
 interface Bar1 {
@@ -167,6 +169,8 @@ export default function Metrics() {
   const unsw = data.engine1?.unsw
   const predictor = data.engine2?.predictor
   const embeddings = data.engine2?.embeddings
+  const netstate = data.engine3?.netstate
+  const netstateRanking = data.engine3?.comparison
 
   const methods = predictor ? predictorMethods(predictor) : []
   const shipped = predictor?.shipped
@@ -381,6 +385,91 @@ export default function Metrics() {
           </Card>
         </div>
       </div>
+
+      <SectionLabel className="mt-6 mb-2">Engine 3 &middot; Network world model</SectionLabel>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle>Next-window state prediction &middot; top-1 accuracy</CardTitle>
+            <CardMeta>ranked by the evaluation, not by this screen</CardMeta>
+          </CardHeader>
+          <CardBody>
+            <EstimatorRanking comparison={netstateRanking} />
+          </CardBody>
+          <CardFooter>
+            {netstateRanking?.summary ? (
+              <>
+                <span className="text-dim">Where we stand. </span>
+                {netstateRanking.summary}{' '}
+              </>
+            ) : null}
+            Dataset: CIC-IDS2017 traffic windows, trained on the first three days and
+            tested on held-out days. Source: /api/metrics &middot; engine3.
+          </CardFooter>
+        </Card>
+
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Calibration</CardTitle>
+              <CardMeta>the task it was built for</CardMeta>
+            </CardHeader>
+            <CardBody className="space-y-1">
+              <StatRow label="Brier score, one step (lower is better)">
+                <MeasuredValue m={netstate?.brier_1step ?? null} digits={5} />
+              </StatRow>
+              <StatRow label="Brier score, baseline (lower is better)">
+                <MeasuredValue m={netstate?.brier_1step_baseline ?? null} digits={5} />
+              </StatRow>
+              <StatRow label="Next-state top-3 accuracy (0–1)">
+                <MeasuredValue m={netstate?.next_state_top3 ?? null} digits={4} />
+              </StatRow>
+              <StatRow label="Window compromise ROC-AUC (0–1)">
+                <MeasuredValue m={netstate?.compromise_roc_auc ?? null} digits={4} />
+              </StatRow>
+              <StatRow label="Window compromise PR-AUC (0–1)">
+                <MeasuredValue m={netstate?.compromise_pr_auc ?? null} digits={4} />
+              </StatRow>
+            </CardBody>
+            <CardFooter>
+              <span className="text-dim">Deliberately not wired. </span>
+              The compromise figures are a property of CIC-IDS2017 labels. This engine
+              raises no alert, score or severity anywhere in the product, because its
+              usefulness as an alert has not been measured — the same rule that keeps
+              bare accuracy off the scoreboard.
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Model shape</CardTitle>
+              <CardMeta>a quantised state space</CardMeta>
+            </CardHeader>
+            <CardBody className="space-y-1">
+              <StatRow label="Latent states (count)">
+                <MeasuredValue m={netstate?.n_states ?? null} digits={0} />
+              </StatRow>
+              <StatRow label="Window size (flows)">
+                <MeasuredValue m={netstate?.window ?? null} digits={0} />
+              </StatRow>
+              <StatRow label="State vector (dimensions)">
+                <MeasuredValue m={netstate?.state_dim ?? null} digits={0} />
+              </StatRow>
+              <StatRow label="Held-out test windows (count)">
+                <MeasuredValue m={netstate?.n_windows_test ?? null} digits={0} />
+              </StatRow>
+            </CardBody>
+            <CardFooter>
+              It is quantised rather than a black box so every state can be printed.{' '}
+              <Link to="/world-model" className="text-accent underline-offset-4 hover:underline">
+                See all states and the transition matrix
+              </Link>
+              . Source: /api/metrics &middot; engine3.netstate.
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+
     </>
   )
 }

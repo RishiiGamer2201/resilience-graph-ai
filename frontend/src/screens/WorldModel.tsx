@@ -23,49 +23,12 @@ import { PageHeader } from '@/components/Layout'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState, SectionLabel } from '@/components/primitives'
-import type { NetstateComparison, NetstateModel, NetstateState } from '@/types/api'
+import { EstimatorRanking } from '@/components/EstimatorRanking'
+import type { NetstateModel, NetstateState } from '@/types/api'
 
 /** The comparison strip. Order, the beaten flag and the prose are all computed
  *  server-side from the measured values -- see api.main._netstate_comparison.
  *  Nothing here decides which of our own models lost. */
-const ROLE_TONE: Record<string, string> = {
-  baseline: 'bg-faint',
-  ours: 'bg-accent',
-  ceiling: 'bg-faint/40',
-}
-
-function EvaluationStrip({ comparison }: { comparison: NetstateComparison | undefined }) {
-  const rows = comparison?.rows ?? []
-  if (!rows.length) {
-    return <EmptyState title="The evaluation has not been run for this artifact" />
-  }
-  const max = Math.max(...rows.map((r) => r.value), 0.5)
-
-  return (
-    <div className="flex flex-col gap-2.5">
-      {rows.map((r) => (
-        <div key={r.key} className="grid grid-cols-[minmax(0,11rem)_1fr_auto] items-center gap-3">
-          <div className="min-w-0">
-            <div className="truncate text-sm text-text">{r.label}</div>
-            <div className="truncate text-xs text-faint">{r.detail}</div>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-surface-3">
-            <div
-              className={`h-full rounded-full ${
-                r.beaten_by_baseline ? 'bg-sev-high' : ROLE_TONE[r.role] ?? 'bg-faint'
-              }`}
-              style={{ width: `${((r.value / max) * 100).toFixed(1)}%` }}
-            />
-          </div>
-          <div className="w-16 text-right font-mono text-sm tabular-nums text-text">
-            {r.value.toFixed(4)}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 /** One latent state, described in training standard deviations. */
 function StateCard({ s, selected, onSelect }: {
   s: NetstateState
@@ -212,7 +175,7 @@ export default function WorldModel() {
             <CardMeta>next-state top-1 · {m?.n_windows_test?.toLocaleString() ?? '—'} test windows</CardMeta>
           </CardHeader>
           <CardBody>
-            <EvaluationStrip comparison={d.comparison} />
+            <EstimatorRanking comparison={d.comparison} />
             {d.comparison?.summary ? (
               <p className="mt-4 text-xs leading-5 text-dim">{d.comparison.summary}</p>
             ) : null}
