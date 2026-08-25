@@ -197,3 +197,44 @@ def test_twin_chat_api_endpoint():
     assert len(data["reply"]) > 30
     assert "follow_ups" in data
     assert data.get("authoritative") is False
+
+
+# --------------------------------------------------------------------------- #
+# the topic gate must accept the questions the UI itself suggests             #
+# --------------------------------------------------------------------------- #
+def test_the_gate_accepts_the_screens_own_suggested_questions():
+    """The digital-twin screen suggests three example questions verbatim in
+    its placeholder and its help text: "Ask what is exposed, what isolation
+    costs, or what this analysis cannot tell you." Two of those three failed
+    the gate they were written to pass -- with a real incident's facts loaded,
+    in the live app -- because the term list checked for the literal substring
+    "isolate", which "isolation" and "isolating" do not contain, and never
+    listed "exposed" or "exposure" at all. A judge typing the app's own
+    suggestion got refused as off-topic.
+    """
+    from src.shared.chat_advisor import _in_scope
+
+    facts = {"recommended_isolation": "WARD-PC-013", "entry_host": "WARD-PC-013",
+             "critical_assets_at_risk": ["DC-AIIMS-01"],
+             "attacker_pivots": ["WARD-PC-013"]}
+    for suggested in ("what is exposed",
+                      "what isolation costs",
+                      "what isolation would cost",
+                      "what this analysis cannot tell you"):
+        assert _in_scope(suggested, assistant_mode="incident", facts=facts), (
+            f"the screen's own suggested question {suggested!r} was refused")
+
+    # The gate must still refuse genuinely unrelated questions -- fixing the
+    # false negative above must not turn it into a pass-everything gate.
+    for unrelated in ("what is the weather today", "write me a poem about cats"):
+        assert not _in_scope(unrelated, assistant_mode="incident", facts=facts)
+
+
+def test_isolation_inflections_all_match_the_stem():
+    """"isolate" is a stem now, not a literal word, so every inflection a
+    person actually types has to match: the base verb, the noun, the gerund,
+    and the past participle."""
+    from src.shared.chat_advisor import _in_scope
+
+    for word in ("isolate", "isolated", "isolating", "isolation"):
+        assert _in_scope(f"what does {word} mean here", assistant_mode="incident")
