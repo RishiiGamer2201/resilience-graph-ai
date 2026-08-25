@@ -23,45 +23,23 @@ import { PageHeader } from '@/components/Layout'
 import { Card, CardBody, CardHeader, CardMeta, CardTitle } from '@/components/ui/card'
 import { SkeletonRows } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState, SectionLabel } from '@/components/primitives'
-import type { NetstateModel, NetstateState } from '@/types/api'
+import type { NetstateComparison, NetstateModel, NetstateState } from '@/types/api'
 
-/** Rows of the evaluation strip, worst to best, so the loss is visible. */
-interface EvalRow {
-  key: string
-  label: string
-  detail: string
-  value: number | undefined
-  kind: 'baseline' | 'ours' | 'loss' | 'ceiling'
-}
-
-function evalRows(m: Record<string, number> | undefined): EvalRow[] {
-  if (!m) return []
-  const rows: EvalRow[] = [
-    { key: 'marginal', label: 'Marginal', detail: 'ignores the current state entirely', value: m.marginal_top1, kind: 'baseline' },
-    { key: 'second', label: 'Second-order', detail: 'tried, and it scored worse', value: m.second_order_top1, kind: 'baseline' },
-    { key: 'counted', label: 'Counted matrix', detail: 'raw transition counts, no interpolation', value: m.counted_matrix_top1, kind: 'baseline' },
-    { key: 'offline', label: 'Our offline model', detail: 'interpolated, trained Mon–Wed', value: m.next_state_top1, kind: 'loss' },
-    { key: 'persistence', label: 'Persistence baseline', detail: '“the network stays where it is”', value: m.persistence_top1, kind: 'baseline' },
-    { key: 'online', label: 'Our online tracker', detail: 'counts transitions as they arrive', value: m.online_top1, kind: 'ours' },
-    { key: 'oracle', label: 'Oracle', detail: 'counted on the test days — the ceiling', value: m.oracle_top1, kind: 'ceiling' },
-  ]
-  return rows.filter((r) => typeof r.value === 'number')
-}
-
-// `bg-faint`, not `bg-text-faint`: the theme exposes --color-faint, so the
-// latter resolves to nothing and the baseline bars render invisible — which
-// silently removes the comparison this card exists to make.
-const BAR_TONE: Record<EvalRow['kind'], string> = {
+/** The comparison strip. Order, the beaten flag and the prose are all computed
+ *  server-side from the measured values -- see api.main._netstate_comparison.
+ *  Nothing here decides which of our own models lost. */
+const ROLE_TONE: Record<string, string> = {
   baseline: 'bg-faint',
-  loss: 'bg-sev-high',
   ours: 'bg-accent',
   ceiling: 'bg-faint/40',
 }
 
-function EvaluationStrip({ metrics }: { metrics: Record<string, number> | undefined }) {
-  const rows = evalRows(metrics)
-  if (!rows.length) return <EmptyState title="The evaluation has not been run for this artifact" />
-  const max = Math.max(...rows.map((r) => r.value ?? 0), 0.5)
+function EvaluationStrip({ comparison }: { comparison: NetstateComparison | undefined }) {
+  const rows = comparison?.rows ?? []
+  if (!rows.length) {
+    return <EmptyState title="The evaluation has not been run for this artifact" />
+  }
+  const max = Math.max(...rows.map((r) => r.value), 0.5)
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -73,12 +51,14 @@ function EvaluationStrip({ metrics }: { metrics: Record<string, number> | undefi
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-surface-3">
             <div
-              className={`h-full rounded-full ${BAR_TONE[r.kind]}`}
-              style={{ width: `${(((r.value ?? 0) / max) * 100).toFixed(1)}%` }}
+              className={`h-full rounded-full ${
+                r.beaten_by_baseline ? 'bg-sev-high' : ROLE_TONE[r.role] ?? 'bg-faint'
+              }`}
+              style={{ width: `${((r.value / max) * 100).toFixed(1)}%` }}
             />
           </div>
           <div className="w-16 text-right font-mono text-sm tabular-nums text-text">
-            {(r.value ?? 0).toFixed(4)}
+            {r.value.toFixed(4)}
           </div>
         </div>
       ))}
@@ -232,20 +212,10 @@ export default function WorldModel() {
             <CardMeta>next-state top-1 · {m?.n_windows_test?.toLocaleString() ?? '—'} test windows</CardMeta>
           </CardHeader>
           <CardBody>
-            <EvaluationStrip metrics={m} />
-            <p className="mt-4 text-xs leading-5 text-dim">
-              Our offline model scores{' '}
-              <span className="font-mono text-text">{m?.next_state_top1?.toFixed(4)}</span> and
-              persistence — predicting the network simply stays where it is — scores{' '}
-              <span className="font-mono text-text">{m?.persistence_top1?.toFixed(4)}</span>.{' '}
-              <span className="text-text">It beats us.</span> The online tracker, which counts
-              transitions as they arrive at deployment, wins at{' '}
-              <span className="font-mono text-text">{m?.online_top1?.toFixed(4)}</span>. An oracle
-              matrix counted on the test days themselves reaches{' '}
-              <span className="font-mono text-text">{m?.oracle_top1?.toFixed(4)}</span>, so a
-              first-order model <em>can</em> win here — the limit is transfer between days, not
-              capacity.
-            </p>
+            <EvaluationStrip comparison={d.comparison} />
+            {d.comparison?.summary ? (
+              <p className="mt-4 text-xs leading-5 text-dim">{d.comparison.summary}</p>
+            ) : null}
           </CardBody>
         </Card>
 

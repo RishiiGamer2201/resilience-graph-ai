@@ -1404,6 +1404,22 @@ export interface NetstateState {
   distinguishing_features: NetstateFeature[]
 }
 
+export interface NetstateComparisonRow {
+  key: string
+  label: string
+  detail: string
+  role: 'baseline' | 'ours' | 'ceiling' | string
+  value: number
+  beaten_by_baseline: boolean
+}
+
+export interface NetstateComparison {
+  rows: NetstateComparisonRow[]
+  summary: string
+  beaten: string[]
+  best_baseline?: string | null
+}
+
 export interface NetstateModel {
   ready: boolean
   n_states: number
@@ -1414,6 +1430,7 @@ export interface NetstateModel {
   states: NetstateState[]
   transitions: number[][]
   evaluation?: { netstate?: Record<string, number> }
+  comparison?: NetstateComparison
   surface: string
   claim: string
 }
